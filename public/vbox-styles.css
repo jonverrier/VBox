@@ -1,0 +1,368 @@
+
+/* Large desktop  */
+@media (min-width: 992px) {
+    body {
+        padding-top: 59px;
+    }
+
+    .rowdiv {
+        border-bottom: 1px black solid;
+    }
+    /* Reduce column padding on desktop, align left border */
+    .col-xs-12, col-xs-6, col-sm-12, col-sm-6, col-sm-4, col-lg-12, col-lg-6, col-lg-4  {
+       padding-left: 0px;
+       padding-right:20px;
+    }
+    /* remove row indentation - not used for formatting */
+    .row {
+        padding-left: 0px;
+        padding-right: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+    .desktop-only {
+        display:block !important;
+    }
+    .tablet-only {
+        display:none !important;
+    }
+    .mobile-only {
+        display:none !important;
+    }
+}
+
+/* Tablets */
+@media (max-width: 991px) and (min-width: 768px) {
+    body {
+        padding-top: 59px;
+    }
+    .rowdiv {
+        border-bottom: 1px black solid;
+    }
+    /* Reduce container padding on tablets */
+    .container {
+       padding-left: 10px;
+       padding-right:10px;
+    }
+    /* Reduce column padding on tablets */
+    .col-xs-12, col-xs-10, col-xs-8, col-xs-6, col-xs-4, col-xs-3, col-xs-2, col-sm-12, col-sm-10, col-sm-8, col-sm-6, col-sm-4, col-sm-3, col-sm-2 {
+       padding-left: 5px;
+       padding-right:10px;
+    }
+    /* remove row indentation - not used for formatting */
+    .row {
+       padding-left: 0px;
+       padding-right:0px;
+       margin-left: 0px;
+       margin-right:0px;
+    }
+    .desktop-only {
+        display:none !important;
+    }
+    .tablet-only {
+        display:block !important;
+    }
+    .mobile-only {
+        display:none !important;
+    }
+}
+
+/* Landscape phones and down */
+@media (max-width: 767px) {
+    body {
+        padding-top: 55px;
+    }
+    .rowdiv {
+        border-bottom: 1px black solid;
+    }
+
+    /* Reduce container padding on mobiles to as low as it can be & still have legible text against the sides */
+    .container {
+       padding-left: 2px;
+       padding-right:2px;
+       margin-left: 0px;
+       margin-right:0px;
+    }
+    /* Reduce column padding on mobiles */
+    .col-xs-12, col-xs-10, col-xs-8, col-xs-6, col-xs-4, col-xs-3, col-xs-2, col-sm-12, col-sm-10, col-sm-8, col-sm-6, col-sm-4, col-sm-3, col-sm-2 {
+       padding-left: 1px;
+       padding-right:2px;
+       margin-left: 0px;
+       margin-right:0px;
+    }
+
+    /* remove row indentation - not used for formatting */
+    .row {
+       padding-left: 0px;
+       padding-right:0px;
+       margin-left: 0px;
+       margin-right:0px;
+    }
+    .desktop-only {
+        display:none !important;
+    }
+    .tablet-only {
+        display:none !important;
+    }
+    .mobile-only {
+        display:block !important;
+    }
+}
+
+a.disabled-link,
+a.disabled-link:visited,
+a.disabled-link:active,
+a.disabled-link:hover {
+    background-color:lightgray;
+    color:lightgray;
+}
+
+/* All form factors */
+.alert {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;    
+    font-size: 14px;
+    line-height: 18px;    
+}
+
+/* Main body and heading */
+body {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    text-align: center;
+}
+
+.heading, .subheading {
+    font-family: 'ubuntu', Helvetica, Arial, sans-serif;
+    text-align: center;
+    vertical-align:middle;
+}
+
+p.lead {
+    padding-top: 2.5%;
+    font-size: 18px;
+    line-height: 24px;
+}
+
+.menu a {
+    font-size: 18px;
+    line-height: 24px;
+    text-align: left;
+    color: black;
+    display: inline-block;
+}
+
+.dropdown-menu {
+  min-width: 250px;
+  color: black;
+}
+
+p {
+    font-size: 14px;
+}
+
+p.strong {
+    padding-top: 2.5%;
+    line-height: 24px;
+}
+
+/* make carousel iamges fade instead of slide */
+/* http://stackoverflow.com/questions/9526970/can-the-twitter-bootstrap-carousel-plugin-fade-in-and-out-on-slide-transition */
+
+.carousel.fade {
+  opacity: 1;
+}
+
+.carousel.fade .item {
+  -moz-transition: opacity ease-in-out 0.5s;
+  -o-transition: opacity ease-in-out 0.5s;
+  -webkit-transition: opacity ease-in-out 0.5s;
+  transition: opacity ease-in-out 0.5s;
+  left: 0 !important;
+  opacity: 0;
+  top:0;
+  position:absolute;
+  width: 100%;
+  display:block !important;
+  z-index:1;
+}
+.carousel.fade .item:first-child {
+  top:auto;
+  position:relative;
+}
+.carousel.fade .item.active {
+  opacity: 1;
+  -moz-transition: opacity ease-in-out 0.5s;
+  -o-transition: opacity ease-in-out 0.5s;
+  -webkit-transition: opacity ease-in-out 0.5s;
+  transition: opacity ease-in-out 0.5s;
+  z-index:2;
+}
+.carousel-indicators li {
+   width: 20px;
+   height: 2px;
+   color: yellow;
+   background-color: yellow;
+}
+
+.carousel-indicators .active {
+   background-color: yellow;
+}
+
+.carousel-indicators {
+   position: absolute;
+   bottom: 0px;
+}
+
+.branded-copy-heading {
+   font-size: 24px;
+   padding-top: 10px;
+   padding-bottom: 20px;
+   text-align: left;
+   color: yellow;
+}
+.branded-copy-heading-black {
+   font-size: 24px;
+   padding-top: 10px;
+   padding-bottom: 20px;
+   text-align: left;
+   color: black;
+}
+
+.branded-copy {
+   font-size: 16px;
+   padding-top: 10px;
+   padding-bottom: 10px;
+   text-align: left;
+}
+
+.branded-copy-leadin {
+   font-size: 16px;
+   text-align: left;
+   padding-top: 10px;
+}
+.branded-copy-leadout {
+   font-size: 16px;
+   text-align: left;
+   padding-bottom: 10px;
+}
+.branded-copy-inline {
+   font-size: 16px;
+   text-align: left;
+}
+
+.branded-image {
+   margin-top: 10px;
+   margin-bottom: 10px;
+   border: 1px solid yellow;
+   max-height:320px;
+   min-width: 300px;
+}
+
+.branded-image-plain-large {
+   margin-top: 10px;
+   margin-bottom: 10px;
+   max-height: 600px;
+   min-width: 300px;
+}
+
+.branded-image-plain {
+   margin-top: 10px;
+   margin-bottom: 10px;
+   max-height: 320px;
+   min-width: 300px;
+}
+
+.branded-carousel-padding {
+   padding-top: 20px;
+   padding-bottom: 20px;
+   padding-left: 0px;
+   padding-right: 0px
+}
+
+.footer {
+    color: #696969;
+    text-align: center;
+}
+.footer p {
+    font-size: 12px;
+}
+.footer a {
+    color: #696969;
+}
+
+/* button-image - style to add when putting an image in a button */
+.button-image {
+   display: inline;
+}
+
+/* input-button - style to add when putting a button in an input field */
+.input-button {
+   width: auto;
+}
+
+input.email-short {
+   width: 256px;
+}
+
+/* input field */
+form-default {
+   font-size: 16px;
+}
+
+/* Fix cases where inline form is nested in horizontal form
+   http://stackoverflow.com/questions/18429121/inline-form-nested-within-horizontal-form-in-bootstrap-3
+*/
+.form-inline .form-group{
+    margin-left: 0;
+    margin-right: 0;
+    display: inline-block;
+}
+
+/* Google chart */
+.chart {
+   width:inherit;
+   height:inherit;
+   min-height: 320px;
+   min-width: 320px;
+}
+
+.table-cell {
+   border-color:lightgray;
+   border-width:1px;
+   border-bottom-style:solid;
+   padding-left:1px;
+   padding-right:1px;
+   padding-top:4px;
+   padding-bottom:4px;
+}
+
+.table-cell-top {
+   border-top-style:solid;
+   border-bottom-width:2px;
+   text-align:center;
+   font-weight:bold;
+}
+
+.table-cell-left {
+   border-left-style:solid;
+}
+
+.table-cell-right {
+   border-right-style:solid;
+}
+
+.table-cell-middle {
+   border-left-style:solid;
+   border-right-style:solid;
+}
+
+.underline {
+   text-decoration: underline;
+}
+
+@-webkit-viewport   { width: device-width; }
+@-moz-viewport      { width: device-width; }
+@-ms-viewport       { width: device-width; }
+@-o-viewport        { width: device-width; }
+@viewport           { width: device-width; }
+
+
