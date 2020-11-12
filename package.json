@@ -25,5 +25,8 @@
    },
    "scripts": {
       "build": "webpack-cli --config webpack-config.js"
+   },
+   "devDependencies": {
+      "csstype": "^3.0.4"
    }
 }
