@@ -4,6 +4,7 @@ var path = require('path');
 var express = require('express');
 var errorHandler = require('errorhandler');
 var compression = require('compression');
+var pageRouter = require('./page-routes.js');
 
 // Control variables for development / production
 var inDevelopment = false;
@@ -32,7 +33,6 @@ app.use(versionator.middleware);
 //app.use(compression());
 
 // Allow files from ./public and ./dist to be used 
-//app.use(express.static(path.join(__dirname, '/')));
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../dist')));
 
@@ -49,6 +49,14 @@ if (inDevelopment) {
 
 // Allows you to set port in the project properties.
 app.set('port', process.env.PORT || 3000);
+
+// Routes for user pages
+app.use('/', pageRouter);
+
+//redirect root to Login
+app.get('/', function (req, res) {
+   return res.redirect('/login');
+});
 
 var server = app.listen(app.get('port'), function () {
    console.log('listening');

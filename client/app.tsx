@@ -2,13 +2,22 @@ declare var require: any
 
 var ReactDOM = require('react-dom');
 
+// Core React
 import * as React from 'react';
-import { Helmet } from 'react-helmet';
+
+// Bootstrap
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Navbar from 'react-bootstrap/Navbar';
+import Jumbotron from 'react-bootstrap/Jumbotron';
+import Button from 'react-bootstrap/Button';
 
+// Additional packages
+import { Helmet } from 'react-helmet';
+import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom'; 
+
+// This app
 import { Party } from './party';
 import { PartyBanner } from './party';
 import { SectionHeader } from './section';
@@ -93,4 +102,54 @@ export class MemberPage extends React.Component {
    }
 }
 
-ReactDOM.render(<MemberPage />, document.getElementById('root'));
+export class LoginPage extends React.Component {
+   render() {
+      return ( 
+         <div className="loginpage">
+            <Helmet>
+               <title>Virtual Box</title>
+               <link rel="icon" href="building-black128x128.png" type="image/png" />
+               <link rel="shortcut icon" href="building-black128x128.png" type="image/png" />
+            </Helmet>
+            <Navbar style={navbarStyle}>
+               <Navbar.Brand href="/" style={navbarBrandStyle}>
+                  <PartyBanner name="Virtual Box" thumbnailUrl="building-white128x128.png" />
+               </Navbar.Brand>
+            </Navbar>
+            <Container fluid style={pageStyle}>
+<Jumbotron style={{background: 'gray', color: 'white'}}>
+  <h1>Welcome!</h1>
+  <p>
+    Welcome to Virtual Box. Sign in below to get access to your class. 
+  </p>
+  <p>
+    <Button variant="primary">Sign In with Facebook</Button>
+  </p>
+</Jumbotron>            
+            </Container>
+         </div>
+      );
+   }
+}
+
+export class PageSwitcher extends React.Component {
+   render() {
+      return ( 
+         <BrowserRouter>   
+            <Switch>
+               <Route exact path="/">  
+                  <Redirect to="/login" />  
+               </Route> 
+               <Route path="/login">
+                  <LoginPage />
+               </Route>
+               <Route path="/member">
+                  <MemberPage />
+               </Route>
+            </Switch>  
+         </BrowserRouter>  
+      );
+   }
+}
+
+ReactDOM.render(<PageSwitcher />, document.getElementById('root'));
