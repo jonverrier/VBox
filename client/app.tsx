@@ -22,6 +22,7 @@ import { Party } from './party';
 import { PartyBanner } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
+import { LoginComponent } from './facebook';
 
 import * as CSS from 'csstype';
 
@@ -117,15 +118,13 @@ export class LoginPage extends React.Component {
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
-<Jumbotron style={{background: 'gray', color: 'white'}}>
-  <h1>Welcome!</h1>
-  <p>
-    Welcome to Virtual Box. Sign in below to get access to your class. 
-  </p>
-  <p>
-    <Button variant="primary">Sign In with Facebook</Button>
-  </p>
-</Jumbotron>            
+               <Jumbotron style={{background: 'gray', color: 'white'}}>
+                  <h1>Welcome!</h1>
+                  <p>
+                     Welcome to Virtual Box. Sign in below to get access to your class. 
+                  </p>
+                  <LoginComponent />
+               </Jumbotron>            
             </Container>
          </div>
       );
