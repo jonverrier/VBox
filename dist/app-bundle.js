@@ -36678,7 +36678,6 @@ var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_m
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
 var Navbar_1 = __webpack_require__(/*! react-bootstrap/Navbar */ "./node_modules/react-bootstrap/esm/Navbar.js");
 var Jumbotron_1 = __webpack_require__(/*! react-bootstrap/Jumbotron */ "./node_modules/react-bootstrap/esm/Jumbotron.js");
-var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 // Additional packages
 var react_helmet_1 = __webpack_require__(/*! react-helmet */ "./node_modules/react-helmet/es/Helmet.js");
 var react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/esm/react-router-dom.js");
@@ -36687,6 +36686,7 @@ var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var section_1 = __webpack_require__(/*! ./section */ "./client/section.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
+var facebook_1 = __webpack_require__(/*! ./facebook */ "./client/facebook.tsx");
 var thinStyle = {
     margin: '0px', padding: '0px'
 };
@@ -36761,8 +36761,7 @@ var LoginPage = /** @class */ (function (_super) {
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Welcome!"),
                     React.createElement("p", null, "Welcome to Virtual Box. Sign in below to get access to your class."),
-                    React.createElement("p", null,
-                        React.createElement(Button_1.default, { variant: "primary" }, "Sign In with Facebook"))))));
+                    React.createElement(facebook_1.LoginComponent, null)))));
     };
     return LoginPage;
 }(React.Component));
@@ -36821,6 +36820,120 @@ exports.Clock = function (props) { return (React.createElement(Row_1.default, { 
         ("00" + props.mm).slice(-2),
         ":",
         ("00" + props.ss).slice(-2)))); };
+
+
+/***/ }),
+
+/***/ "./client/facebook.tsx":
+/*!*****************************!*\
+  !*** ./client/facebook.tsx ***!
+  \*****************************/
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
+/*! CommonJS bailout: this is used directly at 2:17-21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LoginComponent = void 0;
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
+var LoginComponent = /** @class */ (function (_super) {
+    __extends(LoginComponent, _super);
+    function LoginComponent(props) {
+        var _this = _super.call(this, props) || this;
+        _this.loadAPI = _this.loadAPI.bind(_this);
+        _this.handleLogin = _this.handleLogin.bind(_this);
+        _this.checkLoginResponse = _this.checkLoginResponse.bind(_this);
+        _this.loginCallback = _this.loginCallback.bind(_this);
+        _this.isLoggedIn = false;
+        _this.name = null;
+        _this.thumbnailUrl = null;
+        _this.userAccessToken = null;
+        _this.userPrompt = "Login with Facebook";
+        _this.state = { userPrompt: _this.userPrompt };
+        return _this;
+    }
+    LoginComponent.prototype.loadAPI = function () {
+        var self = this;
+        window.fbAsyncInit = function () {
+            window.FB.init({
+                appId: '1420468678202442',
+                cookie: true,
+                xfbml: false,
+                status: true,
+                version: 'v9.0' // use version 9
+            });
+            self.checkLoginResponse(true);
+        };
+        // Load the SDK asynchronously
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id))
+                return;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "//connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    };
+    LoginComponent.prototype.componentDidMount = function () {
+        this.loadAPI();
+    };
+    LoginComponent.prototype.componentWillUnmount = function () {
+    };
+    LoginComponent.prototype.getUserData = function () {
+        var self = this;
+        window.FB.api('/me', { fields: 'id, name, email' }, function (response) {
+            self.name = response.name;
+            self.thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
+        });
+    };
+    LoginComponent.prototype.loginCallback = function (response) {
+        if (response.status === 'connected') {
+            this.isLoggedIn = true;
+            this.userAccessToken = response.authResponse.accessToken;
+            this.userPrompt = "Continue with Facebook";
+            this.getUserData();
+            this.setState({ userPrompt: this.userPrompt });
+        }
+        else if (response.status === 'not_authorized') {
+            this.isLoggedIn = false;
+        }
+        else {
+            this.isLoggedIn = false;
+        }
+    };
+    LoginComponent.prototype.checkLoginResponse = function (force) {
+        var self = this;
+        window.FB.getLoginStatus(function (response) {
+            self.loginCallback(response);
+        }, force);
+    };
+    LoginComponent.prototype.handleLogin = function () {
+        window.FB.login(this.checkLoginResponse(false), { scope: 'public_profile, email' });
+    };
+    LoginComponent.prototype.render = function () {
+        return (React.createElement("p", null,
+            React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt)));
+    };
+    return LoginComponent;
+}(React.Component));
+exports.LoginComponent = LoginComponent;
 
 
 /***/ }),
