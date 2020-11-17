@@ -40,9 +40,6 @@ app.use(versionator.middleware);
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// Passport authentication
-app.use(passport.initialize());
-
 if (inDevelopment) {
    // Set error handler. 
    app.use(errorHandler({ dumpExceptions: true, showStack: true }));
@@ -57,6 +54,7 @@ if (inDevelopment) {
 // Allows you to set port in the project properties.
 app.set('port', process.env.PORT || 3000);
 
+// Force https
 function requireHTTPS(req, res, next) {
    // The 'x-forwarded-proto' check is for Heroku
    if (!req.secure && req.get('x-forwarded-proto') !== 'https' && process.env.NODE_ENV !== "development") {
@@ -65,15 +63,18 @@ function requireHTTPS(req, res, next) {
    next();
 }
 
+app.use(function (req, res, next) {
+   return requireHTTPS(req, res, next);
+});
+
+// Passport authentication
+app.use(passport.initialize());
+
 // Routes for user pages
 app.use('/', pageRouter);
 
 // Routes for auth pages
 app.use('/', authRouter);
-
-app.use(function (req, res, next) {
-   return requireHTTPS(req, res, next);
-});
 
 //redirect root to Login
 app.get('/', function (req, res) {
