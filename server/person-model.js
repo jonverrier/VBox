@@ -5,11 +5,13 @@ var mongoose = require("mongoose");
 const personSchema = new mongoose.Schema({
    name: {
       type: String,
-      required: true
+      required: true,
+      index: true 
    },
    email: {
       type: String,
-      required: true
+      required: true,
+      index: true 
    },
    thumbnailUrl: {
       type: String,
