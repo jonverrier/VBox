@@ -3,6 +3,12 @@
 var mongoose = require("mongoose");
 
 const personSchema = new mongoose.Schema({
+   externalId: {
+      type: String,
+      required: true,
+      index: true,
+      unique: true
+   },
    name: {
       type: String,
       required: true,
