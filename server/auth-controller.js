@@ -7,12 +7,48 @@ var personModel = require("./person-model.js");
 
 const FacebookStrategy = strategy.Strategy;
 
+function save(user, accessToken) {
+   const email = user.email;
+   const name = user.first_name + ' ' + user.last_name;
+   const thumbnailUrl = 'https://graph.facebook.com/' + user.id.toString() + '/picture';
+   const lastAuthCode = accessToken;
+   const externalId = user.id;
+
+   const userData = {
+      externalId, email, name, thumbnailUrl, lastAuthCode
+   };
+   personModel.findOne().where('email').eq(email).exec(function (err, person) {
+      if (!err && person) {
+         person.externalId = externalId;
+         person.name = name;
+         person.thumbnailUrl = thumbnailUrl;
+         if (lastAuthCode) // Only overwrite token if we have a new one
+            person.lastAuthCode = lastAuthCode;
+         person.save();
+      }
+      else {
+         new personModel(userData).save();
+      }
+   });
+};
+
+function find (id, fn) {
+   personModel.findOne().where('externalId').eq(id).exec(function (err, person) {
+      if (!err && person) {
+         fn(err, person);
+      } else
+         fn(err, null);
+   });
+};
+
 passport.serializeUser(function (user, done) {
-   done(null, user);
+   done(null, user.id);
 });
 
-passport.deserializeUser(function (obj, done) {
-   done(null, obj);
+passport.deserializeUser(function (id, done) {
+   find(id, function (err, user) {
+      done(err, user);
+   });
 });
 
 passport.use(
@@ -24,25 +60,8 @@ passport.use(
          profileFields: ["email", "name"]
       },
       function (accessToken, refreshToken, profile, done) {
-         const email = profile._json.email;
-         const name = profile._json.first_name + ' ' + profile._json.last_name;
-         const thumbnailUrl = 'https://graph.facebook.com/' + profile._json.id.toString() + '/picture';
-         const lastAuthCode = accessToken;
-         const userData = {
-            email, name, thumbnailUrl, lastAuthCode
-         };
-         personModel.findOne().where('email').eq(email).exec(function (err, person) {
-            if (!err && person) {
-               person.name = userData.name;
-               person.thumbnailUrl = userData.thumbnailUrl;
-               person.lastAuthCode = userData.lastAuthCode;
-               person.save();
-            }
-            else {
-               new personModel(userData).save();
-            }
-            done(null, profile);
-         });
+         save(profile._json, accessToken);
+         done(null, profile); 
       }
    )
 );

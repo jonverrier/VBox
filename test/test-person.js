@@ -11,9 +11,9 @@ describe("Person", function () {
    var person1, person2;
    
    beforeEach(function () {
-      person1 = new Person(1, "Joe", "Joe@mail.com", "https://jo.pics.com", "1234");
+      person1 = new Person(1, "123", "Joe", "Joe@mail.com", "https://jo.pics.com", "1234");
 
-      person2 = new Person(2, "Joe", "Joe@mail.com", "https://jo.pics.com", "5678");
+      person2 = new Person(2, "123", "Joe", "Joe@mail.com", "https://jo.pics.com", "5678");
    });
    
    it("Needs to compare for equality and inequality", function () {
@@ -24,7 +24,8 @@ describe("Person", function () {
    
    it("Needs to correctly store attributes", function () {
       
-      expect(person1._id).to.equal(1);      
+      expect(person1._id).to.equal(1);    
+      expect(person1.externalId).to.equal("123");      
       expect(person1.name).to.equal("Joe");
       expect(person1.email).to.equal("Joe@mail.com");
       expect(person1.thumbnailUrl).to.equal("https://jo.pics.com");
