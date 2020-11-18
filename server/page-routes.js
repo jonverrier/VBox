@@ -15,12 +15,18 @@ router.get('/login', function (req, res) {
 
 // Member page route. Client-side does path-based routing. 
 router.get('/member', function (req, res) {
-   res.sendFile('public/index.html', options);
+   if (!req.user)
+      res.sendFile('public/internalerror.html', options);
+   else
+      res.sendFile('public/index.html', options);
 })
 
 // Coach page route. Client-side does path-based routing. 
 router.get('/coach', function (req, res) {
-   res.sendFile('public/index.html', options);
+   if (!req.user)
+      res.sendFile('public/internalerror.html', options);
+   else
+      res.sendFile('public/index.html', options);
 })
 
 module.exports = router;

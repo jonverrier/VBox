@@ -6,6 +6,10 @@ var errorHandler = require('errorhandler');
 var compression = require('compression');
 var passport = require('passport');
 var mongoose = require('mongoose');
+var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var connectMongo = require('connect-mongo')(session);
 
 var pageRouter = require("./page-routes.js");
 var authRouter = require("./auth-routes.js");
@@ -67,10 +71,28 @@ if (inDevelopment) {
 // Allows you to set port in the project properties.
 app.set('port', process.env.PORT || 3000);
 
-
+// configure Session data & dependencies
+app.use(cookieParser());    // Required to use sessions, below
+app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(                    // Use Mongo session store
+   session({
+      store: new connectMongo ({
+         url: process.env.MONGODB_URI,
+         ttl: 604800 // = 7 days. 
+      }),
+      cookie: { maxAge: 604800 },
+      secret: Math.random().toString(),
+      saveUninitialized: true,
+      resave: true,
+      httpOnly: true,   // https://stormpath.com/blog/everything-you-ever-wanted-to-know-about-node-dot-js-sessions/
+      secure: true,     // use cookies only accessible from http, that get deleted when browser closes
+      ephemeral: true
+   }));
 
 // Passport authentication
 app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes for user pages
 app.use('/', pageRouter);
