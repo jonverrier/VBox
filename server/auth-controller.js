@@ -31,8 +31,18 @@ passport.use(
          const userData = {
             email, name, thumbnailUrl, lastAuthCode
          };
-         new personModel(userData).save();
-         done(null, profile);
+         personModel.findOne().where('email').eq(email).exec(function (err, person) {
+            if (!err && person) {
+               person.name = userData.name;
+               person.thumbnailUrl = userData.thumbnailUrl;
+               person.lastAuthCode = userData.lastAuthCode;
+               person.save();
+            }
+            else {
+               new personModel(userData).save();
+            }
+            done(null, profile);
+         });
       }
    )
 );
