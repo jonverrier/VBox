@@ -11,7 +11,8 @@ const personSchema = new mongoose.Schema({
    email: {
       type: String,
       required: true,
-      index: true 
+      index: true,
+      unique : true
    },
    thumbnailUrl: {
       type: String,
