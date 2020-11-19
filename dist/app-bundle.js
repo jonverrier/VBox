@@ -36711,11 +36711,11 @@ var MemberPage = /** @class */ (function (_super) {
         return (React.createElement("div", { className: "memberpage" },
             React.createElement(react_helmet_1.Helmet, null,
                 React.createElement("title", null, "Fortitude"),
-                React.createElement("link", { rel: "icon", href: "FortitudeRoughSquare.png", type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: "FortitudeRoughSquare.png", type: "image/png" })),
+                React.createElement("link", { rel: "icon", href: "FortitudeSquare.png", type: "image/png" }),
+                React.createElement("link", { rel: "shortcut icon", href: "FortitudeSquare.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: navbarStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "Fortitude", thumbnailUrl: "FortitudeRoughSquare.png" }))),
+                    React.createElement(party_2.PartyBanner, { name: "Fortitude", thumbnailUrl: "FortitudeSquare.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
@@ -36752,11 +36752,11 @@ var CoachPage = /** @class */ (function (_super) {
         return (React.createElement("div", { className: "coachpage" },
             React.createElement(react_helmet_1.Helmet, null,
                 React.createElement("title", null, "Fortitude"),
-                React.createElement("link", { rel: "icon", href: "FortitudeRoughSquare.png", type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: "FortitudeRoughSquare.png", type: "image/png" })),
+                React.createElement("link", { rel: "icon", href: "FortitudeSquare.png", type: "image/png" }),
+                React.createElement("link", { rel: "shortcut icon", href: "FortitudeSquare.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: navbarStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "Fortitude", thumbnailUrl: "FortitudeRoughSquare.png" }))),
+                    React.createElement(party_2.PartyBanner, { name: "Fortitude", thumbnailUrl: "FortitudeSquare.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Coach Page")))));
@@ -36898,7 +36898,6 @@ var LoginComponent = /** @class */ (function (_super) {
                 appId: '1420468678202442',
                 cookie: true,
                 xfbml: false,
-                status: true,
                 version: 'v9.0' // use version 9
             });
             // self.checkLoginResponse(true);
@@ -36933,6 +36932,7 @@ var LoginComponent = /** @class */ (function (_super) {
             this.userPrompt = "Continue with Facebook";
             this.getUserData();
             this.setState({ userPrompt: this.userPrompt });
+            // redirect to the server login age that will look up roles and then redirect the client
             window.location.href = "auth/facebook";
         }
         else if (response.status === 'not_authorized') {
