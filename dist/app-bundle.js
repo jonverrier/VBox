@@ -36733,11 +36733,11 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(section_1.SectionHeader, { name: "Athletes" })),
                 React.createElement("div", null,
                     React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "person-white-128x128.png" })),
+                        React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "person-white128x128.png" })),
                     React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "Another Person with a Long Name", thumbnailUrl: "person-white-128x128.png" })),
+                        React.createElement(party_1.Party, { name: "Another Person with a Long Name", thumbnailUrl: "person-white128x128.png" })),
                     React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "A B", thumbnailUrl: "person-white-128x128.png" }))),
+                        React.createElement(party_1.Party, { name: "A B", thumbnailUrl: "person-white128x128.png" }))),
                 React.createElement("br", null))));
     };
     return MemberPage;

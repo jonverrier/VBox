@@ -13,6 +13,7 @@ var connectMongo = require('connect-mongo')(session);
 
 var pageRouter = require("./page-routes.js");
 var authRouter = require("./auth-routes.js");
+var apiRouter = require("./api-routes.js");
 
 // Control variables for development / production
 var inDevelopment = false;
@@ -99,6 +100,9 @@ app.use('/', pageRouter);
 
 // Routes for auth pages
 app.use('/', authRouter);
+
+// Routes for API endpoints
+app.use('/', apiRouter);
 
 //redirect root to Login
 app.get('/', function (req, res) {

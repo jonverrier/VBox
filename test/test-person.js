@@ -1,11 +1,13 @@
 if (typeof exports !== 'undefined') {
 
-   var userModule = require('../common/person.js');
-   var Person = userModule.Person;
+   var personModule = require('../common/person.js');
+   var Person = personModule.Person;
+
+   var typesModule = require('../common/types.js');
+   var TypeRegistry = typesModule.TypeRegistry;
 
    var expect = require("chai").expect;
 }
-
 
 describe("Person", function () {
    var person1, person2;
@@ -32,13 +34,13 @@ describe("Person", function () {
       expect(person1.lastAuthCode).to.equal("1234");
    });
    
-   //it("Needs to save and restore to/from JSON", function () {
+   it("Needs to save and restore to/from JSON", function () {
       
-      //var types = new TypeRegistry();
-     // var output = JSON.stringify(person1);
-      //var obj = types.reviveFromJSON(output);
+      var types = new TypeRegistry();
+      var output = JSON.stringify(person1);
+      var obj = types.reviveFromJSON(output);
 
-      //expect(person1.equals(obj)).to.equal(true);
-   //});
+      expect(person1.equals(obj)).to.equal(true);
+   });
 });
 

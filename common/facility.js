@@ -5,62 +5,54 @@
 
 
 //==============================//
-// Person class
+// Facility class
 //==============================//
-var Person = (function invocation() {
+var Facility = (function invocation() {
    "use strict";
 
   /**
-   * Create a Person object 
+   * Create a Facility object 
    * @param _id - Mongo-DB assigned ID
    * @param externalId - ID assigned by external system (like facebook)
-   * @param name - plain text user name
-   * @param email - user email
+   * @param name - plain text Facility name
    * @param thumbnailUrl - URL to thumbnail image 
-   * @param lastAuthCode - provided by underlying identity system when user logs in
    */
-   function Person(_id, externalId, name, email, thumbnailUrl, lastAuthCode) {
+   function Facility(_id, externalId, name, thumbnailUrl) {
       
       this._id = _id;
       this.externalId = externalId;
       this.name = name;
-      this.email = email;
       this.thumbnailUrl = thumbnailUrl;
-      this.lastAuthCode = lastAuthCode;
    }
    
-   Person.prototype.__type = "Person";
+   Facility.prototype.__type = "Facility";
 
   /**
    * test for equality - checks all fields are the same. 
    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
    * @param rhs - the object to compare this one to.  
    */
-   Person.prototype.equals = function (rhs) {
+   Facility.prototype.equals = function (rhs) {
 
       return ((this._id === rhs._id) &&
          (this.externalId === rhs.externalId) &&
          (this.name === rhs.name) &&
-         (this.email === rhs.email) &&
-         (this.thumbnailUrl === rhs.thumbnailUrl) &&
-         (this.lastAuthCode === rhs.lastAuthCode));
+         (this.thumbnailUrl === rhs.thumbnailUrl));
    };
 
    /**
     * Method that serializes to JSON 
     */
-   Person.prototype.toJSON = function () {
+   Facility.prototype.toJSON = function () {
 
       return {
-         __type: Person.prototype.__type,
+         __type: Facility.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
             externalId: this.externalId,
             name: this.name,
-            email: this.email,
             thumbnailUrl: this.thumbnailUrl,
-            lastAuthCode: this.lastAuthCode
          }
       };
    };
@@ -69,35 +61,34 @@ var Person = (function invocation() {
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   Person.revive = function (data) {
+   Facility.revive = function (data) {
       
       // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      return Person.reviveDb (data.attributes);
+      return Facility.reviveDb (data.attributes);
    };
    
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   Person.reviveDb = function (data) {
+   Facility.reviveDb = function (data) {
       
-      var person = new Person();
+      var facility = new Facility();
       
-      person._id = data._id;
-      person.externalId = data.externalId;
-      person.name = data.name;
-      person.email = data.email;
-      person.thumbnailUrl = data.thumbnailUrl;
-      person.lastAuthCode = data.lastAuthCode;
+      facility._id = data._id;
+      facility.externalId = data.externalId;
+      facility.name = data.name;
+      facility.thumbnailUrl = data.thumbnailUrl;
       
-      return person;
+      return facility;
    };
 
-   return Person;
+   return Facility;
 }());
+
 
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
-   exports.Person = Person;
+   exports.Facility = Facility;
 }
