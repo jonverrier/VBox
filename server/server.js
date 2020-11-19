@@ -111,6 +111,39 @@ const connect = async () => {
    try {
       await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
       console.log('Listening...');
+
+      /*
+      if (false) {
+        
+         var fortitude = { externalId: "12341", name: "Fortitude Fitness London", thumbnailUrl: "FortitudeSquare.png" };
+         var fitology = { externalId: "12342", name: "Fitology", thumbnailUrl: "FitologySquare.png" };
+         var dulwich = { externalId: "12343", name: "Crossfit Dulwich", thumbnailUrl: "building-black128x128.png" };
+         var test = { externalId: "12344", name: "Test facility", thumbnailUrl: "building-black128x128.png" };
+         new facilityModel(fortitude).save(); 
+         new facilityModel(fitology).save(); 
+         new facilityModel(dulwich).save(); 
+         new facilityModel(test).save(); 
+      }
+
+      if (false) {         
+         var yCoach = {
+            externalId: "100057896350026", name: "Y AllowedCoach", email: "y_allowedcoach_cxzsfkj_allowedcoach@tfbnw.net", thumbnailUrl: "person-white128x128.png", lastAuthCode: "0"
+         };
+         var yMember = {
+            externalId: "103351181604960", name: "Y AllowedMember", email: "y_allowedmember_spaqhdv_allowedmember@tfbnw.net", thumbnailUrl: "person-white128x128.png", lastAuthCode: "0"
+         };
+         new personModel(yCoach).save();
+         new personModel(yMember).save();
+      }
+
+      if (false) {
+         var jon = { facilityId: "12343", personId: "10222806520938994"};
+         var yCoach = { facilityId: "12344", personId: "100057896350026"};
+         new facilityCoachModel(jon).save();
+         new facilityCoachModel(yCoach).save();
+      }
+      */
+
    } catch (error) {
       console.log('Error:' + error);
    }

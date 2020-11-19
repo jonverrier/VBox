@@ -52,12 +52,12 @@ export class MemberPage extends React.Component {
          <div className="memberpage">
             <Helmet>
                <title>Fortitude</title>
-               <link rel="icon" href="FortitudeRoughSquare.png" type="image/png" />
-               <link rel="shortcut icon" href="FortitudeRoughSquare.png" type="image/png" />
+               <link rel="icon" href="FortitudeSquare.png" type="image/png" />
+               <link rel="shortcut icon" href="FortitudeSquare.png" type="image/png" />
             </Helmet>
             <Navbar style={navbarStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Fortitude" thumbnailUrl="FortitudeRoughSquare.png" />
+                  <PartyBanner name="Fortitude" thumbnailUrl="FortitudeSquare.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
@@ -87,13 +87,13 @@ export class MemberPage extends React.Component {
                </Row>
                <div>
                <Row>
-                  <Party name="Another Person" thumbnailUrl="person-white-128x128.png" />
+                  <Party name="Another Person" thumbnailUrl="person-white128x128.png" />
                </Row>
                <Row>
-                  <Party name="Another Person with a Long Name" thumbnailUrl="person-white-128x128.png" />
+                  <Party name="Another Person with a Long Name" thumbnailUrl="person-white128x128.png" />
                </Row>
                <Row>
-                  <Party name="A B" thumbnailUrl="person-white-128x128.png" />
+                  <Party name="A B" thumbnailUrl="person-white128x128.png" />
                </Row>
                </div>
                <br />
@@ -109,12 +109,12 @@ export class CoachPage extends React.Component {
          <div className="coachpage">
             <Helmet>
                <title>Fortitude</title>
-               <link rel="icon" href="FortitudeRoughSquare.png" type="image/png" />
-               <link rel="shortcut icon" href="FortitudeRoughSquare.png" type="image/png" />
+               <link rel="icon" href="FortitudeSquare.png" type="image/png" />
+               <link rel="shortcut icon" href="FortitudeSquare.png" type="image/png" />
             </Helmet>
             <Navbar style={navbarStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Fortitude" thumbnailUrl="FortitudeRoughSquare.png" />
+                  <PartyBanner name="Fortitude" thumbnailUrl="FortitudeSquare.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>

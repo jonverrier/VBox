@@ -7,6 +7,9 @@ var passport = require('passport');
 // Not directly used here, but passport needs to be initialised with a Strategy
 var authController = require("./auth-controller.js");
 
+// Ued to direct authenticated users to the right home page
+var facilityCoachModel = require("./facilityCoach-model.js");
+
 const authRouter = express.Router();
 
 authRouter.get("/auth/facebook", passport.authenticate("facebook"));
@@ -29,8 +32,15 @@ authRouter.get("/fail", (req, res) => {
 
 authRouter.get("/success", (req, res) => {
 
+   facilityCoachModel.findOne().where('personId').eq(req.user.externalId).exec(function (err, facilityCoach) {
+      if (facilityCoach)
+         res.redirect("coach");
+      else
+         res.redirect("member");
+   });
+
    // To do - look up facilities for the person, are they coach or member. 
-   res.redirect("coach");
+
 });
 
 module.exports = authRouter;
