@@ -43,7 +43,6 @@ export class LoginComponent extends React.Component<IProps, IState> {
             appId: '1420468678202442',
             cookie: true,  // enable cookies to allow the server to access the session
             xfbml: false,  // do not parse social plugins on this page
-            status: true,  // Check users status immediately after init
             version: 'v9.0' // use version 9
          });
 
