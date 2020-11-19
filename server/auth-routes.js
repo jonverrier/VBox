@@ -38,9 +38,6 @@ authRouter.get("/success", (req, res) => {
       else
          res.redirect("member");
    });
-
-   // To do - look up facilities for the person, are they coach or member. 
-
 });
 
 module.exports = authRouter;
