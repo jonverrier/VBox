@@ -1,5 +1,6 @@
 'use strict';
 
+var path = require('path');
 var express = require('express');
 var passport = require('passport');
 
@@ -10,6 +11,10 @@ const authRouter = express.Router();
 
 authRouter.get("/auth/facebook", passport.authenticate("facebook"));
 
+var options = {
+   root: path.join(__dirname, "..")
+};
+
 authRouter.get(
    "/auth/facebook/callback",
    passport.authenticate("facebook", {
@@ -19,7 +24,7 @@ authRouter.get(
 );
 
 authRouter.get("/fail", (req, res) => {
-   res.send("Failed attempt");
+   res.sendFile('public/logonnotallowed.html', options);
 });
 
 authRouter.get("/success", (req, res) => {
