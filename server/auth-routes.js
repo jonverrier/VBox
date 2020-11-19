@@ -28,7 +28,9 @@ authRouter.get("/fail", (req, res) => {
 });
 
 authRouter.get("/success", (req, res) => {
-   res.send("Success");
+
+   // To do - look up facilities for the person, are they coach or member. 
+   res.redirect("coach");
 });
 
 module.exports = authRouter;
