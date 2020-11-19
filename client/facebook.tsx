@@ -47,7 +47,7 @@ export class LoginComponent extends React.Component<IProps, IState> {
             version: 'v9.0' // use version 9
          });
 
-         self.checkLoginResponse(true);
+         // self.checkLoginResponse(true);
       };
 
       // Load the SDK asynchronously
@@ -84,6 +84,9 @@ export class LoginComponent extends React.Component<IProps, IState> {
          this.getUserData();
 
          this.setState({ userPrompt: this.userPrompt });
+
+         // redirect to the server login age that will look up roles and then redirect the client
+         window.location.href = "auth/facebook";
       }
       else if (response.status === 'not_authorized') {
          this.isLoggedIn = false;
@@ -102,7 +105,7 @@ export class LoginComponent extends React.Component<IProps, IState> {
    }
 
    handleLogin() {
-      (window as any).FB.login(this.checkLoginResponse (false), { scope: 'public_profile, email' });
+      (window as any).FB.login(this.checkLoginResponse (true), { scope: 'public_profile, email' });
    }
 
    render() {

@@ -103,6 +103,30 @@ export class MemberPage extends React.Component {
    }
 }
 
+export class CoachPage extends React.Component {
+   render() {
+      return (
+         <div className="coachpage">
+            <Helmet>
+               <title>Fortitude</title>
+               <link rel="icon" href="FortitudeRoughSquare.png" type="image/png" />
+               <link rel="shortcut icon" href="FortitudeRoughSquare.png" type="image/png" />
+            </Helmet>
+            <Navbar style={navbarStyle}>
+               <Navbar.Brand href="/" style={navbarBrandStyle}>
+                  <PartyBanner name="Fortitude" thumbnailUrl="FortitudeRoughSquare.png" />
+               </Navbar.Brand>
+            </Navbar>
+            <Container fluid style={pageStyle}>
+               <Jumbotron style={{ background: 'gray', color: 'white' }}>
+                  <h1>Coach Page</h1>
+               </Jumbotron>
+            </Container>
+         </div>
+      );
+   }
+}
+
 export class LoginPage extends React.Component {
    render() {
       return ( 
@@ -144,6 +168,9 @@ export class PageSwitcher extends React.Component {
                </Route>
                <Route path="/member">
                   <MemberPage />
+               </Route>
+               <Route path="/coach">
+                  <CoachPage />
                </Route>
             </Switch>  
          </BrowserRouter>  

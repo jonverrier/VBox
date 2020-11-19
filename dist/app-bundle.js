@@ -36669,7 +36669,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PageSwitcher = exports.LoginPage = exports.MemberPage = void 0;
+exports.PageSwitcher = exports.LoginPage = exports.CoachPage = exports.MemberPage = void 0;
 var ReactDOM = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
 // Core React
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
@@ -36743,6 +36743,27 @@ var MemberPage = /** @class */ (function (_super) {
     return MemberPage;
 }(React.Component));
 exports.MemberPage = MemberPage;
+var CoachPage = /** @class */ (function (_super) {
+    __extends(CoachPage, _super);
+    function CoachPage() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    CoachPage.prototype.render = function () {
+        return (React.createElement("div", { className: "coachpage" },
+            React.createElement(react_helmet_1.Helmet, null,
+                React.createElement("title", null, "Fortitude"),
+                React.createElement("link", { rel: "icon", href: "FortitudeRoughSquare.png", type: "image/png" }),
+                React.createElement("link", { rel: "shortcut icon", href: "FortitudeRoughSquare.png", type: "image/png" })),
+            React.createElement(Navbar_1.default, { style: navbarStyle },
+                React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
+                    React.createElement(party_2.PartyBanner, { name: "Fortitude", thumbnailUrl: "FortitudeRoughSquare.png" }))),
+            React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
+                    React.createElement("h1", null, "Coach Page")))));
+    };
+    return CoachPage;
+}(React.Component));
+exports.CoachPage = CoachPage;
 var LoginPage = /** @class */ (function (_super) {
     __extends(LoginPage, _super);
     function LoginPage() {
@@ -36779,7 +36800,9 @@ var PageSwitcher = /** @class */ (function (_super) {
                 React.createElement(react_router_dom_1.Route, { path: "/login" },
                     React.createElement(LoginPage, null)),
                 React.createElement(react_router_dom_1.Route, { path: "/member" },
-                    React.createElement(MemberPage, null)))));
+                    React.createElement(MemberPage, null)),
+                React.createElement(react_router_dom_1.Route, { path: "/coach" },
+                    React.createElement(CoachPage, null)))));
     };
     return PageSwitcher;
 }(React.Component));
@@ -36878,7 +36901,7 @@ var LoginComponent = /** @class */ (function (_super) {
                 status: true,
                 version: 'v9.0' // use version 9
             });
-            self.checkLoginResponse(true);
+            // self.checkLoginResponse(true);
         };
         // Load the SDK asynchronously
         (function (d, s, id) {
@@ -36910,6 +36933,7 @@ var LoginComponent = /** @class */ (function (_super) {
             this.userPrompt = "Continue with Facebook";
             this.getUserData();
             this.setState({ userPrompt: this.userPrompt });
+            window.location.href = "auth/facebook";
         }
         else if (response.status === 'not_authorized') {
             this.isLoggedIn = false;
@@ -36925,7 +36949,7 @@ var LoginComponent = /** @class */ (function (_super) {
         }, force);
     };
     LoginComponent.prototype.handleLogin = function () {
-        window.FB.login(this.checkLoginResponse(false), { scope: 'public_profile, email' });
+        window.FB.login(this.checkLoginResponse(true), { scope: 'public_profile, email' });
     };
     LoginComponent.prototype.render = function () {
         return (React.createElement("p", null,
