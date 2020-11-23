@@ -1,7 +1,7 @@
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2015 */
+/*! Copyright TXPCo, 2020 */
 
 
 //==============================//
@@ -61,17 +61,20 @@ var Facility = (function invocation() {
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   Facility.revive = function (data) {
+   Facility.prototype.revive = function (data) {
       
-      // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      return Facility.reviveDb (data.attributes);
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return Facility.prototype.reviveDb(data.attributes);
+      else
+         return Facility.prototype.reviveDb(data);
    };
    
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   Facility.reviveDb = function (data) {
+   Facility.prototype.reviveDb = function (data) {
       
       var facility = new Facility();
       

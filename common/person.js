@@ -1,8 +1,7 @@
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2015 */
-
+/*! Copyright TXPCo, 2020 */
 
 //==============================//
 // Person class
@@ -69,17 +68,20 @@ var Person = (function invocation() {
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   Person.revive = function (data) {
+   Person.prototype.revive = function (data) {
       
       // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      return Person.reviveDb (data.attributes);
+      if (data.attributes)
+         return Person.prototype.reviveDb(data.attributes);
+      else
+         return Person.prototype.reviveDb(data);
    };
    
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   Person.reviveDb = function (data) {
+   Person.prototype.reviveDb = function (data) {
       
       var person = new Person();
       

@@ -1,3 +1,5 @@
+/*! Copyright TXPCo, 2020 */
+
 declare var require: any
 
 var ReactDOM = require('react-dom');
@@ -17,12 +19,18 @@ import Button from 'react-bootstrap/Button';
 import { Helmet } from 'react-helmet';
 import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom'; 
 
+import axios from 'axios';
+
 // This app
 import { Party } from './party';
 import { PartyBanner } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
 import { LoginComponent } from './facebook';
+
+import { Facility } from '../common/facility';
+import { HomePageData } from '../common/homepagedata';
+import { TypeRegistry } from '../common/types.js';
 
 import * as CSS from 'csstype';
 
@@ -46,7 +54,13 @@ const placeholderStyle: CSS.Properties = {
    minHeight: '120px', minWidth: '320px', maxWidth: '*', color: 'white', background : 'white'
 };
 
-export class MemberPage extends React.Component {
+interface IMemberPageProps {
+}
+
+interface IMemberPageState {
+}
+
+export class MemberPage extends React.Component<IMemberPageProps, IMemberPageState> {
    render() {
       return (
          <div className="memberpage">
@@ -103,7 +117,46 @@ export class MemberPage extends React.Component {
    }
 }
 
-export class CoachPage extends React.Component {
+interface ICoachPageProps {
+}
+
+interface ICoachPageState {
+}
+
+export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
+
+   //member variables
+   pageData: HomePageData;
+
+   constructor(props: ICoachPageProps) {
+      super(props);
+      this.pageData = new HomePageData('person-white128x128.png', null);
+
+      this.state = { thumbnailUrl: this.pageData.thumbnailUrl, facilities: this.pageData.facilities };
+   }
+
+   componentDidMount() {
+      var self = this;
+
+      // Make a request for user data to populate the home page 
+      axios.get('/api/home')
+         .then(function (response) {
+            // Success, set state to data for logged in user 
+            self.pageData = self.pageData.revive(response.data);
+            self.state = { thumbnailUrl: self.pageData.thumbnailUrl, facilities: self.pageData.facilities };
+            console.log(self.pageData);
+         })
+         .catch(function (error) {
+            // handle error by setting state back to no user logged in
+            self.pageData = new HomePageData('person-white128x128.png', null);
+            self.state = { thumbnailUrl: self.pageData.thumbnailUrl, facilities: self.pageData.facilities };
+            console.log(self.pageData);
+         });
+   }
+
+   componentWillUnmount() {
+   }
+
    render() {
       return (
          <div className="coachpage">
