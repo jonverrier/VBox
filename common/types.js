@@ -1,6 +1,6 @@
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2015 */
+/*! Copyright TXPCo, 2020 */
 
 var facilityModule = null;
 var personModule = null;
@@ -21,9 +21,11 @@ var TypeRegistry = (function invocation() {
       if (facilityModule === null) {
          this.types.Facility = Facility;
          this.types.Person = Person;
+         this.types.HomePageData = HomePageData;         
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
+         this.types.HomePageData = homePageModule.HomePageData;         
       }
    }
    
@@ -41,7 +43,7 @@ var TypeRegistry = (function invocation() {
 
       return JSON.parse(string, function (key, value) {
          if (registry.isObjectKey(key) && value.hasOwnProperty('__type'))
-            return registry.types[value.__type].revive(value);
+            return registry.types[value.__type].prototype.revive(value);
          else
             return this[key];
       });
@@ -167,6 +169,7 @@ if (typeof exports == 'undefined') {
    exports.TypeRegistry = TypeRegistry;
    facilityModule = require('./facility.js');
    personModule = require('./person.js');
+   homePageModule = require('./homepagedata.js');
 }
 
 

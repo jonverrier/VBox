@@ -1,3 +1,6 @@
+'use strict';
+// Copyright TXPCo ltd, 2020
+
 if (typeof exports !== 'undefined') {
 
    var facilityModule = require('../common/facility.js');

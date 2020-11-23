@@ -1,4 +1,5 @@
 'use strict';
+// Copyright TXPCo ltd, 2020
 
 var path = require('path');
 var express = require('express');

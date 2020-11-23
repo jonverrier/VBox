@@ -1,4 +1,5 @@
 'use strict';
+// Copyright TXPCo ltd, 2020
 
 var express = require('express');
 var router = express.Router();
@@ -6,6 +7,7 @@ var router = express.Router();
 // Ued to get data for the users home page 
 var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityCoach-model.js");
+var HomePageData = require("../common/homepagedata.js").HomePageData;
 
 async function facilitiesFor (facilityIds) {
    var facilities = new Array();
@@ -35,10 +37,8 @@ router.get('/api/home', function (req, res) {
 
       facilityListFor (req.user.externalId).then(function (facilities) {
 
-         var myHomePageData = {
-            thumbNailUrl: req.user.thumbnailUrl,
-            facilities: facilities
-         };
+         var myHomePageData = new HomePageData(req.user.name, req.user.thumbnailUrl,
+                                               facilities[0], facilities); // TODO - pick the last facility visited by recording visits. 
 
          var output = JSON.stringify(myHomePageData);
          res.send(output);

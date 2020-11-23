@@ -1,6 +1,8 @@
 declare var require: any
 
 import * as React from 'react';
+/*! Copyright TXPCo, 2020 */
+
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';

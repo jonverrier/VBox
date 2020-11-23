@@ -1,3 +1,6 @@
+'use strict';
+// Copyright TXPCo ltd, 2020
+
 if (typeof exports !== 'undefined') {
 
    var personModule = require('../common/person.js');

@@ -1,4 +1,5 @@
 'use strict';
+// Copyright TXPCo ltd, 2020
 
 var passport = require("passport");
 var strategy = require("passport-facebook");
