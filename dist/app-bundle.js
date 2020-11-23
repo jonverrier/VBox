@@ -55974,6 +55974,7 @@ var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var section_1 = __webpack_require__(/*! ./section */ "./client/section.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
 var facebook_1 = __webpack_require__(/*! ./facebook */ "./client/facebook.tsx");
+var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
 var thinStyle = {
     margin: '0px', padding: '0px'
@@ -56035,8 +56036,9 @@ var CoachPage = /** @class */ (function (_super) {
     __extends(CoachPage, _super);
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.pageData = new homepagedata_1.HomePageData('person-white128x128.png', null);
-        _this.state = { thumbnailUrl: _this.pageData.thumbnailUrl, facilities: _this.pageData.facilities };
+        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-white128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-white128x128.png'), null);
+        _this.pageData = _this.defaultPageData;
+        _this.state = { pageData: _this.pageData };
         return _this;
     }
     CoachPage.prototype.componentDidMount = function () {
@@ -56046,13 +56048,13 @@ var CoachPage = /** @class */ (function (_super) {
             .then(function (response) {
             // Success, set state to data for logged in user 
             self.pageData = self.pageData.revive(response.data);
-            self.state = { thumbnailUrl: self.pageData.thumbnailUrl, facilities: self.pageData.facilities };
+            self.setState({ pageData: self.pageData });
             console.log(self.pageData);
         })
             .catch(function (error) {
             // handle error by setting state back to no user logged in
-            self.pageData = new homepagedata_1.HomePageData('person-white128x128.png', null);
-            self.state = { thumbnailUrl: self.pageData.thumbnailUrl, facilities: self.pageData.facilities };
+            self.pageData = self.defaultPageData;
+            self.setState({ pageData: self.pageData });
             console.log(self.pageData);
         });
     };
@@ -56061,12 +56063,12 @@ var CoachPage = /** @class */ (function (_super) {
     CoachPage.prototype.render = function () {
         return (React.createElement("div", { className: "coachpage" },
             React.createElement(react_helmet_1.Helmet, null,
-                React.createElement("title", null, "Fortitude"),
-                React.createElement("link", { rel: "icon", href: "FortitudeSquare.png", type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: "FortitudeSquare.png", type: "image/png" })),
+                React.createElement("title", null, this.state.pageData.currentFacility.name),
+                React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
+                React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
             React.createElement(Navbar_1.default, { style: navbarStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "Fortitude", thumbnailUrl: "FortitudeSquare.png" }))),
+                    React.createElement(party_2.PartyBanner, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Coach Page")))));
