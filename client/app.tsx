@@ -121,18 +121,23 @@ interface ICoachPageProps {
 }
 
 interface ICoachPageState {
+   pageData: HomePageData
 }
 
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
 
    //member variables
    pageData: HomePageData;
+   defaultPageData: HomePageData;
 
    constructor(props: ICoachPageProps) {
       super(props);
-      this.pageData = new HomePageData('person-white128x128.png', null);
+      this.defaultPageData = new HomePageData('Waiting...', 'person-white128x128.png',
+         new Facility(null, null, 'Waiting...', 'building-white128x128.png'),
+         null);
+      this.pageData = this.defaultPageData;
 
-      this.state = { thumbnailUrl: this.pageData.thumbnailUrl, facilities: this.pageData.facilities };
+      this.state = { pageData: this.pageData };
    }
 
    componentDidMount() {
@@ -143,13 +148,13 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          .then(function (response) {
             // Success, set state to data for logged in user 
             self.pageData = self.pageData.revive(response.data);
-            self.state = { thumbnailUrl: self.pageData.thumbnailUrl, facilities: self.pageData.facilities };
+            self.setState ({ pageData: self.pageData });
             console.log(self.pageData);
          })
          .catch(function (error) {
             // handle error by setting state back to no user logged in
-            self.pageData = new HomePageData('person-white128x128.png', null);
-            self.state = { thumbnailUrl: self.pageData.thumbnailUrl, facilities: self.pageData.facilities };
+            self.pageData = self.defaultPageData;
+            self.setState({ pageData: self.pageData });
             console.log(self.pageData);
          });
    }
@@ -161,13 +166,13 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       return (
          <div className="coachpage">
             <Helmet>
-               <title>Fortitude</title>
-               <link rel="icon" href="FortitudeSquare.png" type="image/png" />
-               <link rel="shortcut icon" href="FortitudeSquare.png" type="image/png" />
+               <title>{this.state.pageData.currentFacility.name}</title>
+               <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+               <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
             </Helmet>
             <Navbar style={navbarStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Fortitude" thumbnailUrl="FortitudeSquare.png" />
+                  <PartyBanner name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
