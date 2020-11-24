@@ -80,7 +80,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
    constructor(props: ICoachPageProps) {
       super(props);
       this.defaultPageData = new HomePageData('Waiting...', 'person-white128x128.png',
-         new Facility(null, null, 'Waiting...', 'building-white128x128.png'),
+         new Facility(null, null, 'Waiting...', 'building-black128x128.png'),
          null);
       this.pageData = this.defaultPageData;
 
@@ -205,8 +205,8 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
    constructor(props: ICoachPageProps) {
       super(props);
-      this.defaultPageData = new HomePageData('Waiting...', 'person-white128x128.png',
-         new Facility(null, null, 'Waiting...', 'building-white128x128.png'),
+      this.defaultPageData = new HomePageData('Waiting...', 'person-black128x128.png',
+         new Facility(null, null, 'Waiting...', 'building-black128x128.png'),
          null);
       this.pageData = this.defaultPageData;
 
@@ -293,7 +293,7 @@ export class LoginPage extends React.Component {
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Virtual Box" thumbnailUrl="building-white128x128.png" />
+                  <PartyBanner name="Virtual Box" thumbnailUrl="building-black128x128.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
