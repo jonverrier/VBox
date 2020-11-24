@@ -17,9 +17,9 @@ describe("Facility", function () {
    var facility1, facility2;
    
    beforeEach(function () {
-      facility1 = new Facility(1, "123", "Fortitude", "https://Fortitude.pics.com");
+      facility1 = new Facility(1, "123", "Fortitude", "https://Fortitude.pics.com", "https://samplehomepage");
 
-      facility2 = new Facility(2, "123", "Fortitude", "https://Fortitude.pics.com");
+      facility2 = new Facility(2, "123", "Fortitude", "https://Fortitude.pics.com", "https://samplehomepage");
    });
    
    it("Needs to compare for equality and inequality", function () {
@@ -34,6 +34,7 @@ describe("Facility", function () {
       expect(facility1.externalId).to.equal("123");      
       expect(facility1.name).to.equal("Fortitude");
       expect(facility1.thumbnailUrl).to.equal("https://Fortitude.pics.com");
+      expect(facility1.homepageUrl).to.equal("https://samplehomepage");
    });
    
    it("Needs to save and restore to/from JSON", function () {

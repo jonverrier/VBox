@@ -16,13 +16,15 @@ var Facility = (function invocation() {
    * @param externalId - ID assigned by external system (like facebook)
    * @param name - plain text Facility name
    * @param thumbnailUrl - URL to thumbnail image 
+   * @param homepageUrl - URL to home page 
    */
-   function Facility(_id, externalId, name, thumbnailUrl) {
+   function Facility(_id, externalId, name, thumbnailUrl, homepageUrl) {
       
       this._id = _id;
       this.externalId = externalId;
       this.name = name;
       this.thumbnailUrl = thumbnailUrl;
+      this.homepageUrl = homepageUrl;
    }
    
    Facility.prototype.__type = "Facility";
@@ -37,7 +39,8 @@ var Facility = (function invocation() {
       return ((this._id === rhs._id) &&
          (this.externalId === rhs.externalId) &&
          (this.name === rhs.name) &&
-         (this.thumbnailUrl === rhs.thumbnailUrl));
+         (this.thumbnailUrl === rhs.thumbnailUrl) && 
+         (this.homepageUrl === rhs.homepageUrl));
    };
 
    /**
@@ -53,6 +56,7 @@ var Facility = (function invocation() {
             externalId: this.externalId,
             name: this.name,
             thumbnailUrl: this.thumbnailUrl,
+            homepageUrl: this.homepageUrl
          }
       };
    };
@@ -82,6 +86,7 @@ var Facility = (function invocation() {
       facility.externalId = data.externalId;
       facility.name = data.name;
       facility.thumbnailUrl = data.thumbnailUrl;
+      facility.homepageUrl = data.homepageUrl;
       
       return facility;
    };
