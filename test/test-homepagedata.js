@@ -17,7 +17,7 @@ if (typeof exports !== 'undefined') {
 
 describe("HomePageData", function () {
    var page1, page2;
-   var dummyFacility = new Facility("id", "extId", "TestFacilityName", "TestFacilityUrl");
+   var dummyFacility = new Facility("id", "extId", "TestFacilityName", "TestFacilityUrl", "TestFacilityUrl2");
    var facilities1 = new Array(1), facilities2 = new Array(0);
    facilities1[0] = dummyFacility; 
    

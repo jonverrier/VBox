@@ -37,8 +37,17 @@ router.get('/api/home', function (req, res) {
 
       facilityListFor (req.user.externalId).then(function (facilities) {
 
+         var current = facilities[0]; // TODO - pick the last facility visited by recording visits. 
+                                      // loop below just removes current from the extended list
+         for (var i = 0; i < facilities.length; i++) {
+            if (current.externalId === facilities[i].externalId) {
+               var removed = facilities.splice(i, 1);
+               break;
+            }
+         }
+
          var myHomePageData = new HomePageData(req.user.name, req.user.thumbnailUrl,
-                                               facilities[0], facilities); // TODO - pick the last facility visited by recording visits. 
+                                               current, facilities); 
 
          var output = JSON.stringify(myHomePageData);
          res.send(output);

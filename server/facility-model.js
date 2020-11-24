@@ -18,6 +18,10 @@ const facilitySchema = new mongoose.Schema({
    thumbnailUrl: {
       type: String,
       required: true
+   },
+   homepageUrl: {
+      type: String,
+      required: true
    }
 });
 

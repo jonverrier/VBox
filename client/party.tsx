@@ -17,6 +17,10 @@ const partyImageStyle: CSS.Properties = {
    marginLeft: '0px', marginRight: '0px', paddingLeft: '4px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '8px', marginBottom: '8px'
 };
 
+const partySmallImageStyle: CSS.Properties = {
+   marginLeft: '0px', marginRight: '0px', paddingLeft: '2px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '2px', marginBottom: '2px'
+};
+
 const partyNameStyle: CSS.Properties = {
    fontSize: '14px', margin: '0px', paddingLeft: '2px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px' 
 };
@@ -55,4 +59,12 @@ export const Party = (props: { name: string, thumbnailUrl: string }) => (
    </div>
 );
 
-
+export const PartySmall = (props: { name: string, thumbnailUrl: string }) => (
+   <div>
+      <Container style={thinStyle}>
+         <Row style={partyRowStyle}>
+            <img style={partySmallImageStyle} src={props.thumbnailUrl} alt={props.name} title={props.name} height='32px'/>
+         </Row>
+      </Container>
+   </div>
+);
