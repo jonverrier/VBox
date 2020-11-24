@@ -61796,7 +61796,7 @@ var MemberPage = /** @class */ (function (_super) {
                 React.createElement("title", null, this.state.pageData.currentFacility.name),
                 React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
                 React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
-            React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "lg", bg: "dark", variant: "dark", style: thinStyle },
+            React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
                 React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
                 React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
                     React.createElement(Nav_1.default, { className: "mr-auto" },
@@ -61873,7 +61873,7 @@ var CoachPage = /** @class */ (function (_super) {
                 React.createElement("title", null, this.state.pageData.currentFacility.name),
                 React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
                 React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
-            React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "lg", bg: "dark", variant: "dark", style: thinStyle },
+            React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
                 React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
                 React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
                     React.createElement(Nav_1.default, { className: "mr-auto" },
@@ -62056,8 +62056,9 @@ var LoginComponent = /** @class */ (function (_super) {
     };
     LoginComponent.prototype.getUserData = function () {
         var self = this;
-        window.FB.api('/me', { fields: 'id, name, email, profile_pic' }, function (response) {
+        window.FB.api('/me', { fields: 'id, name, email' }, function (response) {
             self.name = response.name;
+            console.log(response);
             self.thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
         });
     };

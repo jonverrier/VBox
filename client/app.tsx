@@ -288,8 +288,8 @@ export class LoginPage extends React.Component {
          <div className="loginpage">
             <Helmet>
                <title>Virtual Box</title>
-               <link rel="icon" href="building-white128x128.png" type="image/png" />
-               <link rel="shortcut icon" href="building-white128x128.png" type="image/png" />
+               <link rel="icon" href="building-black128x128.png" type="image/png" />
+               <link rel="shortcut icon" href="building-black128x128.png" type="image/png" />
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
