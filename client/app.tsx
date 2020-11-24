@@ -116,7 +116,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
             </Helmet>
 
-            <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
+            <Navbar collapseOnSelect expand="xs" bg="dark" variant="dark" style={thinStyle}>
                <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                <Navbar.Collapse id="responsive-navbar-nav">
                   <Nav className="mr-auto">
@@ -242,7 +242,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
             </Helmet>
 
-            <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
+            <Navbar collapseOnSelect expand="xs" bg="dark" variant="dark" style={thinStyle}>
                <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                <Navbar.Collapse id="responsive-navbar-nav">
                   <Nav className="mr-auto">
