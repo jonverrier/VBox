@@ -73,7 +73,6 @@ export class LoginComponent extends React.Component<IProps, IState> {
 
       (window as any).FB.api('/me', { fields: 'id, name, email'}, function (response) {
          self.name = response.name;
-         console.log(response);
          self.thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
       });
    }
