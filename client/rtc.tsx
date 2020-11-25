@@ -14,12 +14,9 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
    //member variables
    connection : RTCPeerConnection;
-   facilityId: string;
 
    constructor(props: IRtcProps) {
       super(props);
-
-      this.facilityId = props.facilityId;
    }
 
    componentDidMount() {
@@ -32,7 +29,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
       this.connection = new RTCPeerConnection (configuration);
 
-      // Get a data channel, will connect later on when we get 
+      // Get a data channel, will connect later on when we get a proper facilityId as the user logs in
       this.connection.onicecandidate = this.onicecandidate;
    }
 

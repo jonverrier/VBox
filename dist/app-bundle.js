@@ -62192,9 +62192,7 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Rtc = /** @class */ (function (_super) {
     __extends(Rtc, _super);
     function Rtc(props) {
-        var _this = _super.call(this, props) || this;
-        _this.facilityId = props.facilityId;
-        return _this;
+        return _super.call(this, props) || this;
     }
     Rtc.prototype.componentDidMount = function () {
         var self = this;
@@ -62203,7 +62201,7 @@ var Rtc = /** @class */ (function (_super) {
             iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
         };
         this.connection = new RTCPeerConnection(configuration);
-        // Get a data channel, will connect later on when we get 
+        // Get a data channel, will connect later on when we get a proper facilityId as the user logs in
         this.connection.onicecandidate = this.onicecandidate;
     };
     Rtc.prototype.getSession = function () {
