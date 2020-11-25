@@ -61744,6 +61744,7 @@ var party_3 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var section_1 = __webpack_require__(/*! ./section */ "./client/section.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
 var facebook_1 = __webpack_require__(/*! ./facebook */ "./client/facebook.tsx");
+var rtc_1 = __webpack_require__(/*! ./rtc */ "./client/rtc.tsx");
 var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
 var thinStyle = {
@@ -61768,7 +61769,7 @@ var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-white128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-white128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-white128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { pageData: _this.pageData };
         return _this;
@@ -61814,6 +61815,7 @@ var MemberPage = /** @class */ (function (_super) {
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
+            React.createElement(rtc_1.Rtc, { facilityId: this.state.pageData.currentFacility.externalId }),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
@@ -61845,7 +61847,7 @@ var CoachPage = /** @class */ (function (_super) {
     __extends(CoachPage, _super);
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-white128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-white128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-black128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { pageData: _this.pageData };
         return _this;
@@ -61891,6 +61893,7 @@ var CoachPage = /** @class */ (function (_super) {
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
+            React.createElement(rtc_1.Rtc, { facilityId: this.state.pageData.currentFacility.externalId }),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Coach Page")))));
@@ -61907,11 +61910,11 @@ var LoginPage = /** @class */ (function (_super) {
         return (React.createElement("div", { className: "loginpage" },
             React.createElement(react_helmet_1.Helmet, null,
                 React.createElement("title", null, "Virtual Box"),
-                React.createElement("link", { rel: "icon", href: "building-white128x128.png", type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: "building-white128x128.png", type: "image/png" })),
+                React.createElement("link", { rel: "icon", href: "building-black128x128.png", type: "image/png" }),
+                React.createElement("link", { rel: "shortcut icon", href: "building-black128x128.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: facilityNavStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "building-white128x128.png" }))),
+                    React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "building-black128x128.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Welcome!"),
@@ -62058,7 +62061,6 @@ var LoginComponent = /** @class */ (function (_super) {
         var self = this;
         window.FB.api('/me', { fields: 'id, name, email' }, function (response) {
             self.name = response.name;
-            console.log(response);
             self.thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
         });
     };
@@ -62155,6 +62157,75 @@ exports.PartySmall = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement("img", { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }))))); };
+
+
+/***/ }),
+
+/***/ "./client/rtc.tsx":
+/*!************************!*\
+  !*** ./client/rtc.tsx ***!
+  \************************/
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
+/*! CommonJS bailout: this is used directly at 3:17-21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020 */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Rtc = void 0;
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var Rtc = /** @class */ (function (_super) {
+    __extends(Rtc, _super);
+    function Rtc(props) {
+        var _this = _super.call(this, props) || this;
+        _this.facilityId = props.facilityId;
+        return _this;
+    }
+    Rtc.prototype.componentDidMount = function () {
+        var self = this;
+        // Connect to the signalling server
+        var configuration = {
+            iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+        };
+        this.connection = new RTCPeerConnection(configuration);
+        // Get a data channel, will connect later on when we get 
+        this.connection.onicecandidate = this.onicecandidate;
+    };
+    Rtc.prototype.getSession = function () {
+        var self = this;
+    };
+    Rtc.prototype.componentDidUpdate = function (prevProps) {
+        if (prevProps.facilityId !== this.props.facilityId) {
+            this.getSession();
+        }
+    };
+    Rtc.prototype.onicecandidate = function (ev) {
+        console.log(ev);
+    };
+    Rtc.prototype.componentWillUnmount = function () {
+        // Disconnect from the signalling server ? 
+    };
+    Rtc.prototype.render = function () {
+        return (React.createElement("div", null));
+    };
+    return Rtc;
+}(React.Component));
+exports.Rtc = Rtc;
 
 
 /***/ }),

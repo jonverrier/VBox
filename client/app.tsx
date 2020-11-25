@@ -33,10 +33,13 @@ import { PartySmall } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
 import { LoginComponent } from './facebook';
+import { IRtcProps } from './rtc';
+import { Rtc } from './rtc';
 
 import { Facility } from '../common/facility';
 import { HomePageData } from '../common/homepagedata';
 import { TypeRegistry } from '../common/types.js';
+
 
 import * as CSS from 'csstype';
 
@@ -146,6 +149,8 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   </Nav>
                </Navbar.Collapse>
             </Navbar>
+
+            <Rtc facilityId={this.state.pageData.currentFacility.externalId}></Rtc>
 
             <Container fluid style={pageStyle}>
                <Row style={thinStyle}>
@@ -272,6 +277,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   </Nav>
                </Navbar.Collapse>
             </Navbar>
+
+            <Rtc facilityId={this.state.pageData.currentFacility.externalId}></Rtc>
+
             <Container fluid style={pageStyle}>
                <Jumbotron style={{ background: 'gray', color: 'white' }}>
                   <h1>Coach Page</h1>
