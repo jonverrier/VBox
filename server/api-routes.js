@@ -4,10 +4,16 @@
 var express = require('express');
 var router = express.Router();
 
-// Ued to get data for the users home page 
+// Used to get data for the users home page 
 var facilityModel = require("./facility-model.js");
-var facilityCoachModel = require("./facilityCoach-model.js");
+var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
+var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
+var facilityAttendanceModel = require("./facilityperson-model.js").facilityAttendanceModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
+
+// Used to get data for online class participants
+var onlineClassModel = require("./onlineClass-model.js").classModel;
+var OnlineClass = require("../common/onlineclass.js").OnlineClass;
 
 async function facilitiesFor (facilityIds) {
    var facilities = new Array();
@@ -19,8 +25,9 @@ async function facilitiesFor (facilityIds) {
    return facilities;
 }
 
-async function facilityListFor(personId) {
+async function facilityIdListFor(personId) {
 
+   // Find facilities where the coach is 'personId'
    const facilityCoaches = await facilityCoachModel.find().where('personId').eq(personId).exec();
 
    var facilityIds = new Array();
@@ -31,11 +38,24 @@ async function facilityListFor(personId) {
    return facilitiesFor (facilityIds);
 }
 
+async function attendeeIdListFor(facilityId) {
+
+   // Find attendances where the facility is 'facilityId', then return just a list of peopleIds
+   const attendances = await facilityAttendanceModel.find().where('facilityId').eq(facilityId).exec();
+
+   var attendees = new Array();
+
+   for (let attendance of attendances)
+      attendees.push(attendance.personId);
+
+   return attendees;
+}
+
 // API to get data for the home page 
 router.get('/api/home', function (req, res) {
-   if (req.user && req.user.externalId) {
+      if (req.user && req.user.externalId) {
 
-      facilityListFor (req.user.externalId).then(function (facilities) {
+      facilityIdListFor (req.user.externalId).then(function (facilities) {
 
          var current = facilities[0]; // TODO - pick the last facility visited by recording visits. 
                                       // loop below just removes current from the extended list
@@ -52,6 +72,47 @@ router.get('/api/home', function (req, res) {
          var output = JSON.stringify(myHomePageData);
          res.send(output);
       });
+   } else {
+      res.send(null);
+   }
+})
+
+// API to get data for the an online class 
+router.get('/api/onlineclass', function (req, res) {
+   if (req.user && req.user.externalId) {
+
+      /** get calling IP address from the request */
+      const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
+      
+      // Just save the person-facility link - overrwite if there is already one there.
+      const facilityId = req.query.facilityId; // Client passes facility ID in the query string
+      const personId = req.user.externalId;
+      const facilityPerson = {
+         facilityId, personId
+      };
+
+      facilityAttendanceModel.findOne(facilityPerson, function (err, foundFacilityPerson) {
+         if (!err && foundFacilityPerson)
+            new facilityAttendanceModel(foundFacilityPerson).updateOne();
+         else
+            new facilityAttendanceModel(facilityPerson).save();
+      });
+
+
+      // Send back a populated OnlineClass object, which includes the Ids & IP addresses of all attendees
+      attendeeIdListFor(facilityId).then(function (attendeeIds) {
+
+         // remove the current person if they are in the list of attendees, so they just get a list of other people
+         var found = false;
+         for (var i = 0; i < attendeeIds.length; i++) {
+            if (attendeeIds[i] == personId)
+               attendeeIds.splice(i, 1);
+         }
+
+         var classData = new OnlineClass(null, req.query.facilityId, attendeeIds);
+         var output = JSON.stringify(classData);
+         res.send(output);
+      });   
    } else {
       res.send(null);
    }

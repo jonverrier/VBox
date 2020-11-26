@@ -149,7 +149,7 @@ var HomePageData = (function invocation() {
    * @param personName - name for current user
    * @param personThumbnailUrl - URL to thumbnail image for current user
    * @param currentFacility - the current facility where the user is logged in
-   * @param facilities - list of all facilities where the user has a role
+   * @param facilities - array of all facilities where the user has a role
    *
    */
    function HomePageData(personName, personThumbnailUrl, currentFacility, facilities) {
@@ -157,7 +157,10 @@ var HomePageData = (function invocation() {
       this.personName = personName;
       this.personThumbnailUrl = personThumbnailUrl;
       this.currentFacility = currentFacility;
-      this.facilities = facilities;
+      if (facilities)
+         this.facilities = facilities.slice();
+      else
+         this.facilities = null;
    }
    
    HomePageData.prototype.__type = "HomePageData";
@@ -187,7 +190,7 @@ var HomePageData = (function invocation() {
             personName: this.personName,
             personThumbnailUrl: this.personThumbnailUrl,
             currentFacility: this.currentFacility,
-            facilities: this.facilities,
+            facilities: this.facilities ? this.facilities.slice() : null
          }
       };
    };
@@ -217,11 +220,15 @@ var HomePageData = (function invocation() {
       pageData.personThumbnailUrl = data.personThumbnailUrl;   
 
       pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 
-      
-      pageData.facilities = new Array(data.facilities.length);
-      for (var i = 0; i < data.facilities.length; i++) {
-         pageData.facilities[i] = Facility.prototype.revive(data.facilities[i]);
+
+      if (data.facilities) {
+         pageData.facilities = new Array(data.facilities.length);
+         for (var i = 0; i < data.facilities.length; i++) {
+            pageData.facilities[i] = Facility.prototype.revive(data.facilities[i]);
+         }
       }
+      else
+         pageData.facilities = null;
       
       return pageData;
    };
@@ -232,6 +239,121 @@ var HomePageData = (function invocation() {
 
 if (false) {} else { 
    exports.HomePageData = HomePageData;
+}
+
+
+/***/ }),
+
+/***/ "./common/onlineclass.js":
+/*!*******************************!*\
+  !*** ./common/onlineclass.js ***!
+  \*******************************/
+/*! default exports */
+/*! export OnlineClass [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__, __webpack_require__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global Enum*/
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
+if (false) {} else {
+   _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+}
+
+//==============================//
+// OnlineClass class
+//==============================//
+var OnlineClass = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a Facility object 
+    * @param _id - Mongo-DB assigned ID
+    * @param externalId - ID assigned by external system (like facebook)*
+    * @param particpantChannels - array of IP addresses for participants 
+    */
+   function OnlineClass(_id, externalId, particpantChannels) {
+
+      this._id = _id;
+      this.facilityId = externalId;
+      if (particpantChannels)
+         this.particpantChannels = particpantChannels.slice();
+      else
+         this.particpantChannels = null;
+   }
+
+   OnlineClass.prototype.__type = "OnlineClass";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   OnlineClass.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id) &&
+         (this.facilityId === rhs.facilityId) &&
+         _.isEqual(this.particpantChannels, rhs.particpantChannels));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   OnlineClass.prototype.toJSON = function () {
+
+      return {
+         __type: OnlineClass.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            facilityId: this.facilityId,
+            particpantChannels: this.particpantChannels ? this.particpantChannels.slice() : null
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   OnlineClass.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return OnlineClass.prototype.reviveDb(data.attributes);
+
+      return OnlineClass.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   OnlineClass.prototype.reviveDb = function (data) {
+
+      var onlineClass = new OnlineClass();
+
+      onlineClass._id = data._id;
+      onlineClass.facilityId = data.facilityId;
+
+      if (data.particpantChannels)
+         onlineClass.particpantChannels = data.particpantChannels.slice();
+      else
+         onlineClass.particpantChannels = null;
+
+      return onlineClass;
+   };
+
+   return OnlineClass;
+}());
+
+if (false) {} else { 
+   exports.OnlineClass = OnlineClass;
 }
 
 
@@ -62189,6 +62311,9 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Rtc = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+// This app
+var onlineclass_js_1 = __webpack_require__(/*! ../common/onlineclass.js */ "./common/onlineclass.js");
 var Rtc = /** @class */ (function (_super) {
     __extends(Rtc, _super);
     function Rtc(props) {
@@ -62201,11 +62326,24 @@ var Rtc = /** @class */ (function (_super) {
             iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
         };
         this.connection = new RTCPeerConnection(configuration);
+        this.onlineClass = this.defaultOnlineClass = new onlineclass_js_1.OnlineClass(null, null);
         // Get a data channel, will connect later on when we get a proper facilityId as the user logs in
         this.connection.onicecandidate = this.onicecandidate;
     };
     Rtc.prototype.getSession = function () {
         var self = this;
+        // Make a request for user data to populate the home page 
+        axios_1.default.get('/api/onlineclass', { params: { facilityId: self.props.facilityId } })
+            .then(function (response) {
+            // Success, set state to data for logged in user 
+            self.onlineClass = self.onlineClass.revive(response.data);
+            //self.setState({ pageData: self.pageData });
+        })
+            .catch(function (error) {
+            // handle error by setting state back to no user logged in
+            self.onlineClass = self.defaultOnlineClass;
+            //self.setState({ pageData: self.pageData });
+        });
     };
     Rtc.prototype.componentDidUpdate = function (prevProps) {
         if (prevProps.facilityId !== this.props.facilityId) {

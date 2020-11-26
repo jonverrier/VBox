@@ -38,7 +38,7 @@ describe("HomePageData", function () {
       expect(page1.personName).to.equal("Joe");
       expect(page1.personThumbnailUrl).to.equal("https://jo.pics.com");
       expect(page1.currentFacility).to.equal(dummyFacility);
-      expect(page1.facilities).to.equal(facilities1);
+      expect(page1.facilities).to.deep.equal(facilities1);
    });
    
    it("Needs to save and restore to/from JSON", function () {

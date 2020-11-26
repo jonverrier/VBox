@@ -23,7 +23,7 @@ var HomePageData = (function invocation() {
    * @param personName - name for current user
    * @param personThumbnailUrl - URL to thumbnail image for current user
    * @param currentFacility - the current facility where the user is logged in
-   * @param facilities - list of all facilities where the user has a role
+   * @param facilities - array of all facilities where the user has a role
    *
    */
    function HomePageData(personName, personThumbnailUrl, currentFacility, facilities) {
@@ -31,7 +31,10 @@ var HomePageData = (function invocation() {
       this.personName = personName;
       this.personThumbnailUrl = personThumbnailUrl;
       this.currentFacility = currentFacility;
-      this.facilities = facilities;
+      if (facilities)
+         this.facilities = facilities.slice();
+      else
+         this.facilities = null;
    }
    
    HomePageData.prototype.__type = "HomePageData";
@@ -61,7 +64,7 @@ var HomePageData = (function invocation() {
             personName: this.personName,
             personThumbnailUrl: this.personThumbnailUrl,
             currentFacility: this.currentFacility,
-            facilities: this.facilities,
+            facilities: this.facilities ? this.facilities.slice() : null
          }
       };
    };
@@ -91,11 +94,15 @@ var HomePageData = (function invocation() {
       pageData.personThumbnailUrl = data.personThumbnailUrl;   
 
       pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 
-      
-      pageData.facilities = new Array(data.facilities.length);
-      for (var i = 0; i < data.facilities.length; i++) {
-         pageData.facilities[i] = Facility.prototype.revive(data.facilities[i]);
+
+      if (data.facilities) {
+         pageData.facilities = new Array(data.facilities.length);
+         for (var i = 0; i < data.facilities.length; i++) {
+            pageData.facilities[i] = Facility.prototype.revive(data.facilities[i]);
+         }
       }
+      else
+         pageData.facilities = null;
       
       return pageData;
    };

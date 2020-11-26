@@ -9,7 +9,7 @@ var passport = require('passport');
 var authController = require("./auth-controller.js");
 
 // Ued to direct authenticated users to the right home page
-var facilityCoachModel = require("./facilityCoach-model.js");
+var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
 
 const authRouter = express.Router();
 
