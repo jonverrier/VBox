@@ -3,6 +3,9 @@
 
 if (typeof exports !== 'undefined') {
 
+   var personModule = require('../common/person.js');
+   var Person = personModule.Person;
+
    var facilityModule = require('../common/facility.js');
    var Facility = facilityModule.Facility;
 
@@ -17,14 +20,15 @@ if (typeof exports !== 'undefined') {
 
 describe("HomePageData", function () {
    var page1, page2;
+   var dummyPerson = new Person(null, "1234", "Joe", null, "https://jo.pics.com", null);
    var dummyFacility = new Facility("id", "extId", "TestFacilityName", "TestFacilityUrl", "TestFacilityUrl2");
    var facilities1 = new Array(1), facilities2 = new Array(0);
    facilities1[0] = dummyFacility; 
    
    beforeEach(function () {
-      page1 = new HomePageData("Joe", "https://jo.pics.com", dummyFacility, facilities1);
+      page1 = new HomePageData(dummyPerson, dummyFacility, facilities1);
 
-      page2 = new HomePageData("Joe", "https://jo.pics.com", dummyFacility, facilities2);
+      page2 = new HomePageData(dummyPerson, dummyFacility, facilities2);
    });
    
    it("Needs to compare for equality and inequality", function () {
@@ -35,8 +39,7 @@ describe("HomePageData", function () {
    
    it("Needs to correctly store attributes", function () {
 
-      expect(page1.personName).to.equal("Joe");
-      expect(page1.personThumbnailUrl).to.equal("https://jo.pics.com");
+      expect(page1.person.equals(dummyPerson)).to.equal(true);
       expect(page1.currentFacility).to.equal(dummyFacility);
       expect(page1.facilities).to.deep.equal(facilities1);
    });

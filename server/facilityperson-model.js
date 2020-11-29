@@ -18,8 +18,6 @@ const facilityPersonSchema = new mongoose.Schema({
 
 const facilityCoachModel = mongoose.model("FacilityCoach", facilityPersonSchema);
 const facilityMemberModel = mongoose.model("FacilityMember", facilityPersonSchema);
-const facilityAttendanceModel = mongoose.model("FacilityAttendance", facilityPersonSchema);
 
 module.exports.facilityCoachModel = facilityCoachModel;
 module.exports.facilityMemberModel = facilityMemberModel;
-module.exports.facilityAttendanceModel = facilityAttendanceModel;

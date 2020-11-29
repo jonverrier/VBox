@@ -1,6 +1,203 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./common/call.js":
+/*!************************!*\
+  !*** ./common/call.js ***!
+  \************************/
+/*! default exports */
+/*! export Call [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export CallParticipant [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__, __webpack_require__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global Enum*/
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
+if (false) {} else {
+   _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+}
+
+//==============================//
+// CallParticipant class
+//==============================//
+var CallParticipant = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a Facility object 
+    * @param _id - Mongo-DB assigned ID
+    * @param facilityId - ID for the facility hosting the call
+    * @param personId - iD for th call participant 
+    */
+   function CallParticipant(_id, facilityId, personId) {
+
+      this._id = _id;
+      this.facilityId = facilityId;
+      this.personId = personId;
+   }
+
+   CallParticipant.prototype.__type = "CallParticipant";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   CallParticipant.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id) &&
+         (this.facilityId === rhs.facilityId) &&
+         (this.personId === rhs.personId));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   CallParticipant.prototype.toJSON = function () {
+
+      return {
+         __type: CallParticipant.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            facilityId: this.facilityId,
+            personId: this.personId
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   CallParticipant.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallParticipant.prototype.reviveDb(data.attributes);
+
+      return CallParticipant.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   CallParticipant.prototype.reviveDb = function (data) {
+
+      var callParticipant = new CallParticipant();
+
+      callParticipant._id = data._id;
+      callParticipant.facilityId = data.facilityId;
+      callParticipant.personId = data.personId;
+
+      return callParticipant;
+   };
+
+   return CallParticipant;
+}());
+
+//==============================//
+// Call class
+//==============================//
+var Call = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a Facility object 
+    * @param _id - Mongo-DB assigned ID
+    * @param facilityId - ID assigned by external system (like facebook)*
+    * @param participants - array of IP addresses for participants 
+    */
+   function Call(_id, facilityId, participants) {
+
+      this._id = _id;
+      this.facilityId = facilityId;
+      if (participants)
+         this.participants = participants.slice();
+      else
+         this.participants = null;
+   }
+
+   Call.prototype.__type = "Call";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   Call.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id) &&
+         (this.facilityId === rhs.facilityId) &&
+         _.isEqual(this.participants, rhs.participants));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   Call.prototype.toJSON = function () {
+
+      return {
+         __type: Call.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            facilityId: this.facilityId,
+            participants: this.participants ? this.participants.slice() : null
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   Call.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return Call.prototype.reviveDb(data.attributes);
+
+      return Call.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   Call.prototype.reviveDb = function (data) {
+
+      var call = new Call();
+
+      call._id = data._id;
+      call.facilityId = data.facilityId;
+
+      if (data.participants)
+         call.participants = data.participants.slice();
+      else
+         call.participants = null;
+
+      return call;
+   };
+
+   return Call;
+}());
+
+if (false) {} else { 
+   exports.Call = Call;
+   exports.CallParticipant = CallParticipant;
+}
+
+
+/***/ }),
+
 /***/ "./common/facility.js":
 /*!****************************!*\
   !*** ./common/facility.js ***!
@@ -134,8 +331,12 @@ var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 
 if (false) {} else {
    _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
    var facilityModule = __webpack_require__(/*! ../common/facility.js */ "./common/facility.js");
    var Facility = facilityModule.Facility;
+
+   var personModule = __webpack_require__(/*! ../common/person.js */ "./common/person.js");
+   var Person = personModule.Person;
 }
 
 //==============================//
@@ -146,16 +347,14 @@ var HomePageData = (function invocation() {
 
   /**
    * Create a HomePageData object 
-   * @param personName - name for current user
-   * @param personThumbnailUrl - URL to thumbnail image for current user
+   * @param person - object for current user
    * @param currentFacility - the current facility where the user is logged in
    * @param facilities - array of all facilities where the user has a role
    *
    */
-   function HomePageData(personName, personThumbnailUrl, currentFacility, facilities) {
+   function HomePageData(person, currentFacility, facilities) {
 
-      this.personName = personName;
-      this.personThumbnailUrl = personThumbnailUrl;
+      this.person = person;
       this.currentFacility = currentFacility;
       if (facilities)
          this.facilities = facilities.slice();
@@ -172,8 +371,7 @@ var HomePageData = (function invocation() {
    */
    HomePageData.prototype.equals = function (rhs) {
 
-      return (this.personName === rhs.personName &&
-         this.personThumbnailUrl === rhs.personThumbnailUrl &&
+      return (this.person.equals (rhs.person) &&
          this.currentFacility.equals (rhs.currentFacility) &&
          _.isEqual(this.facilities, rhs.facilities)); 
    };
@@ -187,8 +385,7 @@ var HomePageData = (function invocation() {
          __type: HomePageData.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            personName: this.personName,
-            personThumbnailUrl: this.personThumbnailUrl,
+            person: this.person,
             currentFacility: this.currentFacility,
             facilities: this.facilities ? this.facilities.slice() : null
          }
@@ -216,8 +413,7 @@ var HomePageData = (function invocation() {
       
       var pageData = new HomePageData();
 
-      pageData.personName = data.personName;
-      pageData.personThumbnailUrl = data.personThumbnailUrl;   
+      pageData.person = Person.prototype.revive(data.person);
 
       pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 
 
@@ -244,116 +440,118 @@ if (false) {} else {
 
 /***/ }),
 
-/***/ "./common/onlineclass.js":
-/*!*******************************!*\
-  !*** ./common/onlineclass.js ***!
-  \*******************************/
+/***/ "./common/person.js":
+/*!**************************!*\
+  !*** ./common/person.js ***!
+  \**************************/
 /*! default exports */
-/*! export OnlineClass [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export Person [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_exports__, __webpack_require__ */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/*! runtime requirements: __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports) => {
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
 /*! Copyright TXPCo, 2020 */
 
-var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-
-if (false) {} else {
-   _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-}
-
 //==============================//
-// OnlineClass class
+// Person class
 //==============================//
-var OnlineClass = (function invocation() {
+var Person = (function invocation() {
    "use strict";
 
-   /**
-    * Create a Facility object 
-    * @param _id - Mongo-DB assigned ID
-    * @param externalId - ID assigned by external system (like facebook)*
-    * @param particpantChannels - array of IP addresses for participants 
-    */
-   function OnlineClass(_id, externalId, particpantChannels) {
-
+  /**
+   * Create a Person object 
+   * @param _id - Mongo-DB assigned ID
+   * @param externalId - ID assigned by external system (like facebook)
+   * @param name - plain text user name
+   * @param email - user email
+   * @param thumbnailUrl - URL to thumbnail image 
+   * @param lastAuthCode - provided by underlying identity system when user logs in
+   */
+   function Person(_id, externalId, name, email, thumbnailUrl, lastAuthCode) {
+      
       this._id = _id;
-      this.facilityId = externalId;
-      if (particpantChannels)
-         this.particpantChannels = particpantChannels.slice();
-      else
-         this.particpantChannels = null;
+      this.externalId = externalId;
+      this.name = name;
+      this.email = email;
+      this.thumbnailUrl = thumbnailUrl;
+      this.lastAuthCode = lastAuthCode;
    }
+   
+   Person.prototype.__type = "Person";
 
-   OnlineClass.prototype.__type = "OnlineClass";
-
-   /**
-    * test for equality - checks all fields are the same. 
-    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-    * @param rhs - the object to compare this one to.  
-    */
-   OnlineClass.prototype.equals = function (rhs) {
+  /**
+   * test for equality - checks all fields are the same. 
+   * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+   * @param rhs - the object to compare this one to.  
+   */
+   Person.prototype.equals = function (rhs) {
 
       return ((this._id === rhs._id) &&
-         (this.facilityId === rhs.facilityId) &&
-         _.isEqual(this.particpantChannels, rhs.particpantChannels));
+         (this.externalId === rhs.externalId) &&
+         (this.name === rhs.name) &&
+         (this.email === rhs.email) &&
+         (this.thumbnailUrl === rhs.thumbnailUrl) &&
+         (this.lastAuthCode === rhs.lastAuthCode));
    };
 
    /**
     * Method that serializes to JSON 
     */
-   OnlineClass.prototype.toJSON = function () {
+   Person.prototype.toJSON = function () {
 
       return {
-         __type: OnlineClass.prototype.__type,
+         __type: Person.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
-            facilityId: this.facilityId,
-            particpantChannels: this.particpantChannels ? this.particpantChannels.slice() : null
+            externalId: this.externalId,
+            name: this.name,
+            email: this.email,
+            thumbnailUrl: this.thumbnailUrl,
+            lastAuthCode: this.lastAuthCode
          }
       };
    };
 
-   /**
-    * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
-    */
-   OnlineClass.prototype.revive = function (data) {
-
-      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+  /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   Person.prototype.revive = function (data) {
+      
+      // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
       if (data.attributes)
-         return OnlineClass.prototype.reviveDb(data.attributes);
-
-      return OnlineClass.prototype.reviveDb(data);
+         return Person.prototype.reviveDb(data.attributes);
+      else
+         return Person.prototype.reviveDb(data);
    };
-
+   
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   OnlineClass.prototype.reviveDb = function (data) {
-
-      var onlineClass = new OnlineClass();
-
-      onlineClass._id = data._id;
-      onlineClass.facilityId = data.facilityId;
-
-      if (data.particpantChannels)
-         onlineClass.particpantChannels = data.particpantChannels.slice();
-      else
-         onlineClass.particpantChannels = null;
-
-      return onlineClass;
+   Person.prototype.reviveDb = function (data) {
+      
+      var person = new Person();
+      
+      person._id = data._id;
+      person.externalId = data.externalId;
+      person.name = data.name;
+      person.email = data.email;
+      person.thumbnailUrl = data.thumbnailUrl;
+      person.lastAuthCode = data.lastAuthCode;
+      
+      return person;
    };
 
-   return OnlineClass;
+   return Person;
 }());
 
 if (false) {} else { 
-   exports.OnlineClass = OnlineClass;
+   exports.Person = Person;
 }
 
 
@@ -61867,6 +62065,7 @@ var section_1 = __webpack_require__(/*! ./section */ "./client/section.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
 var facebook_1 = __webpack_require__(/*! ./facebook */ "./client/facebook.tsx");
 var rtc_1 = __webpack_require__(/*! ./rtc */ "./client/rtc.tsx");
+var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
 var thinStyle = {
@@ -61891,7 +62090,7 @@ var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-white128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-white128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { pageData: _this.pageData };
         return _this;
@@ -61937,7 +62136,7 @@ var MemberPage = /** @class */ (function (_super) {
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
-            React.createElement(rtc_1.Rtc, { facilityId: this.state.pageData.currentFacility.externalId }),
+            React.createElement(rtc_1.Rtc, { facilityId: this.state.pageData.currentFacility.externalId, personId: this.state.pageData.person.externalId }),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
@@ -61969,7 +62168,7 @@ var CoachPage = /** @class */ (function (_super) {
     __extends(CoachPage, _super);
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData('Waiting...', 'person-black128x128.png', new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-white128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { pageData: _this.pageData };
         return _this;
@@ -62015,7 +62214,7 @@ var CoachPage = /** @class */ (function (_super) {
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
-            React.createElement(rtc_1.Rtc, { facilityId: this.state.pageData.currentFacility.externalId }),
+            React.createElement(rtc_1.Rtc, { facilityId: this.state.pageData.currentFacility.externalId, personId: this.state.pageData.person.externalId }),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Coach Page")))));
@@ -62313,7 +62512,7 @@ exports.Rtc = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 // This app
-var onlineclass_js_1 = __webpack_require__(/*! ../common/onlineclass.js */ "./common/onlineclass.js");
+var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js");
 var Rtc = /** @class */ (function (_super) {
     __extends(Rtc, _super);
     function Rtc(props) {
@@ -62326,22 +62525,38 @@ var Rtc = /** @class */ (function (_super) {
             iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
         };
         this.connection = new RTCPeerConnection(configuration);
-        this.onlineClass = this.defaultOnlineClass = new onlineclass_js_1.OnlineClass(null, null);
         // Get a data channel, will connect later on when we get a proper facilityId as the user logs in
         this.connection.onicecandidate = this.onicecandidate;
+        this.connection.onnegotiationneeded = this.onnegotiationneeded;
+        this.connection.ondatachannel = this.ondatachannel;
+        this.events = null;
+        // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
+        var offer = this.connection.createOffer();
+        offer.then(function (sessionDescriptionInit) {
+            console.log('createOffer success ' + JSON.stringify(sessionDescriptionInit));
+            self.connection.setLocalDescription(sessionDescriptionInit);
+        }, function (err) {
+            console.log('createOffer fail ' + JSON.stringify(err));
+        });
+        this.call = this.defaultCall = new call_js_1.Call(null, null);
     };
     Rtc.prototype.getSession = function () {
         var self = this;
-        // Make a request for user data to populate the home page 
-        axios_1.default.get('/api/onlineclass', { params: { facilityId: self.props.facilityId } })
+        var callParticipant = new call_js_1.CallParticipant(null, self.props.facilityId, self.props.personId);
+        var sourceUrl = '/call/' + JSON.stringify(callParticipant);
+        self.events = new EventSource(sourceUrl);
+        self.events.addEventListener('message', self.ongroupevents, false);
+        // Send our call participant data in
+        axios_1.default.get('/api/call', { params: { callParticipant: callParticipant } })
             .then(function (response) {
-            // Success, set state to data for logged in user 
-            self.onlineClass = self.onlineClass.revive(response.data);
+            self.call = self.call.revive(response.data);
+            // TODO
+            // Read the retrurned data about current status of the call
             //self.setState({ pageData: self.pageData });
         })
             .catch(function (error) {
             // handle error by setting state back to no user logged in
-            self.onlineClass = self.defaultOnlineClass;
+            self.call = self.defaultCall;
             //self.setState({ pageData: self.pageData });
         });
     };
@@ -62350,8 +62565,19 @@ var Rtc = /** @class */ (function (_super) {
             this.getSession();
         }
     };
+    Rtc.prototype.ongroupevents = function (ev) {
+        console.log(JSON.stringify(ev));
+    };
     Rtc.prototype.onicecandidate = function (ev) {
-        console.log(ev);
+        console.log(JSON.stringify(ev));
+    };
+    Rtc.prototype.onnegotiationneeded = function () {
+        var self = this;
+        console.log('onnegotiationneeded');
+    };
+    ;
+    Rtc.prototype.ondatachannel = function (ev) {
+        console.log(JSON.stringify(ev));
     };
     Rtc.prototype.componentWillUnmount = function () {
         // Disconnect from the signalling server ? 
