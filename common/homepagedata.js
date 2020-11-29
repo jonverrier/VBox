@@ -8,8 +8,12 @@ var _ = require('lodash');
 if (typeof exports == 'undefined') {
 } else {
    _ = require('lodash');
+
    var facilityModule = require('../common/facility.js');
    var Facility = facilityModule.Facility;
+
+   var personModule = require('../common/person.js');
+   var Person = personModule.Person;
 }
 
 //==============================//
@@ -20,16 +24,14 @@ var HomePageData = (function invocation() {
 
   /**
    * Create a HomePageData object 
-   * @param personName - name for current user
-   * @param personThumbnailUrl - URL to thumbnail image for current user
+   * @param person - object for current user
    * @param currentFacility - the current facility where the user is logged in
    * @param facilities - array of all facilities where the user has a role
    *
    */
-   function HomePageData(personName, personThumbnailUrl, currentFacility, facilities) {
+   function HomePageData(person, currentFacility, facilities) {
 
-      this.personName = personName;
-      this.personThumbnailUrl = personThumbnailUrl;
+      this.person = person;
       this.currentFacility = currentFacility;
       if (facilities)
          this.facilities = facilities.slice();
@@ -46,8 +48,7 @@ var HomePageData = (function invocation() {
    */
    HomePageData.prototype.equals = function (rhs) {
 
-      return (this.personName === rhs.personName &&
-         this.personThumbnailUrl === rhs.personThumbnailUrl &&
+      return (this.person.equals (rhs.person) &&
          this.currentFacility.equals (rhs.currentFacility) &&
          _.isEqual(this.facilities, rhs.facilities)); 
    };
@@ -61,8 +62,7 @@ var HomePageData = (function invocation() {
          __type: HomePageData.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            personName: this.personName,
-            personThumbnailUrl: this.personThumbnailUrl,
+            person: this.person,
             currentFacility: this.currentFacility,
             facilities: this.facilities ? this.facilities.slice() : null
          }
@@ -90,8 +90,7 @@ var HomePageData = (function invocation() {
       
       var pageData = new HomePageData();
 
-      pageData.personName = data.personName;
-      pageData.personThumbnailUrl = data.personThumbnailUrl;   
+      pageData.person = Person.prototype.revive(data.person);
 
       pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 
 

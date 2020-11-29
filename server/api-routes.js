@@ -2,18 +2,25 @@
 // Copyright TXPCo ltd, 2020
 
 var express = require('express');
+const { CallParticipant } = require('../common/call.js');
 var router = express.Router();
+
+// Core logic classes
+var TypeRegistry = require('../common/types.js').TypeRegistry;
+var Call = require("../common/call.js").Call;
+var Person = require("../common/person.js").Person;
+var Facility = require("../common/facility.js").Facility;
 
 // Used to get data for the users home page 
 var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
 var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
-var facilityAttendanceModel = require("./facilityperson-model.js").facilityAttendanceModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
 
-// Used to get data for online class participants
-var onlineClassModel = require("./onlineClass-model.js").classModel;
-var OnlineClass = require("../common/onlineclass.js").OnlineClass;
+// Used to get data call participants
+var callModel = require("./call-model.js").callModel;
+var callParticipantModel = require("./call-model.js").callParticipantModel;
+
 
 async function facilitiesFor (facilityIds) {
    var facilities = new Array();
@@ -41,7 +48,7 @@ async function facilityIdListFor(personId) {
 async function attendeeIdListFor(facilityId) {
 
    // Find attendances where the facility is 'facilityId', then return just a list of peopleIds
-   const attendances = await facilityAttendanceModel.find().where('facilityId').eq(facilityId).exec();
+   const attendances = await callParticipantModel.find().where('facilityId').eq(facilityId).exec();
 
    var attendees = new Array();
 
@@ -66,8 +73,9 @@ router.get('/api/home', function (req, res) {
             }
          }
 
-         var myHomePageData = new HomePageData(req.user.name, req.user.thumbnailUrl,
-                                               current, facilities); 
+         var myHomePageData = new HomePageData(
+            new Person(null, req.user.externalId, req.user.name, null, req.user.thumbnailUrl, null),
+            current, facilities); 
 
          var output = JSON.stringify(myHomePageData);
          res.send(output);
@@ -78,28 +86,32 @@ router.get('/api/home', function (req, res) {
 })
 
 // API to get data for the an online class 
-router.get('/api/onlineclass', function (req, res) {
+router.get('/api/call', function (req, res) {
    if (req.user && req.user.externalId) {
 
       /** get calling IP address from the request */
       const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
-      
+
+      // Client passes CallParticipant in the query string
+      var types = new TypeRegistry();
+      var callParticipant = types.reviveFromJSON(req.query.callParticipant);
+
       // Just save the person-facility link - overrwite if there is already one there.
-      const facilityId = req.query.facilityId; // Client passes facility ID in the query string
-      const personId = req.user.externalId;
-      const facilityPerson = {
+      const facilityId = callParticipant.facilityId; 
+      const personId = callParticipant.personId;
+      const callParticipantQuery = {
          facilityId, personId
       };
 
-      facilityAttendanceModel.findOne(facilityPerson, function (err, foundFacilityPerson) {
-         if (!err && foundFacilityPerson)
-            new facilityAttendanceModel(foundFacilityPerson).updateOne();
-         else
-            new facilityAttendanceModel(facilityPerson).save();
-      });
+      // Atomic update
+      callParticipantModel.findOneAndUpdate({ facilityId: facilityId, personId: personId },
+         { callParticipantQuery },
+         { upsert: true }, function (err, result) {
+            if (err)
+               ;
+      }); 
 
-
-      // Send back a populated OnlineClass object, which includes the Ids & IP addresses of all attendees
+      // Send back a populated Call object, which includes the Ids & IP addresses of all attendees
       attendeeIdListFor(facilityId).then(function (attendeeIds) {
 
          // remove the current person if they are in the list of attendees, so they just get a list of other people
@@ -109,7 +121,7 @@ router.get('/api/onlineclass', function (req, res) {
                attendeeIds.splice(i, 1);
          }
 
-         var classData = new OnlineClass(null, req.query.facilityId, attendeeIds);
+         var classData = new Call(null, facilityId, attendeeIds);
          var output = JSON.stringify(classData);
          res.send(output);
       });   

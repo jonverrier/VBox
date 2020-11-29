@@ -4,7 +4,7 @@
 
 var facilityModule = null;
 var personModule = null;
-var onlineClassModule = null;
+var callModule = null;
 var homePageModule = null;
 
 //==============================//
@@ -23,13 +23,15 @@ var TypeRegistry = (function invocation() {
       if (facilityModule === null) {
          this.types.Facility = Facility;
          this.types.Person = Person;
-         this.types.HomePageData = HomePageData;     
-         this.types.OnlineClass = OnlineClass;
+         this.types.HomePageData = HomePageData; 
+         this.types.CallParticipant = CallParticipant;         
+         this.types.Call = Call;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
          this.types.HomePageData = homePageModule.HomePageData;
-         this.types.OnlineClass = onlineClassModule.OnlineClass;
+         this.types.CallParticipant = callModule.CallParticipant;  
+         this.types.Call = callModule.Call;
       }
    }
    
@@ -175,7 +177,7 @@ if (typeof exports == 'undefined') {
    facilityModule = require('./facility.js');
    personModule = require('./person.js');
    homePageModule = require('./homepagedata.js');
-   onlineClassModule = require('./onlineclass.js');
+   callModule = require('./call.js');
 }
 
 
