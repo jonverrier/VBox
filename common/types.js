@@ -24,13 +24,19 @@ var TypeRegistry = (function invocation() {
          this.types.Facility = Facility;
          this.types.Person = Person;
          this.types.HomePageData = HomePageData; 
-         this.types.CallParticipant = CallParticipant;         
+         this.types.CallParticipant = CallParticipant;     
+         this.types.CallOffer = CallOffer;  
+         this.types.CallAnswer = CallAnswer;   
+         this.types.CallIceCandidate = CallIceCandidate;  
          this.types.Call = Call;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
          this.types.HomePageData = homePageModule.HomePageData;
          this.types.CallParticipant = callModule.CallParticipant;  
+         this.types.CallOffer = callModule.CallOffer; 
+         this.types.CallAnswer = callModule.CallAnswer; 
+         this.types.CallIceCandidate = callModule.CallIceCandidate; 
          this.types.Call = callModule.Call;
       }
    }

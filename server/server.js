@@ -110,6 +110,9 @@ app.get('/', function (req, res) {
    return res.redirect('/login');
 });
 
+// Fix depracation warning. This one is not  abreaking change. 
+mongoose.set('useFindAndModify', false);
+
 const connect = async () => {
    const db = mongoose.connection;
 
