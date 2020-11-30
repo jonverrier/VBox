@@ -2,7 +2,6 @@
 // Copyright TXPCo ltd, 2020
 
 var express = require('express');
-const { CallParticipant } = require('../common/call.js');
 var router = express.Router();
 
 // Core logic classes
@@ -21,6 +20,12 @@ var HomePageData = require("../common/homepagedata.js").HomePageData;
 var callModel = require("./call-model.js").callModel;
 var callParticipantModel = require("./call-model.js").callParticipantModel;
 
+// event source APIs
+var eventFeed = require('./event-source.js').eventFeed;
+var broadcastNewParticipant = require('./event-source.js').broadcastNewParticipant;
+var deliverNewOffer = require('./event-source.js').deliverNewOffer;
+var deliverNewAnswer = require('./event-source.js').deliverNewAnswer;
+var deliverNewIceCandidate = require('./event-source.js').deliverNewIceCandidate;
 
 async function facilitiesFor (facilityIds) {
    var facilities = new Array();
@@ -58,6 +63,14 @@ async function attendeeIdListFor(facilityId) {
    return attendees;
 }
 
+// API to connect to event source
+router.get('/callevents', function (req, res, next) {
+   if (req.user && req.user.externalId) 
+      return eventFeed(req, res, next);
+   else
+      res.send(null);
+});
+
 // API to get data for the home page 
 router.get('/api/home', function (req, res) {
       if (req.user && req.user.externalId) {
@@ -85,16 +98,16 @@ router.get('/api/home', function (req, res) {
    }
 })
 
-// API to get data for the an online class 
+// API to get data for the an online class & register a new participant
 router.get('/api/call', function (req, res) {
    if (req.user && req.user.externalId) {
-
-      /** get calling IP address from the request */
-      const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
       // Client passes CallParticipant in the query string
       var types = new TypeRegistry();
       var callParticipant = types.reviveFromJSON(req.query.callParticipant);
+
+      // This pushes the notice of a new participant over server-sent event channel
+      broadcastNewParticipant(callParticipant);
 
       // Just save the person-facility link - overrwite if there is already one there.
       const facilityId = callParticipant.facilityId; 
@@ -125,6 +138,60 @@ router.get('/api/call', function (req, res) {
          var output = JSON.stringify(classData);
          res.send(output);
       });   
+   } else {
+      res.send(null);
+   }
+})
+
+// API when a participant has a new offer
+router.get('/api/offer', function (req, res) {
+   if (req.user && req.user.externalId) {
+
+      // Client passes CallOffer in the query string
+      var types = new TypeRegistry();
+      var callOffer = types.reviveFromJSON(req.query.callOffer);
+
+      // This pushes the notice of a new offer over server-sent event channel
+      deliverNewOffer(callOffer);
+
+      res.send('OK');
+
+   } else {
+      res.send(null);
+   }
+})
+
+// API when a participant has a new answer
+router.get('/api/answer', function (req, res) {
+   if (req.user && req.user.externalId) {
+
+      // Client passes CallAnswer in the query string
+      var types = new TypeRegistry();
+      var callAnswer = types.reviveFromJSON(req.query.callAnswer);
+
+      // This pushes the notice of a new offer over server-sent event channel
+      deliverNewAnswer(callAnswer);
+
+      res.send('OK');
+
+   } else {
+      res.send(null);
+   }
+})
+
+// API when a participant has a new ICE candidate
+router.get('/api/icecandidate', function (req, res) {
+   if (req.user && req.user.externalId) {
+
+      // Client passes CallIceCandidate in the query string
+      var types = new TypeRegistry();
+      var callIceCandidate = types.reviveFromJSON( req.query.callIceCandidate);
+
+      // This pushes the notice of a new ICE candidate over server-sent event channel
+      deliverNewIceCandidate(callIceCandidate);
+
+      res.send('OK');
+
    } else {
       res.send(null);
    }

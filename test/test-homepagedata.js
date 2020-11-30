@@ -41,6 +41,7 @@ describe("HomePageData", function () {
 
       expect(page1.person.equals(dummyPerson)).to.equal(true);
       expect(page1.currentFacility).to.equal(dummyFacility);
+      
       expect(page1.facilities).to.deep.equal(facilities1);
    });
    
