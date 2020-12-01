@@ -128,8 +128,8 @@ describe("CallIceCandidate", function () {
    beforeEach(function () {
       callerFrom = new CallParticipant("id", "facility", "person", "123");
       callerTo = new CallParticipant("id", "12345", "agag", "123");
-      ice1 = new CallIceCandidate("id", callerFrom, callerTo, "ice1");
-      ice2 = new CallIceCandidate("id", callerTo, callerFrom, "ice2");
+      ice1 = new CallIceCandidate("id", callerFrom, callerTo, "ice1", true);
+      ice2 = new CallIceCandidate("id", callerTo, callerFrom, "ice2", false);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -144,6 +144,7 @@ describe("CallIceCandidate", function () {
       expect(ice1.from.equals(callerFrom)).to.equal(true);
       expect(ice1.to.equals(callerTo)).to.equal(true);
       expect(ice1.ice).to.equal("ice1");
+      expect(ice1.outbound).to.equal(true);
    });
 
    it("Needs to save and restore to/from JSON", function () {
