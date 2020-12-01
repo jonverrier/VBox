@@ -9,6 +9,7 @@
 /*! export Call [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallAnswer [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallIceCandidate [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export CallKeepAlive [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallOffer [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallParticipant [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
@@ -33,7 +34,7 @@ var CallParticipant = (function invocation() {
    "use strict";
 
    /**
-    * Create a Facility object 
+    * Create a CallParticipant object
     * @param _id - Mongo-DB assigned ID
     * @param facilityId - ID for the facility hosting the call
     * @param personId - iD for the call participant 
@@ -118,7 +119,7 @@ var CallOffer = (function invocation() {
    "use strict";
 
    /**
-    * Create a Facility object 
+    * Create a CallOffer object
     * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipant
     * @param to - CallParticipant
@@ -203,7 +204,7 @@ var CallAnswer = (function invocation() {
    "use strict";
 
    /**
-    * Create a Facility object 
+    * Create a CallAnswer object
     * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipant
     * @param to - CallParticipant
@@ -288,7 +289,7 @@ var CallIceCandidate = (function invocation() {
    "use strict";
 
    /**
-    * Create a Facility object 
+    * Create a CallIceCandidate object
     * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipant
     * @param to - CallParticipant
@@ -348,7 +349,7 @@ var CallIceCandidate = (function invocation() {
       if (data.attributes)
          return CallIceCandidate.prototype.reviveDb(data.attributes);
 
-      return v.prototype.reviveDb(data);
+      return CallIceCandidate.prototype.reviveDb(data);
    };
 
    /**
@@ -369,6 +370,75 @@ var CallIceCandidate = (function invocation() {
    };
 
    return CallIceCandidate;
+}());
+
+//==============================//
+// CallKeepAlive class
+//==============================//
+var CallKeepAlive = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a CallKeepAlive object
+    */
+   function CallKeepAlive(_id) {
+
+      this._id = _id;
+   }
+
+   CallKeepAlive.prototype.__type = "CallKeepAlive";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   CallKeepAlive.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   CallKeepAlive.prototype.toJSON = function () {
+
+      return {
+         __type: CallKeepAlive.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   CallKeepAlive.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallKeepAlive.prototype.reviveDb(data.attributes);
+
+      return CallKeepAlive.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   CallKeepAlive.prototype.reviveDb = function (data) {
+
+      var callKeepAlive = new CallKeepAlive();
+
+      callKeepAlive._id = data._id;
+
+      return callKeepAlive;
+   };
+
+   return CallKeepAlive;
 }());
 
 //==============================//
@@ -464,6 +534,7 @@ if (false) {} else {
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
    exports.CallIceCandidate = CallIceCandidate;
+   exports.CallKeepAlive = CallKeepAlive;
 }
 
 
@@ -869,6 +940,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallOffer = CallOffer;  
          this.types.CallAnswer = CallAnswer;   
          this.types.CallIceCandidate = CallIceCandidate;  
+         this.types.CallKeepAlive = CallKeepAlive;
          this.types.Call = Call;
       } else {
          this.types.Facility = facilityModule.Facility;
@@ -878,6 +950,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallOffer = callModule.CallOffer; 
          this.types.CallAnswer = callModule.CallAnswer; 
          this.types.CallIceCandidate = callModule.CallIceCandidate; 
+         this.types.CallKeepAlive = callModule.CallKeepAlive;
          this.types.Call = callModule.Call;
       }
    }

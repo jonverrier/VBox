@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 
 // Core logic classes
 var TypeRegistry = require('../common/types.js').TypeRegistry;
+var CallKeepAlive = require("../common/call.js").CallKeepAlive;
 
 // TODO - this is not very scalable, sequential array
 var subscribers = new Array();
@@ -36,6 +37,19 @@ function eventFeed(req, res, next) {
             subscribers.splice(i, 1);
    });
 }
+
+// broadcast a keep lice message - required on Heroku
+function broadcastKeepAlive() {
+   const keepAlive = new CallKeepAlive(0);
+
+   // TODO - this is not very scalable, sequential array
+   for (var i = 0; i < subscribers.length; i++)
+      subscribers[i].response.write('data:' + JSON.stringify(keepAlive) + '\n\n');
+}
+
+setInterval((args) => {
+   broadcastKeepAlive();
+}, 1000 * 30, null);
 
 // broadcast a new subscriber
 function broadcastNewParticipant(callParticipant) {

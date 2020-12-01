@@ -9,6 +9,7 @@ if (typeof exports !== 'undefined') {
    var CallOffer = callModule.CallOffer;
    var CallAnswer = callModule.CallAnswer;
    var CallIceCandidate = callModule.CallIceCandidate;
+   var CallKeepAlive = callModule.CallKeepAlive;
 
    var typesModule = require('../common/types.js');
    var TypeRegistry = typesModule.TypeRegistry;
@@ -155,6 +156,36 @@ describe("CallIceCandidate", function () {
       var obj = types.reviveFromJSON(output);
 
       expect(ice1.equals(obj)).to.equal(true);
+   });
+});
+
+describe("CallKeepAlive", function () {
+   var keep1, keep2;
+
+   beforeEach(function () {
+      keep1 = new CallKeepAlive("id");
+      keep2 = new CallKeepAlive("id2");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(keep1).to.equal(keep1);
+      expect(keep1).to.not.equal(keep2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(keep1._id).to.equal("id");
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(keep1);
+
+      var obj = types.reviveFromJSON(output);
+
+      expect(keep1.equals(obj)).to.equal(true);
    });
 });
 

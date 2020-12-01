@@ -28,6 +28,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallOffer = CallOffer;  
          this.types.CallAnswer = CallAnswer;   
          this.types.CallIceCandidate = CallIceCandidate;  
+         this.types.CallKeepAlive = CallKeepAlive;
          this.types.Call = Call;
       } else {
          this.types.Facility = facilityModule.Facility;
@@ -37,6 +38,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallOffer = callModule.CallOffer; 
          this.types.CallAnswer = callModule.CallAnswer; 
          this.types.CallIceCandidate = callModule.CallIceCandidate; 
+         this.types.CallKeepAlive = callModule.CallKeepAlive;
          this.types.Call = callModule.Call;
       }
    }
