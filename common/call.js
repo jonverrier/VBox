@@ -277,13 +277,15 @@ var CallIceCandidate = (function invocation() {
     * @param from - CallParticipant
     * @param to - CallParticipant
     * @param ice - the WebRTC ice 
+    * @param outbound - TRUE if this is from an outbound (Offer) connection
     */
-   function CallIceCandidate (_id, from, to, ice) {
+   function CallIceCandidate (_id, from, to, ice, outbound) {
 
       this._id = _id;
       this.from = from;
       this.to = to;
       this.ice = ice;
+      this.outbound = outbound;
    }
 
    CallIceCandidate.prototype.__type = "CallIceCandidate";
@@ -298,7 +300,8 @@ var CallIceCandidate = (function invocation() {
       return ((this._id === rhs._id) &&
          (this.from.equals(rhs.from)) &&
          (this.to.equals(rhs.to)) &&
-         (this.ice === rhs.ice));
+         (this.ice === rhs.ice) &&
+         (this.outbound === rhs.outbound));
    };
 
    /**
@@ -313,7 +316,8 @@ var CallIceCandidate = (function invocation() {
             _id: this._id,
             from: this.from,
             to: this.to,
-            ice: this.ice
+            ice: this.ice,
+            outbound: this.outbound
          }
       };
    };
@@ -343,6 +347,7 @@ var CallIceCandidate = (function invocation() {
       callIceCandidate.from = CallParticipant.prototype.revive(data.from);
       callIceCandidate.to = CallParticipant.prototype.revive(data.to);
       callIceCandidate.ice = data.ice;
+      callIceCandidate.outbound = data.outbound; 
 
       return callIceCandidate;
    };

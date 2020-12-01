@@ -293,13 +293,15 @@ var CallIceCandidate = (function invocation() {
     * @param from - CallParticipant
     * @param to - CallParticipant
     * @param ice - the WebRTC ice 
+    * @param outbound - TRUE if this is from an outbound (Offer) connection
     */
-   function CallIceCandidate (_id, from, to, ice) {
+   function CallIceCandidate (_id, from, to, ice, outbound) {
 
       this._id = _id;
       this.from = from;
       this.to = to;
       this.ice = ice;
+      this.outbound = outbound;
    }
 
    CallIceCandidate.prototype.__type = "CallIceCandidate";
@@ -314,7 +316,8 @@ var CallIceCandidate = (function invocation() {
       return ((this._id === rhs._id) &&
          (this.from.equals(rhs.from)) &&
          (this.to.equals(rhs.to)) &&
-         (this.ice === rhs.ice));
+         (this.ice === rhs.ice) &&
+         (this.outbound === rhs.outbound));
    };
 
    /**
@@ -329,7 +332,8 @@ var CallIceCandidate = (function invocation() {
             _id: this._id,
             from: this.from,
             to: this.to,
-            ice: this.ice
+            ice: this.ice,
+            outbound: this.outbound
          }
       };
    };
@@ -359,6 +363,7 @@ var CallIceCandidate = (function invocation() {
       callIceCandidate.from = CallParticipant.prototype.revive(data.from);
       callIceCandidate.to = CallParticipant.prototype.revive(data.to);
       callIceCandidate.ice = data.ice;
+      callIceCandidate.outbound = data.outbound; 
 
       return callIceCandidate;
    };
@@ -62987,23 +62992,25 @@ var Rtc = /** @class */ (function (_super) {
     __extends(Rtc, _super);
     function Rtc(props) {
         var _this = _super.call(this, props) || this;
-        _this.callIn = null;
-        _this.callOut = null;
+        _this.sendConnection = null;
+        _this.recieveConnection = null;
+        _this.sendChannel = null;
+        _this.recieveChannel = null;
         return _this;
     }
     Rtc.prototype.componentDidMount = function () {
         var self = this;
         this.call = this.defaultCall = new call_js_1.Call(null, null);
-        this.callParticipant = null;
+        this.localCallParticipant = null;
     };
     Rtc.prototype.getSession = function () {
         var self = this;
-        this.callParticipant = new call_js_1.CallParticipant(null, self.props.facilityId, self.props.personId, uuid_1.v4());
-        var sourceUrl = '/callevents/?callParticipant=' + encodeURIComponent(JSON.stringify(this.callParticipant));
+        this.localCallParticipant = new call_js_1.CallParticipant(null, self.props.facilityId, self.props.personId, uuid_1.v4());
+        var sourceUrl = '/callevents/?callParticipant=' + encodeURIComponent(JSON.stringify(this.localCallParticipant));
         this.events = new EventSource(sourceUrl);
         this.events.addEventListener('message', self.ongroupevents.bind(this), false);
         // Send our call participant data in
-        axios_1.default.get('/api/call', { params: { callParticipant: this.callParticipant } })
+        axios_1.default.get('/api/call', { params: { callParticipant: this.localCallParticipant } })
             .then(function (response) {
             self.call = self.call.revive(response.data);
             // TODO
@@ -63027,20 +63034,15 @@ var Rtc = /** @class */ (function (_super) {
         var remoteCallData = types.reviveFromJSON(ev.data);
         switch (remoteCallData.__type) {
             case "CallParticipant":
-                console.log('Participant:' + JSON.stringify(remoteCallData));
                 this.onnewparticipant(remoteCallData);
                 break;
             case "CallOffer":
-                console.log('Offer:' + JSON.stringify(remoteCallData));
                 this.onnewoffer(remoteCallData);
                 break;
             case "CallAnswer":
-                console.log('Answer:' + JSON.stringify(remoteCallData));
                 this.onnewanswer(remoteCallData);
                 break;
             case "CallIceCandidate":
-                var outbound = true;
-                console.log('IceCandidate:' + JSON.stringify(remoteCallData));
                 this.onremoteicecandidate(remoteCallData);
                 break;
             default:
@@ -63049,27 +63051,30 @@ var Rtc = /** @class */ (function (_super) {
         }
     };
     Rtc.prototype.onnewparticipant = function (remoteParticipant) {
+        var _this = this;
         var self = this;
         // Connect to the signalling server
         var configuration = {
             iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
         };
-        this.callOut = new RTCPeerConnection(configuration);
-        this.callOut.onicecandidate = function (ice) {
-            self.onicecandidate(ice.candidate, remoteParticipant);
+        this.sendConnection = new RTCPeerConnection(configuration);
+        this.sendConnection.onicecandidate = function (ice) {
+            self.onicecandidate(ice.candidate, remoteParticipant, true);
         };
-        this.callOut.onnegotiationneeded = this.onnegotiationneeded;
-        this.callOut.ondatachannel = this.ondatachannel;
-        this.callOut.oniceconnectionstatechange = this.oniceconnectionstatechange;
-        var dataChannel = this.callOut.createDataChannel("FromOubound");
-        dataChannel.onerror = this.ondatachannelerror;
-        dataChannel.onmessage = this.ondatachannelmessage;
+        this.sendConnection.onnegotiationneeded = this.onnegotiationneeded;
+        this.sendConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
+        this.sendConnection.oniceconnectionstatechange = function (ev) { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
+        self.sendChannel = this.sendConnection.createDataChannel("FromOffer");
+        self.sendChannel.onerror = this.onsendchannelerror;
+        self.sendChannel.onmessage = this.onsendchannelmessage;
+        self.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel); };
+        self.sendChannel.onclose = this.onsendchannelclose;
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        this.callOut.createOffer({ iceRestart: true })
-            .then(function (offer) { return self.callOut.setLocalDescription(offer); })
+        this.sendConnection.createOffer({ iceRestart: true })
+            .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
             .then(function () {
             // Send our call offer data in
-            var callOffer = new call_js_1.CallOffer(null, self.callParticipant, remoteParticipant, self.callOut.localDescription);
+            var callOffer = new call_js_1.CallOffer(null, self.localCallParticipant, remoteParticipant, self.sendConnection.localDescription);
             axios_1.default.get('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
                 // TODO
@@ -63082,27 +63087,30 @@ var Rtc = /** @class */ (function (_super) {
         });
     };
     Rtc.prototype.onnewoffer = function (remoteOffer) {
+        var _this = this;
         var self = this;
         // Connect to the signalling server
         var configuration = {
             iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
         };
-        this.callIn = new RTCPeerConnection(configuration);
-        this.callIn.onicecandidate = function (ice) {
-            self.onicecandidate(ice.candidate, remoteOffer.from);
+        this.recieveConnection = new RTCPeerConnection(configuration);
+        this.recieveConnection.onicecandidate = function (ice) {
+            self.onicecandidate(ice.candidate, remoteOffer.from, false);
         };
-        this.callIn.onnegotiationneeded = this.onnegotiationneeded;
-        this.callIn.ondatachannel = this.ondatachannel;
-        this.callIn.oniceconnectionstatechange = this.oniceconnectionstatechange;
-        /* let dataChannel = this.callIn.createDataChannel("FromInbound");
-        dataChannel.onerror = this.ondatachannelerror;
-        dataChannel.onmessage = this.ondatachannelmessage; */
-        self.callIn.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
-            .then(function () { return self.callIn.createAnswer(); })
-            .then(function (answer) { return self.callIn.setLocalDescription(answer); })
+        this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
+        this.recieveConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
+        this.recieveConnection.oniceconnectionstatechange = function (ev) { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
+        self.sendChannel = this.recieveConnection.createDataChannel("FromAnswer");
+        self.sendChannel.onerror = this.onsendchannelerror;
+        self.sendChannel.onmessage = this.onsendchannelmessage;
+        self.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel); };
+        self.sendChannel.onclose = this.onsendchannelclose;
+        self.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+            .then(function () { return self.recieveConnection.createAnswer(); })
+            .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
             // Send our call answer data in
-            var callAnswer = new call_js_1.CallAnswer(null, self.callParticipant, remoteOffer.from, self.callIn.localDescription);
+            var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipant, remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.get('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
                 // TODO
@@ -63117,7 +63125,7 @@ var Rtc = /** @class */ (function (_super) {
     };
     Rtc.prototype.onnewanswer = function (remoteAnswer) {
         var self = this;
-        self.callOut.setRemoteDescription(new RTCSessionDescription(remoteAnswer.answer))
+        self.sendConnection.setRemoteDescription(new RTCSessionDescription(remoteAnswer.answer))
             .then(function () { console.log('OK onnewanswer'); })
             .catch(function (e) {
             // TODO - analyse error paths
@@ -63125,21 +63133,18 @@ var Rtc = /** @class */ (function (_super) {
         });
     };
     Rtc.prototype.onremoteicecandidate = function (remoteIceCandidate) {
-        console.log('onremoteicecandidate:' + JSON.stringify(remoteIceCandidate));
-        if (this.callOut)
-            this.callOut.addIceCandidate(new RTCIceCandidate(remoteIceCandidate.ice));
+        if (remoteIceCandidate.outbound)
+            this.recieveConnection.addIceCandidate(new RTCIceCandidate(remoteIceCandidate.ice));
         else
-            this.callIn.addIceCandidate(new RTCIceCandidate(remoteIceCandidate.ice));
+            this.sendConnection.addIceCandidate(new RTCIceCandidate(remoteIceCandidate.ice));
     };
-    Rtc.prototype.onicecandidate = function (candidate, to) {
+    Rtc.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
         if (!candidate)
             return;
         var self = this;
-        console.log('onicecandidate:' + JSON.stringify(candidate));
-        console.log('onicecandidate:' + JSON.stringify(to));
         // Send our call ICE candidate in
-        var callIceCandidate = new call_js_1.CallIceCandidate(null, self.callParticipant, to, candidate);
+        var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipant, to, candidate, outbound);
         axios_1.default.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
             // TODO
@@ -63156,17 +63161,49 @@ var Rtc = /** @class */ (function (_super) {
         console.log('onnegotiationneeded');
     };
     ;
-    Rtc.prototype.ondatachannel = function (ev) {
-        console.log('ondatachannel:' + JSON.stringify(ev));
+    Rtc.prototype.onrecievedatachannel = function (ev, self) {
+        console.log('onrecievedatachannel:' + JSON.stringify(ev.channel));
+        self.receiveChannel = ev.channel;
+        self.receiveChannel.onmessage = self.onrecievechannelmessage;
+        self.receiveChannel.onopen = function (ev) { self.onrecievechannelopen(ev, self.recieveChannel); };
+        self.receiveChannel.onclose = self.onrecievechannelclose;
+        self.receiveChannel.onerror = self.onrecievechannelerror;
     };
-    Rtc.prototype.ondatachannelmessage = function (msg) {
-        console.log('ondatachannelmessage:' + JSON.stringify(msg));
+    Rtc.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
+        var state = pc.iceConnectionState;
+        console.log('oniceconnectionstatechange:' + JSON.stringify(ev) + "State:" + state);
+        if (state === "completed") {
+        }
     };
-    Rtc.prototype.ondatachannelerror = function (e) {
-        console.log('ondatachannelerror:' + JSON.stringify(e));
+    Rtc.prototype.onsendchannelopen = function (ev, dc) {
+        console.log('onsendchannelopen:' + JSON.stringify(ev));
+        try {
+            dc.send("Hello from outbound. " + dc.label);
+        }
+        catch (e) {
+            console.log('error ondatachannelopen:' + JSON.stringify(e));
+        }
     };
-    Rtc.prototype.oniceconnectionstatechange = function (ev) {
-        console.log('oniceconnectionstatechange:' + JSON.stringify(ev));
+    Rtc.prototype.onsendchannelmessage = function (msg) {
+        console.log('ondatachannelmessage:' + JSON.stringify(msg.data));
+    };
+    Rtc.prototype.onsendchannelerror = function (e) {
+        console.log('ondatachannelerror:' + JSON.stringify(e.error));
+    };
+    Rtc.prototype.onsendchannelclose = function (ev) {
+        console.log('onsendchannelclose:' + JSON.stringify(ev));
+    };
+    Rtc.prototype.onrecievechannelopen = function (ev, dc) {
+        console.log('onrecievechannelopen:' + JSON.stringify(ev));
+    };
+    Rtc.prototype.onrecievechannelmessage = function (msg) {
+        console.log('onrecievechannelmessage:' + JSON.stringify(msg.data));
+    };
+    Rtc.prototype.onrecievechannelerror = function (e) {
+        console.log('onrecievechannelerror:' + JSON.stringify(e.error));
+    };
+    Rtc.prototype.onrecievechannelclose = function (ev) {
+        console.log('onrecievechannelclose:' + JSON.stringify(ev));
     };
     Rtc.prototype.componentWillUnmount = function () {
         // Disconnect from the signalling server ? 
