@@ -18,7 +18,7 @@ var HomePageData = require("../common/homepagedata.js").HomePageData;
 
 // Used to get data call participants
 var callModel = require("./call-model.js").callModel;
-var callParticipantModel = require("./call-model.js").callParticipantModel;
+var callSessionModel = require("./call-model.js").callSessionModel;
 
 // event source APIs
 var eventFeed = require('./event-source.js').eventFeed;
@@ -53,7 +53,7 @@ async function facilityIdListFor(personId) {
 async function attendeeIdListFor(facilityId) {
 
    // Find attendances where the facility is 'facilityId', then return just a list of peopleIds
-   const attendances = await callParticipantModel.find().where('facilityId').eq(facilityId).exec();
+   const attendances = await callSessionModel.find().where('facilityId').eq(facilityId).exec();
 
    var attendees = new Array();
 
@@ -112,12 +112,13 @@ router.get('/api/call', function (req, res) {
       // Just save the person-facility link - overrwite if there is already one there.
       const facilityId = callParticipant.facilityId; 
       const personId = callParticipant.personId;
+      const sessionId = req.sessionID;
       const callParticipantQuery = {
-         facilityId, personId
+         facilityId, personId, sessionId
       };
 
       // Atomic update
-      callParticipantModel.findOneAndUpdate({ facilityId: facilityId, personId: personId },
+      callSessionModel.findOneAndUpdate({ sessionId: sessionId, facilityId: facilityId, personId: personId },
          { callParticipantQuery },
          { upsert: true }, function (err, result) {
             if (err)
