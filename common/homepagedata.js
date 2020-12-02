@@ -24,13 +24,15 @@ var HomePageData = (function invocation() {
 
   /**
    * Create a HomePageData object 
+   * @param sessionId - session ID - is sent back to the client, allows client to restart interrupted comms as long as within TTL
    * @param person - object for current user
    * @param currentFacility - the current facility where the user is logged in
    * @param facilities - array of all facilities where the user has a role
    *
    */
-   function HomePageData(person, currentFacility, facilities) {
+   function HomePageData(sessionId, person, currentFacility, facilities) {
 
+      this.sessionId = sessionId;
       this.person = person;
       this.currentFacility = currentFacility;
       if (facilities)
@@ -48,7 +50,8 @@ var HomePageData = (function invocation() {
    */
    HomePageData.prototype.equals = function (rhs) {
 
-      return (this.person.equals (rhs.person) &&
+      return (this.sessionId === rhs.sessionId &&
+         this.person.equals(rhs.person) &&
          this.currentFacility.equals (rhs.currentFacility) &&
          _.isEqual(this.facilities, rhs.facilities)); 
    };
@@ -62,6 +65,7 @@ var HomePageData = (function invocation() {
          __type: HomePageData.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
+            sessionId: this.sessionId,
             person: this.person,
             currentFacility: this.currentFacility,
             facilities: this.facilities ? this.facilities.slice() : null
@@ -90,6 +94,7 @@ var HomePageData = (function invocation() {
       
       var pageData = new HomePageData();
 
+      pageData.sessionId = data.sessionId;
       pageData.person = Person.prototype.revive(data.person);
 
       pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 

@@ -26,9 +26,9 @@ describe("HomePageData", function () {
    facilities1[0] = dummyFacility; 
    
    beforeEach(function () {
-      page1 = new HomePageData(dummyPerson, dummyFacility, facilities1);
+      page1 = new HomePageData("id1", dummyPerson, dummyFacility, facilities1);
 
-      page2 = new HomePageData(dummyPerson, dummyFacility, facilities2);
+      page2 = new HomePageData("id2", dummyPerson, dummyFacility, facilities2);
    });
    
    it("Needs to compare for equality and inequality", function () {
@@ -39,6 +39,7 @@ describe("HomePageData", function () {
    
    it("Needs to correctly store attributes", function () {
 
+      expect(page1.sessionId === "id1").to.equal(true);
       expect(page1.person.equals(dummyPerson)).to.equal(true);
       expect(page1.currentFacility).to.equal(dummyFacility);
       

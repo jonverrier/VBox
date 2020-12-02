@@ -86,7 +86,7 @@ router.get('/api/home', function (req, res) {
             }
          }
 
-         var myHomePageData = new HomePageData(
+         var myHomePageData = new HomePageData(req.sessionID,
             new Person(null, req.user.externalId, req.user.name, null, req.user.thumbnailUrl, null),
             current, facilities); 
 

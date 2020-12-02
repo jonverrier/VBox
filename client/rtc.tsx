@@ -5,7 +5,6 @@ declare var require: any
 import * as React from 'react';
 
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
  
 // This app
 import { Call, CallParticipant, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
@@ -15,6 +14,7 @@ interface IRtcState {
 }
 
 export interface IRtcProps {
+   sessionId: string;
    facilityId: string;
    personId: string;
 }
@@ -47,7 +47,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
    getSession() {
       var self = this;
-      this.localCallParticipant = new CallParticipant(null, self.props.facilityId, self.props.personId, uuidv4());
+      this.localCallParticipant = new CallParticipant(null, self.props.facilityId, self.props.personId, self.props.sessionId);
       const sourceUrl = '/callevents/?callParticipant=' + encodeURIComponent(JSON.stringify(this.localCallParticipant));
       this.events = new EventSource(sourceUrl);
       this.events.addEventListener('message', self.ongroupevents.bind(this), false);

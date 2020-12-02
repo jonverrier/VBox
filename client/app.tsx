@@ -152,7 +152,9 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                </Navbar.Collapse>
             </Navbar>
 
-            <Rtc facilityId={this.state.pageData.currentFacility.externalId} personId={this.state.pageData.person.externalId}></Rtc>
+            <Rtc sessionId={this.state.pageData.sessionId}
+               facilityId={this.state.pageData.currentFacility.externalId}
+               personId={this.state.pageData.person.externalId}></Rtc>
 
             <Container fluid style={pageStyle}>
                <Row style={thinStyle}>
@@ -212,7 +214,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
    constructor(props: ICoachPageProps) {
       super(props);
-      this.defaultPageData = new HomePageData(
+      this.defaultPageData = new HomePageData(null,
          new Person(null, null, 'Waiting...', null, 'person-white128x128.png', null),
          new Facility(null, null, 'Waiting...', 'building-black128x128.png'),
          null);
@@ -281,7 +283,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                </Navbar.Collapse>
             </Navbar>
 
-            <Rtc facilityId={this.state.pageData.currentFacility.externalId} personId={this.state.pageData.person.externalId}></Rtc>
+            <Rtc sessionId={this.state.pageData.sessionId}
+               facilityId={this.state.pageData.currentFacility.externalId}
+               personId={this.state.pageData.person.externalId}></Rtc>
 
             <Container fluid style={pageStyle}>
                <Jumbotron style={{ background: 'gray', color: 'white' }}>
