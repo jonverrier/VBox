@@ -81,10 +81,10 @@ app.use(                    // Use Mongo session store
    session({
       store: new connectMongo ({
          url: process.env.MONGODB_URI,
-         ttl: 604800 // = 7 days. 
+         ttl: 7200000 // = 2 hours 
       }),
-      cookie: { maxAge: 604800 },
-      secret: Math.random().toString(),
+      cookie: { maxAge: 7200000 },
+      secret: process.env.NODE_SESSION_SECRET,
       saveUninitialized: true,
       resave: true,
       httpOnly: true,   // https://stormpath.com/blog/everything-you-ever-wanted-to-know-about-node-dot-js-sessions/
