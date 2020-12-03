@@ -5,6 +5,7 @@
 var facilityModule = null;
 var personModule = null;
 var callModule = null;
+var signalModule = null;
 var homePageModule = null;
 
 //==============================//
@@ -40,6 +41,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallIceCandidate = callModule.CallIceCandidate; 
          this.types.CallKeepAlive = callModule.CallKeepAlive;
          this.types.Call = callModule.Call;
+         this.types.SignalMessage = signalModule.SignalMessage;
       }
    }
    
@@ -186,6 +188,7 @@ if (typeof exports == 'undefined') {
    personModule = require('./person.js');
    homePageModule = require('./homepagedata.js');
    callModule = require('./call.js');
+   signalModule = require('./signal.js');
 }
 
 
