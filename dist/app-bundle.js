@@ -904,6 +904,124 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./common/signal.js":
+/*!**************************!*\
+  !*** ./common/signal.js ***!
+  \**************************/
+/*! default exports */
+/*! export SignalMessage [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global Enum*/
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
+if (false) {} else {
+   _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+
+   var TypeRegistry = __webpack_require__(/*! ../common/types.js */ "./common/types.js").TypeRegistry;
+}
+
+//==============================//
+// SignalMessage class
+//==============================//
+var SignalMessage = (function invocation() {
+   "use strict";
+
+  /**
+   * Create a SignalMessage object 
+   * @param _id - Mongo-DB assigned ID
+   * @param sessionId - session ID - identifies a single user session
+   * @param sequenceNo - message sequence number, climbs nomintonicaly up from 0
+   * @param data - data
+   */
+   function SignalMessage(_id, sessionId, sequenceNo, data) {
+
+      this._id = _id;
+      this.sessionId = sessionId;
+      this.sequenceNo = sequenceNo;
+      this.data = data;
+   }
+   
+   SignalMessage.prototype.__type = "SignalMessage";
+
+  /**
+   * test for equality - checks all fields are the same. 
+   * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+   * @param rhs - the object to compare this one to.  
+   */
+   SignalMessage.prototype.equals = function (rhs) {
+
+      return (this._id === rhs._id &&
+         (this.sessionId === rhs.sessionId) &&
+         (this.sequenceNo === rhs.sequenceNo) &&
+         this.data.equals (rhs.data)); 
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   SignalMessage.prototype.toJSON = function () {
+
+      return {
+         __type: SignalMessage.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            sessionId: this.sessionId,
+            sequenceNo: this.sequenceNo,
+            data: JSON.stringify (this.data)
+         }
+      };
+   };
+
+  /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   SignalMessage.prototype.revive = function (data) {
+      
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return SignalMessage.prototype.reviveDb(data.attributes);
+      else
+         return SignalMessage.prototype.reviveDb(data);
+   };
+   
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   SignalMessage.prototype.reviveDb = function (data) {
+      
+      var signalMsg = new SignalMessage();
+
+      signalMsg._id = data._id;
+      signalMsg.sessionId = data.sessionId;
+      signalMsg.sequenceNo = data.sequenceNo; 
+
+      var types = new TypeRegistry();
+      this.data = types.reviveFromJSON(data.data);
+      
+      return signalMsg;
+   };
+
+   return SignalMessage;
+}());
+
+
+if (false) {} else { 
+   exports.SignalMessage = SignalMessage;
+}
+
+
+/***/ }),
+
 /***/ "./common/types.js":
 /*!*************************!*\
   !*** ./common/types.js ***!
@@ -922,6 +1040,7 @@ if (false) {} else {
 var facilityModule = null;
 var personModule = null;
 var callModule = null;
+var signalModule = null;
 var homePageModule = null;
 
 //==============================//
@@ -957,6 +1076,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallIceCandidate = callModule.CallIceCandidate; 
          this.types.CallKeepAlive = callModule.CallKeepAlive;
          this.types.Call = callModule.Call;
+         this.types.SignalMessage = signalModule.SignalMessage;
       }
    }
    
@@ -1101,6 +1221,7 @@ if (false) {} else {
    personModule = __webpack_require__(/*! ./person.js */ "./common/person.js");
    homePageModule = __webpack_require__(/*! ./homepagedata.js */ "./common/homepagedata.js");
    callModule = __webpack_require__(/*! ./call.js */ "./common/call.js");
+   signalModule = __webpack_require__(/*! ./signal.js */ "./common/signal.js");
 }
 
 
