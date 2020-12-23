@@ -11,54 +11,58 @@ if (typeof exports == 'undefined') {
 }
 
 //==============================//
-// CallParticipant class
+// CallParticipation class
 //==============================//
-var CallParticipant = (function invocation() {
+var CallParticipation = (function invocation() {
    "use strict";
 
    /**
-    * Create a CallParticipant object
+    * Create a CallParticipation object
     * @param _id - Mongo-DB assigned ID
     * @param facilityId - ID for the facility hosting the call
     * @param personId - iD for the call participant 
     * @param sessionId - iD for the call session (in case same person joins > once)
+    * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
     */
-   function CallParticipant(_id, facilityId, personId, sessionId) {
+   function CallParticipation(_id, facilityId, personId, sessionId, sessionSubId) {
 
       this._id = _id;
       this.facilityId = facilityId;
       this.personId = personId;
       this.sessionId = sessionId;
+      this.sessionSubId = sessionSubId;
    }
 
-   CallParticipant.prototype.__type = "CallParticipant";
+   CallParticipation.prototype.__type = "CallParticipation";
 
    /**
     * test for equality - checks all fields are the same. 
     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
     * @param rhs - the object to compare this one to.  
     */
-   CallParticipant.prototype.equals = function (rhs) {
+   CallParticipation.prototype.equals = function (rhs) {
 
       return ((this._id === rhs._id) &&
          (this.facilityId === rhs.facilityId) &&
          (this.personId === rhs.personId) &&
-         (this.sessionId === rhs.sessionId));
+         (this.sessionId === rhs.sessionId) && 
+         (this.sessionSubId === rhs.sessionSubId));
    };
 
    /**
     * Method that serializes to JSON 
     */
-   CallParticipant.prototype.toJSON = function () {
+   CallParticipation.prototype.toJSON = function () {
 
       return {
-         __type: CallParticipant.prototype.__type,
+         __type: CallParticipation.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
             facilityId: this.facilityId,
             personId: this.personId,
-            sessionId: this.sessionId
+            sessionId: this.sessionId,
+            sessionSubId: this.sessionSubId
          }
       };
    };
@@ -67,32 +71,33 @@ var CallParticipant = (function invocation() {
     * Method that can deserialize JSON into an instance 
     * @param data - the JSON data to revove from 
     */
-   CallParticipant.prototype.revive = function (data) {
+   CallParticipation.prototype.revive = function (data) {
 
       // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
       if (data.attributes)
-         return CallParticipant.prototype.reviveDb(data.attributes);
+         return CallParticipation.prototype.reviveDb(data.attributes);
 
-      return CallParticipant.prototype.reviveDb(data);
+      return CallParticipation.prototype.reviveDb(data);
    };
 
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   CallParticipant.prototype.reviveDb = function (data) {
+   CallParticipation.prototype.reviveDb = function (data) {
 
-      var callParticipant = new CallParticipant();
+      var callParticipation = new CallParticipation();
 
-      callParticipant._id = data._id;
-      callParticipant.facilityId = data.facilityId;
-      callParticipant.personId = data.personId;
-      callParticipant.sessionId = data.sessionId;
+      callParticipation._id = data._id;
+      callParticipation.facilityId = data.facilityId;
+      callParticipation.personId = data.personId;
+      callParticipation.sessionId = data.sessionId;
+      callParticipation.sessionSubId = data.sessionSubId;
 
-      return callParticipant;
+      return callParticipation;
    };
 
-   return CallParticipant;
+   return CallParticipation;
 }());
 
 //==============================//
@@ -104,8 +109,8 @@ var CallOffer = (function invocation() {
    /**
     * Create a CallOffer object
     * @param _id - Mongo-DB assigned ID
-    * @param from - CallParticipant
-    * @param to - CallParticipant
+    * @param from - CallParticipation
+    * @param to - CallParticipation
     * @param offer - the WebRTC Offer 
     */
    function CallOffer(_id, from, to, offer) {
@@ -170,8 +175,8 @@ var CallOffer = (function invocation() {
       var callOffer = new CallOffer();
 
       callOffer._id = data._id;
-      callOffer.from = CallParticipant.prototype.revive(data.from);
-      callOffer.to = CallParticipant.prototype.revive(data.to);
+      callOffer.from = CallParticipation.prototype.revive(data.from);
+      callOffer.to = CallParticipation.prototype.revive(data.to);
       callOffer.offer = data.offer;
 
       return callOffer;
@@ -189,8 +194,8 @@ var CallAnswer = (function invocation() {
    /**
     * Create a CallAnswer object
     * @param _id - Mongo-DB assigned ID
-    * @param from - CallParticipant
-    * @param to - CallParticipant
+    * @param from - CallParticipation
+    * @param to - CallParticipation
     * @param answer - the WebRTC Answer 
     */
    function CallAnswer(_id, from, to, answer) {
@@ -255,8 +260,8 @@ var CallAnswer = (function invocation() {
       var callAnswer = new CallAnswer();
 
       callAnswer._id = data._id;
-      callAnswer.from = CallParticipant.prototype.revive(data.from);
-      callAnswer.to = CallParticipant.prototype.revive(data.to);
+      callAnswer.from = CallParticipation.prototype.revive(data.from);
+      callAnswer.to = CallParticipation.prototype.revive(data.to);
       callAnswer.answer = data.answer;
 
       return callAnswer;
@@ -274,8 +279,8 @@ var CallIceCandidate = (function invocation() {
    /**
     * Create a CallIceCandidate object
     * @param _id - Mongo-DB assigned ID
-    * @param from - CallParticipant
-    * @param to - CallParticipant
+    * @param from - CallParticipation
+    * @param to - CallParticipation
     * @param ice - the WebRTC ice 
     * @param outbound - TRUE if this is from an outbound (Offer) connection
     */
@@ -344,8 +349,8 @@ var CallIceCandidate = (function invocation() {
       var callIceCandidate = new CallIceCandidate();
 
       callIceCandidate._id = data._id;
-      callIceCandidate.from = CallParticipant.prototype.revive(data.from);
-      callIceCandidate.to = CallParticipant.prototype.revive(data.to);
+      callIceCandidate.from = CallParticipation.prototype.revive(data.from);
+      callIceCandidate.to = CallParticipation.prototype.revive(data.to);
       callIceCandidate.ice = data.ice;
       callIceCandidate.outbound = data.outbound; 
 
@@ -433,8 +438,8 @@ var Call = (function invocation() {
    /**
     * Create a Facility object 
     * @param _id - Mongo-DB assigned ID
-    * @param facilityId - ID assigned by external system (like facebook)*
-    * @param participants - array of IP addresses for participants 
+    * @param facilityId - ID assigned by external system (like facebook,
+    * @param participants - array of Participants 
     */
    function Call(_id, facilityId, participants) {
 
@@ -515,7 +520,7 @@ if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
    exports.Call = Call;
-   exports.CallParticipant = CallParticipant;
+   exports.CallParticipation = CallParticipation;
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
    exports.CallIceCandidate = CallIceCandidate;

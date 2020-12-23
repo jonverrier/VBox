@@ -23,22 +23,25 @@ function eventFeed(req, res, next) {
 
    // Client passes call participant data as query 
    var types = new TypeRegistry();
-   var callParticipant = types.reviveFromJSON(decodeURIComponent (req.query.callParticipant));
+   var callParticipation = types.reviveFromJSON(decodeURIComponent(req.query.callParticipation));
 
    // TODO - this is not very scalable, sequential array
-   subscribers.push({ callParticipant: callParticipant, response: res });
+   subscribers.push({ callParticipation: callParticipation, response: res });
 
    // When client closes connection we update the subscriber list
    // avoiding the disconnected one
    req.on('close', () => {
       // TODO - this is not very scalable, sequential array
       for (var i = 0; i < subscribers.length; i++)
-         if (subscribers[i].callParticipant.sessionId === callParticipant.sessionId)
+         if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
+            && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
             subscribers.splice(i, 1);
+            break;
+         }
    });
 }
 
-// broadcast a keep lice message - required on Heroku
+// broadcast a keep alive message - required on Heroku
 function broadcastKeepAlive() {
    const keepAlive = new CallKeepAlive(0);
 
@@ -52,40 +55,42 @@ setInterval((args) => {
 }, 1000 * 30, null);
 
 // broadcast a new subscriber
-function broadcastNewParticipant(callParticipant) {
+function broadcastNewParticipation(callParticipation) {
    // TODO - this is not very scalable, sequential array
-   for (var i = 0; i < subscribers.length; i++)
-      if (subscribers[i].callParticipant.personId === callParticipant.personId
-      && subscribers[i].callParticipant.sessionId !== callParticipant.sessionId)
-         subscribers[i].response.write('data:'+JSON.stringify(callParticipant)+'\n\n');
+   for (var i = 0; i < subscribers.length; i++) {
+      if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
+         && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId)) {
+         subscribers[i].response.write('data:' + JSON.stringify(callParticipation) + '\n\n');
+      }
+   }
 }
 
-
-// Deliver a new WebTC offer
+// Deliver a new WebRTC item
 function deliverOne(item) {
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)
-      if (subscribers[i].callParticipant.sessionId === item.to.sessionId)
+      if (subscribers[i].callParticipation.sessionId === item.to.sessionId
+         && subscribers[i].callParticipation.sessionSubId === item.to.sessionSubId)
          subscribers[i].response.write('data:' + JSON.stringify(item) + '\n\n');
 }
 
-// Deliver a new WebTC offer
+// Deliver a new WebRTC offer
 function deliverNewOffer (callOffer) {
    deliverOne(callOffer);
 }
 
-// Deliver a new WebTC offer
+// Deliver a new WebRTC answer
 function deliverNewAnswer(callAnswer) {
    deliverOne(callAnswer);
 }
 
-// Deliver a new WebTC ICE candidate
+// Deliver a new WebRTC ICE candidate
 function deliverNewIceCandidate(callIceCandidate) {
    deliverOne(callIceCandidate);
 }
 
 module.exports.eventFeed = eventFeed;
-module.exports.broadcastNewParticipant = broadcastNewParticipant;
+module.exports.broadcastNewParticipation = broadcastNewParticipation;
 module.exports.deliverNewOffer = deliverNewOffer;
 module.exports.deliverNewAnswer = deliverNewAnswer;
 module.exports.deliverNewIceCandidate = deliverNewIceCandidate;

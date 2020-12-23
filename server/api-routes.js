@@ -8,12 +8,10 @@ var router = express.Router();
 var TypeRegistry = require('../common/types.js').TypeRegistry;
 var Call = require("../common/call.js").Call;
 var Person = require("../common/person.js").Person;
-var Facility = require("../common/facility.js").Facility;
 
 // Used to get data for the users home page 
 var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
-var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
 
 // Used to get data call participants
@@ -22,7 +20,7 @@ var callSessionModel = require("./call-model.js").callSessionModel;
 
 // event source APIs
 var eventFeed = require('./event-source.js').eventFeed;
-var broadcastNewParticipant = require('./event-source.js').broadcastNewParticipant;
+var broadcastNewParticipation = require('./event-source.js').broadcastNewParticipation;
 var deliverNewOffer = require('./event-source.js').deliverNewOffer;
 var deliverNewAnswer = require('./event-source.js').deliverNewAnswer;
 var deliverNewIceCandidate = require('./event-source.js').deliverNewIceCandidate;
@@ -102,16 +100,16 @@ router.get('/api/home', function (req, res) {
 router.get('/api/call', function (req, res) {
    if (req.user && req.user.externalId) {
 
-      // Client passes CallParticipant in the query string
+      // Client passes CallParticipation in the query string
       var types = new TypeRegistry();
-      var callParticipant = types.reviveFromJSON(req.query.callParticipant);
+      var callParticipation = types.reviveFromJSON(req.query.callParticipation);
 
       // This pushes the notice of a new participant over server-sent event channel
-      broadcastNewParticipant(callParticipant);
+      broadcastNewParticipation(callParticipation);
 
       // Just save the person-facility link - overrwite if there is already one there.
-      const facilityId = callParticipant.facilityId; 
-      const personId = callParticipant.personId;
+      const facilityId = callParticipation.facilityId; 
+      const personId = callParticipation.personId;
       const sessionId = req.sessionID;
       const callParticipantQuery = {
          facilityId, personId, sessionId
@@ -125,7 +123,7 @@ router.get('/api/call', function (req, res) {
                ;
       }); 
 
-      // Send back a populated Call object, which includes the Ids & IP addresses of all attendees
+      // Send back a populated Call object, which includes the personIds of all attendees
       attendeeIdListFor(facilityId).then(function (attendeeIds) {
 
          // remove the current person if they are in the list of attendees, so they just get a list of other people

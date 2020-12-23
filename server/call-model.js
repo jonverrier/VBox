@@ -3,7 +3,7 @@
 
 var mongoose = require("mongoose");
 
-const classSchema = new mongoose.Schema({
+const callSchema = new mongoose.Schema({
    facilityId: {
       type: String,
       required: true,
@@ -32,7 +32,7 @@ const callSessionSchema = new mongoose.Schema({
 });
 
 const callSessionModel = mongoose.model("CallSession", callSessionSchema);
-const callModel = mongoose.model("call", classSchema);
+const callModel = mongoose.model("call", callSchema);
 
 module.exports.callSessionModel = callSessionModel;
 module.exports.callModel = callModel;
