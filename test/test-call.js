@@ -5,7 +5,7 @@ if (typeof exports !== 'undefined') {
 
    var callModule = require('../common/call.js');
    var Call = callModule.Call;
-   var CallParticipant = callModule.CallParticipant;
+   var CallParticipation = callModule.CallParticipation;
    var CallOffer = callModule.CallOffer;
    var CallAnswer = callModule.CallAnswer;
    var CallIceCandidate = callModule.CallIceCandidate;
@@ -17,36 +17,37 @@ if (typeof exports !== 'undefined') {
    var expect = require("chai").expect;
 }
 
-describe("CallParticipant", function () {
-   var callParticipant1, callParticipant2;
+describe("CallParticipation", function () {
+   var callParticipation1, callParticipation2;
 
    beforeEach(function () {
-      callParticipant1 = new CallParticipant("id", "facility", "person", "123");
-      callParticipant2 = new CallParticipant("id", "12345", "agag", "123");
+      callParticipation1 = new CallParticipation("id", "facility", "person", "123", "xx");
+      callParticipation2 = new CallParticipation("id", "12345", "agag", "123", "yy");
    });
 
    it("Needs to compare for equality and inequality", function () {
 
-      expect(callParticipant1).to.equal(callParticipant1);
-      expect(callParticipant1).to.not.equal(callParticipant2);
+      expect(callParticipation1).to.equal(callParticipation1);
+      expect(callParticipation1).to.not.equal(callParticipation2);
    });
 
    it("Needs to correctly store attributes", function () {
 
-      expect(callParticipant1._id).to.equal("id");
-      expect(callParticipant1.facilityId).to.equal("facility");
-      expect(callParticipant1.personId).to.equal("person");
-      expect(callParticipant1.sessionId).to.equal("123");
+      expect(callParticipation1._id).to.equal("id");
+      expect(callParticipation1.facilityId).to.equal("facility");
+      expect(callParticipation1.personId).to.equal("person");
+      expect(callParticipation1.sessionId).to.equal("123");
+      expect(callParticipation1.sessionSubId).to.equal("xx");
    });
 
    it("Needs to save and restore to/from JSON", function () {
 
       var types = new TypeRegistry();
-      var output = JSON.stringify(callParticipant1);
+      var output = JSON.stringify(callParticipation1);
 
       var obj = types.reviveFromJSON(output);
 
-      expect(callParticipant1.equals(obj)).to.equal(true);
+      expect(callParticipation1.equals(obj)).to.equal(true);
    });
 });
 
@@ -55,8 +56,8 @@ describe("CallOffer", function () {
    var offer1, offer2;
 
    beforeEach(function () {
-      callerFrom = new CallParticipant("id", "facility", "person", "123");
-      callerTo = new CallParticipant("id", "12345", "agag", "123");
+      callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", "123", "yy");
       offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
       offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
    });
@@ -91,8 +92,8 @@ describe("CallAnswer", function () {
    var answer1, answer2;
 
    beforeEach(function () {
-      callerFrom = new CallParticipant("id", "facility", "person", "123");
-      callerTo = new CallParticipant("id", "12345", "agag", "123");
+      callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", "123");
       answer1 = new CallAnswer("id", callerFrom, callerTo, "answer1");
       answer2 = new CallAnswer("id", callerTo, callerFrom, "answer2");
    });
@@ -127,8 +128,8 @@ describe("CallIceCandidate", function () {
    var ice1, ice2;
 
    beforeEach(function () {
-      callerFrom = new CallParticipant("id", "facility", "person", "123");
-      callerTo = new CallParticipant("id", "12345", "agag", "123");
+      callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", "123", "yy");
       ice1 = new CallIceCandidate("id", callerFrom, callerTo, "ice1", true);
       ice2 = new CallIceCandidate("id", callerTo, callerFrom, "ice2", false);
    });

@@ -4,7 +4,7 @@
 if (typeof exports !== 'undefined') {
 
    var callModule = require('../common/call.js');
-   var CallParticipant = callModule.CallParticipant;
+   var CallParticipation = callModule.CallParticipation;
    var signalModule = require('../common/signal.js');
    var SignalMessage = signalModule.SignalMessage;
 
@@ -15,12 +15,12 @@ if (typeof exports !== 'undefined') {
 }
 
 describe("SignalMessage", function () {
-   var callParticipant, signalMessage1, signalMessage2;
+   var callParticipation, signalMessage1, signalMessage2;
 
    beforeEach(function () {
-      callParticipant = new CallParticipant("id", "facilityId", "personId", "sessionId");
-      signalMessage1 = new SignalMessage("id", "sessionId", 0, callParticipant);
-      signalMessage2 = new SignalMessage("id", "12345", 1, callParticipant);
+      callParticipation = new CallParticipation("id", "facilityId", "personId", "sessionId");
+      signalMessage1 = new SignalMessage("id", "sessionId", 0, callParticipation);
+      signalMessage2 = new SignalMessage("id", "12345", 1, callParticipation);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -34,7 +34,7 @@ describe("SignalMessage", function () {
       expect(signalMessage1._id).to.equal("id");
       expect(signalMessage1.sessionId).to.equal("sessionId");
       expect(signalMessage1.sequenceNo).to.equal(0);
-      expect(signalMessage1.data.equals(callParticipant)).to.equal(true);
+      expect(signalMessage1.data.equals(callParticipation)).to.equal(true);
    });
 
    it("Needs to save and restore to/from JSON", function () {

@@ -1,14 +1,376 @@
 /*! Copyright TXPCo, 2020 */
+// References:
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
 
 declare var require: any
 
 import * as React from 'react';
-
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
  
 // This app
-import { Call, CallParticipant, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
+import { Call, CallParticipation, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
 import { TypeRegistry } from '../common/types.js';
+
+class RtcCaller {
+   // member variables
+   localCallParticipation: CallParticipation;
+   remoteCallParticipation: CallParticipation;
+   sendConnection: RTCPeerConnection;
+   sendChannel: RTCDataChannel;
+   recieveChannel: RTCDataChannel;
+   myCall: string;
+
+   constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation) {
+      this.localCallParticipation = localCallParticipation;
+      this.remoteCallParticipation = remoteCallParticipation;
+      this.sendConnection = null;
+      this.sendChannel = null;
+      this.recieveChannel = null;
+      this.myCall = null;
+
+      this.placeCall(localCallParticipation, remoteCallParticipation);
+   }
+
+   placeCall(localCallParticipation: CallParticipation,
+      remoteCallParticipation: CallParticipation) {
+
+      var self = this;
+
+      // Connect to the signalling server
+      let configuration = {
+         iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+      };
+
+      this.sendConnection = new RTCPeerConnection(configuration);
+      this.sendConnection.onicecandidate = (ice) => {
+         self.onicecandidate(ice.candidate, remoteCallParticipation, true);
+      };
+      this.sendConnection.onnegotiationneeded = this.onnegotiationneeded;
+      this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
+      this.sendConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
+      this.sendConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.sendConnection, self); };
+
+      self.sendChannel = this.sendConnection.createDataChannel("FromOffer");
+      self.sendChannel.onerror = this.onsendchannelerror;
+      self.sendChannel.onmessage = this.onsendchannelmessage;
+      self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
+      self.sendChannel.onclose = this.onsendchannelclose;
+
+      // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
+      this.sendConnection.createOffer({ iceRestart: true })
+         .then(offer => self.sendConnection.setLocalDescription(offer))
+         .then(() => {
+            // Send our call offer data in
+            var callOffer = new CallOffer(null, localCallParticipation, remoteCallParticipation, self.sendConnection.localDescription);
+            axios.get('/api/offer', { params: { callOffer: callOffer } })
+               .then((response) => {
+                  // TODO
+                  // Read the returned data about current status of the call
+                  console.log('OK onParticipant:');
+               });
+         })
+         .catch(function (error) {
+            // TODO - error paths 
+         });
+   }
+
+   handleAnswer(answer) {
+      this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
+         .then(() => { console.log('OK handleAnswer'); })
+         .catch(e => {
+            // TODO - analyse error paths
+            console.log('error handleAnswer:' + JSON.stringify(e));
+         });
+   }
+
+   handleIceCandidate(ice) {
+      this.sendConnection.addIceCandidate(new RTCIceCandidate(ice));
+   }
+
+   // Override this to be notified when remote connection closes
+   onremoteclose(ev) {
+   }
+
+   onicecandidate(candidate, to, outbound) {
+      // a null candidate means ICE gathering is finished
+      if (!candidate)
+         return;
+
+      var self = this;
+
+      // Send our call ICE candidate in
+      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
+      axios.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
+         .then((response) => {
+            // TODO
+            console.log('OK onicecandidate:');
+         })
+         .catch((e) => {
+            // TODO - analyse error paths
+            console.log('error onicecandidate:' + JSON.stringify(e));
+         });
+   }
+
+   onnegotiationneeded() {
+      var self = this;
+
+      console.log('RtcCaller::onnegotiationneeded');
+   };
+
+   onrecievedatachannel(ev, self) {
+      console.log('RtcCaller::onrecievedatachannel:' + JSON.stringify(ev.channel));
+      self.receiveChannel = ev.channel;
+      self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation) };
+      self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
+      self.receiveChannel.onclose = self.onrecievechannelclose;
+      self.receiveChannel.onerror = self.onrecievechannelerror;
+   }
+
+   oniceconnectionstatechange(ev, pc, outbound) {
+      var state = pc.iceConnectionState;
+      console.log('RtcCaller::oniceconnectionstatechange:' + JSON.stringify(ev) + "State:" + state);
+   }
+
+   onconnectionstatechange(ev, pc, self) {
+      switch (pc.connectionState) {
+         case "connected":
+            // The connection has become fully connected
+            break;
+         case "disconnected":
+         case "failed":
+         case "closed":
+            // The connection has been closed or failed
+            self.onremoteclose (ev);
+            break;
+      }      
+   }
+
+   onsendchannelopen(ev, dc, localCallParticipation) {
+      console.log('RtcReciever::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
+
+      try {
+         dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
+      }
+      catch (e) {
+         console.log('error ondatachannelopen:' + JSON.stringify(e));
+      }
+   }
+
+   onsendchannelmessage(msg) {
+      console.log('RtcCaller::ondatachannelmessage:' + JSON.stringify(msg.data));
+   }
+
+   onsendchannelerror(e) {
+      console.log('RtcCaller::ondatachannelerror:' + JSON.stringify(e.error));
+   }
+
+   onsendchannelclose(ev) {
+      console.log('RtcCaller::onsendchannelclose:' + JSON.stringify(ev));
+   }
+
+   onrecievechannelopen(ev, dc) {
+      console.log('RtcReciever::onrecievechannelopen:' + JSON.stringify(ev));
+   }
+
+   onrecievechannelmessage(msg, localCallParticipation) {
+      console.log('RtcReciever::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
+   }
+
+   onrecievechannelerror(e) {
+      console.log('RtcReciever::onrecievechannelerror:' + JSON.stringify(e.error));
+   }
+
+   onrecievechannelclose(ev) {
+      console.log('RtcReciever::onrecievechannelclose:' + JSON.stringify(ev));
+   }
+}
+
+class RtcReciever {
+   // member variables
+   localCallParticipation: CallParticipation;
+   remoteCallParticipation: CallParticipation;
+   recieveConnection: RTCPeerConnection;
+   sendChannel: RTCDataChannel;
+   recieveChannel: RTCDataChannel;
+   myCall: string;
+
+   constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer) {
+      this.localCallParticipation = localCallParticipation;
+      this.remoteCallParticipation = remoteOffer.from;
+      this.recieveConnection = null;
+      this.sendChannel = null;
+      this.myCall = null;
+
+      this.answerCall(localCallParticipation, remoteOffer);
+   }
+
+   answerCall(localCallParticipation: CallParticipation,
+              remoteOffer: CallOffer) {
+
+      var self = this;
+      // Connect to the signalling server
+      let configuration = {
+         iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+      };
+
+      this.recieveConnection = new RTCPeerConnection(configuration);
+      this.recieveConnection.onicecandidate = (ice) => {
+         self.onicecandidate(ice.candidate, remoteOffer.from, false);
+      };
+      this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
+      this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
+      this.recieveConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
+      this.recieveConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.recieveConnection, self); };
+
+      self.sendChannel = this.recieveConnection.createDataChannel("FromAnswer");
+      self.sendChannel.onerror = this.onsendchannelerror;
+      self.sendChannel.onmessage = this.onsendchannelmessage;
+      self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
+      self.sendChannel.onclose = this.onsendchannelclose;
+
+      self.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+         .then(() => self.recieveConnection.createAnswer())
+         .then(answer => self.recieveConnection.setLocalDescription(answer))
+         .then(() => {
+            // Send our call answer data in
+            var callAnswer = new CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
+            axios.get('/api/answer', { params: { callAnswer: callAnswer } })
+               .then((response) => {
+                  // TODO
+                  // Read the returned data about current status of the call
+                  console.log('OK onOffer:');
+               })
+         })
+         .catch((e) => {
+            // TODO - analyse error paths
+            console.log('error onOffer:' + JSON.stringify(e));
+         });
+   }
+
+   handleIceCandidate(ice) {
+      this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice));
+   }
+
+   // Override this to be notified when remote connection closes
+   onremoteclose(ev) {
+   }
+
+   onicecandidate(candidate, to, outbound) {
+      // a null candidate means ICE gathering is finished
+      if (!candidate)
+         return;
+
+      var self = this;
+
+      // Send our call ICE candidate in
+      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
+      axios.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
+         .then((response) => {
+            // TODO
+            // Read the returned data about current status of the call
+            console.log('OK onicecandidate:');
+         })
+         .catch((e) => {
+            // TODO - analyse error paths
+            console.log('error onicecandidate:' + JSON.stringify(e));
+         });
+   }
+
+   onnegotiationneeded() {
+      var self = this;
+
+      console.log('RtcReciever::onnegotiationneeded');
+   };
+
+   onrecievedatachannel(ev, self) {
+      console.log('RtcReciever::onrecievedatachannel:' + JSON.stringify(ev.channel));
+      self.receiveChannel = ev.channel;
+      self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, this.localCallParticipation) };
+      self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
+      self.receiveChannel.onclose = self.onrecievechannelclose;
+      self.receiveChannel.onerror = self.onrecievechannelerror;
+   }
+
+   oniceconnectionstatechange(ev, pc, outbound) {
+      var state = pc.iceConnectionState;
+      console.log('RtcReciever::oniceconnectionstatechange:' + JSON.stringify(ev) + "State:" + state);
+
+      if (state === "completed") {
+
+      }
+   }
+
+   onconnectionstatechange(ev, pc, self) {
+      switch (pc.connectionState) {
+         case "connected":
+            // The connection has become fully connected
+            break;
+         case "disconnected":
+         case "failed":
+         case "closed":
+            // The connection has been closed or failed
+            self.onremoteclose(ev);
+            break;
+      }
+   }
+
+   onsendchannelopen(ev, dc, localCallParticipation) {
+      console.log('RtcReciever::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
+
+      try {
+         dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
+      }
+      catch (e) {
+         console.log('RtcReciever:: error ondatachannelopen:' + JSON.stringify(e));
+      }
+   }
+
+   onsendchannelmessage(msg) {
+      console.log('RtcReciever:: ondatachannelmessage:' + JSON.stringify(msg.data));
+   }
+
+   onsendchannelerror(e) {
+      console.log('RtcReciever::ondatachannelerror:' + JSON.stringify(e.error));
+   }
+
+   onsendchannelclose(ev) {
+      console.log('RtcReciever::onsendchannelclose:' + JSON.stringify(ev));
+   }
+
+   onrecievechannelopen(ev, dc) {
+      console.log('RtcReciever::onrecievechannelopen:' + JSON.stringify(ev));
+   }
+
+   onrecievechannelmessage(msg, localCallParticipation) {
+      console.log('RtcReciever::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
+   }
+
+   onrecievechannelerror(e) {
+      console.log('RtcReciever::onrecievechannelerror:' + JSON.stringify(e.error));
+   }
+
+   onrecievechannelclose(ev) {
+      console.log('RtcReciever::onrecievechannelclose:' + JSON.stringify(ev));
+   }
+}
+
+class RtcLink {
+   // member variables
+   to: CallParticipation;
+   outbound: boolean;
+   sender: RtcCaller;
+   reciever: RtcReciever;
+
+   constructor(to: CallParticipation, outbound: boolean, sender: RtcCaller, reciever: RtcReciever) {
+      this.to = to;
+      this.outbound = outbound;
+      this.sender = sender;
+      this.reciever = reciever;
+   }
+}
 
 interface IRtcState {
 }
@@ -18,53 +380,50 @@ export interface IRtcProps {
    facilityId: string;
    personId: string;
 }
+
 export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
-   //member variables
-   localCallParticipant: CallParticipant;
-   sendConnection: RTCPeerConnection;
-   recieveConnection: RTCPeerConnection;
-   sendChannel: RTCDataChannel;
-   recieveChannel: RTCDataChannel;
+   // member variables
+   sender: RtcCaller;
+   reciever: RtcReciever;
+   localCallParticipation: CallParticipation;
    events: EventSource;
    call: Call;
    defaultCall: Call;
+   links: RtcLink[];
 
    constructor(props: IRtcProps) {
       super(props);
-      this.sendConnection = null;
-      this.recieveConnection = null;
-      this.sendChannel = null;
-      this.recieveChannel = null;
+      this.sender = null; 
+      this.reciever = null; 
+      this.call = this.defaultCall = new Call(null, null);
+      this.localCallParticipation = null;
+      this.links = new Array();
    }
 
    componentDidMount() {
-      var self = this;
-
-      this.call = this.defaultCall = new Call(null, null);
-      this.localCallParticipant = null;
    }
 
    getSession() {
       var self = this;
-      this.localCallParticipant = new CallParticipant(null, self.props.facilityId, self.props.personId, self.props.sessionId);
-      const sourceUrl = '/callevents/?callParticipant=' + encodeURIComponent(JSON.stringify(this.localCallParticipant));
+      // Create a unique id to this call participation by appending a UUID for the browser we are connecting from
+      this.localCallParticipation = new CallParticipation(null, self.props.facilityId, self.props.personId, self.props.sessionId, uuidv4());
+
+      const sourceUrl = '/callevents/?callParticipation=' + encodeURIComponent(JSON.stringify(this.localCallParticipation));
       this.events = new EventSource(sourceUrl);
       this.events.addEventListener('message', self.ongroupevents.bind(this), false);
 
       // Send our call participant data in
-      axios.get('/api/call', { params: { callParticipant: this.localCallParticipant } })
+      axios.get('/api/call', { params: { callParticipation: this.localCallParticipation } })
          .then(function (response) {
             self.call = self.call.revive(response.data);
             // TODO
             // Read the returned data about current status of the call
 
-            //self.setState({ pageData: self.pageData });
          })
          .catch(function (error) {
             // handle error by setting state back to no user logged in
             self.call = self.defaultCall;
-            //self.setState({ pageData: self.pageData });
          });
    }
 
@@ -80,17 +439,17 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       var remoteCallData = types.reviveFromJSON(ev.data);
 
       switch (remoteCallData.__type) {
-         case "CallParticipant":
-            this.onnewparticipant(remoteCallData);
+         case "CallParticipation":
+            this.onParticipant(remoteCallData);
             break;
          case "CallOffer":
-            this.onnewoffer(remoteCallData);
+            this.onOffer(remoteCallData);
             break;
          case "CallAnswer":
-            this.onnewanswer(remoteCallData);
+            this.onAnswer(remoteCallData);
             break;
          case "CallIceCandidate":
-            this.onremoteicecandidate(remoteCallData);
+            this.onRemoteIceCandidate(remoteCallData);
             break;
          default:
             console.log('Default:'+JSON.stringify(remoteCallData));
@@ -98,186 +457,55 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       }
    }
 
-   onnewparticipant(remoteParticipant) {
+   onParticipant(remoteParticipation) {
       var self = this;
+      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation); 
+      var link = new RtcLink(remoteParticipation, true, sender, null);
 
-      // Connect to the signalling server
-      let configuration = {
-         iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
-      };
-
-      this.sendConnection = new RTCPeerConnection(configuration);
-      this.sendConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, remoteParticipant, true);
-      };
-      this.sendConnection.onnegotiationneeded = this.onnegotiationneeded;
-      this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
-      this.sendConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
-
-      self.sendChannel = this.sendConnection.createDataChannel("FromOffer");
-      self.sendChannel.onerror = this.onsendchannelerror;
-      self.sendChannel.onmessage = this.onsendchannelmessage;
-      self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel); };
-      self.sendChannel.onclose = this.onsendchannelclose;
-
-      // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      this.sendConnection.createOffer({ iceRestart : true} )
-         .then(offer => self.sendConnection.setLocalDescription(offer))
-         .then(() => {
-            // Send our call offer data in
-            var callOffer = new CallOffer(null, self.localCallParticipant, remoteParticipant, self.sendConnection.localDescription);
-            axios.get('/api/offer', { params: { callOffer: callOffer } })
-            .then((response) => {
-               // TODO
-               // Read the returned data about current status of the call
-               console.log('OK onnewparticipant:');
-            });
-         })
-         .catch(function (error) {
-            // TODO - error paths 
-         });
+      // Hook so if remote closes, we close down links this side
+      sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
+      this.links.push(link);
    }
 
-   onnewoffer(remoteOffer) {
+   onOffer(remoteOffer) {
       var self = this;
+      var reciever = new RtcReciever(self.localCallParticipation, remoteOffer); 
+      var link = new RtcLink(remoteOffer.to, false, null, reciever);
 
-      // Connect to the signalling server
-      let configuration = {
-         iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
-      };
+      // Hook so if remote closes, we close down links this side
+      reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
 
-      this.recieveConnection = new RTCPeerConnection(configuration);
-      this.recieveConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, remoteOffer.from, false);
-      };
-      this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
-      this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
-      this.recieveConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
-
-      self.sendChannel = this.recieveConnection.createDataChannel("FromAnswer");
-      self.sendChannel.onerror = this.onsendchannelerror;
-      self.sendChannel.onmessage = this.onsendchannelmessage;
-      self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel); };
-      self.sendChannel.onclose = this.onsendchannelclose;
-
-      self.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
-         .then(() => self.recieveConnection.createAnswer())
-         .then(answer => self.recieveConnection.setLocalDescription(answer))
-         .then(() => {
-            // Send our call answer data in
-            var callAnswer = new CallAnswer(null, self.localCallParticipant, remoteOffer.from, self.recieveConnection.localDescription);
-            axios.get('/api/answer', { params: { callAnswer: callAnswer } })
-            .then((response) => {
-               // TODO
-               // Read the returned data about current status of the call
-               console.log('OK onnewoffer:');
-            })
-         })
-         .catch((e) => {
-            // TODO - analyse error paths
-            console.log('error onnewoffer:' + JSON.stringify(e));
-         });
+      this.links.push(link);
    }
 
-   onnewanswer(remoteAnswer) {
+   onAnswer(remoteAnswer) {
       var self = this;
-      self.sendConnection.setRemoteDescription(new RTCSessionDescription(remoteAnswer.answer))
-         .then(() => { console.log('OK onnewanswer');})
-         .catch(e => {
-            // TODO - analyse error paths
-            console.log('error onnewanswer:' + JSON.stringify(e));
-         });
-   }
-
-   onremoteicecandidate(remoteIceCandidate) {
-      if (remoteIceCandidate.outbound)
-         this.recieveConnection.addIceCandidate(new RTCIceCandidate(remoteIceCandidate.ice));
-      else
-         this.sendConnection.addIceCandidate(new RTCIceCandidate(remoteIceCandidate.ice));
-   }
-
-   onicecandidate(candidate, to, outbound) {
-      // a null candidate means ICE gathering is finished
-      if (!candidate)
-         return;
-
-      var self = this;
-
-      // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipant, to, candidate, outbound);
-      axios.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
-         .then((response) => {
-            // TODO
-            // Read the returned data about current status of the call
-            console.log('OK onicecandidate:');
-         })
-         .catch((e) => {
-            // TODO - analyse error paths
-            console.log('error onicecandidate:' + JSON.stringify(e));
-         });
-   }
-
-   onnegotiationneeded () {
-      var self = this;
-
-      console.log('onnegotiationneeded');
-   };
-
-   onrecievedatachannel(ev, self) {
-      console.log('onrecievedatachannel:' + JSON.stringify(ev.channel));
-      self.receiveChannel = ev.channel;
-      self.receiveChannel.onmessage = self.onrecievechannelmessage;
-      self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
-      self.receiveChannel.onclose = self.onrecievechannelclose;
-      self.receiveChannel.onerror = self.onrecievechannelerror;
-   }
-
-   oniceconnectionstatechange(ev, pc, outbound) {
-      var state = pc.iceConnectionState;
-      console.log('oniceconnectionstatechange:' + JSON.stringify(ev) + "State:" + state);
-
-      if (state === "completed" ) {
-
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals (remoteAnswer.from))
+            self.links[i].sender.handleAnswer(remoteAnswer.answer);
       }
    }
 
-   onsendchannelopen(ev, dc) {
-      console.log('onsendchannelopen:' + JSON.stringify(ev));
+   onRemoteIceCandidate(remoteIceCandidate) {
+      var self = this;
 
-      try {
-         dc.send("Hello from outbound. " + dc.label);
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(remoteIceCandidate.from)) {
+            if (remoteIceCandidate.outbound)
+               self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
+            else
+               self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
+         }
       }
-      catch (e) {
-         console.log('error ondatachannelopen:' + JSON.stringify(e));
-      }   
    }
 
-   onsendchannelmessage(msg) {
-      console.log('ondatachannelmessage:' + JSON.stringify(msg.data));
-   }
-
-   onsendchannelerror(e) {
-      console.log('ondatachannelerror:' + JSON.stringify(e.error));
-   }
-
-   onsendchannelclose(ev) {
-      console.log('onsendchannelclose:' + JSON.stringify(ev));
-   }
-
-   onrecievechannelopen(ev, dc) {
-      console.log('onrecievechannelopen:' + JSON.stringify(ev));
-   }
-
-   onrecievechannelmessage(msg) {
-      console.log('onrecievechannelmessage:' + JSON.stringify(msg.data));
-   }
-
-   onrecievechannelerror(e) {
-      console.log('onrecievechannelerror:' + JSON.stringify(e.error));
-   }
-
-   onrecievechannelclose(ev) {
-      console.log('onrecievechannelclose:' + JSON.stringify(ev));
+   onRemoteClose(ev, rtc, self) {
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
+            self.links.splice(i, 1);
+            break;
+         }
+      }
    }
 
    componentWillUnmount() {
