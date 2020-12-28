@@ -60,7 +60,7 @@ class RtcCaller {
       self.sendChannel.onclose = this.onsendchannelclose;
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      this.sendConnection.createOffer({ iceRestart: true })
+      this.sendConnection.createOffer()
          .then(offer => self.sendConnection.setLocalDescription(offer))
          .then(() => {
             // Send our call offer data in

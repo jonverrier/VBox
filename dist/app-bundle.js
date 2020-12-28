@@ -63227,7 +63227,7 @@ var RtcCaller = /** @class */ (function () {
         self.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
         self.sendChannel.onclose = this.onsendchannelclose;
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        this.sendConnection.createOffer({ iceRestart: true })
+        this.sendConnection.createOffer()
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
             .then(function () {
             // Send our call offer data in
