@@ -69,20 +69,21 @@ class RtcCaller {
                .then((response) => {
                   // TODO
                   // Read the returned data about current status of the call
-                  console.log('OK onParticipant:');
+                  console.log('RtcCaller - OK onOffer call.');
                });
          })
          .catch(function (error) {
             // TODO - error paths 
+            console.log('RtcCaller - error onOffer call' + JSON.stringify(e));
          });
    }
 
    handleAnswer(answer) {
       this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
-         .then(() => { console.log('OK handleAnswer'); })
+         .then(() => { console.log('RtcCaller - OK handleAnswer call.'); })
          .catch(e => {
             // TODO - analyse error paths
-            console.log('error handleAnswer:' + JSON.stringify(e));
+            console.log('RtcCaller - error handleAnswer call' + JSON.stringify(e));
          });
    }
 
@@ -106,11 +107,11 @@ class RtcCaller {
       axios.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
             // TODO
-            console.log('OK onicecandidate:');
+            console.log('RtcCaller - OK onicecandidate call.');
          })
          .catch((e) => {
             // TODO - analyse error paths
-            console.log('error onicecandidate:' + JSON.stringify(e));
+            console.log('RtcCaller - error onicecandidate call.' + JSON.stringify(e));
          });
    }
 
@@ -149,7 +150,7 @@ class RtcCaller {
    }
 
    onsendchannelopen(ev, dc, localCallParticipation) {
-      console.log('RtcReciever::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
+      console.log('RtcCaller::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
 
       try {
          dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
@@ -172,19 +173,19 @@ class RtcCaller {
    }
 
    onrecievechannelopen(ev, dc) {
-      console.log('RtcReciever::onrecievechannelopen:' + JSON.stringify(ev));
+      console.log('RtcCaller::onrecievechannelopen:' + JSON.stringify(ev));
    }
 
    onrecievechannelmessage(msg, localCallParticipation) {
-      console.log('RtcReciever::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
+      console.log('RtcCaller::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
    }
 
    onrecievechannelerror(e) {
-      console.log('RtcReciever::onrecievechannelerror:' + JSON.stringify(e.error));
+      console.log('RtcCaller::onrecievechannelerror:' + JSON.stringify(e.error));
    }
 
    onrecievechannelclose(ev) {
-      console.log('RtcReciever::onrecievechannelclose:' + JSON.stringify(ev));
+      console.log('RtcCaller::onrecievechannelclose:' + JSON.stringify(ev));
    }
 }
 
@@ -241,12 +242,12 @@ class RtcReciever {
                .then((response) => {
                   // TODO
                   // Read the returned data about current status of the call
-                  console.log('OK onOffer:');
+                  console.log('RtcReciever - OK onAnswer call.');
                })
          })
          .catch((e) => {
             // TODO - analyse error paths
-            console.log('error onOffer:' + JSON.stringify(e));
+            console.log('RtcReciever - error onAnswer call' + JSON.stringify(e));
          });
    }
 
@@ -271,11 +272,11 @@ class RtcReciever {
          .then((response) => {
             // TODO
             // Read the returned data about current status of the call
-            console.log('OK onicecandidate:');
+            console.log('RtcReciever - OK onicecandidate call.');
          })
          .catch((e) => {
             // TODO - analyse error paths
-            console.log('error onicecandidate:' + JSON.stringify(e));
+            console.log('RtcReciever - error onicecandidate call' + JSON.stringify(e));
          });
    }
 
