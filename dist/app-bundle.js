@@ -63236,19 +63236,20 @@ var RtcCaller = /** @class */ (function () {
                 .then(function (response) {
                 // TODO
                 // Read the returned data about current status of the call
-                console.log('OK onParticipant:');
+                console.log('RtcCaller - OK onOffer call.');
             });
         })
             .catch(function (error) {
             // TODO - error paths 
+            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
         });
     };
     RtcCaller.prototype.handleAnswer = function (answer) {
         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
-            .then(function () { console.log('OK handleAnswer'); })
+            .then(function () { console.log('RtcCaller - OK handleAnswer call.'); })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('error handleAnswer:' + JSON.stringify(e));
+            console.log('RtcCaller - error handleAnswer call' + JSON.stringify(e));
         });
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
@@ -63267,11 +63268,11 @@ var RtcCaller = /** @class */ (function () {
         axios_1.default.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
             // TODO
-            console.log('OK onicecandidate:');
+            console.log('RtcCaller - OK onicecandidate call.');
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('error onicecandidate:' + JSON.stringify(e));
+            console.log('RtcCaller - error onicecandidate call.' + JSON.stringify(e));
         });
     };
     RtcCaller.prototype.onnegotiationneeded = function () {
@@ -63305,7 +63306,7 @@ var RtcCaller = /** @class */ (function () {
         }
     };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
-        console.log('RtcReciever::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
+        console.log('RtcCaller::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
         try {
             dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
         }
@@ -63323,16 +63324,16 @@ var RtcCaller = /** @class */ (function () {
         console.log('RtcCaller::onsendchannelclose:' + JSON.stringify(ev));
     };
     RtcCaller.prototype.onrecievechannelopen = function (ev, dc) {
-        console.log('RtcReciever::onrecievechannelopen:' + JSON.stringify(ev));
+        console.log('RtcCaller::onrecievechannelopen:' + JSON.stringify(ev));
     };
     RtcCaller.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
-        console.log('RtcReciever::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
+        console.log('RtcCaller::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
     };
     RtcCaller.prototype.onrecievechannelerror = function (e) {
-        console.log('RtcReciever::onrecievechannelerror:' + JSON.stringify(e.error));
+        console.log('RtcCaller::onrecievechannelerror:' + JSON.stringify(e.error));
     };
     RtcCaller.prototype.onrecievechannelclose = function (ev) {
-        console.log('RtcReciever::onrecievechannelclose:' + JSON.stringify(ev));
+        console.log('RtcCaller::onrecievechannelclose:' + JSON.stringify(ev));
     };
     return RtcCaller;
 }());
@@ -63375,12 +63376,12 @@ var RtcReciever = /** @class */ (function () {
                 .then(function (response) {
                 // TODO
                 // Read the returned data about current status of the call
-                console.log('OK onOffer:');
+                console.log('RtcReciever - OK onAnswer call.');
             });
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('error onOffer:' + JSON.stringify(e));
+            console.log('RtcReciever - error onAnswer call' + JSON.stringify(e));
         });
     };
     RtcReciever.prototype.handleIceCandidate = function (ice) {
@@ -63400,11 +63401,11 @@ var RtcReciever = /** @class */ (function () {
             .then(function (response) {
             // TODO
             // Read the returned data about current status of the call
-            console.log('OK onicecandidate:');
+            console.log('RtcReciever - OK onicecandidate call.');
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('error onicecandidate:' + JSON.stringify(e));
+            console.log('RtcReciever - error onicecandidate call' + JSON.stringify(e));
         });
     };
     RtcReciever.prototype.onnegotiationneeded = function () {

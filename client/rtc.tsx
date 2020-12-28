@@ -74,7 +74,7 @@ class RtcCaller {
          })
          .catch(function (error) {
             // TODO - error paths 
-            console.log('RtcCaller - error onOffer call' + JSON.stringify(e));
+            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
          });
    }
 
