@@ -63546,7 +63546,7 @@ var Rtc = /** @class */ (function (_super) {
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hook so if remote closes, we close down links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
-        this.links.push(link);
+        self.links.push(link);
     };
     Rtc.prototype.onOffer = function (remoteOffer) {
         var self = this;
@@ -63554,33 +63554,48 @@ var Rtc = /** @class */ (function (_super) {
         var link = new RtcLink(remoteOffer.from, false, null, reciever);
         // Hook so if remote closes, we close down links this side
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
-        this.links.push(link);
+        self.links.push(link);
     };
     Rtc.prototype.onAnswer = function (remoteAnswer) {
         var self = this;
+        var found = false;
         for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(remoteAnswer.from))
+            if (self.links[i].to.equals(remoteAnswer.from)) {
                 self.links[i].sender.handleAnswer(remoteAnswer.answer);
+                found = true;
+                break;
+            }
         }
+        if (!found)
+            console.log("RtcLink - could not find target: " + JSON.stringify(remoteAnswer));
     };
     Rtc.prototype.onRemoteIceCandidate = function (remoteIceCandidate) {
         var self = this;
+        var found = false;
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 if (remoteIceCandidate.outbound)
                     self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
                 else
                     self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
-            }
-        }
-    };
-    Rtc.prototype.onRemoteClose = function (ev, rtc, self) {
-        for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
-                self.links.splice(i, 1);
+                found = true;
                 break;
             }
         }
+        if (!found)
+            console.log("RtcLink - could not find target: " + JSON.stringify(remoteIceCandidate));
+    };
+    Rtc.prototype.onRemoteClose = function (ev, rtc, self) {
+        var found = false;
+        for (var i = 0; i < self.links.length; i++) {
+            if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
+                self.links.splice(i, 1);
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            console.log("RtcLink - could not find target: " + JSON.stringify(rtc.remoteCallParticipation));
     };
     Rtc.prototype.componentWillUnmount = function () {
         // Disconnect from the signalling server ? 
