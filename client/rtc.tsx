@@ -9,6 +9,7 @@ declare var require: any
 import * as React from 'react';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import adapter from 'webrtc-adapter'; // Google shim library
  
 // This app
 import { Call, CallParticipation, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
