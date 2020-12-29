@@ -63278,6 +63278,12 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onnegotiationneeded = function () {
         var self = this;
         console.log('RtcCaller::onnegotiationneeded');
+        self.sendConnection.createOffer()
+            .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
+            .catch(function (error) {
+            // TODO - analyse error paths 
+            console.log('RtcCaller - error onnegotiationneeded call' + JSON.stringify(error));
+        });
     };
     ;
     RtcCaller.prototype.onrecievedatachannel = function (ev, self) {
