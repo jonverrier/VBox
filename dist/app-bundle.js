@@ -63204,9 +63204,8 @@ var RtcCaller = /** @class */ (function () {
         this.sendChannel = null;
         this.recieveChannel = null;
         this.myCall = null;
-        this.placeCall(localCallParticipation, remoteCallParticipation);
     }
-    RtcCaller.prototype.placeCall = function (localCallParticipation, remoteCallParticipation) {
+    RtcCaller.prototype.placeCall = function () {
         var _this = this;
         var self = this;
         // Connect to the signalling server
@@ -63215,7 +63214,7 @@ var RtcCaller = /** @class */ (function () {
         };
         this.sendConnection = new RTCPeerConnection(configuration);
         this.sendConnection.onicecandidate = function (ice) {
-            self.onicecandidate(ice.candidate, remoteCallParticipation, true);
+            self.onicecandidate(ice.candidate, self.remoteCallParticipation, true);
         };
         this.sendConnection.onnegotiationneeded = function (ev) { self.onnegotiationneeded(ev, self); };
         this.sendConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
@@ -63340,12 +63339,12 @@ var RtcReciever = /** @class */ (function () {
     function RtcReciever(localCallParticipation, remoteOffer) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteOffer.from;
+        this.remoteOffer = remoteOffer;
         this.recieveConnection = null;
         this.sendChannel = null;
         this.myCall = null;
-        this.answerCall(localCallParticipation, remoteOffer);
     }
-    RtcReciever.prototype.answerCall = function (localCallParticipation, remoteOffer) {
+    RtcReciever.prototype.answerCall = function () {
         var _this = this;
         var self = this;
         // Connect to the signalling server
@@ -63354,7 +63353,7 @@ var RtcReciever = /** @class */ (function () {
         };
         this.recieveConnection = new RTCPeerConnection(configuration);
         this.recieveConnection.onicecandidate = function (ice) {
-            self.onicecandidate(ice.candidate, remoteOffer.from, false);
+            self.onicecandidate(ice.candidate, self.remoteOffer.from, false);
         };
         this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
         this.recieveConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
@@ -63365,12 +63364,12 @@ var RtcReciever = /** @class */ (function () {
         self.sendChannel.onmessage = this.onsendchannelmessage;
         self.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
         self.sendChannel.onclose = this.onsendchannelclose;
-        self.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+        self.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
             .then(function () { return self.recieveConnection.createAnswer(); })
             .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
             // Send our call answer data in
-            var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
+            var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.get('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
                 // TODO
@@ -63547,6 +63546,8 @@ var Rtc = /** @class */ (function (_super) {
         // Hook so if remote closes, we close down links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
+        // place the call after setting up 'links' to avoid a race condition
+        sender.placeCall();
     };
     Rtc.prototype.onOffer = function (remoteOffer) {
         var self = this;
@@ -63555,6 +63556,8 @@ var Rtc = /** @class */ (function (_super) {
         // Hook so if remote closes, we close down links this side
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);
+        // answer the call after setting up 'links' to avoid a race condition
+        reciever.answerCall();
     };
     Rtc.prototype.onAnswer = function (remoteAnswer) {
         var self = this;

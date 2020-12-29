@@ -31,12 +31,9 @@ class RtcCaller {
       this.sendChannel = null;
       this.recieveChannel = null;
       this.myCall = null;
-
-      this.placeCall(localCallParticipation, remoteCallParticipation);
    }
 
-   placeCall(localCallParticipation: CallParticipation,
-      remoteCallParticipation: CallParticipation) {
+   placeCall() {
 
       var self = this;
 
@@ -47,7 +44,7 @@ class RtcCaller {
 
       this.sendConnection = new RTCPeerConnection(configuration);
       this.sendConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, remoteCallParticipation, true);
+         self.onicecandidate(ice.candidate, self.remoteCallParticipation, true);
       };
       this.sendConnection.onnegotiationneeded = (ev) => { self.onnegotiationneeded(ev, self) };
       this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
@@ -194,6 +191,7 @@ class RtcReciever {
    // member variables
    localCallParticipation: CallParticipation;
    remoteCallParticipation: CallParticipation;
+   remoteOffer: CallOffer;
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
@@ -202,15 +200,13 @@ class RtcReciever {
    constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteOffer.from;
+      this.remoteOffer = remoteOffer;
       this.recieveConnection = null;
       this.sendChannel = null;
       this.myCall = null;
-
-      this.answerCall(localCallParticipation, remoteOffer);
    }
 
-   answerCall(localCallParticipation: CallParticipation,
-              remoteOffer: CallOffer) {
+   answerCall() {
 
       var self = this;
       // Connect to the signalling server
@@ -220,7 +216,7 @@ class RtcReciever {
 
       this.recieveConnection = new RTCPeerConnection(configuration);
       this.recieveConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, remoteOffer.from, false);
+         self.onicecandidate(ice.candidate, self.remoteOffer.from, false);
       };
       this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
       this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
@@ -233,12 +229,12 @@ class RtcReciever {
       self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
       self.sendChannel.onclose = this.onsendchannelclose;
 
-      self.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+      self.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
          .then(() => self.recieveConnection.createAnswer())
          .then(answer => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
             // Send our call answer data in
-            var callAnswer = new CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
+            var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios.get('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
                   // TODO
@@ -467,6 +463,9 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       // Hook so if remote closes, we close down links this side
       sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
       self.links.push(link);
+
+      // place the call after setting up 'links' to avoid a race condition
+      sender.placeCall();
    }
 
    onOffer(remoteOffer) {
@@ -477,6 +476,9 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
       self.links.push(link);
+
+      // answer the call after setting up 'links' to avoid a race condition
+      reciever.answerCall();
    }
 
    onAnswer(remoteAnswer) {
