@@ -472,7 +472,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
    onOffer(remoteOffer) {
       var self = this;
       var reciever = new RtcReciever(self.localCallParticipation, remoteOffer); 
-      var link = new RtcLink(remoteOffer.to, false, null, reciever);
+      var link = new RtcLink(remoteOffer.from, false, null, reciever);
 
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
