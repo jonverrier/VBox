@@ -63277,12 +63277,12 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
         console.log('RtcCaller::onnegotiationneeded');
-        self.sendConnection.createOffer()
-            .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
-            .catch(function (error) {
-            // TODO - analyse error paths 
-            console.log('RtcCaller - error onnegotiationneeded call' + JSON.stringify(error));
-        });
+        /* self.sendConnection.createOffer()
+           .then(offer => self.sendConnection.setLocalDescription(offer))
+           .catch(function (error) {
+              // TODO - analyse error paths
+              console.log('RtcCaller - error onnegotiationneeded call' + JSON.stringify(error));
+           }); */
     };
     ;
     RtcCaller.prototype.onrecievedatachannel = function (ev, self) {
