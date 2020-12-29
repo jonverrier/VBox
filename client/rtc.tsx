@@ -466,7 +466,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
       // Hook so if remote closes, we close down links this side
       sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
-      this.links.push(link);
+      self.links.push(link);
    }
 
    onOffer(remoteOffer) {
@@ -476,19 +476,27 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
-      this.links.push(link);
+      self.links.push(link);
    }
 
    onAnswer(remoteAnswer) {
       var self = this;
+      var found = false;
+
       for (var i = 0; i < self.links.length; i++) {
-         if (self.links[i].to.equals (remoteAnswer.from))
+         if (self.links[i].to.equals(remoteAnswer.from)) {
             self.links[i].sender.handleAnswer(remoteAnswer.answer);
+            found = true;
+            break;
+         }
       }
+      if (!found)
+         console.log("RtcLink - could not find target: " + JSON.stringify(remoteAnswer));
    }
 
    onRemoteIceCandidate(remoteIceCandidate) {
       var self = this;
+      var found = false;
 
       for (var i = 0; i < self.links.length; i++) {
          if (self.links[i].to.equals(remoteIceCandidate.from)) {
@@ -496,17 +504,26 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
                self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
             else
                self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
-         }
-      }
-   }
-
-   onRemoteClose(ev, rtc, self) {
-      for (var i = 0; i < self.links.length; i++) {
-         if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
-            self.links.splice(i, 1);
+            found = true;
             break;
          }
       }
+      if (!found)
+         console.log("RtcLink - could not find target: " + JSON.stringify(remoteIceCandidate));
+   }
+
+   onRemoteClose(ev, rtc, self) {
+      var found = false;
+
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
+            self.links.splice(i, 1);
+            found = true;
+            break;
+         }
+      }
+      if (!found)
+         console.log("RtcLink - could not find target: " + JSON.stringify(rtc.remoteCallParticipation));
    }
 
    componentWillUnmount() {
