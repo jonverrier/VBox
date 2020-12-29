@@ -63217,7 +63217,7 @@ var RtcCaller = /** @class */ (function () {
         this.sendConnection.onicecandidate = function (ice) {
             self.onicecandidate(ice.candidate, remoteCallParticipation, true);
         };
-        this.sendConnection.onnegotiationneeded = this.onnegotiationneeded;
+        this.sendConnection.onnegotiationneeded = function (ev) { self.onnegotiationneeded(ev, self); };
         this.sendConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
         this.sendConnection.oniceconnectionstatechange = function (ev) { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
         this.sendConnection.onconnectionstatechange = function (ev) { self.onconnectionstatechange(ev, self.sendConnection, self); };
@@ -63275,8 +63275,7 @@ var RtcCaller = /** @class */ (function () {
             console.log('RtcCaller - error onicecandidate call.' + JSON.stringify(e));
         });
     };
-    RtcCaller.prototype.onnegotiationneeded = function () {
-        var self = this;
+    RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
         console.log('RtcCaller::onnegotiationneeded');
         self.sendConnection.createOffer()
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
