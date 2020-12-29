@@ -108,7 +108,6 @@ class RtcCaller {
             axios.get('/api/offer', { params: { callOffer: callOffer } })
                .then((response) => {
                   // TODO
-                  // Read the returned data about current status of the call
                   console.log('RtcCaller - OK onOffer call.');
                });
          })
@@ -286,7 +285,7 @@ class RtcReciever {
    onrecievedatachannel(ev, self) {
       console.log('RtcReciever::onrecievedatachannel:' + JSON.stringify(ev.channel));
       self.receiveChannel = ev.channel;
-      self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, this.localCallParticipation) };
+      self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation) };
       self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
       self.receiveChannel.onclose = self.onrecievechannelclose;
       self.receiveChannel.onerror = self.onrecievechannelerror;

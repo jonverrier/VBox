@@ -63268,7 +63268,6 @@ var RtcCaller = /** @class */ (function () {
             axios_1.default.get('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
                 // TODO
-                // Read the returned data about current status of the call
                 console.log('RtcCaller - OK onOffer call.');
             });
         })
@@ -63412,10 +63411,9 @@ var RtcReciever = /** @class */ (function () {
     };
     ;
     RtcReciever.prototype.onrecievedatachannel = function (ev, self) {
-        var _this = this;
         console.log('RtcReciever::onrecievedatachannel:' + JSON.stringify(ev.channel));
         self.receiveChannel = ev.channel;
-        self.receiveChannel.onmessage = function (ev) { self.onrecievechannelmessage(ev, _this.localCallParticipation); };
+        self.receiveChannel.onmessage = function (ev) { self.onrecievechannelmessage(ev, self.localCallParticipation); };
         self.receiveChannel.onopen = function (ev) { self.onrecievechannelopen(ev, self.recieveChannel); };
         self.receiveChannel.onclose = self.onrecievechannelclose;
         self.receiveChannel.onerror = self.onrecievechannelerror;
