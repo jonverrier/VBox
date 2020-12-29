@@ -58,24 +58,6 @@ class RtcCaller {
       self.sendChannel.onmessage = this.onsendchannelmessage;
       self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
       self.sendChannel.onclose = this.onsendchannelclose;
-
-      // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      this.sendConnection.createOffer()
-         .then(offer => self.sendConnection.setLocalDescription(offer))
-         .then(() => {
-            // Send our call offer data in
-            var callOffer = new CallOffer(null, localCallParticipation, remoteCallParticipation, self.sendConnection.localDescription);
-            axios.get('/api/offer', { params: { callOffer: callOffer } })
-               .then((response) => {
-                  // TODO
-                  // Read the returned data about current status of the call
-                  console.log('RtcCaller - OK onOffer call.');
-               });
-         })
-         .catch(function (error) {
-            // TODO - error paths 
-            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
-         });
    }
 
    handleAnswer(answer) {
@@ -119,12 +101,23 @@ class RtcCaller {
 
       console.log('RtcCaller::onnegotiationneeded');
 
-      /* self.sendConnection.createOffer()
+      // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
+      self.sendConnection.createOffer()
          .then(offer => self.sendConnection.setLocalDescription(offer))
+         .then(() => {
+            // Send our call offer data in
+            var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
+            axios.get('/api/offer', { params: { callOffer: callOffer } })
+               .then((response) => {
+                  // TODO
+                  // Read the returned data about current status of the call
+                  console.log('RtcCaller - OK onOffer call.');
+               });
+         })
          .catch(function (error) {
-            // TODO - analyse error paths 
-            console.log('RtcCaller - error onnegotiationneeded call' + JSON.stringify(error));
-         }); */
+            // TODO - error paths 
+            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
+         });
    };
 
    onrecievedatachannel(ev, self) {
