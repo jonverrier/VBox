@@ -63226,23 +63226,6 @@ var RtcCaller = /** @class */ (function () {
         self.sendChannel.onmessage = this.onsendchannelmessage;
         self.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
         self.sendChannel.onclose = this.onsendchannelclose;
-        // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        this.sendConnection.createOffer()
-            .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
-            .then(function () {
-            // Send our call offer data in
-            var callOffer = new call_js_1.CallOffer(null, localCallParticipation, remoteCallParticipation, self.sendConnection.localDescription);
-            axios_1.default.get('/api/offer', { params: { callOffer: callOffer } })
-                .then(function (response) {
-                // TODO
-                // Read the returned data about current status of the call
-                console.log('RtcCaller - OK onOffer call.');
-            });
-        })
-            .catch(function (error) {
-            // TODO - error paths 
-            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
-        });
     };
     RtcCaller.prototype.handleAnswer = function (answer) {
         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
@@ -63277,12 +63260,23 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
         console.log('RtcCaller::onnegotiationneeded');
-        /* self.sendConnection.createOffer()
-           .then(offer => self.sendConnection.setLocalDescription(offer))
-           .catch(function (error) {
-              // TODO - analyse error paths
-              console.log('RtcCaller - error onnegotiationneeded call' + JSON.stringify(error));
-           }); */
+        // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
+        self.sendConnection.createOffer()
+            .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
+            .then(function () {
+            // Send our call offer data in
+            var callOffer = new call_js_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
+            axios_1.default.get('/api/offer', { params: { callOffer: callOffer } })
+                .then(function (response) {
+                // TODO
+                // Read the returned data about current status of the call
+                console.log('RtcCaller - OK onOffer call.');
+            });
+        })
+            .catch(function (error) {
+            // TODO - error paths 
+            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
+        });
     };
     ;
     RtcCaller.prototype.onrecievedatachannel = function (ev, self) {
