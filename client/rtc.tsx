@@ -476,7 +476,6 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
-
       this.links.push(link);
    }
 
