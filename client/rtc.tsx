@@ -48,7 +48,7 @@ class RtcCaller {
       this.sendConnection.onicecandidate = (ice) => {
          self.onicecandidate(ice.candidate, remoteCallParticipation, true);
       };
-      this.sendConnection.onnegotiationneeded = this.onnegotiationneeded;
+      this.sendConnection.onnegotiationneeded = (ev) => { self.onnegotiationneeded(ev, self) };
       this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
       this.sendConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
       this.sendConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.sendConnection, self); };
@@ -115,8 +115,7 @@ class RtcCaller {
          });
    }
 
-   onnegotiationneeded() {
-      var self = this;
+   onnegotiationneeded(ev, self) {
 
       console.log('RtcCaller::onnegotiationneeded');
 
@@ -130,6 +129,7 @@ class RtcCaller {
 
    onrecievedatachannel(ev, self) {
       console.log('RtcCaller::onrecievedatachannel:' + JSON.stringify(ev.channel));
+
       self.receiveChannel = ev.channel;
       self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation) };
       self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
