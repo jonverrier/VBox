@@ -25441,6 +25441,293 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 
 /***/ }),
 
+/***/ "./node_modules/loglevel/lib/loglevel.js":
+/*!***********************************************!*\
+  !*** ./node_modules/loglevel/lib/loglevel.js ***!
+  \***********************************************/
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_require__, __webpack_exports__, module */
+/*! CommonJS bailout: this is used directly at 16:2-6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+* loglevel - https://github.com/pimterry/loglevel
+*
+* Copyright (c) 2013 Tim Perry
+* Licensed under the MIT license.
+*/
+(function (root, definition) {
+    "use strict";
+    if (true) {
+        !(__WEBPACK_AMD_DEFINE_FACTORY__ = (definition),
+		__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+		(__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) :
+		__WEBPACK_AMD_DEFINE_FACTORY__),
+		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else {}
+}(this, function () {
+    "use strict";
+
+    // Slightly dubious tricks to cut down minimized file size
+    var noop = function() {};
+    var undefinedType = "undefined";
+    var isIE = (typeof window !== undefinedType) && (typeof window.navigator !== undefinedType) && (
+        /Trident\/|MSIE /.test(window.navigator.userAgent)
+    );
+
+    var logMethods = [
+        "trace",
+        "debug",
+        "info",
+        "warn",
+        "error"
+    ];
+
+    // Cross-browser bind equivalent that works at least back to IE6
+    function bindMethod(obj, methodName) {
+        var method = obj[methodName];
+        if (typeof method.bind === 'function') {
+            return method.bind(obj);
+        } else {
+            try {
+                return Function.prototype.bind.call(method, obj);
+            } catch (e) {
+                // Missing bind shim or IE8 + Modernizr, fallback to wrapping
+                return function() {
+                    return Function.prototype.apply.apply(method, [obj, arguments]);
+                };
+            }
+        }
+    }
+
+    // Trace() doesn't print the message in IE, so for that case we need to wrap it
+    function traceForIE() {
+        if (console.log) {
+            if (console.log.apply) {
+                console.log.apply(console, arguments);
+            } else {
+                // In old IE, native console methods themselves don't have apply().
+                Function.prototype.apply.apply(console.log, [console, arguments]);
+            }
+        }
+        if (console.trace) console.trace();
+    }
+
+    // Build the best logging method possible for this env
+    // Wherever possible we want to bind, not wrap, to preserve stack traces
+    function realMethod(methodName) {
+        if (methodName === 'debug') {
+            methodName = 'log';
+        }
+
+        if (typeof console === undefinedType) {
+            return false; // No method possible, for now - fixed later by enableLoggingWhenConsoleArrives
+        } else if (methodName === 'trace' && isIE) {
+            return traceForIE;
+        } else if (console[methodName] !== undefined) {
+            return bindMethod(console, methodName);
+        } else if (console.log !== undefined) {
+            return bindMethod(console, 'log');
+        } else {
+            return noop;
+        }
+    }
+
+    // These private functions always need `this` to be set properly
+
+    function replaceLoggingMethods(level, loggerName) {
+        /*jshint validthis:true */
+        for (var i = 0; i < logMethods.length; i++) {
+            var methodName = logMethods[i];
+            this[methodName] = (i < level) ?
+                noop :
+                this.methodFactory(methodName, level, loggerName);
+        }
+
+        // Define log.log as an alias for log.debug
+        this.log = this.debug;
+    }
+
+    // In old IE versions, the console isn't present until you first open it.
+    // We build realMethod() replacements here that regenerate logging methods
+    function enableLoggingWhenConsoleArrives(methodName, level, loggerName) {
+        return function () {
+            if (typeof console !== undefinedType) {
+                replaceLoggingMethods.call(this, level, loggerName);
+                this[methodName].apply(this, arguments);
+            }
+        };
+    }
+
+    // By default, we use closely bound real methods wherever possible, and
+    // otherwise we wait for a console to appear, and then try again.
+    function defaultMethodFactory(methodName, level, loggerName) {
+        /*jshint validthis:true */
+        return realMethod(methodName) ||
+               enableLoggingWhenConsoleArrives.apply(this, arguments);
+    }
+
+    function Logger(name, defaultLevel, factory) {
+      var self = this;
+      var currentLevel;
+
+      var storageKey = "loglevel";
+      if (typeof name === "string") {
+        storageKey += ":" + name;
+      } else if (typeof name === "symbol") {
+        storageKey = undefined;
+      }
+
+      function persistLevelIfPossible(levelNum) {
+          var levelName = (logMethods[levelNum] || 'silent').toUpperCase();
+
+          if (typeof window === undefinedType || !storageKey) return;
+
+          // Use localStorage if available
+          try {
+              window.localStorage[storageKey] = levelName;
+              return;
+          } catch (ignore) {}
+
+          // Use session cookie as fallback
+          try {
+              window.document.cookie =
+                encodeURIComponent(storageKey) + "=" + levelName + ";";
+          } catch (ignore) {}
+      }
+
+      function getPersistedLevel() {
+          var storedLevel;
+
+          if (typeof window === undefinedType || !storageKey) return;
+
+          try {
+              storedLevel = window.localStorage[storageKey];
+          } catch (ignore) {}
+
+          // Fallback to cookies if local storage gives us nothing
+          if (typeof storedLevel === undefinedType) {
+              try {
+                  var cookie = window.document.cookie;
+                  var location = cookie.indexOf(
+                      encodeURIComponent(storageKey) + "=");
+                  if (location !== -1) {
+                      storedLevel = /^([^;]+)/.exec(cookie.slice(location))[1];
+                  }
+              } catch (ignore) {}
+          }
+
+          // If the stored level is not valid, treat it as if nothing was stored.
+          if (self.levels[storedLevel] === undefined) {
+              storedLevel = undefined;
+          }
+
+          return storedLevel;
+      }
+
+      /*
+       *
+       * Public logger API - see https://github.com/pimterry/loglevel for details
+       *
+       */
+
+      self.name = name;
+
+      self.levels = { "TRACE": 0, "DEBUG": 1, "INFO": 2, "WARN": 3,
+          "ERROR": 4, "SILENT": 5};
+
+      self.methodFactory = factory || defaultMethodFactory;
+
+      self.getLevel = function () {
+          return currentLevel;
+      };
+
+      self.setLevel = function (level, persist) {
+          if (typeof level === "string" && self.levels[level.toUpperCase()] !== undefined) {
+              level = self.levels[level.toUpperCase()];
+          }
+          if (typeof level === "number" && level >= 0 && level <= self.levels.SILENT) {
+              currentLevel = level;
+              if (persist !== false) {  // defaults to true
+                  persistLevelIfPossible(level);
+              }
+              replaceLoggingMethods.call(self, level, name);
+              if (typeof console === undefinedType && level < self.levels.SILENT) {
+                  return "No console available for logging";
+              }
+          } else {
+              throw "log.setLevel() called with invalid level: " + level;
+          }
+      };
+
+      self.setDefaultLevel = function (level) {
+          if (!getPersistedLevel()) {
+              self.setLevel(level, false);
+          }
+      };
+
+      self.enableAll = function(persist) {
+          self.setLevel(self.levels.TRACE, persist);
+      };
+
+      self.disableAll = function(persist) {
+          self.setLevel(self.levels.SILENT, persist);
+      };
+
+      // Initialize with the right level
+      var initialLevel = getPersistedLevel();
+      if (initialLevel == null) {
+          initialLevel = defaultLevel == null ? "WARN" : defaultLevel;
+      }
+      self.setLevel(initialLevel, false);
+    }
+
+    /*
+     *
+     * Top-level API
+     *
+     */
+
+    var defaultLogger = new Logger();
+
+    var _loggersByName = {};
+    defaultLogger.getLogger = function getLogger(name) {
+        if ((typeof name !== "symbol" && typeof name !== "string") || name === "") {
+          throw new TypeError("You must supply a name when creating a logger.");
+        }
+
+        var logger = _loggersByName[name];
+        if (!logger) {
+          logger = _loggersByName[name] = new Logger(
+            name, defaultLogger.getLevel(), defaultLogger.methodFactory);
+        }
+        return logger;
+    };
+
+    // Grab the current global log variable in case of overwrite
+    var _log = (typeof window !== undefinedType) ? window.log : undefined;
+    defaultLogger.noConflict = function() {
+        if (typeof window !== undefinedType &&
+               window.log === defaultLogger) {
+            window.log = _log;
+        }
+
+        return defaultLogger;
+    };
+
+    defaultLogger.getLoggers = function getLoggers() {
+        return _loggersByName;
+    };
+
+    // ES6 default export, for compatibility
+    defaultLogger['default'] = defaultLogger;
+
+    return defaultLogger;
+}));
+
+
+/***/ }),
+
 /***/ "./node_modules/mini-create-react-context/dist/esm/index.js":
 /*!******************************************************************!*\
   !*** ./node_modules/mini-create-react-context/dist/esm/index.js ***!
@@ -63099,6 +63386,45 @@ exports.LoginComponent = LoginComponent;
 
 /***/ }),
 
+/***/ "./client/logger.tsx":
+/*!***************************!*\
+  !*** ./client/logger.tsx ***!
+  \***************************/
+/*! flagged exports */
+/*! export Logger [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__, __webpack_require__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020 */
+// References:
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Logger = void 0;
+var logging = __webpack_require__(/*! loglevel */ "./node_modules/loglevel/lib/loglevel.js");
+logging.setLevel("info");
+var Logger = /** @class */ (function () {
+    function Logger() {
+        this.logger = logging;
+    }
+    Logger.prototype.info = function (fromClass, fromMethod, info, obj) {
+        this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : ""));
+    };
+    Logger.prototype.error = function (fromClass, fromMethod, info, obj) {
+        this.logger.error('Error: ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : ""));
+    };
+    return Logger;
+}());
+exports.Logger = Logger;
+
+
+/***/ }),
+
 /***/ "./client/party.tsx":
 /*!**************************!*\
   !*** ./client/party.tsx ***!
@@ -63196,6 +63522,8 @@ var uuid_1 = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-brows
 // This app
 var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js");
 var types_js_1 = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
+var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
+var logger = new logger_1.Logger();
 var RtcCaller = /** @class */ (function () {
     function RtcCaller(localCallParticipation, remoteCallParticipation) {
         this.localCallParticipation = localCallParticipation;
@@ -63228,14 +63556,23 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.handleAnswer = function (answer) {
         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
-            .then(function () { console.log('RtcCaller - OK handleAnswer call.'); })
+            .then(function () {
+            logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
+            // TODO
+            // Read returned data about current status of the call
+        })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('RtcCaller - error handleAnswer call' + JSON.stringify(e));
+            logger.error('RtcCaller', 'handleAnswer', 'error:', e);
         });
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
-        this.sendConnection.addIceCandidate(new RTCIceCandidate(ice));
+        this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+            .catch(function (e) {
+            // TODO - analyse error paths
+            logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
+        });
+        ;
     };
     // Override this to be notified when remote connection closes
     RtcCaller.prototype.onremoteclose = function (ev) {
@@ -63249,16 +63586,15 @@ var RtcCaller = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
         axios_1.default.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            // TODO
-            console.log('RtcCaller - OK onicecandidate call.');
+            logger.info('RtcCaller', 'onicecandidate', 'OK', null);
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('RtcCaller - error onicecandidate call.' + JSON.stringify(e));
+            logger.error('RtcCaller', 'onicecandidate', 'error:', e);
         });
     };
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
-        console.log('RtcCaller::onnegotiationneeded');
+        logger.info('RtcCaller', 'onnegotiationneeded', null, null);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
         self.sendConnection.createOffer()
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
@@ -63267,18 +63603,17 @@ var RtcCaller = /** @class */ (function () {
             var callOffer = new call_js_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios_1.default.get('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
-                // TODO
-                console.log('RtcCaller - OK onOffer call.');
+                logger.info('RtcCaller', 'createOffer', "Call succeeded", null);
             });
         })
             .catch(function (error) {
-            // TODO - error paths 
-            console.log('RtcCaller - error onOffer call' + JSON.stringify(error));
+            // TODO - analyse error paths 
+            logger.error('RtcCaller', 'createOffer', 'error', error);
         });
     };
     ;
     RtcCaller.prototype.onrecievedatachannel = function (ev, self) {
-        console.log('RtcCaller::onrecievedatachannel:' + JSON.stringify(ev.channel));
+        logger.info('RtcCaller', 'onrecievedatachannel', "channel:", ev.channel);
         self.receiveChannel = ev.channel;
         self.receiveChannel.onmessage = function (ev) { self.onrecievechannelmessage(ev, self.localCallParticipation); };
         self.receiveChannel.onopen = function (ev) { self.onrecievechannelopen(ev, self.recieveChannel); };
@@ -63287,7 +63622,7 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
         var state = pc.iceConnectionState;
-        console.log('RtcCaller::oniceconnectionstatechange:' + JSON.stringify(ev) + "State:" + state);
+        logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
     };
     RtcCaller.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
@@ -63303,34 +63638,34 @@ var RtcCaller = /** @class */ (function () {
         }
     };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
-        console.log('RtcCaller::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
+        logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
         try {
             dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
         }
         catch (e) {
-            console.log('error ondatachannelopen:' + JSON.stringify(e));
+            logger.error('RtcCaller', 'onsendchannelopen', "error:", e);
         }
     };
     RtcCaller.prototype.onsendchannelmessage = function (msg) {
-        console.log('RtcCaller::ondatachannelmessage:' + JSON.stringify(msg.data));
+        logger.info('RtcCaller', 'onsendchannelmessage', "message:", msg.data);
     };
     RtcCaller.prototype.onsendchannelerror = function (e) {
-        console.log('RtcCaller::ondatachannelerror:' + JSON.stringify(e.error));
+        logger.error('RtcCaller', 'onsendchannelerror', "error:", e.error);
     };
     RtcCaller.prototype.onsendchannelclose = function (ev) {
-        console.log('RtcCaller::onsendchannelclose:' + JSON.stringify(ev));
+        logger.info('RtcCaller', 'onsendchannelmessage', "event:", ev);
     };
     RtcCaller.prototype.onrecievechannelopen = function (ev, dc) {
-        console.log('RtcCaller::onrecievechannelopen:' + JSON.stringify(ev));
+        logger.info('RtcCaller', 'onrecievechannelopen', "event:", ev);
     };
     RtcCaller.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
-        console.log('RtcCaller::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
+        logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
     };
     RtcCaller.prototype.onrecievechannelerror = function (e) {
-        console.log('RtcCaller::onrecievechannelerror:' + JSON.stringify(e.error));
+        logger.error('RtcCaller', 'onrecievechannelerror', "error:", e);
     };
     RtcCaller.prototype.onrecievechannelclose = function (ev) {
-        console.log('RtcCaller::onrecievechannelclose:' + JSON.stringify(ev));
+        logger.info('RtcCaller', 'onrecievechannelclose', "event:", ev);
     };
     return RtcCaller;
 }());
@@ -63373,16 +63708,21 @@ var RtcReciever = /** @class */ (function () {
                 .then(function (response) {
                 // TODO
                 // Read the returned data about current status of the call
-                console.log('RtcReciever - OK onAnswer call.');
+                logger.info('RtcReciever', 'answerCall', '', null);
             });
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('RtcReciever - error onAnswer call' + JSON.stringify(e));
+            logger.error('RtcReciever', 'answerCall', "error:", e);
         });
     };
     RtcReciever.prototype.handleIceCandidate = function (ice) {
-        this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice));
+        this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+            .catch(function (e) {
+            // TODO - analyse error paths
+            logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+        });
+        ;
     };
     // Override this to be notified when remote connection closes
     RtcReciever.prototype.onremoteclose = function (ev) {
@@ -63396,22 +63736,20 @@ var RtcReciever = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
         axios_1.default.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            // TODO
-            // Read the returned data about current status of the call
-            console.log('RtcReciever - OK onicecandidate call.');
+            logger.info('RtcReciever', 'onicecandidate', '', null);
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            console.log('RtcReciever - error onicecandidate call' + JSON.stringify(e));
+            logger.error('RtcReciever', 'onicecandidate', "error:", e);
         });
     };
     RtcReciever.prototype.onnegotiationneeded = function () {
         var self = this;
-        console.log('RtcReciever::onnegotiationneeded');
+        logger.info('RtcReciever', 'onnegotiationneeded', '', null);
     };
     ;
     RtcReciever.prototype.onrecievedatachannel = function (ev, self) {
-        console.log('RtcReciever::onrecievedatachannel:' + JSON.stringify(ev.channel));
+        logger.info('RtcReciever', 'onrecievedatachannel', '', null);
         self.receiveChannel = ev.channel;
         self.receiveChannel.onmessage = function (ev) { self.onrecievechannelmessage(ev, self.localCallParticipation); };
         self.receiveChannel.onopen = function (ev) { self.onrecievechannelopen(ev, self.recieveChannel); };
@@ -63420,9 +63758,7 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
         var state = pc.iceConnectionState;
-        console.log('RtcReciever::oniceconnectionstatechange:' + JSON.stringify(ev) + "State:" + state);
-        if (state === "completed") {
-        }
+        logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
     };
     RtcReciever.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
@@ -63438,34 +63774,34 @@ var RtcReciever = /** @class */ (function () {
         }
     };
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
-        console.log('RtcReciever::onsendchannelopen:' + JSON.stringify(ev), " sender is " + localCallParticipation.sessionSubId);
+        logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
         try {
             dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
         }
         catch (e) {
-            console.log('RtcReciever:: error ondatachannelopen:' + JSON.stringify(e));
+            logger.error('RtcReciever', 'onsendchannelopen', "error:", e);
         }
     };
     RtcReciever.prototype.onsendchannelmessage = function (msg) {
-        console.log('RtcReciever:: ondatachannelmessage:' + JSON.stringify(msg.data));
+        logger.info('RtcReciever', 'ondatachannelmessage', 'message:', msg.data);
     };
     RtcReciever.prototype.onsendchannelerror = function (e) {
-        console.log('RtcReciever::ondatachannelerror:' + JSON.stringify(e.error));
+        logger.error('RtcReciever', 'onsendchannelerror', "error:", e.error);
     };
     RtcReciever.prototype.onsendchannelclose = function (ev) {
-        console.log('RtcReciever::onsendchannelclose:' + JSON.stringify(ev));
+        logger.info('RtcReciever', 'onsendchannelclose', 'event:', ev);
     };
     RtcReciever.prototype.onrecievechannelopen = function (ev, dc) {
-        console.log('RtcReciever::onrecievechannelopen:' + JSON.stringify(ev));
+        logger.info('RtcReciever', 'onrecievechannelopen', 'event:', ev);
     };
     RtcReciever.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
-        console.log('RtcReciever::onrecievechannelmessage:' + JSON.stringify(msg.data) + ", reciever is " + localCallParticipation.sessionSubId);
+        logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
     };
     RtcReciever.prototype.onrecievechannelerror = function (e) {
-        console.log('RtcReciever::onrecievechannelerror:' + JSON.stringify(e.error));
+        logger.error('RtcReciever', 'onrecievechannelerror', "error:", e.error);
     };
     RtcReciever.prototype.onrecievechannelclose = function (ev) {
-        console.log('RtcReciever::onrecievechannelclose:' + JSON.stringify(ev));
+        logger.info('RtcReciever', 'onrecievechannelclose', 'event:', ev);
     };
     return RtcReciever;
 }());
@@ -63533,7 +63869,7 @@ var Rtc = /** @class */ (function (_super) {
                 this.onRemoteIceCandidate(remoteCallData);
                 break;
             default:
-                console.log('Default:' + JSON.stringify(remoteCallData));
+                logger.info('RtcReciever', 'ongroupevents', "data:", remoteCallData);
                 break;
         }
     };
@@ -63568,7 +63904,7 @@ var Rtc = /** @class */ (function (_super) {
             }
         }
         if (!found)
-            console.log("RtcLink - could not find target: " + JSON.stringify(remoteAnswer));
+            logger.error('RtcLink', 'onAnswer', "cannot find target:", remoteAnswer);
     };
     Rtc.prototype.onRemoteIceCandidate = function (remoteIceCandidate) {
         var self = this;
@@ -63584,7 +63920,7 @@ var Rtc = /** @class */ (function (_super) {
             }
         }
         if (!found)
-            console.log("RtcLink - could not find target: " + JSON.stringify(remoteIceCandidate));
+            logger.error('RtcLink', 'onRemoteIceCandidate', "cannot find target:", remoteIceCandidate);
     };
     Rtc.prototype.onRemoteClose = function (ev, rtc, self) {
         var found = false;
@@ -63595,8 +63931,6 @@ var Rtc = /** @class */ (function (_super) {
                 break;
             }
         }
-        if (!found)
-            console.log("RtcLink - could not find target: " + JSON.stringify(rtc.remoteCallParticipation));
     };
     Rtc.prototype.componentWillUnmount = function () {
         // Disconnect from the signalling server ? 
