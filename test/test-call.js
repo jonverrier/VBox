@@ -9,6 +9,7 @@ if (typeof exports !== 'undefined') {
    var CallOffer = callModule.CallOffer;
    var CallAnswer = callModule.CallAnswer;
    var CallIceCandidate = callModule.CallIceCandidate;
+   var CallSignal = callModule.CallSignal;
    var CallKeepAlive = callModule.CallKeepAlive;
 
    var typesModule = require('../common/types.js');
@@ -225,4 +226,3 @@ describe("Call", function () {
       expect(class1.equals(obj)).to.equal(true);
    });
 });
-

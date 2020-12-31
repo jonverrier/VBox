@@ -31,6 +31,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallIceCandidate = CallIceCandidate;  
          this.types.CallKeepAlive = CallKeepAlive;
          this.types.Call = Call;
+         this.types.SignalMessage = SignalMessage;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
