@@ -28,6 +28,9 @@ function eventFeed(req, res, next) {
    // TODO - this is not very scalable, sequential array
    subscribers.push({ callParticipation: callParticipation, response: res });
 
+   // This pushes the notice of the new participant over server-sent event channel
+   broadcastNewParticipation(callParticipation);
+
    // When client closes connection we update the subscriber list
    // avoiding the disconnected one
    req.on('close', () => {

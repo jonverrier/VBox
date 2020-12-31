@@ -63831,27 +63831,17 @@ var Rtc = /** @class */ (function (_super) {
         var self = this;
         // Create a unique id to this call participation by appending a UUID for the browser we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, self.props.facilityId, self.props.personId, self.props.sessionId, uuid_1.v4());
+        // Send our own details & subscribe to more
         var sourceUrl = '/callevents/?callParticipation=' + encodeURIComponent(JSON.stringify(this.localCallParticipation));
         this.events = new EventSource(sourceUrl);
-        this.events.addEventListener('message', self.ongroupevents.bind(this), false);
-        // Send our call participant data in
-        axios_1.default.get('/api/call', { params: { callParticipation: this.localCallParticipation } })
-            .then(function (response) {
-            self.call = self.call.revive(response.data);
-            // TODO
-            // Read the returned data about current status of the call
-        })
-            .catch(function (error) {
-            // handle error by setting state back to no user logged in
-            self.call = self.defaultCall;
-        });
+        this.events.addEventListener('message', self.OnServerEvents.bind(this), false);
     };
     Rtc.prototype.componentDidUpdate = function (prevProps) {
         if (prevProps.facilityId !== this.props.facilityId) {
             this.getSession();
         }
     };
-    Rtc.prototype.ongroupevents = function (ev) {
+    Rtc.prototype.OnServerEvents = function (ev) {
         // Event source passes remote participant in the data
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(ev.data);
