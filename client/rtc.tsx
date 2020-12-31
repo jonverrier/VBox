@@ -414,22 +414,10 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       // Create a unique id to this call participation by appending a UUID for the browser we are connecting from
       this.localCallParticipation = new CallParticipation(null, self.props.facilityId, self.props.personId, self.props.sessionId, uuidv4());
 
+      // Send our own details & subscribe to more
       const sourceUrl = '/callevents/?callParticipation=' + encodeURIComponent(JSON.stringify(this.localCallParticipation));
       this.events = new EventSource(sourceUrl);
-      this.events.addEventListener('message', self.ongroupevents.bind(this), false);
-
-      // Send our call participant data in
-      axios.get('/api/call', { params: { callParticipation: this.localCallParticipation } })
-         .then(function (response) {
-            self.call = self.call.revive(response.data);
-            // TODO
-            // Read the returned data about current status of the call
-
-         })
-         .catch(function (error) {
-            // handle error by setting state back to no user logged in
-            self.call = self.defaultCall;
-         });
+      this.events.addEventListener('message', self.OnServerEvents.bind(this), false);
    }
 
    componentDidUpdate(prevProps) {
@@ -438,7 +426,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       }
    }
 
-   ongroupevents(ev) {
+   OnServerEvents(ev) {
       // Event source passes remote participant in the data
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(ev.data);

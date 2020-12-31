@@ -48,19 +48,6 @@ async function facilityIdListFor(personId) {
    return facilitiesFor (facilityIds);
 }
 
-async function attendeeIdListFor(facilityId) {
-
-   // Find attendances where the facility is 'facilityId', then return just a list of peopleIds
-   const attendances = await callSessionModel.find().where('facilityId').eq(facilityId).exec();
-
-   var attendees = new Array();
-
-   for (let attendance of attendances)
-      attendees.push(attendance.personId);
-
-   return attendees;
-}
-
 // API to connect to event source
 router.get('/callevents', function (req, res, next) {
    if (req.user && req.user.externalId) 
@@ -91,52 +78,6 @@ router.get('/api/home', function (req, res) {
          var output = JSON.stringify(myHomePageData);
          res.send(output);
       });
-   } else {
-      res.send(null);
-   }
-})
-
-// API to get data for the an online class & register a new participant
-router.get('/api/call', function (req, res) {
-   if (req.user && req.user.externalId) {
-
-      // Client passes CallParticipation in the query string
-      var types = new TypeRegistry();
-      var callParticipation = types.reviveFromJSON(req.query.callParticipation);
-
-      // This pushes the notice of a new participant over server-sent event channel
-      broadcastNewParticipation(callParticipation);
-
-      // Just save the person-facility link - overrwite if there is already one there.
-      const facilityId = callParticipation.facilityId; 
-      const personId = callParticipation.personId;
-      const sessionId = req.sessionID;
-      const callParticipantQuery = {
-         facilityId, personId, sessionId
-      };
-
-      // Atomic update
-      callSessionModel.findOneAndUpdate({ sessionId: sessionId, facilityId: facilityId, personId: personId },
-         { callParticipantQuery },
-         { upsert: true }, function (err, result) {
-            if (err)
-               ;
-      }); 
-
-      // Send back a populated Call object, which includes the personIds of all attendees
-      attendeeIdListFor(facilityId).then(function (attendeeIds) {
-
-         // remove the current person if they are in the list of attendees, so they just get a list of other people
-         var found = false;
-         for (var i = 0; i < attendeeIds.length; i++) {
-            if (attendeeIds[i] == personId)
-               attendeeIds.splice(i, 1);
-         }
-
-         var classData = new Call(null, facilityId, attendeeIds);
-         var output = JSON.stringify(classData);
-         res.send(output);
-      });   
    } else {
       res.send(null);
    }
