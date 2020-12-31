@@ -12,6 +12,7 @@
 /*! export CallKeepAlive [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallOffer [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallParticipation [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export CallSignal [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
 /*! runtime requirements: __webpack_exports__, __webpack_require__ */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
@@ -25,6 +26,8 @@ var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 
 if (false) {} else {
    _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
+   var typesModule = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
+   var TypeRegistry = typesModule.TypeRegistry;
 }
 
 //==============================//
@@ -86,7 +89,7 @@ var CallParticipation = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallParticipation.prototype.revive = function (data) {
 
@@ -99,7 +102,7 @@ var CallParticipation = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallParticipation.prototype.reviveDb = function (data) {
 
@@ -172,7 +175,7 @@ var CallOffer = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallOffer.prototype.revive = function (data) {
 
@@ -185,7 +188,7 @@ var CallOffer = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallOffer.prototype.reviveDb = function (data) {
 
@@ -257,7 +260,7 @@ var CallAnswer = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallAnswer.prototype.revive = function (data) {
 
@@ -270,7 +273,7 @@ var CallAnswer = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallAnswer.prototype.reviveDb = function (data) {
 
@@ -346,7 +349,7 @@ var CallIceCandidate = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallIceCandidate.prototype.revive = function (data) {
 
@@ -359,7 +362,7 @@ var CallIceCandidate = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallIceCandidate.prototype.reviveDb = function (data) {
 
@@ -419,7 +422,7 @@ var CallKeepAlive = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallKeepAlive.prototype.revive = function (data) {
 
@@ -432,7 +435,7 @@ var CallKeepAlive = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallKeepAlive.prototype.reviveDb = function (data) {
 
@@ -444,6 +447,88 @@ var CallKeepAlive = (function invocation() {
    };
 
    return CallKeepAlive;
+}());
+
+//==============================//
+// CallSignal class
+// sent from server to client - includes a sequence number for the last message sent, plus the actual payload (CallParticipation, CallOffer, CallAnswer, CallIceCandidate)
+//==============================//
+var CallSignal = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a CallOffer object
+    * @param _id - Mongo-DB assigned ID
+    * @param sequenceNo - CallParticipation
+    * @param data - one of CallParticipation, CallOffer, CallAnswer, CallIceCandidate
+    */
+   function CallSignal(_id, sequenceNo, data) {
+
+      this._id = _id;
+      this.sequenceNo = sequenceNo;
+      this.data = data;
+   }
+
+   CallSignal.prototype.__type = "CallOffer";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   CallSignal.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id) &&
+         (this.sequenceNo === rhs.sequenceNo)) &&
+         (this.data.equals(rhs.data));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   CallSignal.prototype.toJSON = function () {
+
+      return {
+         __type: CallOffer.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            sequenceNo: this.sequenceNo,
+            data: JSON.stringify (this.data)
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   CallSignal.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallSignal.prototype.reviveDb(data.attributes);
+
+      return CallSignal.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   CallSignal.prototype.reviveDb = function (data) {
+
+      var callSignal = new CallSignal();
+
+      var types = 
+      callSignal._id = data._id;
+      callSignal.sequenceNo = data.sequenceNo;
+      callSignal.data = TypeRegistry.reviveFromJSON (data.data);
+
+      return callSignal;
+   };
+
+   return CallSignal;
 }());
 
 //==============================//
@@ -500,7 +585,7 @@ var Call = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    Call.prototype.revive = function (data) {
 
@@ -513,7 +598,7 @@ var Call = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    Call.prototype.reviveDb = function (data) {
 
@@ -539,6 +624,7 @@ if (false) {} else {
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
    exports.CallIceCandidate = CallIceCandidate;
+   exports.CallSignal = CallSignal;
    exports.CallKeepAlive = CallKeepAlive;
 }
 
@@ -1070,6 +1156,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallAnswer = CallAnswer;   
          this.types.CallIceCandidate = CallIceCandidate;  
          this.types.CallKeepAlive = CallKeepAlive;
+         this.types.CallSignal = callModule.CallSignal;
          this.types.Call = Call;
       } else {
          this.types.Facility = facilityModule.Facility;
@@ -1080,6 +1167,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallAnswer = callModule.CallAnswer; 
          this.types.CallIceCandidate = callModule.CallIceCandidate; 
          this.types.CallKeepAlive = callModule.CallKeepAlive;
+         this.types.CallSignal = callModule.CallSignal;
          this.types.Call = callModule.Call;
          this.types.SignalMessage = signalModule.SignalMessage;
       }

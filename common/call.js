@@ -8,6 +8,8 @@ var _ = require('lodash');
 if (typeof exports == 'undefined') {
 } else {
    _ = require('lodash');
+   var typesModule = require('../common/types.js');
+   var TypeRegistry = typesModule.TypeRegistry;
 }
 
 //==============================//
@@ -69,7 +71,7 @@ var CallParticipation = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallParticipation.prototype.revive = function (data) {
 
@@ -82,7 +84,7 @@ var CallParticipation = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallParticipation.prototype.reviveDb = function (data) {
 
@@ -155,7 +157,7 @@ var CallOffer = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallOffer.prototype.revive = function (data) {
 
@@ -168,7 +170,7 @@ var CallOffer = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallOffer.prototype.reviveDb = function (data) {
 
@@ -240,7 +242,7 @@ var CallAnswer = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallAnswer.prototype.revive = function (data) {
 
@@ -253,7 +255,7 @@ var CallAnswer = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallAnswer.prototype.reviveDb = function (data) {
 
@@ -329,7 +331,7 @@ var CallIceCandidate = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallIceCandidate.prototype.revive = function (data) {
 
@@ -342,7 +344,7 @@ var CallIceCandidate = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallIceCandidate.prototype.reviveDb = function (data) {
 
@@ -402,7 +404,7 @@ var CallKeepAlive = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    CallKeepAlive.prototype.revive = function (data) {
 
@@ -415,7 +417,7 @@ var CallKeepAlive = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    CallKeepAlive.prototype.reviveDb = function (data) {
 
@@ -483,7 +485,7 @@ var Call = (function invocation() {
 
    /**
     * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revove from 
+    * @param data - the JSON data to revive from 
     */
    Call.prototype.revive = function (data) {
 
@@ -496,7 +498,7 @@ var Call = (function invocation() {
 
    /**
    * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revove from 
+   * @param data - the JSON data to revive from 
    */
    Call.prototype.reviveDb = function (data) {
 
