@@ -7,9 +7,13 @@ const bodyParser = require('body-parser');
 // Core logic classes
 var TypeRegistry = require('../common/types.js').TypeRegistry;
 var CallKeepAlive = require("../common/call.js").CallKeepAlive;
+var SignalMessage = require("../common/signal.js").SignalMessage;
 
 // TODO - this is not very scalable, sequential array
 var subscribers = new Array();
+
+// Used to support message replay if client misses messages & needs to rejoin
+var sequence = 0;
 
 // Middleware for GET events endpoint
 function eventFeed(req, res, next) {
@@ -46,11 +50,12 @@ function eventFeed(req, res, next) {
 
 // broadcast a keep alive message - required on Heroku
 function broadcastKeepAlive() {
-   const keepAlive = new CallKeepAlive(0);
+   const message = new SignalMessage(null, null, null, sequence, new CallKeepAlive(sequence));
+   sequence++;
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)
-      subscribers[i].response.write('data:' + JSON.stringify(keepAlive) + '\n\n');
+      subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
 }
 
 setInterval((args) => {
@@ -59,22 +64,29 @@ setInterval((args) => {
 
 // broadcast a new subscriber
 function broadcastNewParticipation(callParticipation) {
+
+   const message = new SignalMessage(null, null, null, sequence, callParticipation);
+   sequence++;
+
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++) {
       if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
          && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId)) {
-         subscribers[i].response.write('data:' + JSON.stringify(callParticipation) + '\n\n');
+         subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
       }
    }
 }
 
 // Deliver a new WebRTC item
 function deliverOne(item) {
+   const message = new SignalMessage(null, item.to.sessionId, item.to.sessionSubId, sequence, item);
+   sequence++;
+
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)
       if (subscribers[i].callParticipation.sessionId === item.to.sessionId
          && subscribers[i].callParticipation.sessionSubId === item.to.sessionSubId)
-         subscribers[i].response.write('data:' + JSON.stringify(item) + '\n\n');
+         subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
 }
 
 // Deliver a new WebRTC offer

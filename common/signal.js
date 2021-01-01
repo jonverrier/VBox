@@ -21,14 +21,16 @@ var SignalMessage = (function invocation() {
   /**
    * Create a SignalMessage object 
    * @param _id - Mongo-DB assigned ID
-   * @param sessionId - session ID - identifies a single user session
+   * @param sessionId - iD for the call session (in case same person joins > once)
+   * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
    * @param sequenceNo - message sequence number, climbs nomintonicaly up from 0
    * @param data - data
    */
-   function SignalMessage(_id, sessionId, sequenceNo, data) {
+   function SignalMessage(_id, sessionId, sessionSubId, sequenceNo, data) {
 
       this._id = _id;
       this.sessionId = sessionId;
+      this.sessionSubId = sessionSubId;
       this.sequenceNo = sequenceNo;
       this.data = data;
    }
@@ -44,6 +46,7 @@ var SignalMessage = (function invocation() {
 
       return (this._id === rhs._id &&
          (this.sessionId === rhs.sessionId) &&
+         (this.sessionSubId === rhs.sessionSubId) &&
          (this.sequenceNo === rhs.sequenceNo) &&
          this.data.equals (rhs.data)); 
    };
@@ -59,6 +62,7 @@ var SignalMessage = (function invocation() {
          attributes: {
             _id: this._id,
             sessionId: this.sessionId,
+            sessionSubId: this.sessionSubId,
             sequenceNo: this.sequenceNo,
             data: JSON.stringify (this.data)
          }
@@ -88,6 +92,7 @@ var SignalMessage = (function invocation() {
 
       signalMsg._id = data._id;
       signalMsg.sessionId = data.sessionId;
+      signalMsg.sessionSubId = data.sessionSubId;
       signalMsg.sequenceNo = data.sequenceNo; 
 
       var types = new TypeRegistry();

@@ -29,12 +29,12 @@ describe("SignalMessage", function () {
       callOffer = new CallOffer("id", callParticipation, callParticipation, "offer1");
       callAnswer = new CallAnswer("id", callParticipation, callParticipation, "answer1");
 
-      signalMessageParticipant = new SignalMessage("id", "sessionId", 0, callParticipation);
-      signalMessage2 = new SignalMessage("id", "12345", 1, callParticipation);
-      signalMessageKeepAlive = new SignalMessage("id", "12345", 1, callKeepAlive);
-      signalMessageIce = new SignalMessage("id", "12345", 1, callIce);
-      signalMessageOffer = new SignalMessage("id", "12345", 1, callOffer);
-      signalMessageAnswer = new SignalMessage("id", "12345", 1, callAnswer);
+      signalMessageParticipant = new SignalMessage("id", "12345", "6789", 0, callParticipation);
+      signalMessage2 = new SignalMessage("id", "12345", "6789", 1, callParticipation);
+      signalMessageKeepAlive = new SignalMessage("id", "12345", "6789", 1, callKeepAlive);
+      signalMessageIce = new SignalMessage("id", "12345", "6789", 1, callIce);
+      signalMessageOffer = new SignalMessage("id", "12345", "6789", 1, callOffer);
+      signalMessageAnswer = new SignalMessage("id", "12345", "6789", 1, callAnswer);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -46,7 +46,8 @@ describe("SignalMessage", function () {
    it("Needs to correctly store attributes", function () {
 
       expect(signalMessageParticipant._id).to.equal("id");
-      expect(signalMessageParticipant.sessionId).to.equal("sessionId");
+      expect(signalMessageParticipant.sessionId).to.equal("12345");
+      expect(signalMessageParticipant.sessionSubId).to.equal("6789");
       expect(signalMessageParticipant.sequenceNo).to.equal(0);
       expect(signalMessageParticipant.data.equals(callParticipation)).to.equal(true);
    });

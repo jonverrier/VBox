@@ -943,14 +943,16 @@ var SignalMessage = (function invocation() {
   /**
    * Create a SignalMessage object 
    * @param _id - Mongo-DB assigned ID
-   * @param sessionId - session ID - identifies a single user session
+   * @param sessionId - iD for the call session (in case same person joins > once)
+   * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
    * @param sequenceNo - message sequence number, climbs nomintonicaly up from 0
    * @param data - data
    */
-   function SignalMessage(_id, sessionId, sequenceNo, data) {
+   function SignalMessage(_id, sessionId, sessionSubId, sequenceNo, data) {
 
       this._id = _id;
       this.sessionId = sessionId;
+      this.sessionSubId = sessionSubId;
       this.sequenceNo = sequenceNo;
       this.data = data;
    }
@@ -966,6 +968,7 @@ var SignalMessage = (function invocation() {
 
       return (this._id === rhs._id &&
          (this.sessionId === rhs.sessionId) &&
+         (this.sessionSubId === rhs.sessionSubId) &&
          (this.sequenceNo === rhs.sequenceNo) &&
          this.data.equals (rhs.data)); 
    };
@@ -981,6 +984,7 @@ var SignalMessage = (function invocation() {
          attributes: {
             _id: this._id,
             sessionId: this.sessionId,
+            sessionSubId: this.sessionSubId,
             sequenceNo: this.sequenceNo,
             data: JSON.stringify (this.data)
          }
@@ -1010,6 +1014,7 @@ var SignalMessage = (function invocation() {
 
       signalMsg._id = data._id;
       signalMsg.sessionId = data.sessionId;
+      signalMsg.sessionSubId = data.sessionSubId;
       signalMsg.sequenceNo = data.sequenceNo; 
 
       var types = new TypeRegistry();
@@ -63848,21 +63853,22 @@ var Rtc = /** @class */ (function (_super) {
         // Event source passes remote participant in the data
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(ev.data);
-        switch (remoteCallData.__type) {
+        var payload = remoteCallData.data;
+        switch (payload.__type) {
             case "CallParticipation":
-                this.onParticipant(remoteCallData);
+                this.onParticipant(payload);
                 break;
             case "CallOffer":
-                this.onOffer(remoteCallData);
+                this.onOffer(payload);
                 break;
             case "CallAnswer":
-                this.onAnswer(remoteCallData);
+                this.onAnswer(payload);
                 break;
             case "CallIceCandidate":
-                this.onRemoteIceCandidate(remoteCallData);
+                this.onRemoteIceCandidate(payload);
                 break;
             default:
-                logger.info('RtcReciever', 'ongroupevents', "data:", remoteCallData);
+                logger.info('RtcReciever', 'ongroupevents', "data:", payload);
                 break;
         }
     };
