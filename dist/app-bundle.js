@@ -63566,8 +63566,6 @@ var RtcCaller = /** @class */ (function () {
         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
             .then(function () {
             logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
-            // TODO
-            // Read returned data about current status of the call
         })
             .catch(function (e) {
             // TODO - analyse error paths
@@ -63592,7 +63590,7 @@ var RtcCaller = /** @class */ (function () {
         var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
-        axios_1.default.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
+        axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
             logger.info('RtcCaller', 'onicecandidate', 'OK', null);
         })
@@ -63609,7 +63607,7 @@ var RtcCaller = /** @class */ (function () {
             .then(function () {
             // Send our call offer data in
             var callOffer = new call_js_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
-            axios_1.default.get('/api/offer', { params: { callOffer: callOffer } })
+            axios_1.default.post('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
                 logger.info('RtcCaller', 'createOffer', "Call succeeded", null);
             });
@@ -63712,10 +63710,8 @@ var RtcReciever = /** @class */ (function () {
             .then(function () {
             // Send our call answer data in
             var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
-            axios_1.default.get('/api/answer', { params: { callAnswer: callAnswer } })
+            axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
-                // TODO
-                // Read the returned data about current status of the call
                 logger.info('RtcReciever', 'answerCall', '', null);
             });
         })
@@ -63742,7 +63738,7 @@ var RtcReciever = /** @class */ (function () {
         var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
-        axios_1.default.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
+        axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
             logger.info('RtcReciever', 'onicecandidate', '', null);
         })

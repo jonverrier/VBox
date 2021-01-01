@@ -65,9 +65,6 @@ class RtcCaller {
       this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
          .then(() => {
             logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
-
-            // TODO
-            // Read returned data about current status of the call
          })
          .catch(e => {
             // TODO - analyse error paths
@@ -96,7 +93,7 @@ class RtcCaller {
 
       // Send our call ICE candidate in
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
-      axios.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
+      axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
             logger.info ('RtcCaller', 'onicecandidate', 'OK', null);
          })
@@ -116,7 +113,7 @@ class RtcCaller {
          .then(() => {
             // Send our call offer data in
             var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
-            axios.get('/api/offer', { params: { callOffer: callOffer } })
+            axios.post ('/api/offer', { params: { callOffer: callOffer } })
                .then((response) => {
                   logger.info('RtcCaller', 'createOffer', "Call succeeded", null);
                });
@@ -244,10 +241,8 @@ class RtcReciever {
          .then(() => {
             // Send our call answer data in
             var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
-            axios.get('/api/answer', { params: { callAnswer: callAnswer } })
+            axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
-                  // TODO
-                  // Read the returned data about current status of the call
                   logger.info('RtcReciever', 'answerCall', '', null);
                })
          })
@@ -278,7 +273,7 @@ class RtcReciever {
 
       // Send our call ICE candidate in
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
-      axios.get('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
+      axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
             logger.info ('RtcReciever', 'onicecandidate', '', null);
          })
