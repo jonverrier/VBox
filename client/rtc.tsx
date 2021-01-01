@@ -430,22 +430,23 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       // Event source passes remote participant in the data
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(ev.data);
+      var payload = remoteCallData.data;
 
-      switch (remoteCallData.__type) {
+      switch (payload.__type) {
          case "CallParticipation":
-            this.onParticipant(remoteCallData);
+            this.onParticipant(payload);
             break;
          case "CallOffer":
-            this.onOffer(remoteCallData);
+            this.onOffer(payload);
             break;
          case "CallAnswer":
-            this.onAnswer(remoteCallData);
+            this.onAnswer(payload);
             break;
          case "CallIceCandidate":
-            this.onRemoteIceCandidate(remoteCallData);
+            this.onRemoteIceCandidate(payload);
             break;
          default:
-            logger.info('RtcReciever', 'ongroupevents', "data:", remoteCallData);
+            logger.info('RtcReciever', 'ongroupevents', "data:", payload);
             break;
       }
    }
