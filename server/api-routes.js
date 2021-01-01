@@ -6,21 +6,18 @@ var router = express.Router();
 
 // Core logic classes
 var TypeRegistry = require('../common/types.js').TypeRegistry;
-var Call = require("../common/call.js").Call;
 var Person = require("../common/person.js").Person;
+var CallOffer = require("../common/call.js").CallOffer;
+var CallAnswer = require("../common/call.js").CallAnswer;
+var CallIceCandidate = require("../common/call.js").CallIceCandidate;  
 
 // Used to get data for the users home page 
 var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
 
-// Used to get data call participants
-var callModel = require("./call-model.js").callModel;
-var callSessionModel = require("./call-model.js").callSessionModel;
-
 // event source APIs
 var eventFeed = require('./event-source.js').eventFeed;
-var broadcastNewParticipation = require('./event-source.js').broadcastNewParticipation;
 var deliverNewOffer = require('./event-source.js').deliverNewOffer;
 var deliverNewAnswer = require('./event-source.js').deliverNewAnswer;
 var deliverNewIceCandidate = require('./event-source.js').deliverNewIceCandidate;
@@ -84,12 +81,12 @@ router.get('/api/home', function (req, res) {
 })
 
 // API when a participant has a new offer
-router.get('/api/offer', function (req, res) {
+router.post ('/api/offer', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallOffer in the query string
       var types = new TypeRegistry();
-      var callOffer = types.reviveFromJSON(req.query.callOffer);
+      var callOffer = CallOffer.prototype.revive (req.body.params.callOffer);
 
       // This pushes the notice of a new offer over server-sent event channel
       deliverNewOffer(callOffer);
@@ -102,12 +99,12 @@ router.get('/api/offer', function (req, res) {
 })
 
 // API when a participant has a new answer
-router.get('/api/answer', function (req, res) {
+router.post ('/api/answer', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallAnswer in the query string
       var types = new TypeRegistry();
-      var callAnswer = types.reviveFromJSON(req.query.callAnswer);
+      var callAnswer = CallAnswer.prototype.revive(req.body.params.callAnswer);
 
       // This pushes the notice of a new offer over server-sent event channel
       deliverNewAnswer(callAnswer);
@@ -120,12 +117,12 @@ router.get('/api/answer', function (req, res) {
 })
 
 // API when a participant has a new ICE candidate
-router.get('/api/icecandidate', function (req, res) {
+router.post ('/api/icecandidate', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallIceCandidate in the query string
       var types = new TypeRegistry();
-      var callIceCandidate = types.reviveFromJSON( req.query.callIceCandidate);
+      var callIceCandidate = CallIceCandidate.prototype.revive (req.body.params.callIceCandidate);
 
       // This pushes the notice of a new ICE candidate over server-sent event channel
       deliverNewIceCandidate(callIceCandidate);
