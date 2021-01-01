@@ -63621,6 +63621,12 @@ var RtcCaller = /** @class */ (function () {
     // Override this to be notified when remote connection closes
     RtcCaller.prototype.onremoteclose = function (ev) {
     };
+    // Override this to be notified when remote connection has issues
+    RtcCaller.prototype.onremoteissues = function (ev) {
+    };
+    // Override this to be notified when remote connection is made
+    RtcCaller.prototype.onremoteconnection = function (ev) {
+    };
     RtcCaller.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
         if (!candidate)
@@ -63672,8 +63678,12 @@ var RtcCaller = /** @class */ (function () {
         switch (pc.connectionState) {
             case "connected":
                 // The connection has become fully connected
+                self.onremoteconnection(ev);
                 break;
             case "disconnected":
+                // Something going on ... 
+                self.onremoteissues(ev);
+                break;
             case "failed":
             case "closed":
                 // The connection has been closed or failed
@@ -63769,6 +63779,12 @@ var RtcReciever = /** @class */ (function () {
     // Override this to be notified when remote connection closes
     RtcReciever.prototype.onremoteclose = function (ev) {
     };
+    // Override this to be notified when remote connection has issues
+    RtcReciever.prototype.onremoteissues = function (ev) {
+    };
+    // Override this to be notified when remote connection is made
+    RtcReciever.prototype.onremoteconnection = function (ev) {
+    };
     RtcReciever.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
         if (!candidate)
@@ -63806,8 +63822,12 @@ var RtcReciever = /** @class */ (function () {
         switch (pc.connectionState) {
             case "connected":
                 // The connection has become fully connected
+                self.onremoteconnection(ev);
                 break;
             case "disconnected":
+                // Something going on ... 
+                self.onremoteissues(ev);
+                break;
             case "failed":
             case "closed":
                 // The connection has been closed or failed
