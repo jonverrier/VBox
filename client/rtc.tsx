@@ -84,6 +84,14 @@ class RtcCaller {
    onremoteclose(ev) {
    }
 
+   // Override this to be notified when remote connection has issues
+   onremoteissues(ev) {
+   }
+
+   // Override this to be notified when remote connection is made
+   onremoteconnection (ev) {
+   }
+
    onicecandidate(candidate, to, outbound) {
       // a null candidate means ICE gathering is finished
       if (!candidate)
@@ -143,14 +151,18 @@ class RtcCaller {
       switch (pc.connectionState) {
          case "connected":
             // The connection has become fully connected
+            self.onremoteconnection (ev);
             break;
          case "disconnected":
+            // Something going on ... 
+            self.onremoteissues(ev);
+            break;
          case "failed":
          case "closed":
             // The connection has been closed or failed
-            self.onremoteclose (ev);
+            self.onremoteclose(ev);
             break;
-      }      
+      }
    }
 
    onsendchannelopen(ev, dc, localCallParticipation) {
@@ -264,6 +276,14 @@ class RtcReciever {
    onremoteclose(ev) {
    }
 
+   // Override this to be notified when remote connection has issues
+   onremoteissues(ev) {
+   }
+
+   // Override this to be notified when remote connection is made
+   onremoteconnection (ev) {
+   }
+
    onicecandidate(candidate, to, outbound) {
       // a null candidate means ICE gathering is finished
       if (!candidate)
@@ -307,8 +327,12 @@ class RtcReciever {
       switch (pc.connectionState) {
          case "connected":
             // The connection has become fully connected
+            self.onremoteconnection(ev);
             break;
          case "disconnected":
+            // Something going on ... 
+            self.onremoteissues(ev);
+            break;
          case "failed":
          case "closed":
             // The connection has been closed or failed
