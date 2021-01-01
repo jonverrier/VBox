@@ -51,7 +51,7 @@ function eventFeed(req, res, next) {
 // broadcast a keep alive message - required on Heroku
 function broadcastKeepAlive() {
    const message = new SignalMessage(null, null, null, sequence, new CallKeepAlive(sequence));
-   sequence++;
+   sequence = sequence + 1;
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)
@@ -66,7 +66,7 @@ setInterval((args) => {
 function broadcastNewParticipation(callParticipation) {
 
    const message = new SignalMessage(null, null, null, sequence, callParticipation);
-   sequence++;
+   sequence = sequence + 1;
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++) {
@@ -80,7 +80,7 @@ function broadcastNewParticipation(callParticipation) {
 // Deliver a new WebRTC item
 function deliverOne(item) {
    const message = new SignalMessage(null, item.to.sessionId, item.to.sessionSubId, sequence, item);
-   sequence++;
+   sequence = sequence + 1;
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)
