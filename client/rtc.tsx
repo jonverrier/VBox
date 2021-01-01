@@ -391,6 +391,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
    call: Call;
    defaultCall: Call;
    links: RtcLink[];
+   lastSequenceNo: number;
 
    constructor(props: IRtcProps) {
       super(props);
@@ -399,29 +400,51 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       this.call = this.defaultCall = new Call(null, null);
       this.localCallParticipation = null;
       this.links = new Array();
+      this.lastSequenceNo = 0;
    }
 
    componentDidMount() {
    }
 
-   getSession() {
-      var self = this;
+   connectFirst() {
+
       // Create a unique id to this call participation by appending a UUID for the browser we are connecting from
-      this.localCallParticipation = new CallParticipation(null, self.props.facilityId, self.props.personId, self.props.sessionId, uuidv4());
+      this.localCallParticipation = new CallParticipation(null, this.props.facilityId, this.props.personId, this.props.sessionId, uuidv4());
+
+      this.connect();
+   }
+
+   connect() {
+      logger.info('RtcReciever', 'connect', "", null);
+
+      var self = this;
 
       // Send our own details & subscribe to more
-      const sourceUrl = '/callevents/?callParticipation=' + encodeURIComponent(JSON.stringify(this.localCallParticipation));
-      this.events = new EventSource(sourceUrl);
-      this.events.addEventListener('message', self.OnServerEvents.bind(this), false);
+      const sourceUrl = '/callevents/?callParticipation='
+         + encodeURIComponent(JSON.stringify(this.localCallParticipation))
+         + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this.lastSequenceNo));
+      self.events = new EventSource(sourceUrl);
+      self.events.onmessage = self.onServerEvent.bind(self);
+      self.events.onerror = self.onServerError.bind(self);
+   }
+
+
+   sleep(time) {
+      return new Promise(resolve => setTimeout(resolve, time));
+   }
+
+   async connectLater (time) {
+      await this.sleep(time);
+      this.connect();
    }
 
    componentDidUpdate(prevProps) {
       if (prevProps.facilityId !== this.props.facilityId) {
-         this.getSession();
+         this.connectFirst();
       }
    }
 
-   OnServerEvents(ev) {
+   onServerEvent(ev) {
       // Event source passes remote participant in the data
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(ev.data);
@@ -441,13 +464,31 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
             this.onRemoteIceCandidate(payload);
             break;
          default:
-            logger.info('RtcReciever', 'ongroupevents', "data:", payload);
+            logger.info('RtcReciever', 'onServerEvent', "data:", payload);
             break;
       }
+
+      this.lastSequenceNo = remoteCallData.sequenceNo;
+   }
+
+   onServerError(ev) {
+      var self = this;
+
+      logger.info('RtcReciever', 'onServerError', "event:", ev);
+      self.events.close();
+      self.connectLater (5000);
    }
 
    onParticipant(remoteParticipation) {
       var self = this;
+
+      // If the server restarts, other clients will try to reconect, resulting in a re-broadcast of the participant call
+      // so ignore it if we are already connected to them
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(remoteParticipation))
+            return;
+      }
+
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
