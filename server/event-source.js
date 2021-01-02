@@ -62,16 +62,19 @@ function eventFeed(req, res, next) {
    if (clientSequenceNo !== 0 && clientSequenceNo < sequence) {
 
       // Client is rejoining after a connection drop & needs to be brought back up to date
-      SignalMessageModel.find({ sequenceNo: { $and: [{ $gt: clientSequenceNo }, { $lte: sequence }] }, // Sequence numbers the client has not recieved
-         sessionId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionId } ] },       // Null (broadcast) or targeted to the client
-         sessionSubId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionSubId } ] }, // Null (broadcast) or targeted to the client
-         facilityId: callParticipation.facilityId },                       // Same facilityId as the client
+      // Normally would filter results for the right targey in the query, but mongoose does not allow $or on strings, so we manually filter in the callback
+      // sessionId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionId } ] },       // Null (broadcast) or targeted to the client
+      // sessionSubId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionSubId } ] }, // Null (broadcast) or targeted to the client
+      
+      SignalMessageModel.find({ sequenceNo: { $gt: clientSequenceNo },       // Sequence numbers the client has not recieved                                
 
          function (err, messages) {
             // TODO - this is not very scalable, sequential array
             for (var i = 0; i < subscribers.length; i++)
                if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
-                  && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
+                  && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId
+                  && subscribers[i].callParticipation.facilityId === callParticipation.facilityId)
+         
                   for (let message of messages) {
                      subscribers[i].response.write('data:' + JSON.stringify(fromStored(message)) + '\n\n');
                   }
