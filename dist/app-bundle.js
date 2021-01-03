@@ -6,7 +6,6 @@
   !*** ./common/call.js ***!
   \************************/
 /*! default exports */
-/*! export Call [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallAnswer [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallIceCandidate [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallKeepAlive [provided] [no usage info] [missing usage info prevents renaming] */
@@ -50,6 +49,7 @@ var CallParticipation = (function invocation() {
       this.personId = personId;
       this.sessionId = sessionId;
       this.sessionSubId = sessionSubId;
+      this.glareResolve = Math.random();
    }
 
    CallParticipation.prototype.__type = "CallParticipation";
@@ -65,7 +65,8 @@ var CallParticipation = (function invocation() {
          (this.facilityId === rhs.facilityId) &&
          (this.personId === rhs.personId) &&
          (this.sessionId === rhs.sessionId) && 
-         (this.sessionSubId === rhs.sessionSubId));
+         (this.sessionSubId === rhs.sessionSubId) &&
+         (this.glareResolve === rhs.glareResolve));
    };
 
    /**
@@ -81,7 +82,8 @@ var CallParticipation = (function invocation() {
             facilityId: this.facilityId,
             personId: this.personId,
             sessionId: this.sessionId,
-            sessionSubId: this.sessionSubId
+            sessionSubId: this.sessionSubId,
+            glareResolve: this.glareResolve
          }
       };
    };
@@ -112,6 +114,7 @@ var CallParticipation = (function invocation() {
       callParticipation.personId = data.personId;
       callParticipation.sessionId = data.sessionId;
       callParticipation.sessionSubId = data.sessionSubId;
+      callParticipation.glareResolve = data.glareResolve;
 
       return callParticipation;
    };
@@ -448,95 +451,7 @@ var CallKeepAlive = (function invocation() {
    return CallKeepAlive;
 }());
 
-//==============================//
-// Call class
-//==============================//
-var Call = (function invocation() {
-   "use strict";
-
-   /**
-    * Create a Facility object 
-    * @param _id - Mongo-DB assigned ID
-    * @param facilityId - ID assigned by external system (like facebook,
-    * @param participants - array of Participants 
-    */
-   function Call(_id, facilityId, participants) {
-
-      this._id = _id;
-      this.facilityId = facilityId;
-      if (participants)
-         this.participants = participants.slice();
-      else
-         this.participants = null;
-   }
-
-   Call.prototype.__type = "Call";
-
-   /**
-    * test for equality - checks all fields are the same. 
-    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-    * @param rhs - the object to compare this one to.  
-    */
-   Call.prototype.equals = function (rhs) {
-
-      return ((this._id === rhs._id) &&
-         (this.facilityId === rhs.facilityId) &&
-         _.isEqual(this.participants, rhs.participants));
-   };
-
-   /**
-    * Method that serializes to JSON 
-    */
-   Call.prototype.toJSON = function () {
-
-      return {
-         __type: Call.prototype.__type,
-         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-         attributes: {
-            _id: this._id,
-            facilityId: this.facilityId,
-            participants: this.participants ? this.participants.slice() : null
-         }
-      };
-   };
-
-   /**
-    * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revive from 
-    */
-   Call.prototype.revive = function (data) {
-
-      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      if (data.attributes)
-         return Call.prototype.reviveDb(data.attributes);
-
-      return Call.prototype.reviveDb(data);
-   };
-
-   /**
-   * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revive from 
-   */
-   Call.prototype.reviveDb = function (data) {
-
-      var call = new Call();
-
-      call._id = data._id;
-      call.facilityId = data.facilityId;
-
-      if (data.participants)
-         call.participants = data.participants.slice();
-      else
-         call.participants = null;
-
-      return call;
-   };
-
-   return Call;
-}());
-
 if (false) {} else { 
-   exports.Call = Call;
    exports.CallParticipation = CallParticipation;
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
@@ -943,14 +858,16 @@ var SignalMessage = (function invocation() {
   /**
    * Create a SignalMessage object 
    * @param _id - Mongo-DB assigned ID
+   * @param facilityId - ID for the facility hosting the call*
    * @param sessionId - iD for the call session (in case same person joins > once)
    * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
    * @param sequenceNo - message sequence number, climbs nomintonicaly up from 0
    * @param data - data
    */
-   function SignalMessage(_id, sessionId, sessionSubId, sequenceNo, data) {
+   function SignalMessage(_id, facilityId, sessionId, sessionSubId, sequenceNo, data) {
 
       this._id = _id;
+      this.facilityId = facilityId;
       this.sessionId = sessionId;
       this.sessionSubId = sessionSubId;
       this.sequenceNo = sequenceNo;
@@ -967,6 +884,7 @@ var SignalMessage = (function invocation() {
    SignalMessage.prototype.equals = function (rhs) {
 
       return (this._id === rhs._id &&
+         (this.facilityId === rhs.facilityId) &&
          (this.sessionId === rhs.sessionId) &&
          (this.sessionSubId === rhs.sessionSubId) &&
          (this.sequenceNo === rhs.sequenceNo) &&
@@ -983,6 +901,7 @@ var SignalMessage = (function invocation() {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
+            facilityId: this.facilityId,
             sessionId: this.sessionId,
             sessionSubId: this.sessionSubId,
             sequenceNo: this.sequenceNo,
@@ -1013,6 +932,7 @@ var SignalMessage = (function invocation() {
       var signalMsg = new SignalMessage();
 
       signalMsg._id = data._id;
+      signalMsg.facilityId = data.facilityId;
       signalMsg.sessionId = data.sessionId;
       signalMsg.sessionSubId = data.sessionSubId;
       signalMsg.sequenceNo = data.sequenceNo; 
@@ -1022,6 +942,34 @@ var SignalMessage = (function invocation() {
       
       return signalMsg;
    };
+
+   /**
+    * Used to change the payload to JSON before storage
+    * @param signalMessageIn - the object to transform
+    */
+   SignalMessage.prototype.toStored = function (signalMessageIn) {
+      return new SignalMessage(signalMessageIn._id,
+         signalMessageIn.facilityId,
+         signalMessageIn.sessionId,
+         signalMessageIn.sessionSubId,
+         signalMessageIn.sequenceNo,
+         JSON.stringify(signalMessageIn.data));
+   }
+
+   /**
+    * Used to change the payload to JSON after storage
+    * @param signalMessageIn - the object to transform
+    */
+   SignalMessage.prototype.fromStored = function (signalMessageIn) {
+      var types = new TypeRegistry();
+
+      return new SignalMessage(signalMessageIn._id,
+         signalMessageIn.facilityId,
+         signalMessageIn.sessionId,
+         signalMessageIn.sessionSubId,
+         signalMessageIn.sequenceNo,
+         types.reviveFromJSON(signalMessageIn.data));
+   }
 
    return SignalMessage;
 }());
@@ -63882,7 +63830,6 @@ var Rtc = /** @class */ (function (_super) {
         var _this = _super.call(this, props) || this;
         _this.sender = null;
         _this.reciever = null;
-        _this.call = _this.defaultCall = new call_js_1.Call(null, null);
         _this.localCallParticipation = null;
         _this.links = new Array();
         _this.lastSequenceNo = 0;
@@ -63959,12 +63906,6 @@ var Rtc = /** @class */ (function (_super) {
     };
     Rtc.prototype.onParticipant = function (remoteParticipation) {
         var self = this;
-        // If the server restarts, other clients will try to reconect, resulting in a re-broadcast of the participant call
-        // so ignore it if we are already connected to them
-        for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(remoteParticipation))
-                return;
-        }
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation);
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hook so if remote closes, we close down links this side
@@ -63975,6 +63916,18 @@ var Rtc = /** @class */ (function (_super) {
     };
     Rtc.prototype.onOffer = function (remoteOffer) {
         var self = this;
+        for (var i = 0; i < self.links.length; i++) {
+            if (self.links[i].to.equals(remoteOffer.from)) {
+                // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
+                // The recipient with the greater glareResolve makes the winning offer 
+                if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
+                    self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
+                }
+                else {
+                    return; // if we win, they will answer our offer, we do nothing more 
+                }
+            }
+        }
         var reciever = new RtcReciever(self.localCallParticipation, remoteOffer);
         var link = new RtcLink(remoteOffer.from, false, null, reciever);
         // Hook so if remote closes, we close down links this side
@@ -63999,12 +63952,21 @@ var Rtc = /** @class */ (function (_super) {
     Rtc.prototype.onRemoteIceCandidate = function (remoteIceCandidate) {
         var self = this;
         var found = false;
+        // Ice candidate messages can be sent while we are still resolving glare - we are calling each other, we killed our side while we have
+        // incoming messages still pending
+        // So fail silently if we get unexpected ones
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
-                if (remoteIceCandidate.outbound)
-                    self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
-                else
-                    self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
+                if (remoteIceCandidate.outbound) {
+                    if (self.links[i].reciever)
+                        self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
+                    // else silent fail
+                }
+                else {
+                    if (self.links[i].sender)
+                        self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
+                    // else silent fail
+                }
                 found = true;
                 break;
             }

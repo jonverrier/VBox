@@ -4,6 +4,10 @@
 var mongoose = require("mongoose");
 
 const signalMessageSchema = new mongoose.Schema({
+   facilityId: { 
+      type: String,
+      index: true
+   },
    sessionId: { // can be null - which means a broadcast
       type: String, 
       index: true

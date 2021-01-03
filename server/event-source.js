@@ -15,24 +15,6 @@ var subscribers = new Array();
 // Used to support message replay if client misses messages & needs to rejoin
 var sequence = 0;
 
-// Used to change the payload to JSON before storage
-function toStored(signalMessageIn) {
-   return new SignalMessage(signalMessageIn._id,
-      signalMessageIn.sessionId,
-      signalMessageIn.sessionSubId,
-      signalMessageIn.sequenceNo,
-      JSON.stringify(signalMessageIn.data));
-}
-
-// Used to change the payload from JSON after storage
-function fromStored(signalMessageIn) {
-   return new SignalMessage(signalMessageIn._id,
-      signalMessageIn.sessionId,
-      signalMessageIn.sessionSubId,
-      signalMessageIn.sequenceNo,
-      SignalMessage.prototype.revive (signalMessageIn.data));
-}
-
 function initialise() {
    // read the highest sequence number used so far
    SignalMessageModel.find({}).sort({ sequenceNo: -1 }).limit(1).then(function (messages) {
@@ -59,26 +41,32 @@ function eventFeed(req, res, next) {
    subscribers.push({ callParticipation: callParticipation, response: res });
 
    var clientSequenceNo = types.reviveFromJSON(decodeURIComponent(req.query.sequenceNo));
+   var facilityId = callParticipation.facilityId;
+
    if (clientSequenceNo !== 0 && clientSequenceNo < sequence) {
 
       // Client is rejoining after a connection drop & needs to be brought back up to date
       // Normally would filter results for the right targey in the query, but mongoose does not allow $or on strings, so we manually filter in the callback
+      // Assume performance OK as its only signalling mssages being replayed & volume should not be too high. 
+      // Marked with TODO for high volume cases (setting up calls for 10s of facilities concurrently ...)
       // sessionId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionId } ] },       // Null (broadcast) or targeted to the client
       // sessionSubId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionSubId } ] }, // Null (broadcast) or targeted to the client
+      // facilityId: { facilityId } // Same facility as client
       
-      SignalMessageModel.find({ sequenceNo: { $gt: clientSequenceNo },       // Sequence numbers the client has not recieved                                
-
-         function (err, messages) {
+      SignalMessageModel.find({
+            sequenceNo: { $gt: clientSequenceNo },       // Sequence numbers the client has not recieved                                
+         },    
+         function(err, messages) {
             // TODO - this is not very scalable, sequential array
-            for (var i = 0; i < subscribers.length; i++)
+            for (var i = 0; i < subscribers.length; i++) {
                if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
-                  && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId
-                  && subscribers[i].callParticipation.facilityId === callParticipation.facilityId)
-         
+               && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
                   for (let message of messages) {
-                     subscribers[i].response.write('data:' + JSON.stringify(fromStored(message)) + '\n\n');
+                     if (message.facilityId === callParticipation.facilityId)
+                        subscribers[i].response.write('data:' + JSON.stringify(SignalMessage.prototype.fromStored(message)) + '\n\n');
                   }
                }
+            }
          });
    }
 
@@ -100,9 +88,10 @@ function eventFeed(req, res, next) {
 
 // broadcast a keep alive message - required on Heroku
 function broadcastKeepAlive() {
-   const message = new SignalMessage(null, null, null, sequence, new CallKeepAlive(sequence));
+   const message = new SignalMessage(null, null, null, null, sequence, new CallKeepAlive(sequence));
    sequence = sequence + 1;
-   new SignalMessageModel(toStored(message)).save(); 
+   // Dont bother saving keep alive messages to the replay log - no functional purpose. 
+   new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)
@@ -116,12 +105,13 @@ setInterval((args) => {
 // broadcast a new subscriber
 function broadcastNewParticipation(callParticipation) {
 
-   const message = new SignalMessage(null, null, null, sequence, callParticipation);
+   const message = new SignalMessage(null, callParticipation.facilityId, null, null, sequence, callParticipation);
    sequence = sequence + 1;
-   new SignalMessageModel(toStored(message)).save(); 
+   new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++) {
+      // filter out 'new participation' messages so we don't send back to the same new joiner
       if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
          && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId)) {
          subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
@@ -131,9 +121,9 @@ function broadcastNewParticipation(callParticipation) {
 
 // Deliver a new WebRTC item
 function deliverOne(item) {
-   const message = new SignalMessage(null, item.to.sessionId, item.to.sessionSubId, sequence, item);
+   const message = new SignalMessage(null, item.to.facilityId, item.to.sessionId, item.to.sessionSubId, sequence, item);
    sequence = sequence + 1;
-   new SignalMessageModel(toStored(message)).save(); 
+   new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
    // TODO - this is not very scalable, sequential array
    for (var i = 0; i < subscribers.length; i++)

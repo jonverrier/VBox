@@ -33,6 +33,7 @@ var CallParticipation = (function invocation() {
       this.personId = personId;
       this.sessionId = sessionId;
       this.sessionSubId = sessionSubId;
+      this.glareResolve = Math.random();
    }
 
    CallParticipation.prototype.__type = "CallParticipation";
@@ -48,7 +49,8 @@ var CallParticipation = (function invocation() {
          (this.facilityId === rhs.facilityId) &&
          (this.personId === rhs.personId) &&
          (this.sessionId === rhs.sessionId) && 
-         (this.sessionSubId === rhs.sessionSubId));
+         (this.sessionSubId === rhs.sessionSubId) &&
+         (this.glareResolve === rhs.glareResolve));
    };
 
    /**
@@ -64,7 +66,8 @@ var CallParticipation = (function invocation() {
             facilityId: this.facilityId,
             personId: this.personId,
             sessionId: this.sessionId,
-            sessionSubId: this.sessionSubId
+            sessionSubId: this.sessionSubId,
+            glareResolve: this.glareResolve
          }
       };
    };
@@ -95,6 +98,7 @@ var CallParticipation = (function invocation() {
       callParticipation.personId = data.personId;
       callParticipation.sessionId = data.sessionId;
       callParticipation.sessionSubId = data.sessionSubId;
+      callParticipation.glareResolve = data.glareResolve;
 
       return callParticipation;
    };
@@ -431,97 +435,9 @@ var CallKeepAlive = (function invocation() {
    return CallKeepAlive;
 }());
 
-//==============================//
-// Call class
-//==============================//
-var Call = (function invocation() {
-   "use strict";
-
-   /**
-    * Create a Facility object 
-    * @param _id - Mongo-DB assigned ID
-    * @param facilityId - ID assigned by external system (like facebook,
-    * @param participants - array of Participants 
-    */
-   function Call(_id, facilityId, participants) {
-
-      this._id = _id;
-      this.facilityId = facilityId;
-      if (participants)
-         this.participants = participants.slice();
-      else
-         this.participants = null;
-   }
-
-   Call.prototype.__type = "Call";
-
-   /**
-    * test for equality - checks all fields are the same. 
-    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-    * @param rhs - the object to compare this one to.  
-    */
-   Call.prototype.equals = function (rhs) {
-
-      return ((this._id === rhs._id) &&
-         (this.facilityId === rhs.facilityId) &&
-         _.isEqual(this.participants, rhs.participants));
-   };
-
-   /**
-    * Method that serializes to JSON 
-    */
-   Call.prototype.toJSON = function () {
-
-      return {
-         __type: Call.prototype.__type,
-         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-         attributes: {
-            _id: this._id,
-            facilityId: this.facilityId,
-            participants: this.participants ? this.participants.slice() : null
-         }
-      };
-   };
-
-   /**
-    * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revive from 
-    */
-   Call.prototype.revive = function (data) {
-
-      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      if (data.attributes)
-         return Call.prototype.reviveDb(data.attributes);
-
-      return Call.prototype.reviveDb(data);
-   };
-
-   /**
-   * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revive from 
-   */
-   Call.prototype.reviveDb = function (data) {
-
-      var call = new Call();
-
-      call._id = data._id;
-      call.facilityId = data.facilityId;
-
-      if (data.participants)
-         call.participants = data.participants.slice();
-      else
-         call.participants = null;
-
-      return call;
-   };
-
-   return Call;
-}());
-
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
-   exports.Call = Call;
    exports.CallParticipation = CallParticipation;
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
