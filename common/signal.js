@@ -21,14 +21,16 @@ var SignalMessage = (function invocation() {
   /**
    * Create a SignalMessage object 
    * @param _id - Mongo-DB assigned ID
+   * @param facilityId - ID for the facility hosting the call*
    * @param sessionId - iD for the call session (in case same person joins > once)
    * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
    * @param sequenceNo - message sequence number, climbs nomintonicaly up from 0
    * @param data - data
    */
-   function SignalMessage(_id, sessionId, sessionSubId, sequenceNo, data) {
+   function SignalMessage(_id, facilityId, sessionId, sessionSubId, sequenceNo, data) {
 
       this._id = _id;
+      this.facilityId = facilityId;
       this.sessionId = sessionId;
       this.sessionSubId = sessionSubId;
       this.sequenceNo = sequenceNo;
@@ -45,6 +47,7 @@ var SignalMessage = (function invocation() {
    SignalMessage.prototype.equals = function (rhs) {
 
       return (this._id === rhs._id &&
+         (this.facilityId === rhs.facilityId) &&
          (this.sessionId === rhs.sessionId) &&
          (this.sessionSubId === rhs.sessionSubId) &&
          (this.sequenceNo === rhs.sequenceNo) &&
@@ -61,6 +64,7 @@ var SignalMessage = (function invocation() {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
+            facilityId: this.facilityId,
             sessionId: this.sessionId,
             sessionSubId: this.sessionSubId,
             sequenceNo: this.sequenceNo,
@@ -91,6 +95,7 @@ var SignalMessage = (function invocation() {
       var signalMsg = new SignalMessage();
 
       signalMsg._id = data._id;
+      signalMsg.facilityId = data.facilityId;
       signalMsg.sessionId = data.sessionId;
       signalMsg.sessionSubId = data.sessionSubId;
       signalMsg.sequenceNo = data.sequenceNo; 
@@ -100,6 +105,34 @@ var SignalMessage = (function invocation() {
       
       return signalMsg;
    };
+
+   /**
+    * Used to change the payload to JSON before storage
+    * @param signalMessageIn - the object to transform
+    */
+   SignalMessage.prototype.toStored = function (signalMessageIn) {
+      return new SignalMessage(signalMessageIn._id,
+         signalMessageIn.facilityId,
+         signalMessageIn.sessionId,
+         signalMessageIn.sessionSubId,
+         signalMessageIn.sequenceNo,
+         JSON.stringify(signalMessageIn.data));
+   }
+
+   /**
+    * Used to change the payload to JSON after storage
+    * @param signalMessageIn - the object to transform
+    */
+   SignalMessage.prototype.fromStored = function (signalMessageIn) {
+      var types = new TypeRegistry();
+
+      return new SignalMessage(signalMessageIn._id,
+         signalMessageIn.facilityId,
+         signalMessageIn.sessionId,
+         signalMessageIn.sessionSubId,
+         signalMessageIn.sequenceNo,
+         types.reviveFromJSON(signalMessageIn.data));
+   }
 
    return SignalMessage;
 }());

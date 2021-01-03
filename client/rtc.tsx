@@ -412,8 +412,6 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
    reciever: RtcReciever;
    localCallParticipation: CallParticipation;
    events: EventSource;
-   call: Call;
-   defaultCall: Call;
    links: RtcLink[];
    lastSequenceNo: number;
 
@@ -421,7 +419,6 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       super(props);
       this.sender = null; 
       this.reciever = null; 
-      this.call = this.defaultCall = new Call(null, null);
       this.localCallParticipation = null;
       this.links = new Array();
       this.lastSequenceNo = 0;
@@ -506,13 +503,6 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
    onParticipant(remoteParticipation) {
       var self = this;
 
-      // If the server restarts, other clients will try to reconect, resulting in a re-broadcast of the participant call
-      // so ignore it if we are already connected to them
-      for (var i = 0; i < self.links.length; i++) {
-         if (self.links[i].to.equals(remoteParticipation))
-            return;
-      }
-
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
@@ -526,6 +516,19 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
    onOffer(remoteOffer) {
       var self = this;
+
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(remoteOffer.from)) {
+            // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
+            // The recipient with the greater glareResolve makes the winning offer 
+            if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
+               self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
+            } else {
+               return;               // if we win, they will answer our offer, we do nothing more 
+            }
+         }
+      }
+
       var reciever = new RtcReciever(self.localCallParticipation, remoteOffer); 
       var link = new RtcLink(remoteOffer.from, false, null, reciever);
 
@@ -556,12 +559,20 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       var self = this;
       var found = false;
 
+      // Ice candidate messages can be sent while we are still resolving glare - we are calling each other, we killed our side while we have
+      // incoming messages still pending
+      // So fail silently if we get unexpected ones
       for (var i = 0; i < self.links.length; i++) {
          if (self.links[i].to.equals(remoteIceCandidate.from)) {
-            if (remoteIceCandidate.outbound)
-               self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
-            else
-               self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
+            if (remoteIceCandidate.outbound) {
+               if (self.links[i].reciever)
+                  self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
+               // else silent fail
+            } else {
+               if (self.links[i].sender)
+                  self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
+               // else silent fail
+            }
             found = true;
             break;
          }
