@@ -9,8 +9,7 @@ var SignalMessage = require("../common/signal.js").SignalMessage;
 // Model for signalMessage
 var SignalMessageModel = require("../server/signalmessage-model.js");
 
-// TODO - this is not very scalable, sequential array
-var subscribers = new Array();
+var facilityMap = new Map();
 
 // Used to support message replay if client misses messages & needs to rejoin
 var sequence = 0;
@@ -37,11 +36,13 @@ function eventFeed(req, res, next) {
    var types = new TypeRegistry();
    var callParticipation = types.reviveFromJSON(decodeURIComponent(req.query.callParticipation));
 
-   // TODO - this is not very scalable, sequential array
-   subscribers.push({ callParticipation: callParticipation, response: res });
+   if (!facilityMap.has(callParticipation.facilityId)) {
+      facilityMap.set(callParticipation.facilityId, new Array());
+   } 
+
+   facilityMap.get(callParticipation.facilityId).push({ callParticipation: callParticipation, response: res });
 
    var clientSequenceNo = types.reviveFromJSON(decodeURIComponent(req.query.sequenceNo));
-   var facilityId = callParticipation.facilityId;
 
    if (clientSequenceNo !== 0 && clientSequenceNo < sequence) {
 
@@ -57,7 +58,8 @@ function eventFeed(req, res, next) {
             sequenceNo: { $gt: clientSequenceNo },       // Sequence numbers the client has not recieved                                
          },    
          function(err, messages) {
-            // TODO - this is not very scalable, sequential array
+            var subscribers = facilityMap.get(callParticipation.facilityId);
+
             for (var i = 0; i < subscribers.length; i++) {
                if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
                && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
@@ -73,10 +75,16 @@ function eventFeed(req, res, next) {
    // This pushes the notice of the new participant over server-sent event channel
    broadcastNewParticipation(callParticipation);
 
+   // sets a keep alive going, specific to the facility
+   setInterval((args) => {
+      broadcastKeepAlive(callParticipation.facilityId);
+   }, 1000 * 30, null);
+
    // When client closes connection we update the subscriber list
    // avoiding the disconnected one
    req.on('close', () => {
-      // TODO - this is not very scalable, sequential array
+      var subscribers = facilityMap.get(callParticipation.facilityId);
+
       for (var i = 0; i < subscribers.length; i++)
          if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
             && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
@@ -87,20 +95,16 @@ function eventFeed(req, res, next) {
 }
 
 // broadcast a keep alive message - required on Heroku
-function broadcastKeepAlive() {
-   const message = new SignalMessage(null, null, null, null, sequence, new CallKeepAlive(sequence));
+function broadcastKeepAlive(facilityId) {
+   const message = new SignalMessage(null, facilityId, null, null, sequence, new CallKeepAlive(sequence));
    sequence = sequence + 1;
    // Dont bother saving keep alive messages to the replay log - no functional purpose. 
    new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
-   // TODO - this is not very scalable, sequential array
+   var subscribers = facilityMap.get(facilityId);
    for (var i = 0; i < subscribers.length; i++)
       subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
 }
-
-setInterval((args) => {
-   broadcastKeepAlive();
-}, 1000 * 30, null);
 
 // broadcast a new subscriber
 function broadcastNewParticipation(callParticipation) {
@@ -109,7 +113,7 @@ function broadcastNewParticipation(callParticipation) {
    sequence = sequence + 1;
    new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
-   // TODO - this is not very scalable, sequential array
+   var subscribers = facilityMap.get(callParticipation.facilityId);
    for (var i = 0; i < subscribers.length; i++) {
       // filter out 'new participation' messages so we don't send back to the same new joiner
       if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
@@ -125,7 +129,7 @@ function deliverOne(item) {
    sequence = sequence + 1;
    new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
-   // TODO - this is not very scalable, sequential array
+   var subscribers = facilityMap.get(item.to.facilityId);
    for (var i = 0; i < subscribers.length; i++)
       if (subscribers[i].callParticipation.sessionId === item.to.sessionId
          && subscribers[i].callParticipation.sessionSubId === item.to.sessionSubId)
