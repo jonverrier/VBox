@@ -313,8 +313,11 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
 
    constructor(props: ICoachPageProps) {
       super(props);
-      this.isLoggedIn = false;
-      this.state = { isLoggedIn: this.isLoggedIn};
+      this.state = { isLoggedIn: false};
+   }
+   
+   onLoginStatusChange(isLoggedIn) {
+      this.setState ({ isLoggedIn: isLoggedIn});
    }
 
    render() {
@@ -328,16 +331,16 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Virtual Box" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
+                  <PartyBanner name="The Xperience Platform" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
                <Jumbotron style={{ background: 'gray', color: 'white' }}>
                   <h1>Welcome!</h1>
                   <p>
-                     Welcome to The Xperience Fitness Platform. Sign in below to get access to your class.
+                        Welcome to The Xperience Platform. Sign in below to get access to your class.
                   </p>
-                  <LoginComponent />
+                  <LoginComponent onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
                </Jumbotron>
             </Container>
             </div>
@@ -352,16 +355,16 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                </Helmet>
                <Navbar style={facilityNavStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="Virtual Box" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
+                     <PartyBanner name="The Xperience Platform" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
                   </Navbar.Brand>
                </Navbar>
                <Container fluid style={pageStyle}>
                   <Jumbotron style={{ background: 'gray', color: 'white' }}>
                      <h1>Welcome!</h1>
                      <p>
-                        You are logged in to The Xperience Fitness Platform.
+                        You are logged in to The Xperience Platform.
                      </p>
-                     <LoginComponent />
+                     <LoginComponent onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
                   </Jumbotron>
                </Container>
             </div>
