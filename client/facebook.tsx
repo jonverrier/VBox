@@ -62,29 +62,27 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    componentWillUnmount() {
    }
 
-   getUserData() {
+   getUserData(accessToken) {
       var self = this;
 
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         self.setState({thumbnailUrl: thumbnailUrl, name: name });
+         self.setState({isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken});
       });
    }
 
    loginCallback(response) {
       if (response.status === 'connected') {
-
-         this.setState({ isLoggedIn: true, userAccessToken: response.authResponse.accessToken });
-         this.getUserData();
+         this.getUserData(response.authResponse.accessToken);
          // redirect to the server login age that will look up roles and then redirect the client
          // window.location.href = "auth/facebook";
       }
       else if (response.status === 'not_authorized') {
-         this.setState({ isLoggedIn: false});
+         this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null});
       }
       else {
-         this.setState({ isLoggedIn: false});
+         this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
       }
    }
 
@@ -105,7 +103,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
          return (
             <p>
                <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
-               <img src={this.state.thumbnailUrl} alt={this.state.name} height='48px' />
+               <img src={this.state.thumbnailUrl} alt={this.state.name} title={this.state.name}height='48px' />
             </p>
          );
       } else {

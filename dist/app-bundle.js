@@ -63316,26 +63316,25 @@ var LoginComponent = /** @class */ (function (_super) {
     };
     LoginComponent.prototype.componentWillUnmount = function () {
     };
-    LoginComponent.prototype.getUserData = function () {
+    LoginComponent.prototype.getUserData = function (accessToken) {
         var self = this;
         window.FB.api('/me', { fields: 'id, name' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-            self.setState({ thumbnailUrl: thumbnailUrl, name: name });
+            self.setState({ isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken });
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
         if (response.status === 'connected') {
-            this.setState({ isLoggedIn: true, userAccessToken: response.authResponse.accessToken });
-            this.getUserData();
+            this.getUserData(response.authResponse.accessToken);
             // redirect to the server login age that will look up roles and then redirect the client
             // window.location.href = "auth/facebook";
         }
         else if (response.status === 'not_authorized') {
-            this.setState({ isLoggedIn: false });
+            this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
         }
         else {
-            this.setState({ isLoggedIn: false });
+            this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
         }
     };
     LoginComponent.prototype.checkLoginResponse = function (force) {
@@ -63351,7 +63350,7 @@ var LoginComponent = /** @class */ (function (_super) {
         if (this.state.isLoggedIn) {
             return (React.createElement("p", null,
                 React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt),
-                React.createElement("img", { src: this.state.thumbnailUrl, alt: this.state.name, height: '48px' })));
+                React.createElement("img", { src: this.state.thumbnailUrl, alt: this.state.name, title: this.state.name, height: '48px' })));
         }
         else {
             return (React.createElement("p", null,
