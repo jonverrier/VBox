@@ -10,17 +10,14 @@ interface ILoginProps {
 
 interface ILoginState {
    isLoggedIn: boolean;
-   userPrompt : string;
+   userPrompt: string;
+   thumbnailUrl: string;
+   name: string;
+   userAccessToken: string;
 }
 
 export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    //member variables
-   isLoggedIn: boolean;
-   name: string;
-   thumbnailUrl: string;
-   userAccessToken: string;
-
-   userPrompt: string;
 
    constructor(props : ILoginProps) {
       super(props);
@@ -29,13 +26,9 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
       this.checkLoginResponse = this.checkLoginResponse.bind(this);
       this.loginCallback = this.loginCallback.bind(this);
 
-      this.isLoggedIn = false;
-      this.name = null;
-      this.thumbnailUrl = null;
-      this.userAccessToken = null;
-      this.userPrompt = "Login with Facebook";
+      var userPrompt = "Login with Facebook";
 
-      this.state = { isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt };
+      this.state = { isLoggedIn: false, userPrompt: userPrompt, thumbnailUrl: null, name: null, userAccessToken : null };
    }
 
    loadAPI() {
@@ -49,7 +42,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             version: 'v9.0' // use version 9
          });
 
-         // self.checkLoginResponse(true);
+         self.checkLoginResponse(true);
       };
 
       // Load the SDK asynchronously
@@ -72,31 +65,26 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    getUserData() {
       var self = this;
 
-      (window as any).FB.api('/me', { fields: 'id, name, email'}, function (response) {
-         self.name = response.name;
-         self.thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
+      (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
+         var name = response.name;
+         var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
+         self.setState({thumbnailUrl: thumbnailUrl, name: name });
       });
    }
 
    loginCallback(response) {
       if (response.status === 'connected') {
-         this.isLoggedIn = true;
-         this.userAccessToken = response.authResponse.accessToken;
-         this.userPrompt = "Continue with Facebook";
+
+         this.setState({ isLoggedIn: true, userAccessToken: response.authResponse.accessToken });
          this.getUserData();
-
-         this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
-
          // redirect to the server login age that will look up roles and then redirect the client
-         window.location.href = "auth/facebook";
+         // window.location.href = "auth/facebook";
       }
       else if (response.status === 'not_authorized') {
-         this.isLoggedIn = false;
-         this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
+         this.setState({ isLoggedIn: false});
       }
       else {
-         this.isLoggedIn = false;
-         this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
+         this.setState({ isLoggedIn: false});
       }
    }
 
@@ -113,11 +101,20 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    }
 
    render() {
-      return (
-         <p>
-            <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
-         </p>
-      );
+      if (this.state.isLoggedIn) {
+         return (
+            <p>
+               <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
+               <img src={this.state.thumbnailUrl} alt={this.state.name} height='48px' />
+            </p>
+         );
+      } else {
+         return (
+            <p>
+               <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
+            </p>
+         );
+      }
    }
 }
 

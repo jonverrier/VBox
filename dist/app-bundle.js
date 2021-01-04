@@ -63278,18 +63278,15 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var LoginComponent = /** @class */ (function (_super) {
     __extends(LoginComponent, _super);
+    //member variables
     function LoginComponent(props) {
         var _this = _super.call(this, props) || this;
         _this.loadAPI = _this.loadAPI.bind(_this);
         _this.handleLogin = _this.handleLogin.bind(_this);
         _this.checkLoginResponse = _this.checkLoginResponse.bind(_this);
         _this.loginCallback = _this.loginCallback.bind(_this);
-        _this.isLoggedIn = false;
-        _this.name = null;
-        _this.thumbnailUrl = null;
-        _this.userAccessToken = null;
-        _this.userPrompt = "Login with Facebook";
-        _this.state = { isLoggedIn: _this.isLoggedIn, userPrompt: _this.userPrompt };
+        var userPrompt = "Login with Facebook";
+        _this.state = { isLoggedIn: false, userPrompt: userPrompt, thumbnailUrl: null, name: null, userAccessToken: null };
         return _this;
     }
     LoginComponent.prototype.loadAPI = function () {
@@ -63301,7 +63298,7 @@ var LoginComponent = /** @class */ (function (_super) {
                 xfbml: false,
                 version: 'v9.0' // use version 9
             });
-            // self.checkLoginResponse(true);
+            self.checkLoginResponse(true);
         };
         // Load the SDK asynchronously
         (function (d, s, id) {
@@ -63321,28 +63318,24 @@ var LoginComponent = /** @class */ (function (_super) {
     };
     LoginComponent.prototype.getUserData = function () {
         var self = this;
-        window.FB.api('/me', { fields: 'id, name, email' }, function (response) {
-            self.name = response.name;
-            self.thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
+        window.FB.api('/me', { fields: 'id, name' }, function (response) {
+            var name = response.name;
+            var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
+            self.setState({ thumbnailUrl: thumbnailUrl, name: name });
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
         if (response.status === 'connected') {
-            this.isLoggedIn = true;
-            this.userAccessToken = response.authResponse.accessToken;
-            this.userPrompt = "Continue with Facebook";
+            this.setState({ isLoggedIn: true, userAccessToken: response.authResponse.accessToken });
             this.getUserData();
-            this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
             // redirect to the server login age that will look up roles and then redirect the client
-            window.location.href = "auth/facebook";
+            // window.location.href = "auth/facebook";
         }
         else if (response.status === 'not_authorized') {
-            this.isLoggedIn = false;
-            this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
+            this.setState({ isLoggedIn: false });
         }
         else {
-            this.isLoggedIn = false;
-            this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
+            this.setState({ isLoggedIn: false });
         }
     };
     LoginComponent.prototype.checkLoginResponse = function (force) {
@@ -63355,8 +63348,15 @@ var LoginComponent = /** @class */ (function (_super) {
         window.FB.login(this.checkLoginResponse(true), { scope: 'public_profile, email' });
     };
     LoginComponent.prototype.render = function () {
-        return (React.createElement("p", null,
-            React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt)));
+        if (this.state.isLoggedIn) {
+            return (React.createElement("p", null,
+                React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt),
+                React.createElement("img", { src: this.state.thumbnailUrl, alt: this.state.name, height: '48px' })));
+        }
+        else {
+            return (React.createElement("p", null,
+                React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt)));
+        }
     };
     return LoginComponent;
 }(React.Component));
