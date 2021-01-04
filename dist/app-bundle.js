@@ -63010,7 +63010,7 @@ var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { pageData: _this.pageData };
         return _this;
@@ -63052,7 +63052,7 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Nav_1.default, { className: "ml-auto" },
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-white128x128.png" })),
+                                React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-w-128x128.png" })),
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
@@ -63089,56 +63089,83 @@ var CoachPage = /** @class */ (function (_super) {
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
         _this.isLoggedIn = false;
-        _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-white128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { isLoggedIn: _this.isLoggedIn, pageData: _this.pageData };
         return _this;
     }
     CoachPage.prototype.componentDidMount = function () {
-        var self = this;
-        // Make a request for user data to populate the home page 
-        axios_1.default.get('/api/home')
-            .then(function (response) {
-            // Success, set state to data for logged in user 
-            self.pageData = self.pageData.revive(response.data);
-            self.setState({ pageData: self.pageData });
-        })
-            .catch(function (error) {
-            // handle error by setting state back to no user logged in
-            self.pageData = self.defaultPageData;
-            self.setState({ pageData: self.pageData });
-        });
     };
     CoachPage.prototype.componentWillUnmount = function () {
     };
+    CoachPage.prototype.onLoginStatusChange = function (isLoggedIn) {
+        var self = this;
+        // Make a request for user data to populate the home page 
+        if (isLoggedIn) {
+            axios_1.default.get('/api/home')
+                .then(function (response) {
+                // Success, set state to data for logged in user 
+                self.pageData = self.pageData.revive(response.data);
+                self.setState({ isLoggedIn: true, pageData: self.pageData });
+            })
+                .catch(function (error) {
+                // handle error by setting state back to no user logged in
+                self.pageData = self.defaultPageData;
+                self.setState({ isLoggedIn: false, pageData: self.pageData });
+            });
+        }
+        else {
+            // handle error by setting state back to no user logged in
+            self.pageData = self.defaultPageData;
+            self.setState({ isLoggedIn: false, pageData: self.pageData });
+        }
+    };
     CoachPage.prototype.render = function () {
-        return (React.createElement("div", { className: "coachpage" },
-            React.createElement(react_helmet_1.Helmet, null,
-                React.createElement("title", null, this.state.pageData.currentFacility.name),
-                React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
-            React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
-                React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
-                React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
-                    React.createElement(Nav_1.default, { className: "mr-auto" },
-                        React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
-                            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_3.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
-                            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
-                            React.createElement(Dropdown_1.default.Menu, { align: "left" },
-                                React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
-                    React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
-                    React.createElement(Nav_1.default, { className: "ml-auto" },
-                        React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
-                            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-white128x128.png" })),
-                            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
-                            React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
-            React.createElement(rtc_1.Rtc, { sessionId: this.state.pageData.sessionId, facilityId: this.state.pageData.currentFacility.externalId, personId: this.state.pageData.person.externalId }),
-            React.createElement(Container_1.default, { fluid: true, style: pageStyle },
-                React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
-                    React.createElement("h1", null, "Coach Page")))));
+        if (!this.state.isLoggedIn) {
+            return (React.createElement("div", { className: "loginpage" },
+                React.createElement(react_helmet_1.Helmet, null,
+                    React.createElement("title", null, "The Xperience Platform"),
+                    React.createElement("link", { rel: "icon", href: "weightlifter-b-128x128.png", type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
+                React.createElement(Navbar_1.default, { style: facilityNavStyle },
+                    React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
+                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                    React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
+                        React.createElement("h1", null, "Welcome!"),
+                        React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
+                        React.createElement(facebook_1.LoginComponent, { show: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
+        }
+        else {
+            return (React.createElement("div", { className: "coachpage" },
+                React.createElement(react_helmet_1.Helmet, null,
+                    React.createElement("title", null, this.state.pageData.currentFacility.name),
+                    React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
+                React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
+                    React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
+                    React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
+                        React.createElement(Nav_1.default, { className: "mr-auto" },
+                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
+                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                    React.createElement(party_3.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
+                                React.createElement(Dropdown_1.default.Menu, { align: "left" },
+                                    React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
+                        React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
+                        React.createElement(Nav_1.default, { className: "ml-auto" },
+                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
+                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                    React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-w-128x128.png" })),
+                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
+                                React.createElement(Dropdown_1.default.Menu, { align: "right" },
+                                    React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
+                React.createElement(facebook_1.LoginComponent, { show: false, onLoginStatusChange: this.onLoginStatusChange.bind(this) }),
+                React.createElement(rtc_1.Rtc, { sessionId: this.state.pageData.sessionId, facilityId: this.state.pageData.currentFacility.externalId, personId: this.state.pageData.person.externalId }),
+                React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                    React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
+                        React.createElement("h1", null, "Coach Page")))));
+        }
     };
     return CoachPage;
 }(React.Component));
@@ -63157,32 +63184,32 @@ var LoginPage = /** @class */ (function (_super) {
         if (!this.state.isLoggedIn) {
             return (React.createElement("div", { className: "loginpage" },
                 React.createElement(react_helmet_1.Helmet, null,
-                    React.createElement("title", null, "Virtual Box"),
-                    React.createElement("link", { rel: "icon", href: "evolution-weightlifting-b-128x128.png", type: "image/png" }),
-                    React.createElement("link", { rel: "shortcut icon", href: "evolution-weightlifting-b-128x128", type: "image/png" })),
+                    React.createElement("title", null, "The Xperience Platform"),
+                    React.createElement("link", { rel: "icon", href: "weightlifter-b-128x128.png", type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
+                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
-                        React.createElement(facebook_1.LoginComponent, { onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
+                        React.createElement(facebook_1.LoginComponent, { show: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
         }
         else {
             return (React.createElement("div", { className: "loginpage" },
                 React.createElement(react_helmet_1.Helmet, null,
-                    React.createElement("title", null, "Virtual Box"),
-                    React.createElement("link", { rel: "icon", href: "evolution-weightlifting-b-128x128.png", type: "image/png" }),
-                    React.createElement("link", { rel: "shortcut icon", href: "evolution-weightlifting-b-128x128", type: "image/png" })),
+                    React.createElement("title", null, "The Xperience Platform"),
+                    React.createElement("link", { rel: "icon", href: "weightlifter-b-128x128.png", type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
+                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "You are logged in to The Xperience Platform."),
-                        React.createElement(facebook_1.LoginComponent, { onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
+                        React.createElement(facebook_1.LoginComponent, { show: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
         }
     };
     return LoginPage;
@@ -63278,6 +63305,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginComponent = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
+var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
+var logger = new logger_1.Logger();
 var LoginComponent = /** @class */ (function (_super) {
     __extends(LoginComponent, _super);
     //member variables
@@ -63318,20 +63347,24 @@ var LoginComponent = /** @class */ (function (_super) {
     };
     LoginComponent.prototype.componentWillUnmount = function () {
     };
+    LoginComponent.prototype.login = function (name, url, token) {
+        this.setState({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
+        // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
+        if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
+            window.location.href = "auth/facebook";
+        }
+    };
     LoginComponent.prototype.getUserData = function (accessToken) {
         var self = this;
         window.FB.api('/me', { fields: 'id, name' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-            self.setState({ isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken });
-            self.props.onLoginStatusChange(true);
+            this.login(name, thumbnailUrl, accessToken);
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
         if (response.status === 'connected') {
             this.getUserData(response.authResponse.accessToken);
-            // redirect to the server login age that will look up roles and then redirect the client
-            // window.location.href = "auth/facebook";
         }
         else if (response.status === 'not_authorized') {
             this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
@@ -63339,7 +63372,16 @@ var LoginComponent = /** @class */ (function (_super) {
         }
         else {
             this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
-            this.props.onLoginStatusChange(false);
+            // TODO - cannot work out why local host does not work for FB API, this is a hack. 
+            if (location.hostname.includes('localhost')) {
+                logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
+                this.setState({ isLoggedIn: false, thumbnailUrl: 'person-w-128x128.png', name: 'Fake Name', userAccessToken: 'fake_token' });
+                this.login(this.state.name, this.state.thumbnailUrl, this.state.userAccessToken);
+                this.props.onLoginStatusChange(true);
+            }
+            else {
+                this.props.onLoginStatusChange(false);
+            }
         }
     };
     LoginComponent.prototype.checkLoginResponse = function (force) {
@@ -63352,14 +63394,12 @@ var LoginComponent = /** @class */ (function (_super) {
         window.FB.login(this.checkLoginResponse(true), { scope: 'public_profile' });
     };
     LoginComponent.prototype.render = function () {
-        if (this.state.isLoggedIn) {
-            return (React.createElement("p", null,
-                React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt),
-                React.createElement("img", { src: this.state.thumbnailUrl, alt: this.state.name, title: this.state.name, height: '48px' })));
-        }
-        else {
+        if (this.props.show) {
             return (React.createElement("p", null,
                 React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt)));
+        }
+        else {
+            return (React.createElement("div", null));
         }
     };
     return LoginComponent;
