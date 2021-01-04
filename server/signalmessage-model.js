@@ -27,6 +27,9 @@ const signalMessageSchema = new mongoose.Schema({
       type: String,
       required: true
    }
+},
+{  // Enable timestamps for archival since signal messages are useless after the session ends. 
+   timestamps: true
 });
 
 const signalMessageModel = mongoose.model("SignalMessage", signalMessageSchema);

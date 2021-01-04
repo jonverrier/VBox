@@ -99,7 +99,7 @@ function broadcastKeepAlive(facilityId) {
    const message = new SignalMessage(null, facilityId, null, null, sequence, new CallKeepAlive(sequence));
    sequence = sequence + 1;
    // Dont bother saving keep alive messages to the replay log - no functional purpose. 
-   new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
+   // new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
    var subscribers = facilityMap.get(facilityId);
    for (var i = 0; i < subscribers.length; i++)
