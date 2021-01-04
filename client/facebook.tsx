@@ -85,6 +85,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
          self.login(name, thumbnailUrl, accessToken);
+         self.props.onLoginStatusChange(true);
       });
    }
 

@@ -63360,6 +63360,7 @@ var LoginComponent = /** @class */ (function (_super) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
             self.login(name, thumbnailUrl, accessToken);
+            self.props.onLoginStatusChange(true);
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
