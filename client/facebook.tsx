@@ -6,6 +6,7 @@ import * as React from 'react';
 import Button from 'react-bootstrap/Button';
 
 interface ILoginProps {
+   onLoginStatusChange: (boolean) => void;
 }
 
 interface ILoginState {
@@ -65,10 +66,11 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    getUserData(accessToken) {
       var self = this;
 
-      (window as any).FB.api('/me', { fields: 'id, name, profile_pic' }, function (response) {
+      (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         self.setState({isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken});
+         self.setState({ isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken });
+         self.props.onLoginStatusChange(true);
       });
    }
 
@@ -79,10 +81,12 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
          // window.location.href = "auth/facebook";
       }
       else if (response.status === 'not_authorized') {
-         this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null});
+         this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+         this.props.onLoginStatusChange(false);
       }
       else {
          this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+         this.props.onLoginStatusChange(false);
       }
    }
 
@@ -95,7 +99,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    }
 
    handleLogin() {
-      (window as any).FB.login(this.checkLoginResponse (true), { scope: 'public_profile, email' });
+      (window as any).FB.login(this.checkLoginResponse (true), { scope: 'public_profile' });
    }
 
    render() {

@@ -63147,10 +63147,12 @@ var LoginPage = /** @class */ (function (_super) {
     __extends(LoginPage, _super);
     function LoginPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.isLoggedIn = false;
-        _this.state = { isLoggedIn: _this.isLoggedIn };
+        _this.state = { isLoggedIn: false };
         return _this;
     }
+    LoginPage.prototype.onLoginStatusChange = function (isLoggedIn) {
+        this.setState({ isLoggedIn: isLoggedIn });
+    };
     LoginPage.prototype.render = function () {
         if (!this.state.isLoggedIn) {
             return (React.createElement("div", { className: "loginpage" },
@@ -63160,12 +63162,12 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement("link", { rel: "shortcut icon", href: "evolution-weightlifting-b-128x128", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
+                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
-                        React.createElement("p", null, "Welcome to The Xperience Fitness Platform. Sign in below to get access to your class."),
-                        React.createElement(facebook_1.LoginComponent, null)))));
+                        React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
+                        React.createElement(facebook_1.LoginComponent, { onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
         }
         else {
             return (React.createElement("div", { className: "loginpage" },
@@ -63175,12 +63177,12 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement("link", { rel: "shortcut icon", href: "evolution-weightlifting-b-128x128", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
+                        React.createElement(party_2.PartyBanner, { name: "The Xperience Platform", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
-                        React.createElement("p", null, "You are logged in to The Xperience Fitness Platform."),
-                        React.createElement(facebook_1.LoginComponent, null)))));
+                        React.createElement("p", null, "You are logged in to The Xperience Platform."),
+                        React.createElement(facebook_1.LoginComponent, { onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
         }
     };
     return LoginPage;
@@ -63318,10 +63320,11 @@ var LoginComponent = /** @class */ (function (_super) {
     };
     LoginComponent.prototype.getUserData = function (accessToken) {
         var self = this;
-        window.FB.api('/me', { fields: 'id, name, profile_pic' }, function (response) {
+        window.FB.api('/me', { fields: 'id, name' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
             self.setState({ isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken });
+            self.props.onLoginStatusChange(true);
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
@@ -63332,9 +63335,11 @@ var LoginComponent = /** @class */ (function (_super) {
         }
         else if (response.status === 'not_authorized') {
             this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+            this.props.onLoginStatusChange(false);
         }
         else {
             this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+            this.props.onLoginStatusChange(false);
         }
     };
     LoginComponent.prototype.checkLoginResponse = function (force) {
@@ -63344,7 +63349,7 @@ var LoginComponent = /** @class */ (function (_super) {
         }, force);
     };
     LoginComponent.prototype.handleLogin = function () {
-        window.FB.login(this.checkLoginResponse(true), { scope: 'public_profile, email' });
+        window.FB.login(this.checkLoginResponse(true), { scope: 'public_profile' });
     };
     LoginComponent.prototype.render = function () {
         if (this.state.isLoggedIn) {
