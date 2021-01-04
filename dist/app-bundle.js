@@ -63359,7 +63359,7 @@ var LoginComponent = /** @class */ (function (_super) {
         window.FB.api('/me', { fields: 'id, name' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-            this.login(name, thumbnailUrl, accessToken);
+            self.login(name, thumbnailUrl, accessToken);
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
