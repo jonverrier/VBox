@@ -63010,7 +63010,7 @@ var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-white128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'), null);
         _this.pageData = _this.defaultPageData;
         _this.state = { pageData: _this.pageData };
         return _this;
@@ -63074,11 +63074,11 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(section_1.SectionHeader, { name: "Athletes" })),
                 React.createElement("div", null,
                     React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "person-white128x128.png" })),
+                        React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "weightlifter-w-128x128.png" })),
                     React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "Another Person with a Long Name", thumbnailUrl: "person-white128x128.png" })),
+                        React.createElement(party_1.Party, { name: "Another Person with a Long Name", thumbnailUrl: "weightlifter-w-128x128.png" })),
                     React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "A B", thumbnailUrl: "person-white128x128.png" }))),
+                        React.createElement(party_1.Party, { name: "A B", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement("br", null))));
     };
     return MemberPage;
@@ -63088,9 +63088,10 @@ var CoachPage = /** @class */ (function (_super) {
     __extends(CoachPage, _super);
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-white128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'building-black128x128.png'), null);
+        _this.isLoggedIn = false;
+        _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-white128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'), null);
         _this.pageData = _this.defaultPageData;
-        _this.state = { pageData: _this.pageData };
+        _this.state = { isLoggedIn: _this.isLoggedIn, pageData: _this.pageData };
         return _this;
     }
     CoachPage.prototype.componentDidMount = function () {
@@ -63144,23 +63145,43 @@ var CoachPage = /** @class */ (function (_super) {
 exports.CoachPage = CoachPage;
 var LoginPage = /** @class */ (function (_super) {
     __extends(LoginPage, _super);
-    function LoginPage() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function LoginPage(props) {
+        var _this = _super.call(this, props) || this;
+        _this.isLoggedIn = false;
+        _this.state = { isLoggedIn: _this.isLoggedIn };
+        return _this;
     }
     LoginPage.prototype.render = function () {
-        return (React.createElement("div", { className: "loginpage" },
-            React.createElement(react_helmet_1.Helmet, null,
-                React.createElement("title", null, "Virtual Box"),
-                React.createElement("link", { rel: "icon", href: "building-black128x128.png", type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: "building-black128x128.png", type: "image/png" })),
-            React.createElement(Navbar_1.default, { style: facilityNavStyle },
-                React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "building-black128x128.png" }))),
-            React.createElement(Container_1.default, { fluid: true, style: pageStyle },
-                React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
-                    React.createElement("h1", null, "Welcome!"),
-                    React.createElement("p", null, "Welcome to Virtual Box. Sign in below to get access to your class."),
-                    React.createElement(facebook_1.LoginComponent, null)))));
+        if (!this.state.isLoggedIn) {
+            return (React.createElement("div", { className: "loginpage" },
+                React.createElement(react_helmet_1.Helmet, null,
+                    React.createElement("title", null, "Virtual Box"),
+                    React.createElement("link", { rel: "icon", href: "evolution-weightlifting-b-128x128.png", type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: "evolution-weightlifting-b-128x128", type: "image/png" })),
+                React.createElement(Navbar_1.default, { style: facilityNavStyle },
+                    React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
+                        React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
+                React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                    React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
+                        React.createElement("h1", null, "Welcome!"),
+                        React.createElement("p", null, "Welcome to The Xperience Fitness Platform. Sign in below to get access to your class."),
+                        React.createElement(facebook_1.LoginComponent, null)))));
+        }
+        else {
+            return (React.createElement("div", { className: "loginpage" },
+                React.createElement(react_helmet_1.Helmet, null,
+                    React.createElement("title", null, "Virtual Box"),
+                    React.createElement("link", { rel: "icon", href: "evolution-weightlifting-b-128x128.png", type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: "evolution-weightlifting-b-128x128", type: "image/png" })),
+                React.createElement(Navbar_1.default, { style: facilityNavStyle },
+                    React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
+                        React.createElement(party_2.PartyBanner, { name: "Virtual Box", thumbnailUrl: "evolution-weightlifting-b-128x128.png" }))),
+                React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                    React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
+                        React.createElement("h1", null, "Welcome!"),
+                        React.createElement("p", null, "You are logged in to The Xperience Fitness Platform."),
+                        React.createElement(facebook_1.LoginComponent, null)))));
+        }
     };
     return LoginPage;
 }(React.Component));
@@ -63268,7 +63289,7 @@ var LoginComponent = /** @class */ (function (_super) {
         _this.thumbnailUrl = null;
         _this.userAccessToken = null;
         _this.userPrompt = "Login with Facebook";
-        _this.state = { userPrompt: _this.userPrompt };
+        _this.state = { isLoggedIn: _this.isLoggedIn, userPrompt: _this.userPrompt };
         return _this;
     }
     LoginComponent.prototype.loadAPI = function () {
@@ -63311,15 +63332,17 @@ var LoginComponent = /** @class */ (function (_super) {
             this.userAccessToken = response.authResponse.accessToken;
             this.userPrompt = "Continue with Facebook";
             this.getUserData();
-            this.setState({ userPrompt: this.userPrompt });
+            this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
             // redirect to the server login age that will look up roles and then redirect the client
             window.location.href = "auth/facebook";
         }
         else if (response.status === 'not_authorized') {
             this.isLoggedIn = false;
+            this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
         }
         else {
             this.isLoggedIn = false;
+            this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
         }
     };
     LoginComponent.prototype.checkLoginResponse = function (force) {
