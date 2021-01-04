@@ -9,7 +9,7 @@
 VBox is a responsive web app to implement an online version of a CrossFit workout. It is intended for use by Box operators to extend the reach of their classes in pandemic times, and/or extend their income by offering higher quality remote coaching & classes. 
 
 ## Technologies
-On the Server, VBox uses Node.js & Mongo DB. Facebook login is used for authentication of coaches & athletes.
+On the Server, VBox uses Node.js & Mongo DB. Facebook login is used for authentication of coaches. Athletes are authenticated simly by having the URL for a session. 
 
 On the client, VBox uses Typescript, React.js, and WebRTC. 
 
