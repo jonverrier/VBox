@@ -63904,6 +63904,7 @@ var Rtc = /** @class */ (function (_super) {
         return _this;
     }
     Rtc.prototype.componentDidMount = function () {
+        this.connectFirst();
     };
     Rtc.prototype.connectFirst = function () {
         // Create a unique id to this call participation by appending a UUID for the browser we are connecting from

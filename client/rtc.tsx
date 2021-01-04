@@ -425,6 +425,7 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
    }
 
    componentDidMount() {
+      this.connectFirst();
    }
 
    connectFirst() {
