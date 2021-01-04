@@ -85,7 +85,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
       super(props);
       this.defaultPageData = new HomePageData(
          new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
-         new Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'),
+         new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'),
          null);
       this.pageData = this.defaultPageData;
 
@@ -140,7 +140,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   <Nav className="ml-auto">
                      <Dropdown as={ButtonGroup} id="collasible-nav-person">
                         <Button split="true" variant="secondary" style={thinStyle}>
-                           <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-white128x128.png"} />
+                           <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-w-128x128.png"} />
                         </Button>
                         <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                         </Dropdown.Toggle>
@@ -218,8 +218,8 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       super(props);
       this.isLoggedIn = false;
       this.defaultPageData = new HomePageData(null,
-         new Person(null, null, 'Waiting...', null, 'person-white128x128.png', null),
-         new Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'),
+         new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
+         new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'),
          null);
       this.pageData = this.defaultPageData;
 
@@ -227,76 +227,114 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    }
 
    componentDidMount() {
-      var self = this;
 
-      // Make a request for user data to populate the home page 
-      axios.get('/api/home')
-         .then(function (response) {
-            // Success, set state to data for logged in user 
-            self.pageData = self.pageData.revive(response.data);
-            self.setState ({ pageData: self.pageData });
-         })
-         .catch(function (error) {
-            // handle error by setting state back to no user logged in
-            self.pageData = self.defaultPageData;
-            self.setState({ pageData: self.pageData });
-         });
    }
 
    componentWillUnmount() {
    }
 
+   onLoginStatusChange(isLoggedIn) {
+      var self = this;
+
+      // Make a request for user data to populate the home page 
+      if (isLoggedIn) {
+         axios.get('/api/home')
+            .then(function (response) {
+               // Success, set state to data for logged in user 
+               self.pageData = self.pageData.revive(response.data);
+               self.setState({ isLoggedIn: true, pageData: self.pageData });
+            })
+            .catch(function (error) {
+               // handle error by setting state back to no user logged in
+               self.pageData = self.defaultPageData;
+               self.setState({ isLoggedIn: false, pageData: self.pageData });
+            });
+      } else {
+         // handle error by setting state back to no user logged in
+         self.pageData = self.defaultPageData;
+         self.setState({ isLoggedIn: false, pageData: self.pageData });
+      }
+   }
+
    render() {
-      return (
-         <div className="coachpage">
-            <Helmet>
-               <title>{this.state.pageData.currentFacility.name}</title>
-               <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
-               <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
-            </Helmet>
+      if (!this.state.isLoggedIn) {
+         return (
+            <div className="loginpage">
+               <Helmet>
+                  <title>The Xperience Platform</title>
+                  <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
+                  <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
+               </Helmet>
+               <Navbar style={facilityNavStyle}>
+                  <Navbar.Brand href="/" style={navbarBrandStyle}>
+                     <PartyBanner name="The Xperience Platform" thumbnailUrl="weightlifter-w-128x128.png" />
+                  </Navbar.Brand>
+               </Navbar>
+               <Container fluid style={pageStyle}>
+                  <Jumbotron style={{ background: 'gray', color: 'white' }}>
+                     <h1>Welcome!</h1>
+                     <p>
+                        Welcome to The Xperience Platform. Sign in below to get access to your class.
+                     </p>
+                     <LoginComponent show={true} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
+                  </Jumbotron>
+               </Container>
+            </div>
+         );
+      } else {
+         return (
+            <div className="coachpage">
+               <Helmet>
+                  <title>{this.state.pageData.currentFacility.name}</title>
+                  <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+                  <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+               </Helmet>
 
-            <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
-               <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-               <Navbar.Collapse id="responsive-navbar-nav">
-                  <Nav className="mr-auto">
-                     <Dropdown as={ButtonGroup} id="collasible-nav-facility">
-                        <Button split="true" variant="secondary" style={thinStyle}>
-                           <PartySmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
-                        </Button>
-                        <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >                           
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="left">
-                           <Dropdown.Item href={this.state.pageData.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
-                        </Dropdown.Menu>
-                     </Dropdown>
-                  </Nav>
-                  <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
-                  <Nav className="ml-auto">
-                     <Dropdown as={ButtonGroup} id="collasible-nav-person">
-                        <Button split="true" variant="secondary" style={thinStyle}>
-                           <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-white128x128.png"} />
-                        </Button>
-                        <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="right">
-                           <Dropdown.Item href="#/action-2">Sign Out...</Dropdown.Item>
-                        </Dropdown.Menu>
-                     </Dropdown>
-                  </Nav>
-               </Navbar.Collapse>
-            </Navbar>
+               <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
+                  <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+                  <Navbar.Collapse id="responsive-navbar-nav">
+                     <Nav className="mr-auto">
+                        <Dropdown as={ButtonGroup} id="collasible-nav-facility">
+                           <Button split="true" variant="secondary" style={thinStyle}>
+                              <PartySmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
+                           </Button>
+                           <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
+                           </Dropdown.Toggle>
+                           <Dropdown.Menu align="left">
+                              <Dropdown.Item href={this.state.pageData.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
+                           </Dropdown.Menu>
+                        </Dropdown>
+                     </Nav>
+                     <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
+                     <Nav className="ml-auto">
+                        <Dropdown as={ButtonGroup} id="collasible-nav-person">
+                           <Button split="true" variant="secondary" style={thinStyle}>
+                              <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-w-128x128.png"} />
+                           </Button>
+                           <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
+                           </Dropdown.Toggle>
+                           <Dropdown.Menu align="right">
+                              <Dropdown.Item href="#/action-2">Sign Out...</Dropdown.Item>
+                           </Dropdown.Menu>
+                        </Dropdown>
+                     </Nav>
+                  </Navbar.Collapse>
+               </Navbar>
 
-            <Rtc sessionId={this.state.pageData.sessionId}
-               facilityId={this.state.pageData.currentFacility.externalId}
-               personId={this.state.pageData.person.externalId}></Rtc>
+               <LoginComponent show={false} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
 
-            <Container fluid style={pageStyle}>
-               <Jumbotron style={{ background: 'gray', color: 'white' }}>
-                  <h1>Coach Page</h1>
-               </Jumbotron>
-            </Container>
-         </div>
-      );
+               <Rtc sessionId={this.state.pageData.sessionId}
+                  facilityId={this.state.pageData.currentFacility.externalId}
+                  personId={this.state.pageData.person.externalId}></Rtc>
+
+               <Container fluid style={pageStyle}>
+                  <Jumbotron style={{ background: 'gray', color: 'white' }}>
+                     <h1>Coach Page</h1>
+                  </Jumbotron>
+               </Container>
+            </div>
+         );
+      }
    }
 }
 
@@ -325,13 +363,13 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
          return (
             <div className="loginpage">
             <Helmet>
-               <title>Virtual Box</title>
-               <link rel="icon" href="evolution-weightlifting-b-128x128.png" type="image/png" />
-               <link rel="shortcut icon" href="evolution-weightlifting-b-128x128" type="image/png" />
+                  <title>The Xperience Platform</title>
+               <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
+               <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="The Xperience Platform" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
+                  <PartyBanner name="The Xperience Platform" thumbnailUrl="weightlifter-w-128x128.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
@@ -340,7 +378,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                   <p>
                         Welcome to The Xperience Platform. Sign in below to get access to your class.
                   </p>
-                  <LoginComponent onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
+                  <LoginComponent show={true} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
                </Jumbotron>
             </Container>
             </div>
@@ -349,13 +387,13 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
          return (
             <div className="loginpage">
                <Helmet>
-                  <title>Virtual Box</title>
-                  <link rel="icon" href="evolution-weightlifting-b-128x128.png" type="image/png" />
-                  <link rel="shortcut icon" href="evolution-weightlifting-b-128x128" type="image/png" />
+                  <title>The Xperience Platform</title>
+                  <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
+                  <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
                </Helmet>
                <Navbar style={facilityNavStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="The Xperience Platform" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
+                     <PartyBanner name="The Xperience Platform" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
                </Navbar>
                <Container fluid style={pageStyle}>
@@ -364,7 +402,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                      <p>
                         You are logged in to The Xperience Platform.
                      </p>
-                     <LoginComponent onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
+                     <LoginComponent show={true} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
                   </Jumbotron>
                </Container>
             </div>

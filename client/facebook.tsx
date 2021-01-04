@@ -4,8 +4,14 @@ declare var require: any
 
 import * as React from 'react';
 import Button from 'react-bootstrap/Button';
+import axios from 'axios';
+
+import { Logger } from './logger'
+
+var logger = new Logger();
 
 interface ILoginProps {
+   show: boolean;
    onLoginStatusChange: (boolean) => void;
 }
 
@@ -63,22 +69,28 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    componentWillUnmount() {
    }
 
+   login(name, url, token) {
+      this.setState({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
+
+      // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
+      if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
+         window.location.href = "auth/facebook";
+      }
+   }
+
    getUserData(accessToken) {
       var self = this;
 
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         self.setState({ isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken });
-         self.props.onLoginStatusChange(true);
+         this.login(name, thumbnailUrl, accessToken);
       });
    }
 
    loginCallback(response) {
       if (response.status === 'connected') {
          this.getUserData(response.authResponse.accessToken);
-         // redirect to the server login age that will look up roles and then redirect the client
-         // window.location.href = "auth/facebook";
       }
       else if (response.status === 'not_authorized') {
          this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
@@ -86,7 +98,15 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
       }
       else {
          this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
-         this.props.onLoginStatusChange(false);
+         // TODO - cannot work out why local host does not work for FB API, this is a hack. 
+         if (location.hostname.includes('localhost')) {
+            logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
+            this.setState({ isLoggedIn: false, thumbnailUrl: 'person-w-128x128.png', name: 'Fake Name', userAccessToken: 'fake_token' });
+            this.login(this.state.name, this.state.thumbnailUrl, this.state.userAccessToken);
+            this.props.onLoginStatusChange(true);
+         } else {
+            this.props.onLoginStatusChange(false);
+         }
       }
    }
 
@@ -103,19 +123,14 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    }
 
    render() {
-      if (this.state.isLoggedIn) {
+      if (this.props.show) {
          return (
             <p>
                <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
-               <img src={this.state.thumbnailUrl} alt={this.state.name} title={this.state.name}height='48px' />
             </p>
          );
       } else {
-         return (
-            <p>
-               <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
-            </p>
-         );
+         return (<div />);
       }
    }
 }
