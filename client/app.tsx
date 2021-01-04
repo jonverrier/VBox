@@ -84,8 +84,8 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
    constructor(props: ICoachPageProps) {
       super(props);
       this.defaultPageData = new HomePageData(
-         new Person(null, null, 'Waiting...', null, 'person-white128x128.png', null),
-         new Facility(null, null, 'Waiting...', 'building-black128x128.png'),
+         new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
+         new Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'),
          null);
       this.pageData = this.defaultPageData;
 
@@ -183,13 +183,13 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                </Row>
                <div>
                <Row>
-                  <Party name="Another Person" thumbnailUrl="person-white128x128.png" />
+                  <Party name="Another Person" thumbnailUrl="weightlifter-w-128x128.png" />
                </Row>
                <Row>
-                  <Party name="Another Person with a Long Name" thumbnailUrl="person-white128x128.png" />
+                  <Party name="Another Person with a Long Name" thumbnailUrl="weightlifter-w-128x128.png" />
                </Row>
                <Row>
-                  <Party name="A B" thumbnailUrl="person-white128x128.png" />
+                  <Party name="A B" thumbnailUrl="weightlifter-w-128x128.png" />
                </Row>
                </div>
                <br />
@@ -203,24 +203,27 @@ interface ICoachPageProps {
 }
 
 interface ICoachPageState {
+   isLoggedIn: boolean;
    pageData: HomePageData
 }
 
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
 
    //member variables
+   isLoggedIn: boolean;
    pageData: HomePageData;
    defaultPageData: HomePageData;
 
    constructor(props: ICoachPageProps) {
       super(props);
+      this.isLoggedIn = false;
       this.defaultPageData = new HomePageData(null,
          new Person(null, null, 'Waiting...', null, 'person-white128x128.png', null),
-         new Facility(null, null, 'Waiting...', 'building-black128x128.png'),
+         new Facility(null, null, 'Waiting...', 'evolution-weightlifting-b-128x128.png'),
          null);
       this.pageData = this.defaultPageData;
 
-      this.state = { pageData: this.pageData };
+      this.state = { isLoggedIn: this.isLoggedIn, pageData: this.pageData };
    }
 
    componentDidMount() {
@@ -297,31 +300,73 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    }
 }
 
-export class LoginPage extends React.Component {
+interface ILoginPageProps {
+}
+
+interface ILoginPageState {
+   isLoggedIn: boolean;
+}
+
+export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
+   //member variables
+   isLoggedIn: boolean;
+
+   constructor(props: ICoachPageProps) {
+      super(props);
+      this.isLoggedIn = false;
+      this.state = { isLoggedIn: this.isLoggedIn};
+   }
+
    render() {
-      return ( 
-         <div className="loginpage">
+      if (!this.state.isLoggedIn) {
+         return (
+            <div className="loginpage">
             <Helmet>
                <title>Virtual Box</title>
-               <link rel="icon" href="building-black128x128.png" type="image/png" />
-               <link rel="shortcut icon" href="building-black128x128.png" type="image/png" />
+               <link rel="icon" href="evolution-weightlifting-b-128x128.png" type="image/png" />
+               <link rel="shortcut icon" href="evolution-weightlifting-b-128x128" type="image/png" />
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Virtual Box" thumbnailUrl="building-black128x128.png" />
+                  <PartyBanner name="Virtual Box" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
-               <Jumbotron style={{background: 'gray', color: 'white'}}>
+               <Jumbotron style={{ background: 'gray', color: 'white' }}>
                   <h1>Welcome!</h1>
                   <p>
-                     Welcome to Virtual Box. Sign in below to get access to your class. 
+                     Welcome to The Xperience Fitness Platform. Sign in below to get access to your class.
                   </p>
                   <LoginComponent />
-               </Jumbotron>            
+               </Jumbotron>
             </Container>
-         </div>
-      );
+            </div>
+         );
+      } else {
+         return (
+            <div className="loginpage">
+               <Helmet>
+                  <title>Virtual Box</title>
+                  <link rel="icon" href="evolution-weightlifting-b-128x128.png" type="image/png" />
+                  <link rel="shortcut icon" href="evolution-weightlifting-b-128x128" type="image/png" />
+               </Helmet>
+               <Navbar style={facilityNavStyle}>
+                  <Navbar.Brand href="/" style={navbarBrandStyle}>
+                     <PartyBanner name="Virtual Box" thumbnailUrl="evolution-weightlifting-b-128x128.png" />
+                  </Navbar.Brand>
+               </Navbar>
+               <Container fluid style={pageStyle}>
+                  <Jumbotron style={{ background: 'gray', color: 'white' }}>
+                     <h1>Welcome!</h1>
+                     <p>
+                        You are logged in to The Xperience Fitness Platform.
+                     </p>
+                     <LoginComponent />
+                  </Jumbotron>
+               </Container>
+            </div>
+         );
+      }
    }
 }
 

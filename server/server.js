@@ -17,7 +17,6 @@ var authRouter = require("./auth-routes.js");
 var apiRouter = require("./api-routes.js");
 var initialiseEvents = require('./event-source.js').initialise;
 
-
 // Control variables for development / production
 var inDevelopment = false;
 if (process.env.NODE_ENV === 'development') {
@@ -124,7 +123,7 @@ const connect = async () => {
       // This initialises the sequence number for the event source
       initialiseEvents();
 
-      console.log('Listening...');
+      console.log('Listening on ' + process.env.PORT + ' ...');
 
       /*
       if (false) {

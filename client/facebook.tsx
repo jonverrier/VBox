@@ -5,14 +5,15 @@ declare var require: any
 import * as React from 'react';
 import Button from 'react-bootstrap/Button';
 
-interface IProps {
+interface ILoginProps {
 }
 
-interface IState {
+interface ILoginState {
+   isLoggedIn: boolean;
    userPrompt : string;
 }
 
-export class LoginComponent extends React.Component<IProps, IState> {
+export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    //member variables
    isLoggedIn: boolean;
    name: string;
@@ -21,7 +22,7 @@ export class LoginComponent extends React.Component<IProps, IState> {
 
    userPrompt: string;
 
-   constructor(props : IProps) {
+   constructor(props : ILoginProps) {
       super(props);
       this.loadAPI = this.loadAPI.bind(this);
       this.handleLogin = this.handleLogin.bind(this);
@@ -34,7 +35,7 @@ export class LoginComponent extends React.Component<IProps, IState> {
       this.userAccessToken = null;
       this.userPrompt = "Login with Facebook";
 
-      this.state = { userPrompt: this.userPrompt };
+      this.state = { isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt };
    }
 
    loadAPI() {
@@ -84,16 +85,18 @@ export class LoginComponent extends React.Component<IProps, IState> {
          this.userPrompt = "Continue with Facebook";
          this.getUserData();
 
-         this.setState({ userPrompt: this.userPrompt });
+         this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
 
          // redirect to the server login age that will look up roles and then redirect the client
          window.location.href = "auth/facebook";
       }
       else if (response.status === 'not_authorized') {
          this.isLoggedIn = false;
+         this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
       }
       else {
          this.isLoggedIn = false;
+         this.setState({ isLoggedIn: this.isLoggedIn, userPrompt: this.userPrompt });
       }
    }
 
