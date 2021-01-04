@@ -65,7 +65,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    getUserData(accessToken) {
       var self = this;
 
-      (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
+      (window as any).FB.api('/me', { fields: 'id, name, profile_pic' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
          self.setState({isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken});

@@ -63318,7 +63318,7 @@ var LoginComponent = /** @class */ (function (_super) {
     };
     LoginComponent.prototype.getUserData = function (accessToken) {
         var self = this;
-        window.FB.api('/me', { fields: 'id, name' }, function (response) {
+        window.FB.api('/me', { fields: 'id, name, profile_pic' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
             self.setState({ isLoggedIn: true, thumbnailUrl: thumbnailUrl, name: name, userAccessToken: accessToken });
