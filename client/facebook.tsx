@@ -84,7 +84,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         this.login(name, thumbnailUrl, accessToken);
+         self.login(name, thumbnailUrl, accessToken);
       });
    }
 
@@ -98,6 +98,7 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
       }
       else {
          this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+
          // TODO - cannot work out why local host does not work for FB API, this is a hack. 
          if (location.hostname.includes('localhost')) {
             logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
