@@ -131,6 +131,8 @@ export class LoginComponent {
       (window as any).FB.logout(function () {
          self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
          self.props.onLoginStatusChange(false);
+         // Go back to front page.
+         window.location.href = "/";
       });
    }
 }

@@ -300,7 +300,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to The Xperience Platform. Sign in below to get access to your class.
                      </p>
-                     <Button variant="primary" onClick={this.state.login.logIn}>"Login with Facebook...</Button>
+                     <Button variant="primary" onClick={this.state.login.logIn}>Login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
