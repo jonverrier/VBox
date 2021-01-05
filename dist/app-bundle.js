@@ -63184,7 +63184,7 @@ var CoachPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.handleLogin }, "\"Login with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "\"Login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "coachpage" },
@@ -63207,10 +63207,10 @@ var CoachPage = /** @class */ (function (_super) {
                             React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-w-128x128.png" })),
+                                    React.createElement(party_3.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                    React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
+                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.login.logOut }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Coach Page")))));
@@ -63252,7 +63252,7 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.handleLogin }, "\"Login with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "\"Login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "loginpage" },
@@ -63267,7 +63267,7 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "You are logged in to The Xperience Platform."),
-                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.handleLogin }, "Continue with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "Continue with Facebook...")))));
         }
     };
     return LoginPage;
@@ -63496,9 +63496,16 @@ var LoginComponent = /** @class */ (function () {
             self.loginCallback(response);
         }, force);
     };
-    LoginComponent.prototype.handleLogin = function () {
+    LoginComponent.prototype.logIn = function () {
         var self = this;
         window.FB.login(self.checkLoginResponse(true), { scope: 'public_profile' });
+    };
+    LoginComponent.prototype.logOut = function () {
+        var self = this;
+        window.FB.logout(function () {
+            self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+            self.props.onLoginStatusChange(false);
+        });
     };
     return LoginComponent;
 }());
@@ -63591,12 +63598,12 @@ var thinStyle = {
 exports.PartyBanner = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { fluid: true, style: thinStyle },
         React.createElement(Row_1.default, { style: { bannerRowStyle: bannerRowStyle } },
-            React.createElement("img", { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, height: '32px' }),
+            React.createElement("img", { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
             React.createElement("p", { style: partyBannerNameStyle }, props.name))))); };
 exports.Party = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement("img", { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, height: '32px' }),
+            React.createElement("img", { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
             React.createElement("p", { style: partyNameStyle }, props.name))))); };
 exports.PartySmall = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },

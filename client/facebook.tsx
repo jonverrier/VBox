@@ -115,9 +115,17 @@ export class LoginComponent {
       }, force);
    }
 
-   handleLogin() {
+   logIn() {
       var self = this;
       (window as any).FB.login(self.checkLoginResponse (true), { scope: 'public_profile' });
+   }
+
+   logOut() {
+      var self = this;
+      (window as any).FB.logout(function () {
+         self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+         self.props.onLoginStatusChange(false);
+      });
    }
 }
 
