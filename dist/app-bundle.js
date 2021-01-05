@@ -63252,7 +63252,7 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "\"Login with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "Login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "loginpage" },
