@@ -12,9 +12,11 @@ import { v4 as uuidv4 } from 'uuid';
 import adapter from 'webrtc-adapter'; // Google shim library
  
 // This app
-import { Call, CallParticipation, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
 import { TypeRegistry } from '../common/types.js';
-import { Logger } from './logger'
+import { FourStateRagEnum } from '../common/enum.js';
+import { Logger } from './logger';
+
 
 var logger = new Logger();
 
@@ -25,7 +27,6 @@ class RtcCaller {
    sendConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
-   myCall: string;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation) {
       this.localCallParticipation = localCallParticipation;
@@ -33,8 +34,12 @@ class RtcCaller {
       this.sendConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
-      this.myCall = null;
    }
+
+   // Override these for notifications
+   onremoteclose: ((this: RtcCaller, ev: Event) => any) | null;
+   onremoteissues: ((this: RtcCaller, ev: Event) => any) | null;
+   onremoteconnection: ((this: RtcCaller, ev: Event) => any) | null;
 
    placeCall() {
 
@@ -78,18 +83,6 @@ class RtcCaller {
             // TODO - analyse error paths
             logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
          });;
-   }
-
-   // Override this to be notified when remote connection closes
-   onremoteclose(ev) {
-   }
-
-   // Override this to be notified when remote connection has issues
-   onremoteissues(ev) {
-   }
-
-   // Override this to be notified when remote connection is made
-   onremoteconnection (ev) {
    }
 
    onicecandidate(candidate, to, outbound) {
@@ -151,16 +144,19 @@ class RtcCaller {
       switch (pc.connectionState) {
          case "connected":
             // The connection has become fully connected
-            self.onremoteconnection (ev);
+            if (self.onremoteconnection)
+               self.onremoteconnection (ev);
             break;
          case "disconnected":
             // Something going on ... 
-            self.onremoteissues(ev);
+            if (self.onremoteissues)
+               self.onremoteissues(ev);
             break;
          case "failed":
          case "closed":
             // The connection has been closed or failed
-            self.onremoteclose(ev);
+            if (self.onremoteclose)
+               self.onremoteclose(ev);
             break;
       }
    }
@@ -213,7 +209,6 @@ class RtcReciever {
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
-   myCall: string;
 
    constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer) {
       this.localCallParticipation = localCallParticipation;
@@ -221,8 +216,12 @@ class RtcReciever {
       this.remoteOffer = remoteOffer;
       this.recieveConnection = null;
       this.sendChannel = null;
-      this.myCall = null;
    }
+
+   // Override these for notifications
+   onremoteclose: ((this: RtcReciever, ev: Event) => any) | null;
+   onremoteissues: ((this: RtcReciever, ev: Event) => any) | null;
+   onremoteconnection: ((this: RtcReciever, ev: Event) => any) | null;
 
    answerCall() {
 
@@ -272,18 +271,6 @@ class RtcReciever {
          });;
    }
 
-   // Override this to be notified when remote connection closes
-   onremoteclose(ev) {
-   }
-
-   // Override this to be notified when remote connection has issues
-   onremoteissues(ev) {
-   }
-
-   // Override this to be notified when remote connection is made
-   onremoteconnection (ev) {
-   }
-
    onicecandidate(candidate, to, outbound) {
       // a null candidate means ICE gathering is finished
       if (!candidate)
@@ -327,16 +314,19 @@ class RtcReciever {
       switch (pc.connectionState) {
          case "connected":
             // The connection has become fully connected
-            self.onremoteconnection(ev);
+            if (self.onremoteconnection)
+               self.onremoteconnection(ev);
             break;
          case "disconnected":
             // Something going on ... 
-            self.onremoteissues(ev);
+            if (self.onremoteissues)
+               self.onremoteissues(ev);
             break;
          case "failed":
          case "closed":
             // The connection has been closed or failed
-            self.onremoteclose(ev);
+            if (self.onremoteclose)
+               self.onremoteclose(ev);
             break;
       }
    }
@@ -396,42 +386,41 @@ class RtcLink {
    }
 }
 
-interface IRtcState {
-}
-
 export interface IRtcProps {
-   sessionId: string;
    facilityId: string;
    personId: string;
+   sessionId: string;
 }
 
-export class Rtc extends React.Component<IRtcProps, IRtcState> {
+export class Rtc {
 
    // member variables
-   sender: RtcCaller;
-   reciever: RtcReciever;
    localCallParticipation: CallParticipation;
    events: EventSource;
    links: RtcLink[];
    lastSequenceNo: number;
+   serverStatus: FourStateRagEnum;
+   retries: number;
 
    constructor(props: IRtcProps) {
-      super(props);
-      this.sender = null; 
-      this.reciever = null; 
       this.localCallParticipation = null;
       this.links = new Array();
       this.lastSequenceNo = 0;
+
+      // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
+      this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuidv4());
+
+      this.retries = 0;
+      this.serverStatus = FourStateRagEnum.Indeterminate;
+
+      if (this.onserverconnectionstatechange)
+         this.onserverconnectionstatechange(this.serverStatus);
    }
 
-   componentDidMount() {
-      this.connectFirst();
-   }
+   // Override these for notifications
+   onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
 
    connectFirst() {
-
-      // Create a unique id to this call participation by appending a UUID for the browser we are connecting from
-      this.localCallParticipation = new CallParticipation(null, this.props.facilityId, this.props.personId, this.props.sessionId, uuidv4());
 
       this.connect();
    }
@@ -460,14 +449,21 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       this.connect();
    }
 
-   componentDidUpdate(prevProps) {
-      if (prevProps.facilityId !== this.props.facilityId) {
-         this.connectFirst();
-      }
+   status () {
+      return this.serverStatus;
    }
 
    onServerEvent(ev) {
-      // Event source passes remote participant in the data
+
+      this.retries = 0;
+
+      // RAG status checking and notification
+      if (this.serverStatus !== FourStateRagEnum.Green) {
+         this.serverStatus = FourStateRagEnum.Green;
+         if (this.onserverconnectionstatechange)
+            this.onserverconnectionstatechange(this.serverStatus);
+      }
+
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(ev.data);
       var payload = remoteCallData.data;
@@ -498,7 +494,24 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
 
       logger.info('RtcReciever', 'onServerError', "event:", ev);
       self.events.close();
-      self.connectLater (5000);
+      self.connectLater(5000);
+      self.retries++;
+
+      if (self.retries > 3) {
+         // RAG status checking and notification
+         if (this.serverStatus !== FourStateRagEnum.Red) {
+            this.serverStatus = FourStateRagEnum.Red;
+            if (this.onserverconnectionstatechange)
+               this.onserverconnectionstatechange(this.serverStatus);
+         }
+      } else {
+         // RAG status checking and notification
+         if (this.serverStatus !== FourStateRagEnum.Amber) {
+            this.serverStatus = FourStateRagEnum.Amber;
+            if (this.onserverconnectionstatechange)
+               this.onserverconnectionstatechange(this.serverStatus);
+         }
+      }
    }
 
    onParticipant(remoteParticipation) {
@@ -560,9 +573,9 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
       var self = this;
       var found = false;
 
-      // Ice candidate messages can be sent while we are still resolving glare - we are calling each other, we killed our side while we have
+      // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
       // incoming messages still pending
-      // So fail silently if we get unexpected ones
+      // So fail silently if we get unexpected Ice candidate messages 
       for (var i = 0; i < self.links.length; i++) {
          if (self.links[i].to.equals(remoteIceCandidate.from)) {
             if (remoteIceCandidate.outbound) {
@@ -592,14 +605,6 @@ export class Rtc extends React.Component<IRtcProps, IRtcState> {
             break;
          }
       }
-   }
-
-   componentWillUnmount() {
-      // Disconnect from the signalling server ? 
-   }
-
-   render() {
-      return (<div></div>);
    }
 }
 

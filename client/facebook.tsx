@@ -11,31 +11,25 @@ import { Logger } from './logger'
 var logger = new Logger();
 
 interface ILoginProps {
-   show: boolean;
    onLoginStatusChange: (boolean) => void;
 }
 
 interface ILoginState {
    isLoggedIn: boolean;
-   userPrompt: string;
-   thumbnailUrl: string;
    name: string;
+   thumbnailUrl: string;
    userAccessToken: string;
 }
 
-export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
+export class LoginComponent {
    //member variables
+   props: ILoginProps;
+   state: ILoginState;
 
    constructor(props : ILoginProps) {
-      super(props);
-      this.loadAPI = this.loadAPI.bind(this);
-      this.handleLogin = this.handleLogin.bind(this);
-      this.checkLoginResponse = this.checkLoginResponse.bind(this);
-      this.loginCallback = this.loginCallback.bind(this);
 
-      var userPrompt = "Login with Facebook";
-
-      this.state = { isLoggedIn: false, userPrompt: userPrompt, thumbnailUrl: null, name: null, userAccessToken : null };
+      this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+      this.props = props;
    }
 
    loadAPI() {
@@ -49,6 +43,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
             version: 'v9.0' // use version 9
          });
 
+         // If enabled, and the user is logged in already, 
+         // this will automatically redirect the page to the users home page.
          self.checkLoginResponse(true);
       };
 
@@ -66,11 +62,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
       this.loadAPI();
    }
 
-   componentWillUnmount() {
-   }
-
    login(name, url, token) {
-      this.setState({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
+      this.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
 
       // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
       if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
@@ -90,24 +83,26 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    }
 
    loginCallback(response) {
+      var self = this;
+
       if (response.status === 'connected') {
-         this.getUserData(response.authResponse.accessToken);
+         self.getUserData(response.authResponse.accessToken);
       }
       else if (response.status === 'not_authorized') {
-         this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
-         this.props.onLoginStatusChange(false);
+         self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+         self.props.onLoginStatusChange(false);
       }
       else {
-         this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+         self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
 
          // TODO - cannot work out why local host does not work for FB API, this is a hack. 
          if (location.hostname.includes('localhost')) {
             logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
-            this.setState({ isLoggedIn: false, thumbnailUrl: 'person-w-128x128.png', name: 'Fake Name', userAccessToken: 'fake_token' });
-            this.login(this.state.name, this.state.thumbnailUrl, this.state.userAccessToken);
-            this.props.onLoginStatusChange(true);
+            self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
+            self.login(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
+            self.props.onLoginStatusChange(true);
          } else {
-            this.props.onLoginStatusChange(false);
+            self.props.onLoginStatusChange(false);
          }
       }
    }
@@ -121,19 +116,8 @@ export class LoginComponent extends React.Component<ILoginProps, ILoginState> {
    }
 
    handleLogin() {
-      (window as any).FB.login(this.checkLoginResponse (true), { scope: 'public_profile' });
-   }
-
-   render() {
-      if (this.props.show) {
-         return (
-            <p>
-               <Button variant="primary" onClick={this.handleLogin}>{this.state.userPrompt}</Button>
-            </p>
-         );
-      } else {
-         return (<div />);
-      }
+      var self = this;
+      (window as any).FB.login(self.checkLoginResponse (true), { scope: 'public_profile' });
    }
 }
 
