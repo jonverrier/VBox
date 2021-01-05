@@ -300,7 +300,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to The Xperience Platform. Sign in below to get access to your class.
                      </p>
-                     <Button variant="primary" onClick={this.state.login.handleLogin}>"Login with Facebook...</Button>
+                     <Button variant="primary" onClick={this.state.login.logIn}>"Login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
@@ -334,12 +334,12 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                         <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button split="true" variant="secondary" style={thinStyle}>
-                              <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-w-128x128.png"} />
+                              <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="right">
-                              <Dropdown.Item href="#/action-2">Sign Out...</Dropdown.Item>
+                              <Dropdown.Item onClick={this.state.login.logOut}>Sign Out...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
@@ -409,7 +409,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                   <p>
                         Welcome to The Xperience Platform. Sign in below to get access to your class.
                   </p>
-                  <Button variant="primary" onClick={this.state.login.handleLogin}>"Login with Facebook...</Button>
+                  <Button variant="primary" onClick={this.state.login.logIn}>"Login with Facebook...</Button>
                </Jumbotron>
             </Container>
             </div>
@@ -433,7 +433,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                      <p>
                         You are logged in to The Xperience Platform.
                      </p>
-                     <Button variant="primary" onClick={this.state.login.handleLogin}>Continue with Facebook...</Button>
+                     <Button variant="primary" onClick={this.state.login.logIn}>Continue with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>

@@ -41,7 +41,7 @@ export const PartyBanner = (props: { name: string, thumbnailUrl: string }) => (
    <div>
       <Container fluid style={thinStyle}>
          <Row style={{ bannerRowStyle}}>
-            <img style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} height='32px' />
+            <img style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} title={props.name} height='32px' />
             <p style={partyBannerNameStyle}>{props.name}</p>
          </Row>
       </Container>
@@ -52,7 +52,7 @@ export const Party = (props: { name: string, thumbnailUrl: string }) => (
    <div>
       <Container style={thinStyle}>
          <Row style={partyRowStyle}>
-            <img style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} height='32px' />
+            <img style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} title={props.name} height='32px' />
             <p style={partyNameStyle}>{props.name}</p>
          </Row>
       </Container>
