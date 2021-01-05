@@ -32,6 +32,7 @@ import { PartyBanner } from './party';
 import { PartySmall } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
+import { ServerConnectionStatus } from './call-status';
 import { LoginComponent } from './facebook';
 import { IRtcProps } from './rtc';
 import { Rtc } from './rtc';
@@ -66,6 +67,10 @@ const pageStyle: CSS.Properties = {
 
 const placeholderStyle: CSS.Properties = {
    minHeight: '120px', minWidth: '320px', maxWidth: '*', color: 'white', background : 'white'
+};
+
+const hiddenStyle: CSS.Properties = {
+   display: 'none'
 };
 
 interface IMemberPageProps {
@@ -152,10 +157,6 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                </Navbar.Collapse>
             </Navbar>
 
-            <Rtc sessionId={this.state.pageData.sessionId}
-               facilityId={this.state.pageData.currentFacility.externalId}
-               personId={this.state.pageData.person.externalId}></Rtc>
-
             <Container fluid style={pageStyle}>
                <Row style={thinStyle}>
                   <Clock mm={Number('00')} ss={Number('00')} />
@@ -205,6 +206,8 @@ interface ICoachPageProps {
 interface ICoachPageState {
    isLoggedIn: boolean;
    pageData: HomePageData
+   rtc: Rtc;
+   login: LoginComponent;
 }
 
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
@@ -216,18 +219,30 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
    constructor(props: ICoachPageProps) {
       super(props);
-      this.isLoggedIn = false;
+
       this.defaultPageData = new HomePageData(null,
          new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
          new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'),
          null);
+
+      this.isLoggedIn = false;
       this.pageData = this.defaultPageData;
 
-      this.state = { isLoggedIn: this.isLoggedIn, pageData: this.pageData };
+      this.state = {
+         isLoggedIn: this.isLoggedIn, pageData: this.pageData, rtc: null,
+         login: new LoginComponent({ onLoginStatusChange: this.onLoginStatusChange.bind(this) })
+      };
    }
 
    componentDidMount() {
+      // pre-load images that indicate a connection error, as they won't load later.
+      const imgR = new Image();
+      imgR.src = "circle-black-red-128x128.png";
+      const imgA = new Image();
+      imgA.src = "circle-black-yellow-128x128.png";
 
+      // Initialise facebook API
+      this.state.login.loadAPI();
    }
 
    componentWillUnmount() {
@@ -242,17 +257,26 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
             .then(function (response) {
                // Success, set state to data for logged in user 
                self.pageData = self.pageData.revive(response.data);
-               self.setState({ isLoggedIn: true, pageData: self.pageData });
+
+               // Initialise WebRTC and connect
+               var rtc = new Rtc({
+                  sessionId: self.pageData.sessionId,
+                  facilityId: self.pageData.currentFacility.externalId,
+                  personId: self.pageData.person.externalId
+               });
+               rtc.connectFirst();
+
+               self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc});
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
                self.pageData = self.defaultPageData;
-               self.setState({ isLoggedIn: false, pageData: self.pageData });
+               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
             });
       } else {
          // handle error by setting state back to no user logged in
          self.pageData = self.defaultPageData;
-         self.setState({ isLoggedIn: false, pageData: self.pageData });
+         self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
       }
    }
 
@@ -276,7 +300,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to The Xperience Platform. Sign in below to get access to your class.
                      </p>
-                     <LoginComponent show={true} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
+                     <Button variant="primary" onClick={this.state.login.handleLogin}>"Login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
@@ -307,6 +331,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
+                        <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button split="true" variant="secondary" style={thinStyle}>
                               <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-w-128x128.png"} />
@@ -320,12 +345,6 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                   </Navbar.Collapse>
                </Navbar>
-
-               <LoginComponent show={false} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
-
-               <Rtc sessionId={this.state.pageData.sessionId}
-                  facilityId={this.state.pageData.currentFacility.externalId}
-                  personId={this.state.pageData.person.externalId}></Rtc>
 
                <Container fluid style={pageStyle}>
                   <Jumbotron style={{ background: 'gray', color: 'white' }}>
@@ -343,19 +362,31 @@ interface ILoginPageProps {
 
 interface ILoginPageState {
    isLoggedIn: boolean;
+   login: LoginComponent;
 }
 
 export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
    //member variables
    isLoggedIn: boolean;
 
-   constructor(props: ICoachPageProps) {
+   constructor(props: ILoginPageProps) {
       super(props);
-      this.state = { isLoggedIn: false};
+      this.state = {
+         isLoggedIn: false,
+         login: new LoginComponent({ onLoginStatusChange: this.onLoginStatusChange.bind(this) })
+      };
    }
    
    onLoginStatusChange(isLoggedIn) {
       this.setState ({ isLoggedIn: isLoggedIn});
+   }
+
+   componentDidMount() {
+      // Initialise facebook API
+      this.state.login.loadAPI();
+   }
+
+   componentWillUnmount() {
    }
 
    render() {
@@ -378,7 +409,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                   <p>
                         Welcome to The Xperience Platform. Sign in below to get access to your class.
                   </p>
-                  <LoginComponent show={true} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
+                  <Button variant="primary" onClick={this.state.login.handleLogin}>"Login with Facebook...</Button>
                </Jumbotron>
             </Container>
             </div>
@@ -402,7 +433,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                      <p>
                         You are logged in to The Xperience Platform.
                      </p>
-                     <LoginComponent show={true} onLoginStatusChange={this.onLoginStatusChange.bind(this)} />
+                     <Button variant="primary" onClick={this.state.login.handleLogin}>Continue with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>

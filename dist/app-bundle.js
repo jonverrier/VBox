@@ -462,6 +462,148 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./common/enum.js":
+/*!************************!*\
+  !*** ./common/enum.js ***!
+  \************************/
+/*! default exports */
+/*! export Enum [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export FourStateRagEnum [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export ThreeStateRagEnum [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+
+//==============================//
+// Symbol class - used  by Enum class
+//==============================//
+var Symbol = (function invocation() {
+   "use strict";
+   
+   /**
+    * Creates a Symbol 
+    * @param name - the names of the symbol 
+    * @param props - the properties of the symbol
+    */
+   function Symbol(name, props) {
+      
+      this.name = name;
+      if (props) {
+         this.copyOwnFrom(this, props);
+      }
+      Object.freeze(this);
+   }
+   
+   /**
+    * Private function internal use only. 
+    * Copyies members over so the enum has its own set of values
+    * @param target - where to copy to 
+    * @param source - where to copy from
+    */
+   Symbol.prototype.copyOwnFrom = function (target, source) {
+      
+      Object.getOwnPropertyNames(source).forEach(function (propName) {
+         Object.defineProperty(target, propName,
+             Object.getOwnPropertyDescriptor(source, propName));
+      });
+      return target;
+   };
+   
+   return Symbol;
+})();
+
+//==============================//
+// Enum class
+//==============================//
+var Enum = (function invocation() {
+   "use strict";
+   
+   /**
+    * Creates an enumeration
+    * @param obj - an immediate list of text values to use as enumation values e.g. 'One', 'Two', 'Three'. 
+    */
+   function Enum(obj) {
+      
+      if (arguments.length === 1 && obj !== null && typeof obj === "object") {
+         Object.keys(obj).forEach(function (name) {
+            this[name] = new Symbol(name, obj[name]);
+         }, this);
+      } else {
+         Array.prototype.forEach.call(arguments, function (name) {
+            this[name] = new Symbol(name);
+         }, this);
+      }
+      Object.freeze(this);
+   }
+   
+   /**
+    * returns true if the enumeration contains the value
+    * @param sym - value to test if it is inside the enumeration 
+    */
+   Enum.prototype.contains = function (sym) {
+      
+      if (!(sym instanceof Symbol)) {
+         return false;
+      }
+      
+      return this[sym.name] === sym;
+   };
+   
+   /**
+    * returns true if the enumeration contains the value
+    * @param string - value to test if it is inside the enumeration 
+    */
+   Enum.prototype.containsString = function (string) {
+      
+      var symbol = new Symbol(string),
+         symbolname = this[symbol.name];
+      
+      if (symbolname) {
+         return true;
+      } else {
+         return false;
+      }
+   };
+   
+   /**
+    * gets the symbol with the specified value. 
+    * @param string - value to test if it is inside the enumeration 
+    */
+   Enum.prototype.getSymbol = function (string) {
+      
+      if (this.containsString(string)) {
+         var symbol = new Symbol(string),
+            symbolname = this[symbol.name];
+         
+         return symbolname;
+      } else {
+         return null;
+      }
+   };
+   
+   return Enum;
+})();
+
+const ThreeStateRagEnum = new Enum('Red', 'Amber', 'Green');
+const FourStateRagEnum = new Enum('Red', 'Amber', 'Green', 'Indeterminate');
+
+// This goes at the end to avoid circular dependencies - since Types is loaded by many other modules
+if (false) {} else {   
+   exports.Enum = Enum;
+   exports.ThreeStateRagEnum = ThreeStateRagEnum;
+   exports.FourStateRagEnum = FourStateRagEnum;
+}
+
+
+
+
+/***/ }),
+
 /***/ "./common/facility.js":
 /*!****************************!*\
   !*** ./common/facility.js ***!
@@ -987,7 +1129,6 @@ if (false) {} else {
   !*** ./common/types.js ***!
   \*************************/
 /*! default exports */
-/*! export Enum [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export TypeRegistry [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
 /*! runtime requirements: __webpack_exports__, __webpack_require__ */
@@ -1063,119 +1204,8 @@ var TypeRegistry = (function invocation() {
    return TypeRegistry;
 }());
 
-//==============================//
-// Symbol class - used  by Enum class
-//==============================//
-var Symbol = (function invocation() {
-   "use strict";
-   
-   /**
-    * Creates a Symbol 
-    * @param name - the names of the symbol 
-    * @param props - the properties of the symbol
-    */
-   function Symbol(name, props) {
-      
-      this.name = name;
-      if (props) {
-         this.copyOwnFrom(this, props);
-      }
-      Object.freeze(this);
-   }
-   
-   /**
-    * Private function internal use only. 
-    * Copyies members over so the enum has its own set of values
-    * @param target - where to copy to 
-    * @param source - where to copy from
-    */
-   Symbol.prototype.copyOwnFrom = function (target, source) {
-      
-      Object.getOwnPropertyNames(source).forEach(function (propName) {
-         Object.defineProperty(target, propName,
-             Object.getOwnPropertyDescriptor(source, propName));
-      });
-      return target;
-   };
-   
-   return Symbol;
-})();
-
-//==============================//
-// Enum class
-//==============================//
-var Enum = (function invocation() {
-   "use strict";
-   
-   /**
-    * Creates an enumeration
-    * @param obj - an immediate list of text values to use as enumation values e.g. 'One', 'Two', 'Three'. 
-    */
-   function Enum(obj) {
-      
-      if (arguments.length === 1 && obj !== null && typeof obj === "object") {
-         Object.keys(obj).forEach(function (name) {
-            this[name] = new Symbol(name, obj[name]);
-         }, this);
-      } else {
-         Array.prototype.forEach.call(arguments, function (name) {
-            this[name] = new Symbol(name);
-         }, this);
-      }
-      Object.freeze(this);
-   }
-   
-   /**
-    * returns true if the enumeration contains the value
-    * @param sym - value to test if it is inside the enumeration 
-    */
-   Enum.prototype.contains = function (sym) {
-      
-      if (!(sym instanceof Symbol)) {
-         return false;
-      }
-      
-      return this[sym.name] === sym;
-   };
-   
-   /**
-    * returns true if the enumeration contains the value
-    * @param string - value to test if it is inside the enumeration 
-    */
-   Enum.prototype.containsString = function (string) {
-      
-      var symbol = new Symbol(string),
-         symbolname = this[symbol.name];
-      
-      if (symbolname) {
-         return true;
-      } else {
-         return false;
-      }
-   };
-   
-   /**
-    * gets the symbol with the specified value. 
-    * @param string - value to test if it is inside the enumeration 
-    */
-   Enum.prototype.getSymbol = function (string) {
-      
-      if (this.containsString(string)) {
-         var symbol = new Symbol(string),
-            symbolname = this[symbol.name];
-         
-         return symbolname;
-      } else {
-         return null;
-      }
-   };
-   
-   return Enum;
-})();
-
 // This goes at the end to avoid circular dependencies - since Types is loaded by many other modules
 if (false) {} else {   
-   exports.Enum = Enum;
    exports.TypeRegistry = TypeRegistry;
 
    facilityModule = __webpack_require__(/*! ./facility.js */ "./common/facility.js");
@@ -62983,6 +63013,7 @@ var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_3 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var section_1 = __webpack_require__(/*! ./section */ "./client/section.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
+var call_status_1 = __webpack_require__(/*! ./call-status */ "./client/call-status.tsx");
 var facebook_1 = __webpack_require__(/*! ./facebook */ "./client/facebook.tsx");
 var rtc_1 = __webpack_require__(/*! ./rtc */ "./client/rtc.tsx");
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
@@ -63005,6 +63036,9 @@ var pageStyle = {
 };
 var placeholderStyle = {
     minHeight: '120px', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white'
+};
+var hiddenStyle = {
+    display: 'none'
 };
 var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
@@ -63056,7 +63090,6 @@ var MemberPage = /** @class */ (function (_super) {
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
-            React.createElement(rtc_1.Rtc, { sessionId: this.state.pageData.sessionId, facilityId: this.state.pageData.currentFacility.externalId, personId: this.state.pageData.person.externalId }),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
@@ -63088,13 +63121,23 @@ var CoachPage = /** @class */ (function (_super) {
     __extends(CoachPage, _super);
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.isLoggedIn = false;
         _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
+        _this.isLoggedIn = false;
         _this.pageData = _this.defaultPageData;
-        _this.state = { isLoggedIn: _this.isLoggedIn, pageData: _this.pageData };
+        _this.state = {
+            isLoggedIn: _this.isLoggedIn, pageData: _this.pageData, rtc: null,
+            login: new facebook_1.LoginComponent({ onLoginStatusChange: _this.onLoginStatusChange.bind(_this) })
+        };
         return _this;
     }
     CoachPage.prototype.componentDidMount = function () {
+        // pre-load images that indicate a connection error, as they won't load later.
+        var imgR = new Image();
+        imgR.src = "circle-black-red-128x128.png";
+        var imgA = new Image();
+        imgA.src = "circle-black-yellow-128x128.png";
+        // Initialise facebook API
+        this.state.login.loadAPI();
     };
     CoachPage.prototype.componentWillUnmount = function () {
     };
@@ -63106,18 +63149,25 @@ var CoachPage = /** @class */ (function (_super) {
                 .then(function (response) {
                 // Success, set state to data for logged in user 
                 self.pageData = self.pageData.revive(response.data);
-                self.setState({ isLoggedIn: true, pageData: self.pageData });
+                // Initialise WebRTC and connect
+                var rtc = new rtc_1.Rtc({
+                    sessionId: self.pageData.sessionId,
+                    facilityId: self.pageData.currentFacility.externalId,
+                    personId: self.pageData.person.externalId
+                });
+                rtc.connectFirst();
+                self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
             })
                 .catch(function (error) {
                 // handle error by setting state back to no user logged in
                 self.pageData = self.defaultPageData;
-                self.setState({ isLoggedIn: false, pageData: self.pageData });
+                self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
             });
         }
         else {
             // handle error by setting state back to no user logged in
             self.pageData = self.defaultPageData;
-            self.setState({ isLoggedIn: false, pageData: self.pageData });
+            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
         }
     };
     CoachPage.prototype.render = function () {
@@ -63134,7 +63184,7 @@ var CoachPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
-                        React.createElement(facebook_1.LoginComponent, { show: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.handleLogin }, "\"Login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "coachpage" },
@@ -63154,14 +63204,13 @@ var CoachPage = /** @class */ (function (_super) {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
+                            React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                     React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-w-128x128.png" })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
-                React.createElement(facebook_1.LoginComponent, { show: false, onLoginStatusChange: this.onLoginStatusChange.bind(this) }),
-                React.createElement(rtc_1.Rtc, { sessionId: this.state.pageData.sessionId, facilityId: this.state.pageData.currentFacility.externalId, personId: this.state.pageData.person.externalId }),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Coach Page")))));
@@ -63174,11 +63223,20 @@ var LoginPage = /** @class */ (function (_super) {
     __extends(LoginPage, _super);
     function LoginPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.state = { isLoggedIn: false };
+        _this.state = {
+            isLoggedIn: false,
+            login: new facebook_1.LoginComponent({ onLoginStatusChange: _this.onLoginStatusChange.bind(_this) })
+        };
         return _this;
     }
     LoginPage.prototype.onLoginStatusChange = function (isLoggedIn) {
         this.setState({ isLoggedIn: isLoggedIn });
+    };
+    LoginPage.prototype.componentDidMount = function () {
+        // Initialise facebook API
+        this.state.login.loadAPI();
+    };
+    LoginPage.prototype.componentWillUnmount = function () {
     };
     LoginPage.prototype.render = function () {
         if (!this.state.isLoggedIn) {
@@ -63194,7 +63252,7 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to The Xperience Platform. Sign in below to get access to your class."),
-                        React.createElement(facebook_1.LoginComponent, { show: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.handleLogin }, "\"Login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "loginpage" },
@@ -63209,7 +63267,7 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "You are logged in to The Xperience Platform."),
-                        React.createElement(facebook_1.LoginComponent, { show: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })))));
+                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.handleLogin }, "Continue with Facebook...")))));
         }
     };
     return LoginPage;
@@ -63236,6 +63294,73 @@ var PageSwitcher = /** @class */ (function (_super) {
 }(React.Component));
 exports.PageSwitcher = PageSwitcher;
 ReactDOM.render(React.createElement(PageSwitcher, null), document.getElementById('root'));
+
+
+/***/ }),
+
+/***/ "./client/call-status.tsx":
+/*!********************************!*\
+  !*** ./client/call-status.tsx ***!
+  \********************************/
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
+/*! CommonJS bailout: this is used directly at 7:17-21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020 */
+// References:
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ServerConnectionStatus = void 0;
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+// This app
+var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
+var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
+var ServerConnectionStatus = /** @class */ (function (_super) {
+    __extends(ServerConnectionStatus, _super);
+    function ServerConnectionStatus(props) {
+        var _this = _super.call(this, props) || this;
+        if (props.rtc)
+            props.rtc.onserverconnectionstatechange = _this.onServerConnectionStateChange.bind(_this);
+        _this.state = { status: enum_js_1.FourStateRagEnum.Indeterminate };
+        return _this;
+    }
+    ServerConnectionStatus.prototype.onServerConnectionStateChange = function (status) {
+        this.setState({ status: status });
+    };
+    ServerConnectionStatus.prototype.render = function () {
+        switch (this.state.status) {
+            case enum_js_1.FourStateRagEnum.Green:
+                return React.createElement(party_1.PartySmall, { name: 'Connected to server.', thumbnailUrl: 'circle-black-green-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Amber:
+                return React.createElement(party_1.PartySmall, { name: 'Trying to re-connect to the server ...', thumbnailUrl: 'circle-black-yellow-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Red:
+                return React.createElement(party_1.PartySmall, { name: 'Sorry, experiencing issues connecting to the server.', thumbnailUrl: 'circle-black-red-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Indeterminate:
+            default:
+                return React.createElement(party_1.PartySmall, { name: 'Connecting to server ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+        }
+    };
+    return ServerConnectionStatus;
+}(React.Component));
+exports.ServerConnectionStatus = ServerConnectionStatus;
 
 
 /***/ }),
@@ -63280,45 +63405,24 @@ exports.Clock = function (props) { return (React.createElement(Row_1.default, { 
 /*!*****************************!*\
   !*** ./client/facebook.tsx ***!
   \*****************************/
-/*! unknown exports (runtime-defined) */
-/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
-/*! CommonJS bailout: this is used directly at 3:17-21 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/*! flagged exports */
+/*! export LoginComponent [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__, __webpack_require__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 /*! Copyright TXPCo, 2020 */
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginComponent = void 0;
-var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
-var LoginComponent = /** @class */ (function (_super) {
-    __extends(LoginComponent, _super);
-    //member variables
+var LoginComponent = /** @class */ (function () {
     function LoginComponent(props) {
-        var _this = _super.call(this, props) || this;
-        _this.loadAPI = _this.loadAPI.bind(_this);
-        _this.handleLogin = _this.handleLogin.bind(_this);
-        _this.checkLoginResponse = _this.checkLoginResponse.bind(_this);
-        _this.loginCallback = _this.loginCallback.bind(_this);
-        var userPrompt = "Login with Facebook";
-        _this.state = { isLoggedIn: false, userPrompt: userPrompt, thumbnailUrl: null, name: null, userAccessToken: null };
-        return _this;
+        this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+        this.props = props;
     }
     LoginComponent.prototype.loadAPI = function () {
         var self = this;
@@ -63329,6 +63433,8 @@ var LoginComponent = /** @class */ (function (_super) {
                 xfbml: false,
                 version: 'v9.0' // use version 9
             });
+            // If enabled, and the user is logged in already, 
+            // this will automatically redirect the page to the users home page.
             self.checkLoginResponse(true);
         };
         // Load the SDK asynchronously
@@ -63345,10 +63451,8 @@ var LoginComponent = /** @class */ (function (_super) {
     LoginComponent.prototype.componentDidMount = function () {
         this.loadAPI();
     };
-    LoginComponent.prototype.componentWillUnmount = function () {
-    };
     LoginComponent.prototype.login = function (name, url, token) {
-        this.setState({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
+        this.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
         // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
         if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
             window.location.href = "auth/facebook";
@@ -63364,24 +63468,25 @@ var LoginComponent = /** @class */ (function (_super) {
         });
     };
     LoginComponent.prototype.loginCallback = function (response) {
+        var self = this;
         if (response.status === 'connected') {
-            this.getUserData(response.authResponse.accessToken);
+            self.getUserData(response.authResponse.accessToken);
         }
         else if (response.status === 'not_authorized') {
-            this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
-            this.props.onLoginStatusChange(false);
+            self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+            self.props.onLoginStatusChange(false);
         }
         else {
-            this.setState({ isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null });
+            self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
             // TODO - cannot work out why local host does not work for FB API, this is a hack. 
             if (location.hostname.includes('localhost')) {
                 logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
-                this.setState({ isLoggedIn: false, thumbnailUrl: 'person-w-128x128.png', name: 'Fake Name', userAccessToken: 'fake_token' });
-                this.login(this.state.name, this.state.thumbnailUrl, this.state.userAccessToken);
-                this.props.onLoginStatusChange(true);
+                self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
+                self.login(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
+                self.props.onLoginStatusChange(true);
             }
             else {
-                this.props.onLoginStatusChange(false);
+                self.props.onLoginStatusChange(false);
             }
         }
     };
@@ -63392,19 +63497,11 @@ var LoginComponent = /** @class */ (function (_super) {
         }, force);
     };
     LoginComponent.prototype.handleLogin = function () {
-        window.FB.login(this.checkLoginResponse(true), { scope: 'public_profile' });
-    };
-    LoginComponent.prototype.render = function () {
-        if (this.props.show) {
-            return (React.createElement("p", null,
-                React.createElement(Button_1.default, { variant: "primary", onClick: this.handleLogin }, this.state.userPrompt)));
-        }
-        else {
-            return (React.createElement("div", null));
-        }
+        var self = this;
+        window.FB.login(self.checkLoginResponse(true), { scope: 'public_profile' });
     };
     return LoginComponent;
-}(React.Component));
+}());
 exports.LoginComponent = LoginComponent;
 
 
@@ -63516,8 +63613,7 @@ exports.PartySmall = function (props) { return (React.createElement("div", null,
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
 /*! CommonJS bailout: this is used directly at 7:17-21 */
-/*! CommonJS bailout: this is used directly at 20:17-21 */
-/*! CommonJS bailout: this is used directly at 29:19-23 */
+/*! CommonJS bailout: this is used directly at 16:19-23 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -63527,19 +63623,6 @@ exports.PartySmall = function (props) { return (React.createElement("div", null,
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -63578,12 +63661,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Rtc = void 0;
-var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var uuid_1 = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-browser/index.js");
 // This app
 var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js");
 var types_js_1 = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
+var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 var RtcCaller = /** @class */ (function () {
@@ -63593,7 +63676,6 @@ var RtcCaller = /** @class */ (function () {
         this.sendConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
-        this.myCall = null;
     }
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
@@ -63633,15 +63715,6 @@ var RtcCaller = /** @class */ (function () {
             logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
         });
         ;
-    };
-    // Override this to be notified when remote connection closes
-    RtcCaller.prototype.onremoteclose = function (ev) {
-    };
-    // Override this to be notified when remote connection has issues
-    RtcCaller.prototype.onremoteissues = function (ev) {
-    };
-    // Override this to be notified when remote connection is made
-    RtcCaller.prototype.onremoteconnection = function (ev) {
     };
     RtcCaller.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
@@ -63694,16 +63767,19 @@ var RtcCaller = /** @class */ (function () {
         switch (pc.connectionState) {
             case "connected":
                 // The connection has become fully connected
-                self.onremoteconnection(ev);
+                if (self.onremoteconnection)
+                    self.onremoteconnection(ev);
                 break;
             case "disconnected":
                 // Something going on ... 
-                self.onremoteissues(ev);
+                if (self.onremoteissues)
+                    self.onremoteissues(ev);
                 break;
             case "failed":
             case "closed":
                 // The connection has been closed or failed
-                self.onremoteclose(ev);
+                if (self.onremoteclose)
+                    self.onremoteclose(ev);
                 break;
         }
     };
@@ -63746,7 +63822,6 @@ var RtcReciever = /** @class */ (function () {
         this.remoteOffer = remoteOffer;
         this.recieveConnection = null;
         this.sendChannel = null;
-        this.myCall = null;
     }
     RtcReciever.prototype.answerCall = function () {
         var _this = this;
@@ -63792,15 +63867,6 @@ var RtcReciever = /** @class */ (function () {
         });
         ;
     };
-    // Override this to be notified when remote connection closes
-    RtcReciever.prototype.onremoteclose = function (ev) {
-    };
-    // Override this to be notified when remote connection has issues
-    RtcReciever.prototype.onremoteissues = function (ev) {
-    };
-    // Override this to be notified when remote connection is made
-    RtcReciever.prototype.onremoteconnection = function (ev) {
-    };
     RtcReciever.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
         if (!candidate)
@@ -63838,16 +63904,19 @@ var RtcReciever = /** @class */ (function () {
         switch (pc.connectionState) {
             case "connected":
                 // The connection has become fully connected
-                self.onremoteconnection(ev);
+                if (self.onremoteconnection)
+                    self.onremoteconnection(ev);
                 break;
             case "disconnected":
                 // Something going on ... 
-                self.onremoteissues(ev);
+                if (self.onremoteissues)
+                    self.onremoteissues(ev);
                 break;
             case "failed":
             case "closed":
                 // The connection has been closed or failed
-                self.onremoteclose(ev);
+                if (self.onremoteclose)
+                    self.onremoteclose(ev);
                 break;
         }
     };
@@ -63892,23 +63961,19 @@ var RtcLink = /** @class */ (function () {
     }
     return RtcLink;
 }());
-var Rtc = /** @class */ (function (_super) {
-    __extends(Rtc, _super);
+var Rtc = /** @class */ (function () {
     function Rtc(props) {
-        var _this = _super.call(this, props) || this;
-        _this.sender = null;
-        _this.reciever = null;
-        _this.localCallParticipation = null;
-        _this.links = new Array();
-        _this.lastSequenceNo = 0;
-        return _this;
+        this.localCallParticipation = null;
+        this.links = new Array();
+        this.lastSequenceNo = 0;
+        // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
+        this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuid_1.v4());
+        this.retries = 0;
+        this.serverStatus = enum_js_1.FourStateRagEnum.Indeterminate;
+        if (this.onserverconnectionstatechange)
+            this.onserverconnectionstatechange(this.serverStatus);
     }
-    Rtc.prototype.componentDidMount = function () {
-        this.connectFirst();
-    };
     Rtc.prototype.connectFirst = function () {
-        // Create a unique id to this call participation by appending a UUID for the browser we are connecting from
-        this.localCallParticipation = new call_js_1.CallParticipation(null, this.props.facilityId, this.props.personId, this.props.sessionId, uuid_1.v4());
         this.connect();
     };
     Rtc.prototype.connect = function () {
@@ -63938,13 +64003,17 @@ var Rtc = /** @class */ (function (_super) {
             });
         });
     };
-    Rtc.prototype.componentDidUpdate = function (prevProps) {
-        if (prevProps.facilityId !== this.props.facilityId) {
-            this.connectFirst();
-        }
+    Rtc.prototype.status = function () {
+        return this.serverStatus;
     };
     Rtc.prototype.onServerEvent = function (ev) {
-        // Event source passes remote participant in the data
+        this.retries = 0;
+        // RAG status checking and notification
+        if (this.serverStatus !== enum_js_1.FourStateRagEnum.Green) {
+            this.serverStatus = enum_js_1.FourStateRagEnum.Green;
+            if (this.onserverconnectionstatechange)
+                this.onserverconnectionstatechange(this.serverStatus);
+        }
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(ev.data);
         var payload = remoteCallData.data;
@@ -63972,6 +64041,23 @@ var Rtc = /** @class */ (function (_super) {
         logger.info('RtcReciever', 'onServerError', "event:", ev);
         self.events.close();
         self.connectLater(5000);
+        self.retries++;
+        if (self.retries > 3) {
+            // RAG status checking and notification
+            if (this.serverStatus !== enum_js_1.FourStateRagEnum.Red) {
+                this.serverStatus = enum_js_1.FourStateRagEnum.Red;
+                if (this.onserverconnectionstatechange)
+                    this.onserverconnectionstatechange(this.serverStatus);
+            }
+        }
+        else {
+            // RAG status checking and notification
+            if (this.serverStatus !== enum_js_1.FourStateRagEnum.Amber) {
+                this.serverStatus = enum_js_1.FourStateRagEnum.Amber;
+                if (this.onserverconnectionstatechange)
+                    this.onserverconnectionstatechange(this.serverStatus);
+            }
+        }
     };
     Rtc.prototype.onParticipant = function (remoteParticipation) {
         var self = this;
@@ -64021,9 +64107,9 @@ var Rtc = /** @class */ (function (_super) {
     Rtc.prototype.onRemoteIceCandidate = function (remoteIceCandidate) {
         var self = this;
         var found = false;
-        // Ice candidate messages can be sent while we are still resolving glare - we are calling each other, we killed our side while we have
+        // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
         // incoming messages still pending
-        // So fail silently if we get unexpected ones
+        // So fail silently if we get unexpected Ice candidate messages 
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 if (remoteIceCandidate.outbound) {
@@ -64053,14 +64139,8 @@ var Rtc = /** @class */ (function (_super) {
             }
         }
     };
-    Rtc.prototype.componentWillUnmount = function () {
-        // Disconnect from the signalling server ? 
-    };
-    Rtc.prototype.render = function () {
-        return (React.createElement("div", null));
-    };
     return Rtc;
-}(React.Component));
+}());
 exports.Rtc = Rtc;
 
 
