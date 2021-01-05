@@ -26,7 +26,12 @@ export class LoginComponent {
    props: ILoginProps;
    state: ILoginState;
 
-   constructor(props : ILoginProps) {
+   constructor(props: ILoginProps) {
+
+      this.logIn = this.logIn.bind(this); 
+      this.logOut = this.logOut.bind(this); 
+      this.processFBLoginResponse = this.processFBLoginResponse.bind(this); 
+      this.ProcessFBLoginData = this.ProcessFBLoginData.bind(this);       
 
       this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
       this.props = props;
@@ -45,7 +50,7 @@ export class LoginComponent {
 
          // If enabled, and the user is logged in already, 
          // this will automatically redirect the page to the users home page.
-         self.checkLoginResponse(true);
+         self.processFBLoginResponse(true);
       };
 
       // Load the SDK asynchronously
@@ -62,27 +67,29 @@ export class LoginComponent {
       this.loadAPI();
    }
 
-   login(name, url, token) {
-      this.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
-
-      // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
-      if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
-         window.location.href = "auth/facebook";
-      }
-   }
-
    getUserData(accessToken) {
       var self = this;
 
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         self.login(name, thumbnailUrl, accessToken);
-         self.props.onLoginStatusChange(true);
+         self.processUserData(name, thumbnailUrl, accessToken);
       });
    }
 
-   loginCallback(response) {
+   processUserData(name, url, token) {
+      var self = this;
+
+      self.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
+
+      // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
+      if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
+         window.location.href = "auth/facebook";
+      }
+      self.props.onLoginStatusChange(true);
+   }
+
+   ProcessFBLoginData(response) {
       var self = this;
 
       if (response.status === 'connected') {
@@ -99,25 +106,24 @@ export class LoginComponent {
          if (location.hostname.includes('localhost')) {
             logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
             self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
-            self.login(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
-            self.props.onLoginStatusChange(true);
+            self.processUserData(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
          } else {
             self.props.onLoginStatusChange(false);
          }
       }
    }
 
-   checkLoginResponse(force) {
+   processFBLoginResponse(force) {
       var self = this;
 
       (window as any).FB.getLoginStatus(function (response) {
-         self.loginCallback(response);
+         self.ProcessFBLoginData(response);
       }, force);
    }
 
    logIn() {
       var self = this;
-      (window as any).FB.login(self.checkLoginResponse (true), { scope: 'public_profile' });
+      (window as any).FB.login(self.processFBLoginResponse (true), { scope: 'public_profile' });
    }
 
    logOut() {

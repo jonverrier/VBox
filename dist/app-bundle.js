@@ -63421,6 +63421,10 @@ var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 var LoginComponent = /** @class */ (function () {
     function LoginComponent(props) {
+        this.logIn = this.logIn.bind(this);
+        this.logOut = this.logOut.bind(this);
+        this.processFBLoginResponse = this.processFBLoginResponse.bind(this);
+        this.ProcessFBLoginData = this.ProcessFBLoginData.bind(this);
         this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
         this.props = props;
     }
@@ -63435,7 +63439,7 @@ var LoginComponent = /** @class */ (function () {
             });
             // If enabled, and the user is logged in already, 
             // this will automatically redirect the page to the users home page.
-            self.checkLoginResponse(true);
+            self.processFBLoginResponse(true);
         };
         // Load the SDK asynchronously
         (function (d, s, id) {
@@ -63451,23 +63455,24 @@ var LoginComponent = /** @class */ (function () {
     LoginComponent.prototype.componentDidMount = function () {
         this.loadAPI();
     };
-    LoginComponent.prototype.login = function (name, url, token) {
-        this.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
-        // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
-        if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
-            window.location.href = "auth/facebook";
-        }
-    };
     LoginComponent.prototype.getUserData = function (accessToken) {
         var self = this;
         window.FB.api('/me', { fields: 'id, name' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-            self.login(name, thumbnailUrl, accessToken);
-            self.props.onLoginStatusChange(true);
+            self.processUserData(name, thumbnailUrl, accessToken);
         });
     };
-    LoginComponent.prototype.loginCallback = function (response) {
+    LoginComponent.prototype.processUserData = function (name, url, token) {
+        var self = this;
+        self.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
+        // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
+        if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
+            window.location.href = "auth/facebook";
+        }
+        self.props.onLoginStatusChange(true);
+    };
+    LoginComponent.prototype.ProcessFBLoginData = function (response) {
         var self = this;
         if (response.status === 'connected') {
             self.getUserData(response.authResponse.accessToken);
@@ -63482,23 +63487,22 @@ var LoginComponent = /** @class */ (function () {
             if (location.hostname.includes('localhost')) {
                 logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
                 self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
-                self.login(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
-                self.props.onLoginStatusChange(true);
+                self.processUserData(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
             }
             else {
                 self.props.onLoginStatusChange(false);
             }
         }
     };
-    LoginComponent.prototype.checkLoginResponse = function (force) {
+    LoginComponent.prototype.processFBLoginResponse = function (force) {
         var self = this;
         window.FB.getLoginStatus(function (response) {
-            self.loginCallback(response);
+            self.ProcessFBLoginData(response);
         }, force);
     };
     LoginComponent.prototype.logIn = function () {
         var self = this;
-        window.FB.login(self.checkLoginResponse(true), { scope: 'public_profile' });
+        window.FB.login(self.processFBLoginResponse(true), { scope: 'public_profile' });
     };
     LoginComponent.prototype.logOut = function () {
         var self = this;
