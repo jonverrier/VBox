@@ -63705,6 +63705,7 @@ var RtcCaller = /** @class */ (function () {
         this.sendConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
         this.sendConnection.oniceconnectionstatechange = function (ev) { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
         this.sendConnection.onconnectionstatechange = function (ev) { self.onconnectionstatechange(ev, self.sendConnection, self); };
+        this.sendConnection.onicecandidateerror = function (ev) { self.onicecandidateerror(ev, self); };
         self.sendChannel = this.sendConnection.createDataChannel("FromOffer");
         self.sendChannel.onerror = this.onsendchannelerror;
         self.sendChannel.onmessage = this.onsendchannelmessage;
@@ -63796,6 +63797,9 @@ var RtcCaller = /** @class */ (function () {
                 break;
         }
     };
+    RtcCaller.prototype.onicecandidateerror = function (ev, self) {
+        logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
+    };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
         try {
@@ -63851,6 +63855,7 @@ var RtcReciever = /** @class */ (function () {
         this.recieveConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
         this.recieveConnection.oniceconnectionstatechange = function (ev) { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
         this.recieveConnection.onconnectionstatechange = function (ev) { self.onconnectionstatechange(ev, self.recieveConnection, self); };
+        this.recieveConnection.onicecandidateerror = function (ev) { self.onicecandidateerror(ev, self); };
         self.sendChannel = this.recieveConnection.createDataChannel("FromAnswer");
         self.sendChannel.onerror = this.onsendchannelerror;
         self.sendChannel.onmessage = this.onsendchannelmessage;
@@ -63932,6 +63937,9 @@ var RtcReciever = /** @class */ (function () {
                     self.onremoteclose(ev);
                 break;
         }
+    };
+    RtcReciever.prototype.onicecandidateerror = function (ev, self) {
+        logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
     };
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
