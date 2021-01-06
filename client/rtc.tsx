@@ -58,6 +58,7 @@ class RtcCaller {
       this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
       this.sendConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
       this.sendConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.sendConnection, self); };
+      this.sendConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
 
       self.sendChannel = this.sendConnection.createDataChannel("FromOffer");
       self.sendChannel.onerror = this.onsendchannelerror;
@@ -161,6 +162,10 @@ class RtcCaller {
       }
    }
 
+   onicecandidateerror(ev, self) {
+      logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
+   }
+
    onsendchannelopen(ev, dc, localCallParticipation) {
       logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
 
@@ -239,6 +244,7 @@ class RtcReciever {
       this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
       this.recieveConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
       this.recieveConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.recieveConnection, self); };
+      this.recieveConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
 
       self.sendChannel = this.recieveConnection.createDataChannel("FromAnswer");
       self.sendChannel.onerror = this.onsendchannelerror;
@@ -329,6 +335,10 @@ class RtcReciever {
                self.onremoteclose(ev);
             break;
       }
+   }
+
+   onicecandidateerror(ev, self) {
+      logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
    }
 
    onsendchannelopen(ev, dc, localCallParticipation) {
