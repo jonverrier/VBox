@@ -27998,6 +27998,93 @@ DropdownToggle.displayName = 'DropdownToggle';
 
 /***/ }),
 
+/***/ "./node_modules/react-bootstrap/esm/Image.js":
+/*!***************************************************!*\
+  !*** ./node_modules/react-bootstrap/esm/Image.js ***!
+  \***************************************************/
+/*! namespace exports */
+/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export propTypes [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "propTypes": () => /* binding */ propTypes,
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutPropertiesLoose */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _ThemeProvider__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./ThemeProvider */ "./node_modules/react-bootstrap/esm/ThemeProvider.js");
+;
+
+
+
+
+
+var propTypes = {
+  /**
+   * @default 'img'
+   */
+  bsPrefix: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().string),
+
+  /**
+   * Sets image as fluid image.
+   */
+  fluid: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().bool),
+
+  /**
+   * Sets image shape as rounded.
+   */
+  rounded: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().bool),
+
+  /**
+   * Sets image shape as circle.
+   */
+  roundedCircle: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().bool),
+
+  /**
+   * Sets image shape as thumbnail.
+   */
+  thumbnail: (prop_types__WEBPACK_IMPORTED_MODULE_4___default().bool)
+};
+var defaultProps = {
+  fluid: false,
+  rounded: false,
+  roundedCircle: false,
+  thumbnail: false
+};
+var Image = react__WEBPACK_IMPORTED_MODULE_3__.forwardRef(function (_ref, ref) {
+  var bsPrefix = _ref.bsPrefix,
+      className = _ref.className,
+      fluid = _ref.fluid,
+      rounded = _ref.rounded,
+      roundedCircle = _ref.roundedCircle,
+      thumbnail = _ref.thumbnail,
+      props = (0,_babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__.default)(_ref, ["bsPrefix", "className", "fluid", "rounded", "roundedCircle", "thumbnail"]);
+
+  bsPrefix = (0,_ThemeProvider__WEBPACK_IMPORTED_MODULE_5__.useBootstrapPrefix)(bsPrefix, 'img');
+  var classes = classnames__WEBPACK_IMPORTED_MODULE_2___default()(fluid && bsPrefix + "-fluid", rounded && "rounded", roundedCircle && "rounded-circle", thumbnail && bsPrefix + "-thumbnail");
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement("img", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({
+    // eslint-disable-line jsx-a11y/alt-text
+    ref: ref
+  }, props, {
+    className: classnames__WEBPACK_IMPORTED_MODULE_2___default()(className, classes)
+  }));
+});
+Image.displayName = 'Image';
+Image.defaultProps = defaultProps;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Image);
+
+/***/ }),
+
 /***/ "./node_modules/react-bootstrap/esm/Jumbotron.js":
 /*!*******************************************************!*\
   !*** ./node_modules/react-bootstrap/esm/Jumbotron.js ***!
@@ -63133,10 +63220,10 @@ var CoachPage = /** @class */ (function (_super) {
     CoachPage.prototype.componentDidMount = function () {
         // pre-load images that indicate a connection error, as they won't load later.
         var imgR = new Image();
-        imgR.src = "circle-black-red-128x128.png";
+        imgR.src = "./circle-black-red-128x128.png";
         var imgA = new Image();
-        imgA.src = "circle-black-yellow-128x128.png";
-        // Initialise facebook API
+        imgA.src = "./circle-black-yellow-128x128.png";
+        // Initialise the facebook API for this page
         this.state.login.loadAPI();
     };
     CoachPage.prototype.componentWillUnmount = function () {
@@ -63204,7 +63291,11 @@ var CoachPage = /** @class */ (function (_super) {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " "),
+                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                    React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+                                React.createElement(call_status_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                     React.createElement(party_3.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -63328,8 +63419,9 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ServerConnectionStatus = void 0;
+exports.LinkConnectionStatus = exports.ServerConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
 // This app
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
@@ -63361,6 +63453,71 @@ var ServerConnectionStatus = /** @class */ (function (_super) {
     return ServerConnectionStatus;
 }(React.Component));
 exports.ServerConnectionStatus = ServerConnectionStatus;
+var LinkConnectionStatus = /** @class */ (function (_super) {
+    __extends(LinkConnectionStatus, _super);
+    function LinkConnectionStatus(props) {
+        var _this = _super.call(this, props) || this;
+        if (props.rtc)
+            props.rtc.onlinkstatechange = _this.onLinkStateChange.bind(_this);
+        var linkStatusMap = new Map();
+        _this.state = { linkStatusMap: linkStatusMap };
+        return _this;
+    }
+    LinkConnectionStatus.prototype.onLinkStateChange = function (ev, link) {
+        // we store a map, indexed by person Id
+        if (!this.state.linkStatusMap.has(link.to.personId)) {
+            this.state.linkStatusMap.set(link.to.personId, new Map());
+        }
+        var personMap = this.state.linkStatusMap.get(link.to.personId);
+        // That then stores a map, indexed by sessionSubId, that stores link status
+        personMap.set(link.to.sessionSubId, link.linkStatus);
+        // Finally, if event is null, its a removal
+        if (ev == null && personMap.has(link.to.sessionSubId)) {
+            personMap.delete(link.to.sessionSubId);
+            var iter = personMap.keys();
+            if (iter.next().done)
+                this.state.linkStatusMap.delete(link.to.personId);
+        }
+        this.setState({ linkStatusMap: this.state.linkStatusMap });
+    };
+    LinkConnectionStatus.prototype.render = function () {
+        var items = new Array();
+        this.state.linkStatusMap.forEach(function (value, key, map) {
+            var allGreen = true, allRed = true, count = 0;
+            value.forEach(function (valueInner, keyInner, mapInner) {
+                if (valueInner === enum_js_1.FourStateRagEnum.Green) {
+                    allRed = false;
+                }
+                else if (valueInner === enum_js_1.FourStateRagEnum.Red) {
+                    allGreen = false;
+                }
+                else
+                    allGreen = allRed = false;
+                count++;
+            });
+            var newItem = { key: null, name: null, thumbnailUrl: null };
+            newItem.key = key;
+            newItem.name = "User " + key + " connected " + count + " times.";
+            if (allGreen)
+                newItem.thumbnailUrl = 'circle-black-green-128x128.png';
+            else if (allRed)
+                newItem.thumbnailUrl = 'circle-black-red-128x128.png';
+            else
+                newItem.thumbnailUrl = 'circle-black-yellow-128x128.png';
+            items.push(Object.assign({}, newItem));
+        });
+        if (items.length === 0) {
+            return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+                React.createElement(Dropdown_1.default.ItemText, null, "No-one else is connected.")));
+        }
+        else {
+            return (React.createElement(Dropdown_1.default.Menu, { align: "right" }, items.map(function (item) { return React.createElement(Dropdown_1.default.ItemText, { key: item.key },
+                React.createElement(party_1.PartySmall, { name: item.name, thumbnailUrl: item.thumbnailUrl })); })));
+        }
+    };
+    return LinkConnectionStatus;
+}(React.Component));
+exports.LinkConnectionStatus = LinkConnectionStatus;
 
 
 /***/ }),
@@ -63580,6 +63737,7 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /*! Copyright TXPCo, 2020 */
 var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js");
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
+var Image_1 = __webpack_require__(/*! react-bootstrap/Image */ "./node_modules/react-bootstrap/esm/Image.js");
 var bannerRowStyle = {
     lineHeight: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
 };
@@ -63604,17 +63762,14 @@ var thinStyle = {
 exports.PartyBanner = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { fluid: true, style: thinStyle },
         React.createElement(Row_1.default, { style: { bannerRowStyle: bannerRowStyle } },
-            React.createElement("img", { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
+            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
             React.createElement("p", { style: partyBannerNameStyle }, props.name))))); };
 exports.Party = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement("img", { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
+            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
             React.createElement("p", { style: partyNameStyle }, props.name))))); };
-exports.PartySmall = function (props) { return (React.createElement("div", null,
-    React.createElement(Container_1.default, { style: thinStyle },
-        React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement("img", { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }))))); };
+exports.PartySmall = function (props) { return (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' })); };
 
 
 /***/ }),
@@ -63673,7 +63828,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Rtc = void 0;
+exports.Rtc = exports.RtcLink = void 0;
 var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var uuid_1 = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-browser/index.js");
 // This app
@@ -63979,9 +64134,56 @@ var RtcLink = /** @class */ (function () {
         this.outbound = outbound;
         this.sender = sender;
         this.reciever = reciever;
+        this.linkStatus = enum_js_1.FourStateRagEnum.Indeterminate;
+        if (reciever) {
+            reciever.onremoteclose = this.onremoterecieverclose.bind(this);
+            reciever.onremoteissues = this.onremoterecieverissues.bind(this);
+            reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
+        }
+        if (sender) {
+            sender.onremoteclose = this.onremotesenderclose.bind(this);
+            sender.onremoteissues = this.onremotesenderissues.bind(this);
+            sender.onremoteconnection = this.onremotesenderconnection.bind(this);
+        }
     }
+    RtcLink.prototype.status = function () {
+        return this.linkStatus;
+    };
+    RtcLink.prototype.toName = function () {
+    };
+    RtcLink.prototype.onremoterecieverclose = function (ev) {
+        this.linkStatus = enum_js_1.FourStateRagEnum.Red;
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(this.linkStatus);
+    };
+    RtcLink.prototype.onremoterecieverissues = function (ev) {
+        this.linkStatus = enum_js_1.FourStateRagEnum.Amber;
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(this.linkStatus);
+    };
+    RtcLink.prototype.onremoterecieverconnection = function (ev) {
+        this.linkStatus = enum_js_1.FourStateRagEnum.Green;
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(this.linkStatus);
+    };
+    RtcLink.prototype.onremotesenderclose = function (ev) {
+        this.linkStatus = enum_js_1.FourStateRagEnum.Red;
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(this.linkStatus);
+    };
+    RtcLink.prototype.onremotesenderissues = function (ev) {
+        this.linkStatus = enum_js_1.FourStateRagEnum.Amber;
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(this.linkStatus);
+    };
+    RtcLink.prototype.onremotesenderconnection = function (ev) {
+        this.linkStatus = enum_js_1.FourStateRagEnum.Green;
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(this.linkStatus);
+    };
     return RtcLink;
 }());
+exports.RtcLink = RtcLink;
 var Rtc = /** @class */ (function () {
     function Rtc(props) {
         this.localCallParticipation = null;
@@ -64084,9 +64286,15 @@ var Rtc = /** @class */ (function () {
         var self = this;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation);
         var link = new RtcLink(remoteParticipation, true, sender, null);
+        // Hook to pass up link status changes. 
+        link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
+            self.onlinkstatechange(ev, link); };
         // Hook so if remote closes, we close down links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
+        // Notify parent of link status change
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(link.linkStatus, link);
         // place the call after setting up 'links' to avoid a race condition
         sender.placeCall();
     };
@@ -64106,9 +64314,15 @@ var Rtc = /** @class */ (function () {
         }
         var reciever = new RtcReciever(self.localCallParticipation, remoteOffer);
         var link = new RtcLink(remoteOffer.from, false, null, reciever);
+        // Hook to pass up link status changes. 
+        link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
+            self.onlinkstatechange(ev, link); };
         // Hook so if remote closes, we close down links this side
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);
+        // Notify parent of link status change
+        if (this.onlinkstatechange)
+            this.onlinkstatechange(link.linkStatus, link);
         // answer the call after setting up 'links' to avoid a race condition
         reciever.answerCall();
     };
@@ -64119,6 +64333,9 @@ var Rtc = /** @class */ (function () {
             if (self.links[i].to.equals(remoteAnswer.from)) {
                 self.links[i].sender.handleAnswer(remoteAnswer.answer);
                 found = true;
+                // Notify parent of link status change
+                if (this.onlinkstatechange)
+                    this.onlinkstatechange(self.links[i].linkStatus, self.links[i]);
                 break;
             }
         }
@@ -64150,10 +64367,13 @@ var Rtc = /** @class */ (function () {
         if (!found)
             logger.error('RtcLink', 'onRemoteIceCandidate', "cannot find target:", remoteIceCandidate);
     };
-    Rtc.prototype.onRemoteClose = function (ev, rtc, self) {
+    Rtc.prototype.onRemoteClose = function (ev, rtclink, self) {
         var found = false;
         for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
+            if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
+                // Notify parent of link status change
+                if (self.onlinkstatechange)
+                    self.onlinkstatechange(null, self.links[i]);
                 self.links.splice(i, 1);
                 found = true;
                 break;

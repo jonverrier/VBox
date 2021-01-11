@@ -38,6 +38,11 @@ function eventFeed(req, res, next) {
 
    if (!facilityMap.has(callParticipation.facilityId)) {
       facilityMap.set(callParticipation.facilityId, new Array());
+
+      // sets a keep alive going, specific to the facility
+      setInterval(() => {
+         broadcastKeepAlive(callParticipation.facilityId);
+      }, 1000 * 30, null);
    } 
 
    facilityMap.get(callParticipation.facilityId).push({ callParticipation: callParticipation, response: res });
@@ -74,11 +79,6 @@ function eventFeed(req, res, next) {
 
    // This pushes the notice of the new participant over server-sent event channel
    broadcastNewParticipation(callParticipation);
-
-   // sets a keep alive going, specific to the facility
-   setInterval((args) => {
-      broadcastKeepAlive(callParticipation.facilityId);
-   }, 1000 * 30, null);
 
    // When client closes connection we update the subscriber list
    // avoiding the disconnected one

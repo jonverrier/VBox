@@ -381,18 +381,77 @@ class RtcReciever {
    }
 }
 
-class RtcLink {
+export class RtcLink {
    // member variables
    to: CallParticipation;
    outbound: boolean;
    sender: RtcCaller;
    reciever: RtcReciever;
+   linkStatus: FourStateRagEnum;
 
    constructor(to: CallParticipation, outbound: boolean, sender: RtcCaller, reciever: RtcReciever) {
       this.to = to;
       this.outbound = outbound;
       this.sender = sender;
       this.reciever = reciever;
+      this.linkStatus = FourStateRagEnum.Indeterminate;
+
+      if (reciever) {
+         reciever.onremoteclose = this.onremoterecieverclose.bind(this);
+         reciever.onremoteissues = this.onremoterecieverissues.bind(this);
+         reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
+      }
+      if (sender) {
+         sender.onremoteclose = this.onremotesenderclose.bind(this);
+         sender.onremoteissues = this.onremotesenderissues.bind(this);
+         sender.onremoteconnection = this.onremotesenderconnection.bind(this);
+      }
+   }
+
+   // Override these for notifications
+   onlinkstatechange: ((this: RtcLink, ev: Event) => any) | null;
+
+   status() {
+      return this.linkStatus;
+   }
+
+   toName() {
+   }
+
+   onremoterecieverclose(ev) {
+      this.linkStatus = FourStateRagEnum.Red;
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(this.linkStatus);
+   }
+
+   onremoterecieverissues(ev) {
+      this.linkStatus = FourStateRagEnum.Amber;
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(this.linkStatus);
+   }
+
+   onremoterecieverconnection(ev) {
+      this.linkStatus = FourStateRagEnum.Green;
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(this.linkStatus);
+   }
+
+   onremotesenderclose(ev) {
+      this.linkStatus = FourStateRagEnum.Red;
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(this.linkStatus);
+   }
+
+   onremotesenderissues(ev) {
+      this.linkStatus = FourStateRagEnum.Amber;
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(this.linkStatus);
+   }
+
+   onremotesenderconnection(ev) {
+      this.linkStatus = FourStateRagEnum.Green;
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(this.linkStatus);
    }
 }
 
@@ -429,9 +488,9 @@ export class Rtc {
 
    // Override these for notifications
    onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
+   onlinkstatechange: ((this: Rtc, ev: Event, link: RtcLink) => any) | null;
 
    connectFirst() {
-
       this.connect();
    }
 
@@ -448,7 +507,6 @@ export class Rtc {
       self.events.onmessage = self.onServerEvent.bind(self);
       self.events.onerror = self.onServerError.bind(self);
    }
-
 
    sleep(time) {
       return new Promise(resolve => setTimeout(resolve, time));
@@ -530,9 +588,16 @@ export class Rtc {
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
+      // Hook to pass up link status changes. 
+      link.onlinkstatechange = (ev) => { if (self.onlinkstatechange) self.onlinkstatechange(ev, link); };
+
       // Hook so if remote closes, we close down links this side
       sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
       self.links.push(link);
+
+      // Notify parent of link status change
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(link.linkStatus, link);
 
       // place the call after setting up 'links' to avoid a race condition
       sender.placeCall();
@@ -556,9 +621,16 @@ export class Rtc {
       var reciever = new RtcReciever(self.localCallParticipation, remoteOffer); 
       var link = new RtcLink(remoteOffer.from, false, null, reciever);
 
+      // Hook to pass up link status changes. 
+      link.onlinkstatechange = (ev) => { if (self.onlinkstatechange) self.onlinkstatechange(ev, link); };
+
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
       self.links.push(link);
+
+      // Notify parent of link status change
+      if (this.onlinkstatechange)
+         this.onlinkstatechange(link.linkStatus, link);
 
       // answer the call after setting up 'links' to avoid a race condition
       reciever.answerCall();
@@ -572,6 +644,10 @@ export class Rtc {
          if (self.links[i].to.equals(remoteAnswer.from)) {
             self.links[i].sender.handleAnswer(remoteAnswer.answer);
             found = true;
+
+            // Notify parent of link status change
+            if (this.onlinkstatechange)
+               this.onlinkstatechange(self.links[i].linkStatus, self.links[i]);
             break;
          }
       }
@@ -605,11 +681,14 @@ export class Rtc {
          logger.error('RtcLink', 'onRemoteIceCandidate', "cannot find target:", remoteIceCandidate);
    }
 
-   onRemoteClose(ev, rtc, self) {
+   onRemoteClose(ev, rtclink, self) {
       var found = false;
 
       for (var i = 0; i < self.links.length; i++) {
-         if (self.links[i].to.equals(rtc.remoteCallParticipation)) {
+         if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
+            // Notify parent of link status change
+            if (self.onlinkstatechange)
+               self.onlinkstatechange(null, self.links[i]);
             self.links.splice(i, 1);
             found = true;
             break;
