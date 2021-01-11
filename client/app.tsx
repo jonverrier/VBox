@@ -32,7 +32,7 @@ import { PartyBanner } from './party';
 import { PartySmall } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
-import { ServerConnectionStatus } from './call-status';
+import { ServerConnectionStatus, LinkConnectionStatus } from './call-status';
 import { LoginComponent } from './facebook';
 import { IRtcProps } from './rtc';
 import { Rtc } from './rtc';
@@ -237,11 +237,11 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    componentDidMount() {
       // pre-load images that indicate a connection error, as they won't load later.
       const imgR = new Image();
-      imgR.src = "circle-black-red-128x128.png";
+      imgR.src = "./circle-black-red-128x128.png";
       const imgA = new Image();
-      imgA.src = "circle-black-yellow-128x128.png";
+      imgA.src = "./circle-black-yellow-128x128.png";
 
-      // Initialise facebook API
+      // Initialise the facebook API for this page
       this.state.login.loadAPI();
    }
 
@@ -331,7 +331,14 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
+                        <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
+                           <Button split="true" variant="secondary" style={thinStyle}>                             
+                              <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
+                           </Button>
+                           <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
+                           </Dropdown.Toggle>
+                           <LinkConnectionStatus rtc={this.state.rtc}> </LinkConnectionStatus>
+                        </Dropdown>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button split="true" variant="secondary" style={thinStyle}>
                               <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
