@@ -254,7 +254,7 @@ class RtcReciever {
 
       self.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
          .then(() => self.recieveConnection.createAnswer())
-         .then(answer => self.recieveConnection.setLocalDescription(answer))
+         .then((answer) => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
             // Send our call answer data in
             var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
