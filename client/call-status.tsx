@@ -109,6 +109,9 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
       // Store the new name back in state
       var personEntry = this.state.linkStatusMap.get(link.to.personId);
       personEntry.name = ev.name;
+      personEntry.statusMap.set(link.to.sessionSubId, FourStateRagEnum.Green); // Irrespective of previous link status, 
+                                                                               // set it green as we have data flow.
+
       this.state.linkStatusMap.set(link.to.personId, personEntry);
 
       this.setState({ linkStatusMap: this.state.linkStatusMap });
