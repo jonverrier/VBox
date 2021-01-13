@@ -11,9 +11,12 @@ import * as React from 'react';
 import Dropdown from 'react-bootstrap/Dropdown';
  
 // This app
-import { PartySmall } from './party';
+import { Person } from '../common/person';
+import { PartySmall, PartyCaption } from './party';
 import { FourStateRagEnum } from '../common/enum.js';
 import { Rtc, RtcLink } from './rtc';
+
+var linkTo = { name: null, statusMap: null };
 
 interface IConnectionStatusProps {
    rtc: Rtc;
@@ -59,44 +62,65 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
 
    constructor(props: IConnectionStatusProps) {
       super(props);
-      if (props.rtc)
+      if (props.rtc) {
          props.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
-
+         props.rtc.onremoteperson = this.onremoteperson.bind(this);
+      }
       var linkStatusMap = new Map<string, any>();
       this.state = { linkStatusMap: linkStatusMap}
    }
 
    onLinkStateChange(ev: Event, link: RtcLink) {
 
-      // we store a map, indexed by person Id
+      // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
       if (!this.state.linkStatusMap.has(link.to.personId)) {
-         this.state.linkStatusMap.set(link.to.personId, new Map());    
+         linkTo.statusMap = new Map();
+         linkTo.name = null;
+         this.state.linkStatusMap.set(link.to.personId, linkTo);    
       } 
 
-      var personMap = this.state.linkStatusMap.get(link.to.personId);
+      var personEntry = this.state.linkStatusMap.get(link.to.personId);
 
-      // That then stores a map, indexed by sessionSubId, that stores link status
-      personMap.set(link.to.sessionSubId, link.linkStatus);
+      // The person map then stores a staus map, indexed by sessionSubId, that stores link status
+      personEntry.statusMap.set(link.to.sessionSubId, link.linkStatus);
 
       // Finally, if event is null, its a removal
-      if (ev == null && personMap.has(link.to.sessionSubId)) {
-         personMap.delete(link.to.sessionSubId);
+      if (ev == null && personEntry.statusMap.has(link.to.sessionSubId)) {
+         personEntry.statusMap.delete(link.to.sessionSubId);
 
-         var iter = personMap.keys();
+         // Remove the personMap entry if there are no sub keys
+         var iter = personEntry.statusMap.keys();
          if (iter.next().done)
-            this.state.linkStatusMap.delete (link.to.personId);  
+            personEntry.delete (link.to.personId);  
       }
 
       this.setState ({ linkStatusMap: this.state.linkStatusMap });
+   }
+
+   onremoteperson(ev: Person, link: RtcLink) {
+
+      // we store a map, indexed by person Id
+      if (!this.state.linkStatusMap.has(link.to.personId)) {
+         linkTo.statusMap = new Map();
+         linkTo.name = ev.name;
+         this.state.linkStatusMap.set(link.to.personId, linkTo);
+      }
+
+      // Store the new name back in state
+      var personEntry = this.state.linkStatusMap.get(link.to.personId);
+      personEntry.name = ev.name;
+      this.state.linkStatusMap.set(link.to.personId, personEntry);
+
+      this.setState({ linkStatusMap: this.state.linkStatusMap });
    }
 
    render() {
       var items = new Array();
 
       this.state.linkStatusMap.forEach((value, key, map) => {
-         var allGreen = true, allRed = true, count = 0;
+         var allGreen = true, allRed = true, count = 0, name = value.name;
 
-         value.forEach((valueInner, keyInner, mapInner) => {
+         value.statusMap.forEach((valueInner, keyInner, mapInner) => {
             if (valueInner === FourStateRagEnum.Green) {
                allRed = false;
             } else 
@@ -108,9 +132,18 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
             count++;
          });
 
-         let newItem = { key: null, name: null, thumbnailUrl: null };
+         let newItem = { key: null, name: null, caption: null, thumbnailUrl: null };
+
          newItem.key = key;
-         newItem.name = "User " + key + " connected " + count + " times.";
+
+         if (name) {
+            newItem.name = name;
+            newItem.caption = name + " connected " + count + " times.";
+         } else {
+            newItem.name = 'Unknown';
+            newItem.caption = "User " + key + " connected " + count + " times.";
+         }
+
          if (allGreen)
             newItem.thumbnailUrl = 'circle-black-green-128x128.png';
          else
@@ -130,7 +163,7 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
       } else {
          return (
             <Dropdown.Menu align="right">
-               {items.map((item) => <Dropdown.ItemText key={item.key}><PartySmall name={item.name} thumbnailUrl={item.thumbnailUrl} />
+               {items.map((item) => <Dropdown.ItemText key={item.key}><PartyCaption name={item.name} caption={item.caption} thumbnailUrl={item.thumbnailUrl} />
                </Dropdown.ItemText>)}
             </Dropdown.Menu >
          );

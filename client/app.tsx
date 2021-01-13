@@ -262,7 +262,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                var rtc = new Rtc({
                   sessionId: self.pageData.sessionId,
                   facilityId: self.pageData.currentFacility.externalId,
-                  personId: self.pageData.person.externalId
+                  personId: self.pageData.person.externalId,
+                  personName: self.pageData.person.name,
+                  personThumbnailUrl: self.pageData.person.thumbnailUrl
                });
                rtc.connectFirst();
 
