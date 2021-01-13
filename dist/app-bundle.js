@@ -63240,7 +63240,9 @@ var CoachPage = /** @class */ (function (_super) {
                 var rtc = new rtc_1.Rtc({
                     sessionId: self.pageData.sessionId,
                     facilityId: self.pageData.currentFacility.externalId,
-                    personId: self.pageData.person.externalId
+                    personId: self.pageData.person.externalId,
+                    personName: self.pageData.person.name,
+                    personThumbnailUrl: self.pageData.person.thumbnailUrl
                 });
                 rtc.connectFirst();
                 self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
@@ -63422,9 +63424,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LinkConnectionStatus = exports.ServerConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
-// This app
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
+var linkTo = { name: null, statusMap: null };
 var ServerConnectionStatus = /** @class */ (function (_super) {
     __extends(ServerConnectionStatus, _super);
     function ServerConnectionStatus(props) {
@@ -63457,34 +63459,52 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
     __extends(LinkConnectionStatus, _super);
     function LinkConnectionStatus(props) {
         var _this = _super.call(this, props) || this;
-        if (props.rtc)
+        if (props.rtc) {
             props.rtc.onlinkstatechange = _this.onLinkStateChange.bind(_this);
+            props.rtc.onremoteperson = _this.onremoteperson.bind(_this);
+        }
         var linkStatusMap = new Map();
         _this.state = { linkStatusMap: linkStatusMap };
         return _this;
     }
     LinkConnectionStatus.prototype.onLinkStateChange = function (ev, link) {
+        // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+        if (!this.state.linkStatusMap.has(link.to.personId)) {
+            linkTo.statusMap = new Map();
+            linkTo.name = null;
+            this.state.linkStatusMap.set(link.to.personId, linkTo);
+        }
+        var personEntry = this.state.linkStatusMap.get(link.to.personId);
+        // The person map then stores a staus map, indexed by sessionSubId, that stores link status
+        personEntry.statusMap.set(link.to.sessionSubId, link.linkStatus);
+        // Finally, if event is null, its a removal
+        if (ev == null && personEntry.statusMap.has(link.to.sessionSubId)) {
+            personEntry.statusMap.delete(link.to.sessionSubId);
+            // Remove the personMap entry if there are no sub keys
+            var iter = personEntry.statusMap.keys();
+            if (iter.next().done)
+                personEntry.delete(link.to.personId);
+        }
+        this.setState({ linkStatusMap: this.state.linkStatusMap });
+    };
+    LinkConnectionStatus.prototype.onremoteperson = function (ev, link) {
         // we store a map, indexed by person Id
         if (!this.state.linkStatusMap.has(link.to.personId)) {
-            this.state.linkStatusMap.set(link.to.personId, new Map());
+            linkTo.statusMap = new Map();
+            linkTo.name = ev.name;
+            this.state.linkStatusMap.set(link.to.personId, linkTo);
         }
-        var personMap = this.state.linkStatusMap.get(link.to.personId);
-        // That then stores a map, indexed by sessionSubId, that stores link status
-        personMap.set(link.to.sessionSubId, link.linkStatus);
-        // Finally, if event is null, its a removal
-        if (ev == null && personMap.has(link.to.sessionSubId)) {
-            personMap.delete(link.to.sessionSubId);
-            var iter = personMap.keys();
-            if (iter.next().done)
-                this.state.linkStatusMap.delete(link.to.personId);
-        }
+        // Store the new name back in state
+        var personEntry = this.state.linkStatusMap.get(link.to.personId);
+        personEntry.name = ev.name;
+        this.state.linkStatusMap.set(link.to.personId, personEntry);
         this.setState({ linkStatusMap: this.state.linkStatusMap });
     };
     LinkConnectionStatus.prototype.render = function () {
         var items = new Array();
         this.state.linkStatusMap.forEach(function (value, key, map) {
-            var allGreen = true, allRed = true, count = 0;
-            value.forEach(function (valueInner, keyInner, mapInner) {
+            var allGreen = true, allRed = true, count = 0, name = value.name;
+            value.statusMap.forEach(function (valueInner, keyInner, mapInner) {
                 if (valueInner === enum_js_1.FourStateRagEnum.Green) {
                     allRed = false;
                 }
@@ -63495,9 +63515,16 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
                     allGreen = allRed = false;
                 count++;
             });
-            var newItem = { key: null, name: null, thumbnailUrl: null };
+            var newItem = { key: null, name: null, caption: null, thumbnailUrl: null };
             newItem.key = key;
-            newItem.name = "User " + key + " connected " + count + " times.";
+            if (name) {
+                newItem.name = name;
+                newItem.caption = name + " connected " + count + " times.";
+            }
+            else {
+                newItem.name = 'Unknown';
+                newItem.caption = "User " + key + " connected " + count + " times.";
+            }
             if (allGreen)
                 newItem.thumbnailUrl = 'circle-black-green-128x128.png';
             else if (allRed)
@@ -63512,7 +63539,7 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         }
         else {
             return (React.createElement(Dropdown_1.default.Menu, { align: "right" }, items.map(function (item) { return React.createElement(Dropdown_1.default.ItemText, { key: item.key },
-                React.createElement(party_1.PartySmall, { name: item.name, thumbnailUrl: item.thumbnailUrl })); })));
+                React.createElement(party_1.PartyCaption, { name: item.name, caption: item.caption, thumbnailUrl: item.thumbnailUrl })); })));
         }
     };
     return LinkConnectionStatus;
@@ -63723,6 +63750,7 @@ exports.Logger = Logger;
 /*! flagged exports */
 /*! export Party [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export PartyBanner [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export PartyCaption [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export PartySmall [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
@@ -63732,7 +63760,7 @@ exports.Logger = Logger;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PartySmall = exports.Party = exports.PartyBanner = void 0;
+exports.PartySmall = exports.PartyCaption = exports.Party = exports.PartyBanner = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /*! Copyright TXPCo, 2020 */
 var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js");
@@ -63748,10 +63776,10 @@ var partySmallImageStyle = {
     marginLeft: '0px', marginRight: '0px', paddingLeft: '2px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '2px', marginBottom: '2px'
 };
 var partyNameStyle = {
-    fontSize: '14px', margin: '0px', paddingLeft: '2px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px'
+    fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px'
 };
 var partyBannerNameStyle = {
-    fontSize: '32px', margin: '0px', paddingLeft: '2px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center'
+    fontSize: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center'
 };
 var partyRowStyle = {
     lineHeight: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
@@ -63769,6 +63797,11 @@ exports.Party = function (props) { return (React.createElement("div", null,
         React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
             React.createElement("p", { style: partyNameStyle }, props.name))))); };
+exports.PartyCaption = function (props) { return (React.createElement("div", null,
+    React.createElement(Container_1.default, { style: thinStyle },
+        React.createElement(Row_1.default, { style: partyRowStyle },
+            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.caption, title: props.caption, height: '32px' }),
+            React.createElement("p", { style: partyNameStyle }, props.name))))); };
 exports.PartySmall = function (props) { return (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' })); };
 
 
@@ -63780,8 +63813,8 @@ exports.PartySmall = function (props) { return (React.createElement(Image_1.defa
   \************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
-/*! CommonJS bailout: this is used directly at 7:17-21 */
-/*! CommonJS bailout: this is used directly at 16:19-23 */
+/*! CommonJS bailout: this is used directly at 11:17-21 */
+/*! CommonJS bailout: this is used directly at 20:19-23 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -63791,6 +63824,10 @@ exports.PartySmall = function (props) { return (React.createElement(Image_1.defa
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+//
+// TODO - all classes in this file have a weak implementation of event firing / callback functions, which is that 
+// functions are directly overwritten, so only one 'listener' per event.
+// Multiple listeners will silently override each other. 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -63832,15 +63869,17 @@ exports.Rtc = exports.RtcLink = void 0;
 var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var uuid_1 = __webpack_require__(/*! uuid */ "./node_modules/uuid/dist/esm-browser/index.js");
 // This app
+var person_js_1 = __webpack_require__(/*! ../common/person.js */ "./common/person.js");
 var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js");
 var types_js_1 = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 var RtcCaller = /** @class */ (function () {
-    function RtcCaller(localCallParticipation, remoteCallParticipation) {
+    function RtcCaller(localCallParticipation, remoteCallParticipation, person) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteCallParticipation;
+        this.person = person;
         this.sendConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
@@ -63958,7 +63997,7 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
         try {
-            dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
+            dc.send(JSON.stringify(this.person));
         }
         catch (e) {
             logger.error('RtcCaller', 'onsendchannelopen', "error:", e);
@@ -63978,6 +64017,14 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
         logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+        var types = new types_js_1.TypeRegistry();
+        var remoteCallData = types.reviveFromJSON(msg.data);
+        if (remoteCallData.__type === person_js_1.Person.prototype.__type && this.onremoteperson) {
+            this.onremoteperson(remoteCallData);
+        }
+        if (this.onremotedata) {
+            this.onremotedata(remoteCallData);
+        }
     };
     RtcCaller.prototype.onrecievechannelerror = function (e) {
         logger.error('RtcCaller', 'onrecievechannelerror', "error:", e);
@@ -63988,9 +64035,10 @@ var RtcCaller = /** @class */ (function () {
     return RtcCaller;
 }());
 var RtcReciever = /** @class */ (function () {
-    function RtcReciever(localCallParticipation, remoteOffer) {
+    function RtcReciever(localCallParticipation, remoteOffer, person) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteOffer.from;
+        this.person = person;
         this.remoteOffer = remoteOffer;
         this.recieveConnection = null;
         this.sendChannel = null;
@@ -64099,7 +64147,7 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
         try {
-            dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
+            dc.send(JSON.stringify(this.person));
         }
         catch (e) {
             logger.error('RtcReciever', 'onsendchannelopen', "error:", e);
@@ -64119,6 +64167,14 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
         logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
+        var types = new types_js_1.TypeRegistry();
+        var remoteCallData = types.reviveFromJSON(msg.data);
+        if (remoteCallData.__type === person_js_1.Person.prototype.__type && this.onremoteperson) {
+            this.onremoteperson(remoteCallData);
+        }
+        if (this.onremotedata) {
+            this.onremotedata(remoteCallData);
+        }
     };
     RtcReciever.prototype.onrecievechannelerror = function (e) {
         logger.error('RtcReciever', 'onrecievechannelerror', "error:", e.error);
@@ -64139,6 +64195,8 @@ var RtcLink = /** @class */ (function () {
             reciever.onremoteclose = this.onremoterecieverclose.bind(this);
             reciever.onremoteissues = this.onremoterecieverissues.bind(this);
             reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
+            reciever.onremoteperson = this.onremoteperson.bind(this);
+            reciever.onremotedata = this.onremotedata.bind(this);
         }
         if (sender) {
             sender.onremoteclose = this.onremotesenderclose.bind(this);
@@ -64166,6 +64224,14 @@ var RtcLink = /** @class */ (function () {
         if (this.onlinkstatechange)
             this.onlinkstatechange(this.linkStatus);
     };
+    RtcLink.prototype.onremoteperson = function (ev) {
+        if (this.onremoteperson)
+            this.onremoteperson(ev);
+    };
+    RtcLink.prototype.onremotedata = function (ev) {
+        if (this.onremotedata)
+            this.onremotedata(ev);
+    };
     RtcLink.prototype.onremotesenderclose = function (ev) {
         this.linkStatus = enum_js_1.FourStateRagEnum.Red;
         if (this.onlinkstatechange)
@@ -64191,6 +64257,8 @@ var Rtc = /** @class */ (function () {
         this.lastSequenceNo = 0;
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuid_1.v4());
+        // Store data on the Person who is running the app - used in data handshake & exchange
+        this.person = new person_js_1.Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
         this.retries = 0;
         this.serverStatus = enum_js_1.FourStateRagEnum.Indeterminate;
         if (this.onserverconnectionstatechange)
@@ -64284,11 +64352,16 @@ var Rtc = /** @class */ (function () {
     };
     Rtc.prototype.onParticipant = function (remoteParticipation) {
         var self = this;
-        var sender = new RtcCaller(self.localCallParticipation, remoteParticipation);
+        var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hook to pass up link status changes. 
         link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
             self.onlinkstatechange(ev, link); };
+        // Hooks to pass up data
+        sender.onremoteperson = function (ev) { if (self.onremoteperson)
+            self.onremoteperson(ev, link); };
+        sender.onremotedata = function (ev) { if (self.onremotedata)
+            self.onremotedata(ev); };
         // Hook so if remote closes, we close down links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
@@ -64312,11 +64385,16 @@ var Rtc = /** @class */ (function () {
                 }
             }
         }
-        var reciever = new RtcReciever(self.localCallParticipation, remoteOffer);
+        var reciever = new RtcReciever(self.localCallParticipation, remoteOffer, self.person);
         var link = new RtcLink(remoteOffer.from, false, null, reciever);
         // Hook to pass up link status changes. 
         link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
             self.onlinkstatechange(ev, link); };
+        // Hooks to pass up data
+        reciever.onremoteperson = function (ev) { if (self.onremoteperson)
+            self.onremoteperson(ev, link); };
+        reciever.onremotedata = function (ev) { if (self.onremotedata)
+            self.onremotedata(ev); };
         // Hook so if remote closes, we close down links this side
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);

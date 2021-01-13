@@ -23,11 +23,11 @@ const partySmallImageStyle: CSS.Properties = {
 };
 
 const partyNameStyle: CSS.Properties = {
-   fontSize: '14px', margin: '0px', paddingLeft: '2px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px' 
+   fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px' 
 };
 
 const partyBannerNameStyle: CSS.Properties = {
-   fontSize: '32px', margin: '0px', paddingLeft: '2px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center' 
+   fontSize: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center' 
 };
 
 const partyRowStyle: CSS.Properties = {
@@ -54,6 +54,17 @@ export const Party = (props: { name: string, thumbnailUrl: string }) => (
       <Container style={thinStyle}>
          <Row style={partyRowStyle}>
             <Image style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} title={props.name} height='32px' />
+            <p style={partyNameStyle}>{props.name}</p>
+         </Row>
+      </Container>
+   </div>
+);
+
+export const PartyCaption = (props: { name: string, caption: string, thumbnailUrl: string }) => (
+   <div>
+      <Container style={thinStyle}>
+         <Row style={partyRowStyle}>
+            <Image style={partyImageStyle} src={props.thumbnailUrl} alt={props.caption} title={props.caption} height='32px' />
             <p style={partyNameStyle}>{props.name}</p>
          </Row>
       </Container>

@@ -3,6 +3,10 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+//
+// TODO - all classes in this file have a weak implementation of event firing / callback functions, which is that 
+// functions are directly overwritten, so only one 'listener' per event.
+// Multiple listeners will silently override each other. 
 
 declare var require: any
 
@@ -12,6 +16,7 @@ import { v4 as uuidv4 } from 'uuid';
 import adapter from 'webrtc-adapter'; // Google shim library
  
 // This app
+import { Person } from '../common/person.js';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
 import { TypeRegistry } from '../common/types.js';
 import { FourStateRagEnum } from '../common/enum.js';
@@ -24,22 +29,26 @@ class RtcCaller {
    // member variables
    localCallParticipation: CallParticipation;
    remoteCallParticipation: CallParticipation;
+   person: Person;
    sendConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
 
-   constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation) {
+   constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteCallParticipation;
+      this.person = person;
       this.sendConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
    }
 
-   // Override these for notifications
+   // Override these for notifications - TODO - see top of file
    onremoteclose: ((this: RtcCaller, ev: Event) => any) | null;
    onremoteissues: ((this: RtcCaller, ev: Event) => any) | null;
    onremoteconnection: ((this: RtcCaller, ev: Event) => any) | null;
+   onremoteperson: ((this: RtcCaller, ev: Event) => any) | null;
+   onremotedata: ((this: RtcCaller, ev: Event) => any) | null;
 
    placeCall() {
 
@@ -170,7 +179,7 @@ class RtcCaller {
       logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
 
       try {
-         dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
+         dc.send(JSON.stringify (this.person));
       }
       catch (e) {
          logger.error('RtcCaller', 'onsendchannelopen', "error:", e);
@@ -195,6 +204,17 @@ class RtcCaller {
 
    onrecievechannelmessage(msg, localCallParticipation) {
       logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+
+      var types = new TypeRegistry();
+      var remoteCallData = types.reviveFromJSON(msg.data);
+
+      if (remoteCallData.__type === Person.prototype.__type && this.onremoteperson) {
+         this.onremoteperson(remoteCallData);
+      }
+
+      if (this.onremotedata) {
+         this.onremotedata(remoteCallData);
+      }
    }
 
    onrecievechannelerror(e) {
@@ -210,23 +230,27 @@ class RtcReciever {
    // member variables
    localCallParticipation: CallParticipation;
    remoteCallParticipation: CallParticipation;
+   person: Person;
    remoteOffer: CallOffer;
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
 
-   constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer) {
+   constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer, person: Person) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteOffer.from;
+      this.person = person;
       this.remoteOffer = remoteOffer;
       this.recieveConnection = null;
       this.sendChannel = null;
    }
 
-   // Override these for notifications
+   // Override these for notifications  - TODO - see top of file
    onremoteclose: ((this: RtcReciever, ev: Event) => any) | null;
    onremoteissues: ((this: RtcReciever, ev: Event) => any) | null;
    onremoteconnection: ((this: RtcReciever, ev: Event) => any) | null;
+   onremoteperson: ((this: RtcReciever, ev: Event) => any) | null;
+   onremotedata: ((this: RtcReciever, ev: Event) => any) | null;
 
    answerCall() {
 
@@ -345,7 +369,7 @@ class RtcReciever {
       logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
 
       try {
-         dc.send("Hello from " + dc.label + ", " + localCallParticipation.sessionSubId);
+         dc.send(JSON.stringify(this.person));
       }
       catch (e) {
          logger.error('RtcReciever', 'onsendchannelopen', "error:", e);
@@ -370,6 +394,17 @@ class RtcReciever {
 
    onrecievechannelmessage(msg, localCallParticipation) {
       logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
+
+      var types = new TypeRegistry();
+      var remoteCallData = types.reviveFromJSON(msg.data);
+
+      if (remoteCallData.__type === Person.prototype.__type && this.onremoteperson) {
+         this.onremoteperson(remoteCallData);
+      }
+
+      if (this.onremotedata) {
+         this.onremotedata(remoteCallData);
+      }
    }
 
    onrecievechannelerror(e) {
@@ -400,6 +435,8 @@ export class RtcLink {
          reciever.onremoteclose = this.onremoterecieverclose.bind(this);
          reciever.onremoteissues = this.onremoterecieverissues.bind(this);
          reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
+         reciever.onremoteperson = this.onremoteperson.bind(this);
+         reciever.onremotedata = this.onremotedata.bind(this);
       }
       if (sender) {
          sender.onremoteclose = this.onremotesenderclose.bind(this);
@@ -408,7 +445,7 @@ export class RtcLink {
       }
    }
 
-   // Override these for notifications
+   // Override these for notifications  - TODO - see top of file
    onlinkstatechange: ((this: RtcLink, ev: Event) => any) | null;
 
    status() {
@@ -436,6 +473,16 @@ export class RtcLink {
          this.onlinkstatechange(this.linkStatus);
    }
 
+   onremoteperson(ev) {
+      if (this.onremoteperson)
+         this.onremoteperson(ev);
+   }
+
+   onremotedata(ev) {
+      if (this.onremotedata)
+         this.onremotedata(ev);
+   }
+
    onremotesenderclose(ev) {
       this.linkStatus = FourStateRagEnum.Red;
       if (this.onlinkstatechange)
@@ -457,14 +504,17 @@ export class RtcLink {
 
 export interface IRtcProps {
    facilityId: string;
-   personId: string;
    sessionId: string;
+   personId: string;
+   personName: string;
+   personThumbnailUrl: string;
 }
 
 export class Rtc {
 
    // member variables
    localCallParticipation: CallParticipation;
+   person: Person;
    events: EventSource;
    links: RtcLink[];
    lastSequenceNo: number;
@@ -479,6 +529,9 @@ export class Rtc {
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
       this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuidv4());
 
+      // Store data on the Person who is running the app - used in data handshake & exchange
+      this.person = new Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
+
       this.retries = 0;
       this.serverStatus = FourStateRagEnum.Indeterminate;
 
@@ -486,9 +539,11 @@ export class Rtc {
          this.onserverconnectionstatechange(this.serverStatus);
    }
 
-   // Override these for notifications
+   // Override these for notifications  - TODO - see top of file
    onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
    onlinkstatechange: ((this: Rtc, ev: Event, link: RtcLink) => any) | null;
+   onremoteperson: ((this: Rtc, ev: Person, link: RtcLink) => any) | null;
+   onremotedata: ((this: Rtc, ev: Event) => any) | null;
 
    connectFirst() {
       this.connect();
@@ -585,14 +640,19 @@ export class Rtc {
    onParticipant(remoteParticipation) {
       var self = this;
 
-      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation); 
+      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
       // Hook to pass up link status changes. 
       link.onlinkstatechange = (ev) => { if (self.onlinkstatechange) self.onlinkstatechange(ev, link); };
 
+      // Hooks to pass up data
+      sender.onremoteperson = (ev) => { if (self.onremoteperson) self.onremoteperson(ev, link); };
+      sender.onremotedata = (ev) => { if (self.onremotedata) self.onremotedata(ev); };
+
       // Hook so if remote closes, we close down links this side
       sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
+
       self.links.push(link);
 
       // Notify parent of link status change
@@ -618,11 +678,15 @@ export class Rtc {
          }
       }
 
-      var reciever = new RtcReciever(self.localCallParticipation, remoteOffer); 
+      var reciever = new RtcReciever(self.localCallParticipation, remoteOffer, self.person); 
       var link = new RtcLink(remoteOffer.from, false, null, reciever);
 
       // Hook to pass up link status changes. 
       link.onlinkstatechange = (ev) => { if (self.onlinkstatechange) self.onlinkstatechange(ev, link); };
+
+      // Hooks to pass up data
+      reciever.onremoteperson = (ev) => { if (self.onremoteperson) self.onremoteperson(ev, link); };
+      reciever.onremotedata = (ev) => { if (self.onremotedata) self.onremotedata(ev); };
 
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
