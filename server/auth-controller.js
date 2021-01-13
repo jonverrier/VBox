@@ -2,11 +2,13 @@
 // Copyright TXPCo ltd, 2020
 
 var passport = require("passport");
-var strategy = require("passport-facebook");
+var passportFacebook = require("passport-facebook");
+var passportLocal = require("passport-local");
 
 var personModel = require("./person-model.js");
 
-const FacebookStrategy = strategy.Strategy;
+const FacebookStrategy = passportFacebook.Strategy;
+const LocalStrategy = passportLocal.Strategy;
 
 function save(user, accessToken) {
    const email = user.email;
