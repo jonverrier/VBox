@@ -55,7 +55,7 @@ passport.deserializeUser(function (id, done) {
 });
 
 passport.use(
-   new FacebookStrategy(
+   'Facebook', new FacebookStrategy(
       {
          clientID: process.env.FACEBOOK_APP_ID_PROD ,
          clientSecret: process.env.FACEBOOK_APP_SECRET_PROD,

@@ -13,7 +13,7 @@ var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel
 
 const authRouter = express.Router();
 
-authRouter.get("/auth/facebook", passport.authenticate("facebook"));
+authRouter.get("/auth/facebook", passport.authenticate("Facebook"));
 
 var options = {
    root: path.join(__dirname, "..")
@@ -21,7 +21,7 @@ var options = {
 
 authRouter.get(
    "/auth/facebook/callback",
-   passport.authenticate("facebook", {
+   passport.authenticate("Facebook", {
       successRedirect: "/success",
       failureRedirect: "/fail"
    })
