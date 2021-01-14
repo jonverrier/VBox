@@ -17,8 +17,8 @@ import Button from 'react-bootstrap/Button';
 import Nav from 'react-bootstrap/Nav';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import Dropdown from 'react-bootstrap/Dropdown';
-import DropdownButton from 'react-bootstrap/DropdownButton';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import Form from 'react-bootstrap/Form';
 
 // Additional packages
 import { Helmet } from 'react-helmet';
@@ -33,7 +33,8 @@ import { PartySmall } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
 import { ServerConnectionStatus, LinkConnectionStatus } from './call-status';
-import { LoginComponent } from './facebook';
+import { LoginFb } from './loginfb';
+import { LoginMc } from './loginmc';
 import { IRtcProps } from './rtc';
 import { Rtc } from './rtc';
 
@@ -71,6 +72,16 @@ const placeholderStyle: CSS.Properties = {
 
 const hiddenStyle: CSS.Properties = {
    display: 'none'
+};
+
+const loginGroupStyle: CSS.Properties = {
+   borderLeftWidth: "2px",
+   borderLeftColor: "black",
+   borderLeftStyle: 'solid'
+};
+
+const fieldYSepStyle: CSS.Properties = {
+   marginBottom: '10px'
 };
 
 interface IMemberPageProps {
@@ -207,7 +218,7 @@ interface ICoachPageState {
    isLoggedIn: boolean;
    pageData: HomePageData
    rtc: Rtc;
-   login: LoginComponent;
+   login: LoginFb;
 }
 
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
@@ -230,7 +241,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
       this.state = {
          isLoggedIn: this.isLoggedIn, pageData: this.pageData, rtc: null,
-         login: new LoginComponent({ onLoginStatusChange: this.onLoginStatusChange.bind(this) })
+         login: new LoginFb({ autoLogin: true, onLoginStatusChange: this.onLoginStatusChange.bind(this) })
       };
    }
 
@@ -287,22 +298,22 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          return (
             <div className="loginpage">
                <Helmet>
-                  <title>The Xperience Platform</title>
+                  <title>Digital Strength</title>
                   <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
                   <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
                </Helmet>
                <Navbar style={facilityNavStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="The Xperience Platform" thumbnailUrl="weightlifter-w-128x128.png" />
+                     <PartyBanner name="Digital Strength" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
                </Navbar>
                <Container fluid style={pageStyle}>
                   <Jumbotron style={{ background: 'gray', color: 'white' }}>
                      <h1>Welcome!</h1>
                      <p>
-                        Welcome to The Xperience Platform. Sign in below to get access to your class.
+                        Welcome to Digital Strength. Sign in below to get access to your class.
                      </p>
-                     <Button variant="primary" onClick={this.state.login.logIn}>Login with Facebook...</Button>
+                     <Button variant="primary" onClick={this.state.login.logIn}>Coaches login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
@@ -371,7 +382,11 @@ interface ILoginPageProps {
 
 interface ILoginPageState {
    isLoggedIn: boolean;
-   login: LoginComponent;
+   isMcReadyToLogin: boolean;
+   isValidMeetCode: boolean;
+   isValidName: boolean;
+   loginFb: LoginFb;
+   loginMc: LoginMc;
 }
 
 export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
@@ -382,72 +397,84 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
       super(props);
       this.state = {
          isLoggedIn: false,
-         login: new LoginComponent({ onLoginStatusChange: this.onLoginStatusChange.bind(this) })
+         isMcReadyToLogin: false,
+         isValidMeetCode: false,
+         isValidName: false,
+         loginFb: new LoginFb({ autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeFb.bind(this) }),
+         loginMc: new LoginMc({
+            autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
+            onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this)
+         })
       };
    }
    
-   onLoginStatusChange(isLoggedIn) {
+   onLoginStatusChangeMc(isLoggedIn) {
       this.setState ({ isLoggedIn: isLoggedIn});
+   }
+
+   onLoginReadinessChangeMc(isReady) {
+      this.setState({
+         isMcReadyToLogin: isReady,
+         isValidMeetCode: this.state.loginMc.isValidMeetCode(),
+         isValidName: this.state.loginMc.isValidName()
+      });
+   }
+
+   onLoginStatusChangeFb(isLoggedIn) {
+      this.setState({ isLoggedIn: isLoggedIn });
    }
 
    componentDidMount() {
       // Initialise facebook API
-      this.state.login.loadAPI();
+      this.state.loginFb.loadAPI();
    }
 
    componentWillUnmount() {
    }
 
    render() {
-      if (!this.state.isLoggedIn) {
          return (
             <div className="loginpage">
             <Helmet>
-                  <title>The Xperience Platform</title>
+                  <title>Digital Strength</title>
                <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
                <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="The Xperience Platform" thumbnailUrl="weightlifter-w-128x128.png" />
+                  <PartyBanner name="Digital Strength" thumbnailUrl="weightlifter-w-128x128.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
                <Jumbotron style={{ background: 'gray', color: 'white' }}>
                   <h1>Welcome!</h1>
-                  <p>
-                        Welcome to The Xperience Platform. Sign in below to get access to your class.
-                  </p>
-                  <Button variant="primary" onClick={this.state.login.logIn}>Login with Facebook...</Button>
+                  <p>Welcome to Digital Strength. Sign in below to get access to your class.</p>
+                  <Row className="align-items-center">
+                     <Col className="d-none d-md-block">
+                     </Col>
+                     <Col>
+                        <Button variant="primary" onClick={this.state.loginFb.logIn}>Coaches login with Facebook...</Button>
+                     </Col>
+                     <Col style={loginGroupStyle}>
+                        <Form.Group controlId="formMeetingCode">
+                        <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldYSepStyle}
+                                 onChange={this.state.loginMc.handleMeetCodeChange.bind(this.state.loginMc)}
+                                 isValid={this.state.isValidMeetCode}/>
+                        </Form.Group>
+                        <Form.Group controlId="formName">
+                        <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldYSepStyle}
+                                 onChange={this.state.loginMc.handleNameChange.bind(this.state.loginMc)}
+                                 isValid={this.state.isValidName} />
+                        </Form.Group>
+                        <Button variant="primary" disabled={!this.state.isMcReadyToLogin}>Join with a meeting code...</Button>
+                     </Col>
+                        <Col className="d-none d-md-block ">
+                     </Col>
+                  </Row>
                </Jumbotron>
             </Container>
             </div>
          );
-      } else {
-         return (
-            <div className="loginpage">
-               <Helmet>
-                  <title>The Xperience Platform</title>
-                  <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
-                  <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
-               </Helmet>
-               <Navbar style={facilityNavStyle}>
-                  <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="The Xperience Platform" thumbnailUrl="weightlifter-w-128x128.png" />
-                  </Navbar.Brand>
-               </Navbar>
-               <Container fluid style={pageStyle}>
-                  <Jumbotron style={{ background: 'gray', color: 'white' }}>
-                     <h1>Welcome!</h1>
-                     <p>
-                        You are logged in to The Xperience Platform.
-                     </p>
-                     <Button variant="primary" onClick={this.state.login.logIn}>Continue with Facebook...</Button>
-                  </Jumbotron>
-               </Container>
-            </div>
-         );
-      }
    }
 }
 

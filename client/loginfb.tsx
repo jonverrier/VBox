@@ -3,35 +3,34 @@
 declare var require: any
 
 import * as React from 'react';
-import Button from 'react-bootstrap/Button';
-import axios from 'axios';
 
 import { Logger } from './logger'
 
 var logger = new Logger();
 
-interface ILoginProps {
+interface ILoginFbProps {
+   autoLogin: Boolean;
    onLoginStatusChange: (boolean) => void;
 }
 
-interface ILoginState {
+interface ILoginFbState {
    isLoggedIn: boolean;
    name: string;
    thumbnailUrl: string;
    userAccessToken: string;
 }
 
-export class LoginComponent {
+export class LoginFb {
    //member variables
-   props: ILoginProps;
-   state: ILoginState;
+   props: ILoginFbProps;
+   state: ILoginFbState;
 
-   constructor(props: ILoginProps) {
+   constructor(props: ILoginFbProps) {
 
       this.logIn = this.logIn.bind(this); 
       this.logOut = this.logOut.bind(this); 
       this.processFBLoginResponse = this.processFBLoginResponse.bind(this); 
-      this.ProcessFBLoginData = this.ProcessFBLoginData.bind(this);       
+      this.processFBLoginData = this.processFBLoginData.bind(this);       
 
       this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
       this.props = props;
@@ -50,7 +49,8 @@ export class LoginComponent {
 
          // If enabled, and the user is logged in already, 
          // this will automatically redirect the page to the users home page.
-         self.processFBLoginResponse(true);
+         if (self.props.autoLogin)
+            self.processFBLoginResponse(true);
       };
 
       // Load the SDK asynchronously
@@ -61,10 +61,6 @@ export class LoginComponent {
          js.src = "//connect.facebook.net/en_US/sdk.js";
          fjs.parentNode.insertBefore(js, fjs);
       }(document, 'script', 'facebook-jssdk'));
-   }
-
-   componentDidMount() {
-      this.loadAPI();
    }
 
    getUserData(accessToken) {
@@ -89,7 +85,7 @@ export class LoginComponent {
       self.props.onLoginStatusChange(true);
    }
 
-   ProcessFBLoginData(response) {
+   processFBLoginData(response) {
       var self = this;
 
       if (response.status === 'connected') {
@@ -117,7 +113,7 @@ export class LoginComponent {
       var self = this;
 
       (window as any).FB.getLoginStatus(function (response) {
-         self.ProcessFBLoginData(response);
+         self.processFBLoginData(response);
       }, force);
    }
 
@@ -136,5 +132,3 @@ export class LoginComponent {
       });
    }
 }
-
-
