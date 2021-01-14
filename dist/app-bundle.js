@@ -64744,22 +64744,33 @@ exports.LoginFb = LoginFb;
 // Component to support Login via a meeting code
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginMc = void 0;
+var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 var LoginMc = /** @class */ (function () {
     function LoginMc(props) {
-        this.state = { isLoggedIn: false, meetCode: "", name: "", isValidMeetCode: false };
+        this.state = { isLoggedIn: false, meetCode: "", name: "", isValidMeetCode: false, isTimerPending: false };
         this.props = props;
     }
     LoginMc.prototype.handleMeetCodeChange = function (ev) {
         this.state.meetCode = ev.target.value;
-        if (this.state.meetCode.length > 9) {
-            this.state.isValidMeetCode = true;
+        var self = this;
+        // make at most one call per second to the server to check for a valid meet code
+        if (!this.state.isTimerPending) {
+            this.state.isTimerPending = true;
+            setTimeout(function () {
+                axios_1.default.get('/api/isvalidmc', { params: { meetingId: encodeURIComponent(self.state.meetCode) } })
+                    .then(function (response) {
+                    self.state.isTimerPending = false;
+                    self.state.isValidMeetCode = response.data ? true : false;
+                    self.props.onLoginReadinessChange(self.isLoginReady());
+                })
+                    .catch(function (error) {
+                    self.state.isTimerPending = false;
+                    self.props.onLoginReadinessChange(self.isLoginReady());
+                });
+            }, 1000);
         }
-        else {
-            this.state.isValidMeetCode = false;
-        }
-        this.props.onLoginReadinessChange(this.isLoginReady());
     };
     LoginMc.prototype.handleNameChange = function (ev) {
         this.state.name = ev.target.value;
