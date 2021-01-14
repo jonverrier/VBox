@@ -3,21 +3,20 @@
 
 var mongoose = require("mongoose");
 
-const facilityPersonSchema = new mongoose.Schema({
+const facilityMeetingSchema = new mongoose.Schema({
    facilityId: {
       type: String,
       required: true,
       index: true
    },
-   personId: {
+   meetingId: {
       type: String,
       required: true,
-      index: true
+      index: true,
+      unique: true
    }
 });
 
-const facilityCoachModel = mongoose.model("FacilityCoach", facilityPersonSchema);
-const facilityMemberModel = mongoose.model("FacilityMember", facilityPersonSchema);
+const facilityMeetingModel = mongoose.model("FacilityMeeting", facilityMeetingSchema);
 
-module.exports.facilityCoachModel = facilityCoachModel;
-module.exports.facilityMemberModel = facilityMemberModel;
+module.exports.facilityMeetingModel = facilityMeetingModel;
