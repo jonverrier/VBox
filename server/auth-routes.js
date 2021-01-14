@@ -15,23 +15,36 @@ const authRouter = express.Router();
 
 authRouter.get("/auth/facebook", passport.authenticate("Facebook"));
 
+authRouter.get("/auth/local", passport.authenticate("Local", {
+   successRedirect: "/successmc",
+   failureRedirect: "/failmc"
+}));
+
 var options = {
    root: path.join(__dirname, "..")
 };
 
+authRouter.get("/successmc", (req, res) => {
+   res.send(true);
+});
+
+authRouter.get("/failmc", (req, res) => {
+   res.send(false);
+});
+
 authRouter.get(
    "/auth/facebook/callback",
    passport.authenticate("Facebook", {
-      successRedirect: "/success",
-      failureRedirect: "/fail"
+      successRedirect: "/successfb",
+      failureRedirect: "/failfb"
    })
 );
 
-authRouter.get("/fail", (req, res) => {
+authRouter.get("/failfb", (req, res) => {
    res.sendFile('public/logonnotallowed.html', options);
 });
 
-authRouter.get("/success", (req, res) => {
+authRouter.get("/successfb", (req, res) => {
    facilityCoachModel.findOne().where('personId').eq(req.user.externalId).exec(function (err, facilityCoach) {
       if (facilityCoach)
          res.redirect("coach");

@@ -64344,7 +64344,7 @@ var LoginPage = /** @class */ (function (_super) {
                                 React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: "10", style: fieldYSepStyle, onChange: this.state.loginMc.handleMeetCodeChange.bind(this.state.loginMc), isValid: this.state.isValidMeetCode })),
                             React.createElement(Form_1.default.Group, { controlId: "formName" },
                                 React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: "30", style: fieldYSepStyle, onChange: this.state.loginMc.handleNameChange.bind(this.state.loginMc), isValid: this.state.isValidName })),
-                            React.createElement(Button_1.default, { variant: "primary", disabled: !this.state.isMcReadyToLogin }, "Join with a meeting code...")),
+                            React.createElement(Button_1.default, { variant: "primary", disabled: !this.state.isMcReadyToLogin, onClick: this.state.loginMc.logIn.bind(this.state.loginMc) }, "Join with a meeting code...")),
                         React.createElement(Col_1.default, { className: "d-none d-md-block " }))))));
     };
     return LoginPage;
@@ -64786,9 +64786,18 @@ var LoginMc = /** @class */ (function () {
         return this.state.name.length > 0 && this.state.isValidMeetCode;
     };
     LoginMc.prototype.logIn = function () {
-        /* if () {
-           self.props.onLoginStatusChange(false);
-        } */
+        var self = this;
+        axios_1.default.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
+            .then(function (response) {
+            self.props.onLoginStatusChange(true);
+            // if we are not already on a validated path, redirect 
+            if (!(location.pathname.includes('member'))) {
+                window.location.href = "member";
+            }
+        })
+            .catch(function (error) {
+            self.props.onLoginStatusChange(false);
+        });
     };
     LoginMc.prototype.logOut = function () {
     };

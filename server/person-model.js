@@ -15,11 +15,9 @@ const personSchema = new mongoose.Schema({
       required: true,
       index: true 
    },
-   email: {
+   email: { // Is not required, or unique, as we allow anonymous users via the meeting ID. 
       type: String,
-      required: true,
-      index: true,
-      unique : true
+      index: true
    },
    thumbnailUrl: {
       type: String,

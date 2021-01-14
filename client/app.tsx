@@ -466,9 +466,9 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                                  onChange={this.state.loginMc.handleNameChange.bind(this.state.loginMc)}
                                  isValid={this.state.isValidName} />
                         </Form.Group>
-                        <Button variant="primary" disabled={!this.state.isMcReadyToLogin}>Join with a meeting code...</Button>
+                        <Button variant="primary" disabled={!this.state.isMcReadyToLogin} onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...</Button>
                      </Col>
-                        <Col className="d-none d-md-block ">
+                     <Col className="d-none d-md-block ">
                      </Col>
                   </Row>
                </Jumbotron>
