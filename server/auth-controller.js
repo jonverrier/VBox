@@ -3,12 +3,16 @@
 
 var passport = require("passport");
 var passportFacebook = require("passport-facebook");
-var passportLocal = require("passport-local");
+var passportLocal = require("passport-custom");
+var { nanoid } = require("nanoid");
 
 var personModel = require("./person-model.js");
 
 const FacebookStrategy = passportFacebook.Strategy;
 const LocalStrategy = passportLocal.Strategy;
+
+// Used to look up valid meeting IDs for unauthenticated users
+var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 
 function save(user, accessToken) {
    const email = user.email;
@@ -69,3 +73,24 @@ passport.use(
    )
 );
 
+passport.use(
+   'Local', new LocalStrategy(
+      function (req, done) {
+         var meetingId = decodeURIComponent(req.query.meetingId);
+         var name = decodeURIComponent(req.query.name);
+
+         // if there is a valid URL for the meeting, create a psuedo record for the user
+         facilityMeetingModel.findOne().where('meetingId').eq(meetingId).exec(function (err, facilityMeeting) {
+            if (facilityMeeting) {
+               var generatedId = nanoid(10);
+               // TODO - review this use of email
+               const userData = { name: name, externalId: generatedId, email: generatedId, thumbnailUrl: 'person-w-128x128.png', lastAuthCode: null, id: generatedId };
+               new personModel(userData).save();
+
+               done(err, userData);
+            } else {
+               done(err, null);
+            }
+         });
+      })
+);

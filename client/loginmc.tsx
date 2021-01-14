@@ -77,10 +77,23 @@ export class LoginMc {
    }
 
    logIn() {
+      var self = this;
 
-      /* if () {
-         self.props.onLoginStatusChange(false);
-      } */
+      axios.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
+         .then(function (response) {
+            if (response.data) {
+               self.props.onLoginStatusChange(true);
+               // if we are not already on a validated path, redirect 
+               if (!(location.pathname.includes('member'))) {
+                  window.location.href = "member";
+               }
+            } else {
+               self.props.onLoginStatusChange(false);
+            }
+         })
+         .catch(function (error) {
+            self.props.onLoginStatusChange(false);
+         });
    }
 
    logOut() {
