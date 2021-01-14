@@ -21,6 +21,7 @@ interface ILoginMcState {
    name: string;
    meetCode: string;
    isValidMeetCode: boolean;
+   isTimerPending: boolean;
 }
 
 export class LoginMc {
@@ -30,19 +31,31 @@ export class LoginMc {
 
    constructor(props: ILoginMcProps) {
 
-      this.state = { isLoggedIn: false, meetCode: "", name: "", isValidMeetCode: false };
+      this.state = { isLoggedIn: false, meetCode: "", name: "", isValidMeetCode: false, isTimerPending : false};
       this.props = props;
    }
 
    handleMeetCodeChange(ev: any) {
       this.state.meetCode = ev.target.value;  
-      if (this.state.meetCode.length > 9) {
-         this.state.isValidMeetCode = true;
-      } else {
-         this.state.isValidMeetCode = false;
-      }
+      var self = this;
 
-      this.props.onLoginReadinessChange(this.isLoginReady());
+      // make at most one call per second to the server to check for a valid meet code
+      if (!this.state.isTimerPending) {
+         this.state.isTimerPending = true;
+
+         setTimeout(function () {
+            axios.get('/api/isvalidmc', { params: { meetingId: encodeURIComponent(self.state.meetCode) } })
+               .then(function (response) {
+                  self.state.isTimerPending = false;
+                  self.state.isValidMeetCode = response.data ? true : false;
+                  self.props.onLoginReadinessChange(self.isLoginReady());
+               })
+               .catch(function (error) {
+                  self.state.isTimerPending = false;
+                  self.props.onLoginReadinessChange(self.isLoginReady());
+               });
+         }, 1000);
+      }
    }
 
    handleNameChange(ev: any) {

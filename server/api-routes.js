@@ -14,6 +14,7 @@ var CallIceCandidate = require("../common/call.js").CallIceCandidate;
 // Used to get data for the users home page 
 var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
+var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
 
 // event source APIs
@@ -45,6 +46,15 @@ async function facilityIdListFor(personId) {
    return facilitiesFor (facilityIds);
 }
 
+async function isMeeting (id) {
+
+   const facilityMeeting = await facilityMeetingModel.findOne().where('meetingId').eq(id).exec();
+   if (facilityMeeting)
+      return true;
+   else
+      return false;
+}
+
 // API to connect to event source
 router.get('/callevents', function (req, res, next) {
    if (req.user && req.user.externalId) 
@@ -52,6 +62,20 @@ router.get('/callevents', function (req, res, next) {
    else
       res.send(null);
 });
+
+// API to check if a code is a valide meeting - note, is unauthenticated. TODO - replace if ever get actual volume. 
+router.get('/api/isvalidmc', function (req, res) {
+
+   var meetingId = decodeURIComponent(req.query.meetingId);
+
+   isMeeting(meetingId).then(function (isMeetingResult) {
+      if (isMeetingResult) {
+         res.send(true);
+      } else {
+         res.send(false);
+      }
+   });
+})
 
 // API to get data for the home page 
 router.get('/api/home', function (req, res) {
