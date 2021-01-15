@@ -18,7 +18,7 @@ const clockRowStyle: CSS.Properties = {
 };
 
 const clockStyle: CSS.Properties = {
-   color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '56px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
+   color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 
 export const Clock = (props: { mm: Number, ss: Number }) => (
