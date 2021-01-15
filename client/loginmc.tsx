@@ -44,14 +44,13 @@ export class LoginMc {
          this.state.isTimerPending = true;
 
          setTimeout(function () {
+            self.state.isTimerPending = false;
             axios.get('/api/isvalidmc', { params: { meetingId: encodeURIComponent(self.state.meetCode) } })
                .then(function (response) {
-                  self.state.isTimerPending = false;
                   self.state.isValidMeetCode = response.data ? true : false;
                   self.props.onLoginReadinessChange(self.isLoginReady());
                })
                .catch(function (error) {
-                  self.state.isTimerPending = false;
                   self.props.onLoginReadinessChange(self.isLoginReady());
                });
          }, 1000);
