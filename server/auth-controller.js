@@ -6,13 +6,14 @@ var passportFacebook = require("passport-facebook");
 var passportLocal = require("passport-custom");
 var { nanoid } = require("nanoid");
 
+// Used to look up valid meeting IDs for unauthenticated users
+var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 var personModel = require("./person-model.js");
+var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 
 const FacebookStrategy = passportFacebook.Strategy;
 const LocalStrategy = passportLocal.Strategy;
 
-// Used to look up valid meeting IDs for unauthenticated users
-var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 
 function save(user, accessToken) {
    const email = user.email;
@@ -83,9 +84,14 @@ passport.use(
          facilityMeetingModel.findOne().where('meetingId').eq(meetingId).exec(function (err, facilityMeeting) {
             if (facilityMeeting) {
                var generatedId = nanoid(10);
-               // TODO - review this use of email
+
+               // Save as a new Person. TODO - review this use of email
                const userData = { name: name, externalId: generatedId, email: generatedId, thumbnailUrl: 'person-w-128x128.png', lastAuthCode: null, id: generatedId };
                new personModel(userData).save();
+
+               // Save the link to the facility
+               const facilityMemberData = { facilityId: facilityMeeting.facilityId, personId: generatedId};
+               new facilityMemberModel(facilityMemberData).save();
 
                done(err, userData);
             } else {

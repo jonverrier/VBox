@@ -130,8 +130,8 @@ const connect = async () => {
         
          var fortitude = { externalId: "12341", name: "Fortitude Fitness London", thumbnailUrl: "FortitudeSquare.png" };
          var fitology = { externalId: "12342", name: "Fitology", thumbnailUrl: "FitologySquare.png" };
-         var dulwich = { externalId: "12343", name: "Crossfit Dulwich", thumbnailUrl: "building-black128x128.png" };
-         var test = { externalId: "12344", name: "Test facility", thumbnailUrl: "building-black128x128.png" };
+         var dulwich = { externalId: "12343", name: "Crossfit Dulwich", thumbnailUrl: "weightlifter-b-128x128.png" };
+         var test = { externalId: "12344", name: "Test facility", thumbnailUrl: "weightlifter-b-128x128.png" };
          new facilityModel(fortitude).save(); 
          new facilityModel(fitology).save(); 
          new facilityModel(dulwich).save(); 

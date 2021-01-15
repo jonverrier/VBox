@@ -14,6 +14,7 @@ var CallIceCandidate = require("../common/call.js").CallIceCandidate;
 // Used to get data for the users home page 
 var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
+var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
 
@@ -33,7 +34,7 @@ async function facilitiesFor (facilityIds) {
    return facilities;
 }
 
-async function facilityIdListFor(personId) {
+async function facilityIdListForCoach(personId) {
 
    // Find facilities where the coach is 'personId'
    const facilityCoaches = await facilityCoachModel.find().where('personId').eq(personId).exec();
@@ -44,6 +45,19 @@ async function facilityIdListFor(personId) {
       facilityIds.push(facility.facilityId);
 
    return facilitiesFor (facilityIds);
+}
+
+async function facilityIdListForMember(personId) {
+
+   // Find facilities where the member is 'personId'
+   const facilityMembers = await facilityMemberModel.find().where('personId').eq(personId).exec();
+
+   var facilityIds = new Array();
+
+   for (let facility of facilityMembers)
+      facilityIds.push(facility.facilityId);
+
+   return facilitiesFor(facilityIds);
 }
 
 async function isMeeting (id) {
@@ -77,28 +91,42 @@ router.get('/api/isvalidmc', function (req, res) {
    });
 })
 
+function homePageDataFor (req, facilities) {
+
+   var current = facilities[0]; // TODO - pick the last facility visited by recording visits. 
+   // loop below just removes current from the extended list
+   for (var i = 0; i < facilities.length; i++) {
+      if (current.externalId === facilities[i].externalId) {
+         var removed = facilities.splice(i, 1);
+         break;
+      }
+   }
+
+   var myHomePageData = new HomePageData(req.sessionID,
+      new Person(null, req.user.externalId, req.user.name, null, req.user.thumbnailUrl, null),
+      current, facilities);
+
+   return JSON.stringify(myHomePageData);
+}
+
+
 // API to get data for the home page 
 router.get('/api/home', function (req, res) {
-      if (req.user && req.user.externalId) {
+   if (req.user && req.user.externalId) {
 
-      facilityIdListFor (req.user.externalId).then(function (facilities) {
+      var coach = decodeURIComponent(req.query.coach);
 
-         var current = facilities[0]; // TODO - pick the last facility visited by recording visits. 
-                                      // loop below just removes current from the extended list
-         for (var i = 0; i < facilities.length; i++) {
-            if (current.externalId === facilities[i].externalId) {
-               var removed = facilities.splice(i, 1);
-               break;
-            }
-         }
-
-         var myHomePageData = new HomePageData(req.sessionID,
-            new Person(null, req.user.externalId, req.user.name, null, req.user.thumbnailUrl, null),
-            current, facilities); 
-
-         var output = JSON.stringify(myHomePageData);
-         res.send(output);
-      });
+      if (coach === 'true') {
+         facilityIdListForCoach(req.user.externalId).then(function (facilities) {
+            var output = homePageDataFor(req, facilities);
+            res.send(output);
+         });
+      } else {
+         facilityIdListForMember(req.user.externalId).then(function (facilities) {
+            var output = homePageDataFor(req, facilities);
+            res.send(output);
+         });
+      }
    } else {
       res.send(null);
    }

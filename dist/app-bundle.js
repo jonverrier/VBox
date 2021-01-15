@@ -64105,15 +64105,21 @@ var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultPageData = new homepagedata_1.HomePageData(new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
+        _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
+        _this.isLoggedIn = false;
         _this.pageData = _this.defaultPageData;
-        _this.state = { pageData: _this.pageData };
+        _this.state = { isLoggedIn: _this.isLoggedIn, pageData: _this.pageData, rtc: null };
         return _this;
     }
     MemberPage.prototype.componentDidMount = function () {
+        // pre-load images that indicate a connection error, as they won't load later.
+        var imgR = new Image();
+        imgR.src = "./circle-black-red-128x128.png";
+        var imgA = new Image();
+        imgA.src = "./circle-black-yellow-128x128.png";
         var self = this;
         // Make a request for user data to populate the home page 
-        axios_1.default.get('/api/home')
+        axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(false) } })
             .then(function (response) {
             // Success, set state to data for logged in user 
             self.pageData = self.pageData.revive(response.data);
@@ -64145,12 +64151,17 @@ var MemberPage = /** @class */ (function (_super) {
                                 React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                     React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                     React.createElement(Nav_1.default, { className: "ml-auto" },
+                        React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+                            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+                            React.createElement(call_status_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_3.PartySmall, { name: this.state.pageData.personName, thumbnailUrl: "person-w-128x128.png" })),
+                                React.createElement(party_3.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                React.createElement(Dropdown_1.default.Item, { href: "#/action-2" }, "Sign Out...")))))),
+                                React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
@@ -64206,7 +64217,7 @@ var CoachPage = /** @class */ (function (_super) {
         var self = this;
         // Make a request for user data to populate the home page 
         if (isLoggedIn) {
-            axios_1.default.get('/api/home')
+            axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(true) } })
                 .then(function (response) {
                 // Success, set state to data for logged in user 
                 self.pageData = self.pageData.revive(response.data);
@@ -64237,16 +64248,16 @@ var CoachPage = /** @class */ (function (_super) {
         if (!this.state.isLoggedIn) {
             return (React.createElement("div", { className: "loginpage" },
                 React.createElement(react_helmet_1.Helmet, null,
-                    React.createElement("title", null, "Digital Strength"),
+                    React.createElement("title", null, "UltraBox"),
                     React.createElement("link", { rel: "icon", href: "weightlifter-b-128x128.png", type: "image/png" }),
                     React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_2.PartyBanner, { name: "Digital Strength", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                        React.createElement(party_2.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
-                        React.createElement("p", null, "Welcome to Digital Strength. Sign in below to get access to your class."),
+                        React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
                         React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "Coaches login with Facebook...")))));
         }
         else {
@@ -64325,16 +64336,16 @@ var LoginPage = /** @class */ (function (_super) {
     LoginPage.prototype.render = function () {
         return (React.createElement("div", { className: "loginpage" },
             React.createElement(react_helmet_1.Helmet, null,
-                React.createElement("title", null, "Digital Strength"),
+                React.createElement("title", null, "UltraBox"),
                 React.createElement("link", { rel: "icon", href: "weightlifter-b-128x128.png", type: "image/png" }),
                 React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: facilityNavStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "Digital Strength", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                    React.createElement(party_2.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Welcome!"),
-                    React.createElement("p", null, "Welcome to Digital Strength. Sign in below to get access to your class."),
+                    React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
                     React.createElement(Row_1.default, { className: "align-items-center" },
                         React.createElement(Col_1.default, { className: "d-none d-md-block" }),
                         React.createElement(Col_1.default, null,
@@ -64789,10 +64800,15 @@ var LoginMc = /** @class */ (function () {
         var self = this;
         axios_1.default.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
             .then(function (response) {
-            self.props.onLoginStatusChange(true);
-            // if we are not already on a validated path, redirect 
-            if (!(location.pathname.includes('member'))) {
-                window.location.href = "member";
+            if (response.data) {
+                self.props.onLoginStatusChange(true);
+                // if we are not already on a validated path, redirect 
+                if (!(location.pathname.includes('member'))) {
+                    window.location.href = "member";
+                }
+            }
+            else {
+                self.props.onLoginStatusChange(false);
             }
         })
             .catch(function (error) {

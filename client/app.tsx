@@ -88,31 +88,43 @@ interface IMemberPageProps {
 }
 
 interface IMemberPageState {
-   pageData: HomePageData
+   isLoggedIn: boolean;
+   pageData: HomePageData;
+   rtc: Rtc;
 }
 
 export class MemberPage extends React.Component<IMemberPageProps, IMemberPageState> {
 
    //member variables
+   isLoggedIn: boolean;
    pageData: HomePageData;
    defaultPageData: HomePageData;
 
    constructor(props: ICoachPageProps) {
       super(props);
-      this.defaultPageData = new HomePageData(
+
+      this.defaultPageData = new HomePageData(null,
          new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
          new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'),
          null);
+
+      this.isLoggedIn = false;
       this.pageData = this.defaultPageData;
 
-      this.state = { pageData: this.pageData };
+      this.state = {isLoggedIn: this.isLoggedIn, pageData: this.pageData, rtc: null};
    }
 
-   componentDidMount() {
+componentDidMount() {
+   // pre-load images that indicate a connection error, as they won't load later.
+   const imgR = new Image();
+   imgR.src = "./circle-black-red-128x128.png";
+   const imgA = new Image();
+   imgA.src = "./circle-black-yellow-128x128.png";
+
       var self = this;
 
       // Make a request for user data to populate the home page 
-      axios.get('/api/home')
+   axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
          .then(function (response) {
             // Success, set state to data for logged in user 
             self.pageData = self.pageData.revive(response.data);
@@ -154,14 +166,22 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   </Nav>
                   <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                   <Nav className="ml-auto">
+                     <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
+                        <Button split="true" variant="secondary" style={thinStyle}>
+                           <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
+                        </Button>
+                        <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
+                        </Dropdown.Toggle>
+                        <LinkConnectionStatus rtc={this.state.rtc}> </LinkConnectionStatus>
+                     </Dropdown>
                      <Dropdown as={ButtonGroup} id="collasible-nav-person">
                         <Button split="true" variant="secondary" style={thinStyle}>
-                           <PartySmall name={this.state.pageData.personName} thumbnailUrl={"person-w-128x128.png"} />
+                           <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
                         </Button>
                         <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                         </Dropdown.Toggle>
                         <Dropdown.Menu align="right">
-                           <Dropdown.Item href="#/action-2">Sign Out...</Dropdown.Item>
+                           <Dropdown.Item>Sign Out...</Dropdown.Item>
                         </Dropdown.Menu>
                      </Dropdown>
                   </Nav>
@@ -264,7 +284,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
       // Make a request for user data to populate the home page 
       if (isLoggedIn) {
-         axios.get('/api/home')
+         axios.get('/api/home', { params: { coach: encodeURIComponent(true)} })
             .then(function (response) {
                // Success, set state to data for logged in user 
                self.pageData = self.pageData.revive(response.data);
@@ -298,20 +318,20 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          return (
             <div className="loginpage">
                <Helmet>
-                  <title>Digital Strength</title>
+                  <title>UltraBox</title>
                   <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
                   <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
                </Helmet>
                <Navbar style={facilityNavStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="Digital Strength" thumbnailUrl="weightlifter-w-128x128.png" />
+                     <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
                </Navbar>
                <Container fluid style={pageStyle}>
                   <Jumbotron style={{ background: 'gray', color: 'white' }}>
                      <h1>Welcome!</h1>
                      <p>
-                        Welcome to Digital Strength. Sign in below to get access to your class.
+                        Welcome to UltraBox. Sign in below to get access to your class.
                      </p>
                      <Button variant="primary" onClick={this.state.login.logIn}>Coaches login with Facebook...</Button>
                   </Jumbotron>
@@ -436,19 +456,19 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
          return (
             <div className="loginpage">
             <Helmet>
-                  <title>Digital Strength</title>
+                  <title>UltraBox</title>
                <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
                <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="Digital Strength" thumbnailUrl="weightlifter-w-128x128.png" />
+                  <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                </Navbar.Brand>
             </Navbar>
             <Container fluid style={pageStyle}>
                <Jumbotron style={{ background: 'gray', color: 'white' }}>
                   <h1>Welcome!</h1>
-                  <p>Welcome to Digital Strength. Sign in below to get access to your class.</p>
+                  <p>Welcome to UltraBox. Sign in below to get access to your class.</p>
                   <Row className="align-items-center">
                      <Col className="d-none d-md-block">
                      </Col>

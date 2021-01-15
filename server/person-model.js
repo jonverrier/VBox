@@ -27,6 +27,9 @@ const personSchema = new mongoose.Schema({
       type: String,
       required: false
    }
+},
+{  // Enable timestamps for archival as we create pseudo users for anonymous guests joining on a meeting code.
+      timestamps: true
 });
 
 const personModel = mongoose.model("Person", personSchema);
