@@ -64123,17 +64123,33 @@ var MemberPage = /** @class */ (function (_super) {
             .then(function (response) {
             // Success, set state to data for logged in user 
             self.pageData = self.pageData.revive(response.data);
-            self.setState({ pageData: self.pageData });
+            // Initialise WebRTC and connect
+            var rtc = new rtc_1.Rtc({
+                sessionId: self.pageData.sessionId,
+                facilityId: self.pageData.currentFacility.externalId,
+                personId: self.pageData.person.externalId,
+                personName: self.pageData.person.name,
+                personThumbnailUrl: self.pageData.person.thumbnailUrl
+            });
+            rtc.connectFirst();
+            self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+            self.forceUpdate();
         })
             .catch(function (error) {
             // handle error by setting state back to no user logged in
             self.pageData = self.defaultPageData;
-            self.setState({ pageData: self.pageData });
+            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
         });
     };
     MemberPage.prototype.componentWillUnmount = function () {
     };
     MemberPage.prototype.render = function () {
+        var loggedIn = false;
+        if (!this.state.isLoggedIn) {
+        }
+        else {
+            loggedIn = true;
+        }
         return (React.createElement("div", { className: "memberpage" },
             React.createElement(react_helmet_1.Helmet, null,
                 React.createElement("title", null, this.state.pageData.currentFacility.name),
@@ -64421,7 +64437,6 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
-var linkTo = { name: null, statusMap: null };
 var ServerConnectionStatus = /** @class */ (function (_super) {
     __extends(ServerConnectionStatus, _super);
     function ServerConnectionStatus(props) {
@@ -64433,6 +64448,10 @@ var ServerConnectionStatus = /** @class */ (function (_super) {
     }
     ServerConnectionStatus.prototype.onServerConnectionStateChange = function (status) {
         this.setState({ status: status });
+    };
+    ServerConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc)
+            nextProps.rtc.onserverconnectionstatechange = this.onServerConnectionStateChange.bind(this);
     };
     ServerConnectionStatus.prototype.render = function () {
         switch (this.state.status) {
@@ -64462,11 +64481,16 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         _this.state = { linkStatusMap: linkStatusMap };
         return _this;
     }
+    LinkConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc) {
+            nextProps.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
+            nextProps.rtc.onremoteperson = this.onremoteperson.bind(this);
+        }
+    };
     LinkConnectionStatus.prototype.onLinkStateChange = function (ev, link) {
         // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
         if (!this.state.linkStatusMap.has(link.to.personId)) {
-            linkTo.statusMap = new Map();
-            linkTo.name = null;
+            var linkTo = { name: null, statusMap: new Map() };
             this.state.linkStatusMap.set(link.to.personId, linkTo);
         }
         var personEntry = this.state.linkStatusMap.get(link.to.personId);
@@ -64475,18 +64499,17 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         // Finally, if event is null, its a removal
         if (ev == null && personEntry.statusMap.has(link.to.sessionSubId)) {
             personEntry.statusMap.delete(link.to.sessionSubId);
-            // Remove the personMap entry if there are no sub keys
+            // Remove the person entry if there are no sub keys
             var iter = personEntry.statusMap.keys();
             if (iter.next().done)
-                personEntry.delete(link.to.personId);
+                this.state.linkStatusMap.delete(link.to.personId);
         }
         this.setState({ linkStatusMap: this.state.linkStatusMap });
     };
     LinkConnectionStatus.prototype.onremoteperson = function (ev, link) {
         // we store a map, indexed by person Id
         if (!this.state.linkStatusMap.has(link.to.personId)) {
-            linkTo.statusMap = new Map();
-            linkTo.name = ev.name;
+            var linkTo = { name: ev.name, statusMap: new Map() };
             this.state.linkStatusMap.set(link.to.personId, linkTo);
         }
         // Store the new name back in state
@@ -64499,6 +64522,7 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
     };
     LinkConnectionStatus.prototype.render = function () {
         var items = new Array();
+        var self = this;
         this.state.linkStatusMap.forEach(function (value, key, map) {
             var allGreen = true, allRed = true, count = 0, name = value.name;
             value.statusMap.forEach(function (valueInner, keyInner, mapInner) {
