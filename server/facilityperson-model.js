@@ -14,6 +14,9 @@ const facilityPersonSchema = new mongoose.Schema({
       required: true,
       index: true
    }
+},
+{  // Enable timestamps for archival as we create pseudo users for anonymous guests joining on a meeting code.
+      timestamps: true
 });
 
 const facilityCoachModel = mongoose.model("FacilityCoach", facilityPersonSchema);
