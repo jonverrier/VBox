@@ -72,7 +72,13 @@ describe("ClockTimer", function () {
    });
 
    it("Needs to tick as count up clock", function () {
-      expect(true).to.equal(false);
+      timer1.start(null, null);
+      var now = new Date();
+
+      setTimeout(function () {
+         var seconds = timer1.ss;
+         expect(seconds === '03' || seconds === '04').to.equal(true);
+      }, 3000);
    });
 
    it("Needs to tick as count dowm clock", function () {
