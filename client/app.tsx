@@ -114,26 +114,39 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
       this.state = {isLoggedIn: this.isLoggedIn, pageData: this.pageData, rtc: null};
    }
 
-componentDidMount() {
-   // pre-load images that indicate a connection error, as they won't load later.
-   const imgR = new Image();
-   imgR.src = "./circle-black-red-128x128.png";
-   const imgA = new Image();
-   imgA.src = "./circle-black-yellow-128x128.png";
+   componentDidMount() {
+      // pre-load images that indicate a connection error, as they won't load later.
+      const imgR = new Image();
+      imgR.src = "./circle-black-red-128x128.png";
+      const imgA = new Image();
+      imgA.src = "./circle-black-yellow-128x128.png";
 
       var self = this;
 
       // Make a request for user data to populate the home page 
-   axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
+      axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
          .then(function (response) {
+
             // Success, set state to data for logged in user 
             self.pageData = self.pageData.revive(response.data);
-            self.setState({ pageData: self.pageData });
+
+            // Initialise WebRTC and connect
+            var rtc = new Rtc({
+               sessionId: self.pageData.sessionId,
+               facilityId: self.pageData.currentFacility.externalId,
+               personId: self.pageData.person.externalId,
+               personName: self.pageData.person.name,
+               personThumbnailUrl: self.pageData.person.thumbnailUrl
+            });
+            rtc.connectFirst();
+
+            self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+            self.forceUpdate();
          })
          .catch(function (error) {
             // handle error by setting state back to no user logged in
             self.pageData = self.defaultPageData;
-            self.setState({ pageData: self.pageData });
+            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
          });
    }
 
@@ -141,6 +154,13 @@ componentDidMount() {
    }
 
    render() {
+      var loggedIn = false;
+      if (!this.state.isLoggedIn) {
+      }
+      else {
+         loggedIn = true;
+      }
+
       return (
          <div className="memberpage">
             <Helmet>

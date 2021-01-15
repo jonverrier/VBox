@@ -16,8 +16,6 @@ import { PartySmall, PartyCaption } from './party';
 import { FourStateRagEnum } from '../common/enum.js';
 import { Rtc, RtcLink } from './rtc';
 
-var linkTo = { name: null, statusMap: null };
-
 interface IConnectionStatusProps {
    rtc: Rtc;
 }
@@ -41,6 +39,11 @@ export class ServerConnectionStatus extends React.Component<IConnectionStatusPro
 
    onServerConnectionStateChange(status) {
       this.setState({ status: status });
+   }
+
+   UNSAFE_componentWillReceiveProps (nextProps) {
+      if (nextProps.rtc)
+         nextProps.rtc.onserverconnectionstatechange = this.onServerConnectionStateChange.bind(this);
    }
 
    render() {
@@ -70,12 +73,18 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
       this.state = { linkStatusMap: linkStatusMap}
    }
 
+   UNSAFE_componentWillReceiveProps(nextProps) {
+      if (nextProps.rtc) {
+         nextProps.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
+         nextProps.rtc.onremoteperson = this.onremoteperson.bind(this);
+      }
+   }
+
    onLinkStateChange(ev: Event, link: RtcLink) {
 
       // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
       if (!this.state.linkStatusMap.has(link.to.personId)) {
-         linkTo.statusMap = new Map();
-         linkTo.name = null;
+         var linkTo = { name: null, statusMap: new Map() };
          this.state.linkStatusMap.set(link.to.personId, linkTo);    
       } 
 
@@ -88,10 +97,10 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
       if (ev == null && personEntry.statusMap.has(link.to.sessionSubId)) {
          personEntry.statusMap.delete(link.to.sessionSubId);
 
-         // Remove the personMap entry if there are no sub keys
+         // Remove the person entry if there are no sub keys
          var iter = personEntry.statusMap.keys();
          if (iter.next().done)
-            personEntry.delete (link.to.personId);  
+            this.state.linkStatusMap.delete (link.to.personId);  
       }
 
       this.setState ({ linkStatusMap: this.state.linkStatusMap });
@@ -101,8 +110,7 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
 
       // we store a map, indexed by person Id
       if (!this.state.linkStatusMap.has(link.to.personId)) {
-         linkTo.statusMap = new Map();
-         linkTo.name = ev.name;
+         var linkTo = { name: ev.name, statusMap: new Map() };
          this.state.linkStatusMap.set(link.to.personId, linkTo);
       }
 
@@ -119,6 +127,7 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
 
    render() {
       var items = new Array();
+      var self = this;
 
       this.state.linkStatusMap.forEach((value, key, map) => {
          var allGreen = true, allRed = true, count = 0, name = value.name;
