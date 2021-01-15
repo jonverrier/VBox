@@ -50,13 +50,6 @@ const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px'
 };
 
-const thinStyleLeftMargin: CSS.Properties = {
-   marginTop: '0px', paddingTop: '0px',
-   marginBottom: '0px', paddingBottom: '0px',
-   marginLeft: '10px', paddingLeft: '0px',
-   marginRight: '2px', paddingRight: '0px',
-};
-
 const facilityNavStyle: CSS.Properties = {
    margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color : 'gray'
 };
@@ -84,6 +77,19 @@ const loginGroupStyle: CSS.Properties = {
 const fieldYSepStyle: CSS.Properties = {
    marginBottom: '10px'
 };
+
+const lpanelStyle: CSS.Properties = {
+   margin: '0px', padding: '0px'
+};
+
+const rpanelStyle: CSS.Properties = {
+   marginTop: '0px', paddingTop: '0px',
+   marginBottom: '0px', paddingBottom: '0px',
+   marginLeft: '10px', paddingLeft: '0px',
+   marginRight: '2px', paddingRight: '0px',
+   minHeight: '575px'
+};
+
 
 interface IMemberPageProps {
 }
@@ -211,11 +217,11 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
             <Container fluid style={pageStyle}>
                <Row style={thinStyle}>
-                  <Col style={thinStyle}>
+                  <Col style={lpanelStyle}>
                      <div style={placeholderStyle}>
                      </div>
                   </Col>
-                  <Col md='auto' style={thinStyleLeftMargin} minHeight='575px'>
+                  <Col md='auto' style={rpanelStyle}>
                      <Clock mm={Number('00')} ss={Number('00')} />
                      <br />
                      <Row>
@@ -395,11 +401,11 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
-                     <Col style={thinStyle}>
+                     <Col style={lpanelStyle}>
                         <div style={placeholderStyle}>
                         </div>
                      </Col>
-                     <Col md='auto' style={thinStyleLeftMargin} minHeight='575px'>
+                     <Col md='auto' style={rpanelStyle}>
                         <Clock mm={Number('00')} ss={Number('00')} />
                         <br />
                         <Row>

@@ -64074,12 +64074,6 @@ var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common
 var thinStyle = {
     margin: '0px', padding: '0px'
 };
-var thinStyleLeftMargin = {
-    marginTop: '0px', paddingTop: '0px',
-    marginBottom: '0px', paddingBottom: '0px',
-    marginLeft: '10px', paddingLeft: '0px',
-    marginRight: '2px', paddingRight: '0px',
-};
 var facilityNavStyle = {
     margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color: 'gray'
 };
@@ -64101,6 +64095,16 @@ var loginGroupStyle = {
 };
 var fieldYSepStyle = {
     marginBottom: '10px'
+};
+var lpanelStyle = {
+    margin: '0px', padding: '0px'
+};
+var rpanelStyle = {
+    marginTop: '0px', paddingTop: '0px',
+    marginBottom: '0px', paddingBottom: '0px',
+    marginLeft: '10px', paddingLeft: '0px',
+    marginRight: '2px', paddingRight: '0px',
+    minHeight: '575px'
 };
 var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
@@ -64181,9 +64185,9 @@ var MemberPage = /** @class */ (function (_super) {
                                 React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
-                    React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(Col_1.default, { style: lpanelStyle },
                         React.createElement("div", { style: placeholderStyle })),
-                    React.createElement(Col_1.default, { md: 'auto', style: thinStyleLeftMargin, minHeight: '575px' },
+                    React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                         React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
                         React.createElement("br", null),
                         React.createElement(Row_1.default, null,
@@ -64300,9 +64304,9 @@ var CoachPage = /** @class */ (function (_super) {
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.login.logOut }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
-                        React.createElement(Col_1.default, { style: thinStyle },
+                        React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement("div", { style: placeholderStyle })),
-                        React.createElement(Col_1.default, { md: 'auto', style: thinStyleLeftMargin, minHeight: '575px' },
+                        React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
                             React.createElement("br", null),
                             React.createElement(Row_1.default, null,
