@@ -121,7 +121,6 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
                                                                                // set it green as we have data flow.
 
       this.state.linkStatusMap.set(link.to.personId, personEntry);
-
       this.setState({ linkStatusMap: this.state.linkStatusMap });
    }
 

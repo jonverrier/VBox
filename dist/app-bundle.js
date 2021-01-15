@@ -64063,7 +64063,6 @@ var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_3 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var section_1 = __webpack_require__(/*! ./section */ "./client/section.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
 var call_status_1 = __webpack_require__(/*! ./call-status */ "./client/call-status.tsx");
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
@@ -64075,10 +64074,13 @@ var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common
 var thinStyle = {
     margin: '0px', padding: '0px'
 };
-var facilityNavStyle = {
-    margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color: 'gray'
+var thinStyleLeftMargin = {
+    marginTop: '0px', paddingTop: '0px',
+    marginBottom: '0px', paddingBottom: '0px',
+    marginLeft: '10px', paddingLeft: '0px',
+    marginRight: '2px', paddingRight: '0px',
 };
-var personNavStyle = {
+var facilityNavStyle = {
     margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color: 'gray'
 };
 var navbarBrandStyle = {
@@ -64088,10 +64090,9 @@ var pageStyle = {
     background: 'gray', color: 'white', margin: '0px', padding: '0px', minWidth: '320px', maxWidth: '*', alignItems: 'left'
 };
 var placeholderStyle = {
-    minHeight: '120px', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white'
-};
-var hiddenStyle = {
-    display: 'none'
+    minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
 };
 var loginGroupStyle = {
     borderLeftWidth: "2px",
@@ -64180,27 +64181,19 @@ var MemberPage = /** @class */ (function (_super) {
                                 React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
-                    React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
-                React.createElement(Row_1.default, null,
-                    React.createElement(section_1.SectionHeader, { name: "On the Whiteboard" })),
-                React.createElement(Row_1.default, null,
-                    React.createElement("div", { style: placeholderStyle })),
-                React.createElement("br", null),
-                React.createElement(Row_1.default, null,
-                    React.createElement(section_1.SectionHeader, { name: "In the Box" })),
-                React.createElement(Row_1.default, null,
-                    React.createElement("div", { style: placeholderStyle })),
-                React.createElement("br", null),
-                React.createElement(Row_1.default, null,
-                    React.createElement(section_1.SectionHeader, { name: "Athletes" })),
-                React.createElement("div", null,
-                    React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                    React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "Another Person with a Long Name", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                    React.createElement(Row_1.default, null,
-                        React.createElement(party_1.Party, { name: "A B", thumbnailUrl: "weightlifter-w-128x128.png" }))),
-                React.createElement("br", null))));
+                    React.createElement(Col_1.default, { style: thinStyle },
+                        React.createElement("div", { style: placeholderStyle })),
+                    React.createElement(Col_1.default, { md: 'auto', style: thinStyleLeftMargin, minHeight: '575px' },
+                        React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
+                        React.createElement("br", null),
+                        React.createElement(Row_1.default, null,
+                            React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "weightlifter-w-128x128.png" })),
+                        React.createElement(Row_1.default, null,
+                            React.createElement(party_1.Party, { name: "Person with a Long Name", thumbnailUrl: "weightlifter-w-128x128.png" })),
+                        React.createElement(Row_1.default, null,
+                            React.createElement(party_1.Party, { name: "Man1", thumbnailUrl: "weightlifter-w-128x128.png" })),
+                        React.createElement(Row_1.default, null,
+                            React.createElement(party_1.Party, { name: "Man2", thumbnailUrl: "weightlifter-w-128x128.png" })))))));
     };
     return MemberPage;
 }(React.Component));
@@ -64306,8 +64299,20 @@ var CoachPage = /** @class */ (function (_super) {
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.login.logOut }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
-                    React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
-                        React.createElement("h1", null, "Coach Page")))));
+                    React.createElement(Row_1.default, { style: thinStyle },
+                        React.createElement(Col_1.default, { style: thinStyle },
+                            React.createElement("div", { style: placeholderStyle })),
+                        React.createElement(Col_1.default, { md: 'auto', style: thinStyleLeftMargin, minHeight: '575px' },
+                            React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
+                            React.createElement("br", null),
+                            React.createElement(Row_1.default, null,
+                                React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "weightlifter-w-128x128.png" })),
+                            React.createElement(Row_1.default, null,
+                                React.createElement(party_1.Party, { name: "Person with a Long Name", thumbnailUrl: "weightlifter-w-128x128.png" })),
+                            React.createElement(Row_1.default, null,
+                                React.createElement(party_1.Party, { name: "Man1", thumbnailUrl: "weightlifter-w-128x128.png" })),
+                            React.createElement(Row_1.default, null,
+                                React.createElement(party_1.Party, { name: "Man2", thumbnailUrl: "weightlifter-w-128x128.png" })))))));
         }
     };
     return CoachPage;
@@ -64595,7 +64600,7 @@ var clockRowStyle = {
     margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center', lineHeight: '64px'
 };
 var clockStyle = {
-    color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '56px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
+    color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 exports.Clock = function (props) { return (React.createElement(Row_1.default, { style: { clockRowStyle: clockRowStyle } },
     React.createElement("p", { style: clockStyle },
@@ -64881,7 +64886,7 @@ var partySmallImageStyle = {
     marginLeft: '0px', marginRight: '0px', paddingLeft: '2px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '2px', marginBottom: '2px'
 };
 var partyNameStyle = {
-    fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px'
+    fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', wordBreak: 'break-all'
 };
 var partyBannerNameStyle = {
     fontSize: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center'
@@ -65566,44 +65571,6 @@ var Rtc = /** @class */ (function () {
     return Rtc;
 }());
 exports.Rtc = Rtc;
-
-
-/***/ }),
-
-/***/ "./client/section.tsx":
-/*!****************************!*\
-  !*** ./client/section.tsx ***!
-  \****************************/
-/*! flagged exports */
-/*! export SectionHeader [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_exports__, __webpack_require__ */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020 */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SectionHeader = void 0;
-var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js");
-var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
-var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
-var thinStyle = {
-    margin: '0px', padding: '0px'
-};
-var sectionHeaderRowStyle = {
-    lineHeight: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
-};
-var sectionNameStyle = {
-    fontSize: '24px', margin: '0px', padding: '0px'
-};
-exports.SectionHeader = function (props) { return (React.createElement("div", null,
-    React.createElement(Container_1.default, { fluid: true, style: thinStyle },
-        React.createElement(Row_1.default, { style: sectionHeaderRowStyle },
-            React.createElement(Col_1.default, { style: thinStyle },
-                React.createElement("p", { style: sectionNameStyle }, props.name)))))); };
 
 
 /***/ }),

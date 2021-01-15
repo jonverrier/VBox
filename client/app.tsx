@@ -50,12 +50,15 @@ const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px'
 };
 
-const facilityNavStyle: CSS.Properties = {
-   margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color : 'gray'
+const thinStyleLeftMargin: CSS.Properties = {
+   marginTop: '0px', paddingTop: '0px',
+   marginBottom: '0px', paddingBottom: '0px',
+   marginLeft: '10px', paddingLeft: '0px',
+   marginRight: '2px', paddingRight: '0px',
 };
 
-const personNavStyle: CSS.Properties = {
-   margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color: 'gray'
+const facilityNavStyle: CSS.Properties = {
+   margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color : 'gray'
 };
 
 const navbarBrandStyle: CSS.Properties = {
@@ -67,11 +70,9 @@ const pageStyle: CSS.Properties = {
 };
 
 const placeholderStyle: CSS.Properties = {
-   minHeight: '120px', minWidth: '320px', maxWidth: '*', color: 'white', background : 'white'
-};
-
-const hiddenStyle: CSS.Properties = {
-   display: 'none'
+   minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
+   backgroundImage: 'url("board.png")',
+   backgroundRepeat: 'repeat'
 };
 
 const loginGroupStyle: CSS.Properties = {
@@ -210,41 +211,27 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
             <Container fluid style={pageStyle}>
                <Row style={thinStyle}>
-                  <Clock mm={Number('00')} ss={Number('00')} />
+                  <Col style={thinStyle}>
+                     <div style={placeholderStyle}>
+                     </div>
+                  </Col>
+                  <Col md='auto' style={thinStyleLeftMargin} minHeight='575px'>
+                     <Clock mm={Number('00')} ss={Number('00')} />
+                     <br />
+                     <Row>
+                        <Party name="Another Person" thumbnailUrl="weightlifter-w-128x128.png" />
+                     </Row>
+                     <Row>
+                        <Party name="Person with a Long Name" thumbnailUrl="weightlifter-w-128x128.png" />
+                     </Row>
+                     <Row>
+                        <Party name="Man1" thumbnailUrl="weightlifter-w-128x128.png" />
+                     </Row>
+                     <Row>
+                        <Party name="Man2" thumbnailUrl="weightlifter-w-128x128.png" />
+                     </Row>
+                  </Col>
                </Row>
-               <Row >
-                  <SectionHeader name="On the Whiteboard" />
-               </Row>
-               <Row>
-                  <div style={placeholderStyle}>
-                  </div>
-               </Row>
-               <br />
-
-               <Row >
-                  <SectionHeader name="In the Box" />
-               </Row>
-               <Row>
-                  <div style={placeholderStyle}>
-                  </div>
-               </Row>
-               <br />
-
-               <Row >
-                  <SectionHeader name="Athletes" />
-               </Row>
-               <div>
-               <Row>
-                  <Party name="Another Person" thumbnailUrl="weightlifter-w-128x128.png" />
-               </Row>
-               <Row>
-                  <Party name="Another Person with a Long Name" thumbnailUrl="weightlifter-w-128x128.png" />
-               </Row>
-               <Row>
-                  <Party name="A B" thumbnailUrl="weightlifter-w-128x128.png" />
-               </Row>
-               </div>
-               <br />
             </Container>
          </div>
       );
@@ -407,9 +394,28 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                </Navbar>
 
                <Container fluid style={pageStyle}>
-                  <Jumbotron style={{ background: 'gray', color: 'white' }}>
-                     <h1>Coach Page</h1>
-                  </Jumbotron>
+                  <Row style={thinStyle}>
+                     <Col style={thinStyle}>
+                        <div style={placeholderStyle}>
+                        </div>
+                     </Col>
+                     <Col md='auto' style={thinStyleLeftMargin} minHeight='575px'>
+                        <Clock mm={Number('00')} ss={Number('00')} />
+                        <br />
+                        <Row>
+                           <Party name="Another Person" thumbnailUrl="weightlifter-w-128x128.png" />
+                        </Row>
+                        <Row>
+                           <Party name="Person with a Long Name" thumbnailUrl="weightlifter-w-128x128.png" />
+                        </Row>
+                        <Row>
+                           <Party name="Man1" thumbnailUrl="weightlifter-w-128x128.png" />
+                        </Row>
+                        <Row>
+                           <Party name="Man2" thumbnailUrl="weightlifter-w-128x128.png" />
+                        </Row>
+                     </Col>
+                  </Row>
                </Container>
             </div>
          );

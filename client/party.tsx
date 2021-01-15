@@ -23,11 +23,11 @@ const partySmallImageStyle: CSS.Properties = {
 };
 
 const partyNameStyle: CSS.Properties = {
-   fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px' 
+   fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', wordBreak: 'break-all'
 };
 
 const partyBannerNameStyle: CSS.Properties = {
-   fontSize: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center' 
+   fontSize: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center'
 };
 
 const partyRowStyle: CSS.Properties = {
