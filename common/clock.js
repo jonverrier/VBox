@@ -143,8 +143,8 @@ var ClockTimer = (function invocation() {
          case clockType.CountUp:
             now = new Date();
             seconds = (now.getTime() - this.start.getTime()) / 1000;
-            mm = Math.floor(seconds / 60);;
-            ss = seconds - (mm * 60);
+            mm = Math.floor(seconds / 60);
+            ss = seconds - Math.floor(mm * 60);
             this.mm = ("00" + mm).slice(-2);
             this.ss = ("00" + ss).slice(-2);
             if (this.onTick)
@@ -152,6 +152,12 @@ var ClockTimer = (function invocation() {
             break;
 
          case clockType.CountDown:
+            now = new Date();
+            seconds = (now.getTime() - this.start.getTime()) / 1000;
+            mm = this.clock.countTo - (Math.floor(seconds / 60)) - 1;
+            ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
+            this.mm = ("00" + mm).slice(-2);
+            this.ss = ("00" + ss).slice(-2);
             if (this.onTick)
                this.onTick();
             break;
