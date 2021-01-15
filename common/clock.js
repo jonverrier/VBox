@@ -126,7 +126,7 @@ var ClockTimer = (function invocation() {
    };
 
    ClockTimer.prototype.tick = function () {
-      var now, mm, ss;
+      var now, mm, ss, seconds;
 
       switch (this.clock.__type) {
          default:
@@ -135,12 +135,18 @@ var ClockTimer = (function invocation() {
             mm = now.getMinutes();
             ss = now.getSeconds();
             this.mm = ("00" + mm).slice(-2);
-            this.ss = ("00" + mm).slice(-2);
+            this.ss = ("00" + ss).slice(-2);
             if (this.onTick)
                this.onTick();
             break;
 
          case clockType.CountUp:
+            now = new Date();
+            seconds = (now.getTime() - this.start.getTime()) / 1000;
+            mm = Math.floor(seconds / 60);;
+            ss = seconds - (mm * 60);
+            this.mm = ("00" + mm).slice(-2);
+            this.ss = ("00" + ss).slice(-2);
             if (this.onTick)
                this.onTick();
             break;
