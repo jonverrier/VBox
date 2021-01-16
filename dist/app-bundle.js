@@ -64059,10 +64059,8 @@ var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/rea
 var react_helmet_1 = __webpack_require__(/*! react-helmet */ "./node_modules/react-helmet/es/Helmet.js");
 var react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/esm/react-router-dom.js");
 var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-// This app
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var party_3 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
 var call_status_1 = __webpack_require__(/*! ./call-status */ "./client/call-status.tsx");
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
@@ -64166,7 +64164,7 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Nav_1.default, { className: "mr-auto" },
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_3.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                React.createElement(party_2.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "left" },
                                 React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
@@ -64179,7 +64177,7 @@ var MemberPage = /** @class */ (function (_super) {
                             React.createElement(call_status_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_3.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                             React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                 React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
@@ -64190,14 +64188,7 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                         React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
                         React.createElement("br", null),
-                        React.createElement(Row_1.default, null,
-                            React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                        React.createElement(Row_1.default, null,
-                            React.createElement(party_1.Party, { name: "Person with a Long Name", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                        React.createElement(Row_1.default, null,
-                            React.createElement(party_1.Party, { name: "Man1", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                        React.createElement(Row_1.default, null,
-                            React.createElement(party_1.Party, { name: "Man2", thumbnailUrl: "weightlifter-w-128x128.png" })))))));
+                        React.createElement(call_status_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
     };
     return MemberPage;
 }(React.Component));
@@ -64266,7 +64257,7 @@ var CoachPage = /** @class */ (function (_super) {
                     React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_2.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                        React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
@@ -64285,7 +64276,7 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(party_3.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
@@ -64298,7 +64289,7 @@ var CoachPage = /** @class */ (function (_super) {
                                 React.createElement(call_status_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(party_3.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.login.logOut }, "Sign Out...")))))),
@@ -64309,14 +64300,7 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
                             React.createElement("br", null),
-                            React.createElement(Row_1.default, null,
-                                React.createElement(party_1.Party, { name: "Another Person", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                            React.createElement(Row_1.default, null,
-                                React.createElement(party_1.Party, { name: "Person with a Long Name", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                            React.createElement(Row_1.default, null,
-                                React.createElement(party_1.Party, { name: "Man1", thumbnailUrl: "weightlifter-w-128x128.png" })),
-                            React.createElement(Row_1.default, null,
-                                React.createElement(party_1.Party, { name: "Man2", thumbnailUrl: "weightlifter-w-128x128.png" })))))));
+                            React.createElement(call_status_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
         }
     };
     return CoachPage;
@@ -64366,7 +64350,7 @@ var LoginPage = /** @class */ (function (_super) {
                 React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: facilityNavStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_2.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                    React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                     React.createElement("h1", null, "Welcome!"),
@@ -64441,9 +64425,10 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LinkConnectionStatus = exports.ServerConnectionStatus = void 0;
+exports.RemotePeople = exports.LinkConnectionStatus = exports.PartyMap = exports.ServerConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
+var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
 var ServerConnectionStatus = /** @class */ (function (_super) {
@@ -64478,6 +64463,38 @@ var ServerConnectionStatus = /** @class */ (function (_super) {
     return ServerConnectionStatus;
 }(React.Component));
 exports.ServerConnectionStatus = ServerConnectionStatus;
+var PartyMap = /** @class */ (function () {
+    function PartyMap() {
+        this.map = new Map();
+        this.count = 0;
+    }
+    PartyMap.prototype.hasParty = function (key) {
+        return this.map.has(key);
+    };
+    PartyMap.prototype.getPartyData = function (key) {
+        return this.map.get(key);
+    };
+    PartyMap.prototype.addPartyData = function (key, data) {
+        if (!this.map.get(key))
+            this.count++;
+        this.map.set(key, data);
+        return this.map.get(key);
+    };
+    PartyMap.prototype.deletePartyData = function (key) {
+        if (!this.map.get(key))
+            this.count--;
+        this.map.delete(key);
+    };
+    PartyMap.prototype.forEach = function (fn) {
+        this.map.forEach(fn);
+    };
+    PartyMap.prototype.getCount = function () {
+        return this.count;
+    };
+    return PartyMap;
+}());
+exports.PartyMap = PartyMap;
+;
 var LinkConnectionStatus = /** @class */ (function (_super) {
     __extends(LinkConnectionStatus, _super);
     function LinkConnectionStatus(props) {
@@ -64486,8 +64503,8 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
             props.rtc.onlinkstatechange = _this.onLinkStateChange.bind(_this);
             props.rtc.onremoteperson = _this.onremoteperson.bind(_this);
         }
-        var linkStatusMap = new Map();
-        _this.state = { linkStatusMap: linkStatusMap };
+        var partyMap = new PartyMap();
+        _this.state = { partyMap: partyMap };
         return _this;
     }
     LinkConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
@@ -64497,42 +64514,44 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         }
     };
     LinkConnectionStatus.prototype.onLinkStateChange = function (ev, link) {
+        var partyData;
         // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-        if (!this.state.linkStatusMap.has(link.to.personId)) {
-            var linkTo = { name: null, statusMap: new Map() };
-            this.state.linkStatusMap.set(link.to.personId, linkTo);
+        if (!this.state.partyMap.hasParty(link.to.personId)) {
+            partyData = { name: null, statusMap: new Map() };
+            this.state.partyMap.addPartyData(link.to.personId, partyData);
         }
-        var personEntry = this.state.linkStatusMap.get(link.to.personId);
+        partyData = this.state.partyMap.getPartyData(link.to.personId);
         // The person map then stores a staus map, indexed by sessionSubId, that stores link status
-        personEntry.statusMap.set(link.to.sessionSubId, link.linkStatus);
+        partyData.statusMap.set(link.to.sessionSubId, link.linkStatus);
         // Finally, if event is null, its a removal
-        if (ev == null && personEntry.statusMap.has(link.to.sessionSubId)) {
-            personEntry.statusMap.delete(link.to.sessionSubId);
+        if (ev == null && partyData.statusMap.has(link.to.sessionSubId)) {
+            partyData.statusMap.delete(link.to.sessionSubId);
             // Remove the person entry if there are no sub keys
-            var iter = personEntry.statusMap.keys();
+            var iter = partyData.statusMap.keys();
             if (iter.next().done)
-                this.state.linkStatusMap.delete(link.to.personId);
+                this.state.partyMap.deletePartyData(link.to.personId);
         }
-        this.setState({ linkStatusMap: this.state.linkStatusMap });
+        this.setState({ partyMap: this.state.partyMap });
     };
     LinkConnectionStatus.prototype.onremoteperson = function (ev, link) {
-        // we store a map, indexed by person Id
-        if (!this.state.linkStatusMap.has(link.to.personId)) {
-            var linkTo = { name: ev.name, statusMap: new Map() };
-            this.state.linkStatusMap.set(link.to.personId, linkTo);
+        var partyData;
+        // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+        if (!this.state.partyMap.hasParty(link.to.personId)) {
+            partyData = { name: null, statusMap: new Map() };
+            this.state.partyMap.addPartyData(link.to.personId, partyData);
         }
         // Store the new name back in state
-        var personEntry = this.state.linkStatusMap.get(link.to.personId);
-        personEntry.name = ev.name;
-        personEntry.statusMap.set(link.to.sessionSubId, enum_js_1.FourStateRagEnum.Green); // Irrespective of previous link status, 
+        partyData = this.state.partyMap.getPartyData(link.to.personId);
+        partyData.name = ev.name;
+        partyData.statusMap.set(link.to.sessionSubId, enum_js_1.FourStateRagEnum.Green); // Irrespective of previous link status, 
         // set it green as we have data flow.
-        this.state.linkStatusMap.set(link.to.personId, personEntry);
-        this.setState({ linkStatusMap: this.state.linkStatusMap });
+        this.state.partyMap.addPartyData(link.to.personId, partyData);
+        this.setState({ partyMap: this.state.partyMap });
     };
     LinkConnectionStatus.prototype.render = function () {
         var items = new Array();
         var self = this;
-        this.state.linkStatusMap.forEach(function (value, key, map) {
+        this.state.partyMap.forEach(function (value, key, map) {
             var allGreen = true, allRed = true, count = 0, name = value.name;
             value.statusMap.forEach(function (valueInner, keyInner, mapInner) {
                 if (valueInner === enum_js_1.FourStateRagEnum.Green) {
@@ -64575,6 +64594,58 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
     return LinkConnectionStatus;
 }(React.Component));
 exports.LinkConnectionStatus = LinkConnectionStatus;
+var RemotePeople = /** @class */ (function (_super) {
+    __extends(RemotePeople, _super);
+    function RemotePeople(props) {
+        var _this = _super.call(this, props) || this;
+        if (props.rtc) {
+            props.rtc.onremotedata = _this.onremotedata.bind(_this);
+        }
+        var partyMap = new PartyMap();
+        _this.state = { partyMap: partyMap };
+        return _this;
+    }
+    RemotePeople.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc) {
+            nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+        }
+    };
+    RemotePeople.prototype.onremotedata = function (ev, link) {
+        var partyData;
+        // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+        if (!this.state.partyMap.hasParty(link.to.personId)) {
+            partyData = { name: 'Unknown' };
+            this.state.partyMap.addPartyData(link.to.personId, partyData);
+        }
+        // Store the new name back in state
+        partyData = this.state.partyMap.getPartyData(link.to.personId);
+        partyData.name = ev.name;
+        this.state.partyMap.addPartyData(link.to.personId, partyData);
+        this.setState({ partyMap: this.state.partyMap });
+    };
+    RemotePeople.prototype.render = function () {
+        var items = new Array();
+        var self = this;
+        this.state.partyMap.forEach(function (value, key, map) {
+            var newItem = { key: key, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
+            items.push(newItem);
+        });
+        if (this.state.partyMap.getCount() === 0) {
+            return (React.createElement(Row_1.default, null,
+                React.createElement(party_1.PartyNoImage, { name: 'No-one else is connected.' })));
+        }
+        else {
+            return (React.createElement("div", null,
+                items.map(function (item) {
+                    return React.createElement(Row_1.default, null,
+                        React.createElement(party_1.Party, { name: item.name, thumbnailUrl: item.thumbnailUrl }));
+                }),
+                "  "));
+        }
+    };
+    return RemotePeople;
+}(React.Component));
+exports.RemotePeople = RemotePeople;
 
 
 /***/ }),
@@ -64864,6 +64935,7 @@ exports.LoginMc = LoginMc;
 /*! export Party [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export PartyBanner [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export PartyCaption [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export PartyNoImage [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export PartySmall [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
@@ -64873,7 +64945,7 @@ exports.LoginMc = LoginMc;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PartySmall = exports.PartyCaption = exports.Party = exports.PartyBanner = void 0;
+exports.PartySmall = exports.PartyCaption = exports.PartyNoImage = exports.Party = exports.PartyBanner = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /*! Copyright TXPCo, 2020 */
 var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js");
@@ -64909,6 +64981,10 @@ exports.Party = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
+            React.createElement("p", { style: partyNameStyle }, props.name))))); };
+exports.PartyNoImage = function (props) { return (React.createElement("div", null,
+    React.createElement(Container_1.default, { style: thinStyle },
+        React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement("p", { style: partyNameStyle }, props.name))))); };
 exports.PartyCaption = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
@@ -65474,7 +65550,7 @@ var Rtc = /** @class */ (function () {
         sender.onremoteperson = function (ev) { if (self.onremoteperson)
             self.onremoteperson(ev, link); };
         sender.onremotedata = function (ev) { if (self.onremotedata)
-            self.onremotedata(ev); };
+            self.onremotedata(ev, link); };
         // Hook so if remote closes, we close down links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
@@ -65507,7 +65583,7 @@ var Rtc = /** @class */ (function () {
         reciever.onremoteperson = function (ev) { if (self.onremoteperson)
             self.onremoteperson(ev, link); };
         reciever.onremotedata = function (ev) { if (self.onremotedata)
-            self.onremotedata(ev); };
+            self.onremotedata(ev, link); };
         // Hook so if remote closes, we close down links this side
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);

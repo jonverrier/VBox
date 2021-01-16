@@ -543,7 +543,7 @@ export class Rtc {
    onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
    onlinkstatechange: ((this: Rtc, ev: Event, link: RtcLink) => any) | null;
    onremoteperson: ((this: Rtc, ev: Person, link: RtcLink) => any) | null;
-   onremotedata: ((this: Rtc, ev: Event) => any) | null;
+   onremotedata: ((this: Rtc, ev: Event, link: RtcLink) => any) | null;
 
    connectFirst() {
       this.connect();
@@ -648,7 +648,7 @@ export class Rtc {
 
       // Hooks to pass up data
       sender.onremoteperson = (ev) => { if (self.onremoteperson) self.onremoteperson(ev, link); };
-      sender.onremotedata = (ev) => { if (self.onremotedata) self.onremotedata(ev); };
+      sender.onremotedata = (ev) => { if (self.onremotedata) self.onremotedata(ev, link); };
 
       // Hook so if remote closes, we close down links this side
       sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
@@ -686,7 +686,7 @@ export class Rtc {
 
       // Hooks to pass up data
       reciever.onremoteperson = (ev) => { if (self.onremoteperson) self.onremoteperson(ev, link); };
-      reciever.onremotedata = (ev) => { if (self.onremotedata) self.onremotedata(ev); };
+      reciever.onremotedata = (ev) => { if (self.onremotedata) self.onremotedata(ev, link); };
 
       // Hook so if remote closes, we close down links this side
       reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };

@@ -3,31 +3,31 @@
 /*global exports*/
 /*! Copyright TXPCo, 2020 */
 
-var Enum = require('../common/enum.js').Enum;
+var Enum = require('./enum.js').Enum;
 
 const clockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
 
 //==============================//
-// Clock class
+// WorkoutClockSpec class
 //==============================//
-var Clock = (function invocation() {
+var WorkoutClockSpec = (function invocation() {
    "use strict";
 
   /**
-   * Create a Clock object 
+   * Create a WorkoutClockSpec object
    */
-   function Clock() {
+   function WorkoutClockSpec() {
       this.clockType = clockType.Wall;
    }
    
-   Clock.prototype.__type = "Clock";
+   WorkoutClockSpec.prototype.__type = "Clock";
 
   /**
    * test for equality - checks all fields are the same. 
    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
    * @param rhs - the object to compare this one to.  
    */
-   Clock.prototype.equals = function (rhs) {
+   WorkoutClockSpec.prototype.equals = function (rhs) {
 
       return (this.clockType === rhs.clockType
          && this.countTo === rhs.countTo
@@ -36,7 +36,7 @@ var Clock = (function invocation() {
          && this.period2 === rhs.period2); 
    };
 
-   Clock.prototype.setWall = function () {
+   WorkoutClockSpec.prototype.setWall = function () {
 
       this.clockType = clockType.Wall;
       this.countTo = null;
@@ -45,7 +45,7 @@ var Clock = (function invocation() {
       this.period2 = null;
    };
 
-   Clock.prototype.setCountUp = function (countTo) {
+   WorkoutClockSpec.prototype.setCountUp = function (countTo) {
 
       this.clockType = clockType.CountUp;
       this.countTo = countTo;
@@ -54,7 +54,7 @@ var Clock = (function invocation() {
       this.period2 = null;
    };
 
-   Clock.prototype.setCountDown = function (countTo) {
+   WorkoutClockSpec.prototype.setCountDown = function (countTo) {
 
       this.clockType = clockType.CountDown;
       this.countTo = countTo;
@@ -63,7 +63,7 @@ var Clock = (function invocation() {
       this.period2 = null;
    };
 
-   Clock.prototype.setInterval = function (intervals, period1, period2) {
+   WorkoutClockSpec.prototype.setInterval = function (intervals, period1, period2) {
 
       this.clockType = clockType.Interval;
       this.intervals = intervals;
@@ -72,40 +72,40 @@ var Clock = (function invocation() {
       this.countTo = null;
    };
 
-   return Clock;
+   return WorkoutClockSpec;
 }());
 
 //==============================//
-// ClockTimer class
+// WorkoutClock class
 //==============================//
-var ClockTimer = (function invocation() {
+var WorkoutClock = (function invocation() {
    "use strict";
 
    /**
-    * Create a ClockTimer object 
+    * Create a WorkoutClock object
     */
-   function ClockTimer(clock) {
+   function WorkoutClock(clock) {
       this.clock = clock;
       this.mm = '00';
       this.ss = '00';
       this.running = false;
    }
 
-   ClockTimer.prototype.__type = "ClockTimer";
+   WorkoutClock.prototype.__type = "ClockTimer";
 
    /**
     * test for equality - checks all fields are the same. 
     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
     * @param rhs - the object to compare this one to.  
     */
-   ClockTimer.prototype.equals = function (rhs) {
+   WorkoutClock.prototype.equals = function (rhs) {
 
       return (this.clock.equals(rhs.clock)
          && this.mm === rhs.hh
          && this.ss === rhs.mm);
    };
 
-   ClockTimer.prototype.start = function (onTick, onSignalEnd) {
+   WorkoutClock.prototype.start = function (onTick, onSignalEnd) {
       this.start = new Date();
 
       this.ticker = setInterval(this.tick, 1000); 
@@ -114,18 +114,18 @@ var ClockTimer = (function invocation() {
       this.tick();
    };
 
-   ClockTimer.prototype.stop = function () {
+   WorkoutClock.prototype.stop = function () {
       if (this.ticker) {
          clearInterval(this.ticker);
          this.ticker = null;
       }
    };
 
-   ClockTimer.prototype.startTime = function () {
+   WorkoutClock.prototype.startTime = function () {
       return this.start;
    };
 
-   ClockTimer.prototype.tick = function () {
+   WorkoutClock.prototype.tick = function () {
       var now, mm, ss, seconds;
 
       switch (this.clock.__type) {
@@ -163,18 +163,32 @@ var ClockTimer = (function invocation() {
             break;
 
          case clockType.Interval:
+            // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
+            now = new Date();
+            seconds = (now.getTime() - this.start.getTime()) / 1000;
+            mm = Math.floor(seconds / 60);
+            ss = seconds - Math.floor(mm * 60);
+
+            for (var i = 0; i < this.clock.intervals; i++) {
+               if (mm > this.clock.period1)
+                  mm -= this.clock.period1;
+               if (mm > this.clock.period2)
+                  mm -= this.clock.period2;
+            }
+            this.mm = ("00" + mm).slice(-2);
+            this.ss = ("00" + ss).slice(-2);
             if (this.onTick)
                this.onTick();
             break;
       }
    };
 
-   return ClockTimer;
+   return WorkoutClock;
 }());
 
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
-   exports.Clock = Clock;
-   exports.ClockTimer = ClockTimer;
+   exports.WorkoutClockSpec = WorkoutClockSpec;
+   exports.WorkoutClock = WorkoutClock;
 }

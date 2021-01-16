@@ -32,7 +32,7 @@ import { PartyBanner } from './party';
 import { PartySmall } from './party';
 import { SectionHeader } from './section';
 import { Clock } from './clock';
-import { ServerConnectionStatus, LinkConnectionStatus } from './call-status';
+import { ServerConnectionStatus, LinkConnectionStatus, RemotePeople } from './call-status';
 import { LoginFb } from './loginfb';
 import { LoginMc } from './loginmc';
 import { IRtcProps } from './rtc';
@@ -224,18 +224,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   <Col md='auto' style={rpanelStyle}>
                      <Clock mm={Number('00')} ss={Number('00')} />
                      <br />
-                     <Row>
-                        <Party name="Another Person" thumbnailUrl="weightlifter-w-128x128.png" />
-                     </Row>
-                     <Row>
-                        <Party name="Person with a Long Name" thumbnailUrl="weightlifter-w-128x128.png" />
-                     </Row>
-                     <Row>
-                        <Party name="Man1" thumbnailUrl="weightlifter-w-128x128.png" />
-                     </Row>
-                     <Row>
-                        <Party name="Man2" thumbnailUrl="weightlifter-w-128x128.png" />
-                     </Row>
+                     <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                   </Col>
                </Row>
             </Container>
@@ -408,18 +397,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <Col md='auto' style={rpanelStyle}>
                         <Clock mm={Number('00')} ss={Number('00')} />
                         <br />
-                        <Row>
-                           <Party name="Another Person" thumbnailUrl="weightlifter-w-128x128.png" />
-                        </Row>
-                        <Row>
-                           <Party name="Person with a Long Name" thumbnailUrl="weightlifter-w-128x128.png" />
-                        </Row>
-                        <Row>
-                           <Party name="Man1" thumbnailUrl="weightlifter-w-128x128.png" />
-                        </Row>
-                        <Row>
-                           <Party name="Man2" thumbnailUrl="weightlifter-w-128x128.png" />
-                        </Row>
+                        <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                      </Col>
                   </Row>
                </Container>

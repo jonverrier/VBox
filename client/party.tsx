@@ -60,6 +60,16 @@ export const Party = (props: { name: string, thumbnailUrl: string }) => (
    </div>
 );
 
+export const PartyNoImage = (props: { name: string } ) => (
+   <div>
+      <Container style={thinStyle}>
+         <Row style={partyRowStyle}>
+            <p style={partyNameStyle}>{props.name}</p>
+         </Row>
+      </Container>
+   </div>
+);
+
 export const PartyCaption = (props: { name: string, caption: string, thumbnailUrl: string }) => (
    <div>
       <Container style={thinStyle}>
