@@ -9,10 +9,11 @@ declare var require: any
 import * as React from 'react';
 
 import Dropdown from 'react-bootstrap/Dropdown';
- 
+import Row from 'react-bootstrap/Row';
+
 // This app
 import { Person } from '../common/person';
-import { PartySmall, PartyCaption } from './party';
+import { Party, PartySmall, PartyCaption, PartyNoImage } from './party';
 import { FourStateRagEnum } from '../common/enum.js';
 import { Rtc, RtcLink } from './rtc';
 
@@ -22,10 +23,6 @@ interface IConnectionStatusProps {
 
 interface IServerConnectionStatusState {
    status: any;
-}
-
-interface ILinkConnectionStatusState {
-   linkStatusMap: Map<string, any>;
 }
 
 export class ServerConnectionStatus extends React.Component<IConnectionStatusProps, IServerConnectionStatusState> {
@@ -61,6 +58,52 @@ export class ServerConnectionStatus extends React.Component<IConnectionStatusPro
    }
 }
 
+
+export class PartyMap {
+   map: Map<string, any>;
+   count: number;
+
+   constructor() {
+      this.map = new Map<string, any>();
+      this.count = 0;
+   }
+
+   hasParty(key: string) : boolean {
+      return this.map.has(key);
+   }
+
+   getPartyData(key: string): any {      
+      return this.map.get(key);
+   }
+
+   addPartyData(key: string, data: any): any {
+      if (! this.map.get(key))
+         this.count++;
+      this.map.set(key, data);
+
+      return this.map.get(key);
+   }
+
+   deletePartyData(key: string) {
+      if (!this.map.get(key))
+         this.count--;
+      this.map.delete(key);
+   }
+
+   forEach(fn) {
+      this.map.forEach(fn);
+   }
+
+   getCount () : number {
+      return this.count;
+   }
+};
+
+
+interface ILinkConnectionStatusState {
+   partyMap: PartyMap;
+}
+
 export class LinkConnectionStatus extends React.Component<IConnectionStatusProps, ILinkConnectionStatusState> {
 
    constructor(props: IConnectionStatusProps) {
@@ -69,8 +112,8 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
          props.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
          props.rtc.onremoteperson = this.onremoteperson.bind(this);
       }
-      var linkStatusMap = new Map<string, any>();
-      this.state = { linkStatusMap: linkStatusMap}
+      var partyMap = new PartyMap();
+      this.state = { partyMap: partyMap}
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
@@ -81,54 +124,56 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
    }
 
    onLinkStateChange(ev: Event, link: RtcLink) {
+      var partyData;
 
       // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-      if (!this.state.linkStatusMap.has(link.to.personId)) {
-         var linkTo = { name: null, statusMap: new Map() };
-         this.state.linkStatusMap.set(link.to.personId, linkTo);    
+      if (!this.state.partyMap.hasParty(link.to.personId)) {
+         partyData = { name: null, statusMap: new Map()};
+         this.state.partyMap.addPartyData(link.to.personId, partyData);   
       } 
 
-      var personEntry = this.state.linkStatusMap.get(link.to.personId);
+      partyData = this.state.partyMap.getPartyData (link.to.personId);
 
       // The person map then stores a staus map, indexed by sessionSubId, that stores link status
-      personEntry.statusMap.set(link.to.sessionSubId, link.linkStatus);
+      partyData.statusMap.set(link.to.sessionSubId, link.linkStatus);
 
       // Finally, if event is null, its a removal
-      if (ev == null && personEntry.statusMap.has(link.to.sessionSubId)) {
-         personEntry.statusMap.delete(link.to.sessionSubId);
+      if (ev == null && partyData.statusMap.has(link.to.sessionSubId)) {
+         partyData.statusMap.delete(link.to.sessionSubId);
 
          // Remove the person entry if there are no sub keys
-         var iter = personEntry.statusMap.keys();
+         var iter = partyData.statusMap.keys();
          if (iter.next().done)
-            this.state.linkStatusMap.delete (link.to.personId);  
+            this.state.partyMap.deletePartyData (link.to.personId);  
       }
 
-      this.setState ({ linkStatusMap: this.state.linkStatusMap });
+      this.setState({ partyMap: this.state.partyMap });
    }
 
    onremoteperson(ev: Person, link: RtcLink) {
+      var partyData;
 
-      // we store a map, indexed by person Id
-      if (!this.state.linkStatusMap.has(link.to.personId)) {
-         var linkTo = { name: ev.name, statusMap: new Map() };
-         this.state.linkStatusMap.set(link.to.personId, linkTo);
-      }
+      // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+      if (!this.state.partyMap.hasParty(link.to.personId)) {
+         partyData = { name: null, statusMap: new Map() };
+         this.state.partyMap.addPartyData(link.to.personId, partyData);
+      } 
 
       // Store the new name back in state
-      var personEntry = this.state.linkStatusMap.get(link.to.personId);
-      personEntry.name = ev.name;
-      personEntry.statusMap.set(link.to.sessionSubId, FourStateRagEnum.Green); // Irrespective of previous link status, 
+      partyData = this.state.partyMap.getPartyData(link.to.personId);
+      partyData.name = ev.name;
+      partyData.statusMap.set(link.to.sessionSubId, FourStateRagEnum.Green); // Irrespective of previous link status, 
                                                                                // set it green as we have data flow.
 
-      this.state.linkStatusMap.set(link.to.personId, personEntry);
-      this.setState({ linkStatusMap: this.state.linkStatusMap });
+      this.state.partyMap.addPartyData (link.to.personId, partyData);
+      this.setState({ partyMap: this.state.partyMap });
    }
 
    render() {
       var items = new Array();
       var self = this;
 
-      this.state.linkStatusMap.forEach((value, key, map) => {
+      this.state.partyMap.forEach((value, key, map) => {
          var allGreen = true, allRed = true, count = 0, name = value.name;
 
          value.statusMap.forEach((valueInner, keyInner, mapInner) => {
@@ -177,6 +222,72 @@ export class LinkConnectionStatus extends React.Component<IConnectionStatusProps
                {items.map((item) => <Dropdown.ItemText key={item.key}><PartyCaption name={item.name} caption={item.caption} thumbnailUrl={item.thumbnailUrl} />
                </Dropdown.ItemText>)}
             </Dropdown.Menu >
+         );
+      }
+   }
+}
+
+interface IRemotePeopleState {
+   partyMap: PartyMap;
+}
+
+export class RemotePeople extends React.Component<IConnectionStatusProps, IRemotePeopleState> {
+
+   constructor(props: IConnectionStatusProps) {
+      super(props);
+      if (props.rtc) {
+         props.rtc.onremotedata = this.onremotedata.bind(this);
+      }
+      var partyMap = new PartyMap();
+      this.state = { partyMap: partyMap }
+   }
+
+   UNSAFE_componentWillReceiveProps(nextProps) {
+      if (nextProps.rtc) {
+         nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+      }
+   }
+
+   onremotedata(ev: Person, link: RtcLink) {
+      var partyData;
+
+      // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+      if (!this.state.partyMap.hasParty(link.to.personId)) {
+         partyData = { name: 'Unknown' };
+         this.state.partyMap.addPartyData(link.to.personId, partyData);
+      }
+
+      // Store the new name back in state
+      partyData = this.state.partyMap.getPartyData(link.to.personId);
+      partyData.name = ev.name;
+      this.state.partyMap.addPartyData(link.to.personId, partyData);
+
+      this.setState({ partyMap: this.state.partyMap });
+   }
+
+   render() {
+      var items = new Array();
+      var self = this;
+
+      this.state.partyMap.forEach((value, key, map) => {
+         let newItem = { key: key, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
+         items.push(newItem);
+      });
+
+      if (this.state.partyMap.getCount() === 0) {
+         return (
+            <Row>
+               <PartyNoImage name={'No-one else is connected.'} /> 
+            </Row>
+         );
+      } else {
+         return (<div>
+            {
+               items.map((item) =>
+                  <Row>
+                     <Party name={item.name} thumbnailUrl={item.thumbnailUrl} />
+                  </Row>)
+            }  </div>                                                               
          );
       }
    }
