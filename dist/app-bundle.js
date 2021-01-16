@@ -64637,7 +64637,7 @@ var RemotePeople = /** @class */ (function (_super) {
         else {
             return (React.createElement("div", null,
                 items.map(function (item) {
-                    return React.createElement(Row_1.default, null,
+                    return React.createElement(Row_1.default, { key: item.key },
                         React.createElement(party_1.Party, { name: item.name, thumbnailUrl: item.thumbnailUrl }));
                 }),
                 "  "));
