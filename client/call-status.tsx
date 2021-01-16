@@ -284,7 +284,7 @@ export class RemotePeople extends React.Component<IConnectionStatusProps, IRemot
          return (<div>
             {
                items.map((item) =>
-                  <Row>
+                  <Row key={item.key}>
                      <Party name={item.name} thumbnailUrl={item.thumbnailUrl} />
                   </Row>)
             }  </div>                                                               
