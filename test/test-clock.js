@@ -6,6 +6,9 @@ if (typeof exports !== 'undefined') {
    var clockModule = require('../common/workout-clock.js');
    var WorkoutClockSpec = clockModule.WorkoutClockSpec;
    var WorkoutClock = clockModule.WorkoutClock;
+   var typesModule = require('../common/types.js');
+   var TypeRegistry = typesModule.TypeRegistry;
+
    var expect = require("chai").expect;
 }
 
@@ -36,6 +39,17 @@ describe("WorkoutClockSpec", function () {
       expect(spec3.intervals).to.equal(4); 
       expect(spec3.period1).to.equal(3); 
       expect(spec3.period2).to.equal(1); 
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(spec1);
+
+      var obj = types.reviveFromJSON(output);
+      console.log(JSON.stringify(spec1));
+      console.log(JSON.stringify(obj));
+      expect(obj.equals(spec1)).to.equal(true);
    });
 });
 

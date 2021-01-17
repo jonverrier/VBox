@@ -20,7 +20,7 @@ var WorkoutClockSpec = (function invocation() {
       this.clockType = clockType.Wall;
    }
    
-   WorkoutClockSpec.prototype.__type = "Clock";
+   WorkoutClockSpec.prototype.__type = "WorkoutClockSpec";
 
   /**
    * test for equality - checks all fields are the same. 
@@ -29,7 +29,7 @@ var WorkoutClockSpec = (function invocation() {
    */
    WorkoutClockSpec.prototype.equals = function (rhs) {
 
-      return (this.clockType === rhs.clockType
+      return (this.clockType.name === rhs.clockType.name
          && this.countTo === rhs.countTo
          && this.intervals === rhs.intervals
          && this.period1 === rhs.period1
@@ -70,6 +70,54 @@ var WorkoutClockSpec = (function invocation() {
       this.period1 = period1;
       this.period2 = period2;
       this.countTo = null;
+   };
+
+   /**
+ * Method that serializes to JSON 
+ */
+   WorkoutClockSpec.prototype.toJSON = function () {
+
+      return {
+         __type: WorkoutClockSpec.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            clockType: this.clockType,
+            countTo: this.countTo,
+            intervals: this.intervals,
+            period1: this.period1,
+            period2: this.period2
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   WorkoutClockSpec.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return WorkoutClockSpec.prototype.reviveDb(data.attributes);
+
+      return WorkoutClockSpec.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   WorkoutClockSpec.prototype.reviveDb = function (data) {
+
+      var spec = new WorkoutClockSpec();
+
+      spec.clockType = data.clockType;
+      spec.countTo = data.countTo;
+      spec.intervals = data.intervals;
+      spec.period1 = data.period1;
+      spec.period2 = data.period2;
+
+      return spec;
    };
 
    return WorkoutClockSpec;
@@ -181,6 +229,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
       }
+
    };
 
    return WorkoutClock;
