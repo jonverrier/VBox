@@ -33,6 +33,7 @@ class RtcCaller {
    sendConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
+   connected: boolean;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -41,6 +42,7 @@ class RtcCaller {
       this.sendConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
+      this.connected = false;
    }
 
    // Override these for notifications - TODO - see top of file
@@ -153,6 +155,8 @@ class RtcCaller {
    onconnectionstatechange(ev, pc, self) {
       switch (pc.connectionState) {
          case "connected":
+            self.connected = true;
+
             // The connection has become fully connected
             if (self.onremoteconnection)
                self.onremoteconnection (ev);
@@ -165,6 +169,7 @@ class RtcCaller {
          case "failed":
          case "closed":
             // The connection has been closed or failed
+            self.connected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
@@ -235,6 +240,7 @@ class RtcReciever {
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
+   connected: boolean;
 
    constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -243,6 +249,7 @@ class RtcReciever {
       this.remoteOffer = remoteOffer;
       this.recieveConnection = null;
       this.sendChannel = null;
+      this.connected = false;
    }
 
    // Override these for notifications  - TODO - see top of file
@@ -343,6 +350,8 @@ class RtcReciever {
    onconnectionstatechange(ev, pc, self) {
       switch (pc.connectionState) {
          case "connected":
+            self.connected = true;
+
             // The connection has become fully connected
             if (self.onremoteconnection)
                self.onremoteconnection(ev);
@@ -355,6 +364,7 @@ class RtcReciever {
          case "failed":
          case "closed":
             // The connection has been closed or failed
+            self.connected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
@@ -729,11 +739,13 @@ export class Rtc {
       for (var i = 0; i < self.links.length; i++) {
          if (self.links[i].to.equals(remoteIceCandidate.from)) {
             if (remoteIceCandidate.outbound) {
-               if (self.links[i].reciever)
+               // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
+               if (self.links[i].reciever && !self.links[i].reciever.connected) 
                   self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
                // else silent fail
             } else {
-               if (self.links[i].sender)
+               // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
+               if (self.links[i].sender && !self.links[i].sender.connected)
                   self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
                // else silent fail
             }

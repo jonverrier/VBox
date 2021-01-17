@@ -1267,7 +1267,7 @@ var WorkoutClockSpec = (function invocation() {
    */
    WorkoutClockSpec.prototype.equals = function (rhs) {
 
-      return (this.clockType === rhs.clockType
+      return (this.clockType.name === rhs.clockType.name
          && this.countTo === rhs.countTo
          && this.intervals === rhs.intervals
          && this.period1 === rhs.period1
@@ -65333,6 +65333,7 @@ var RtcCaller = /** @class */ (function () {
         this.sendConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
+        this.connected = false;
     }
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
@@ -65424,6 +65425,7 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
             case "connected":
+                self.connected = true;
                 // The connection has become fully connected
                 if (self.onremoteconnection)
                     self.onremoteconnection(ev);
@@ -65436,6 +65438,7 @@ var RtcCaller = /** @class */ (function () {
             case "failed":
             case "closed":
                 // The connection has been closed or failed
+                self.connected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
@@ -65492,6 +65495,7 @@ var RtcReciever = /** @class */ (function () {
         this.remoteOffer = remoteOffer;
         this.recieveConnection = null;
         this.sendChannel = null;
+        this.connected = false;
     }
     RtcReciever.prototype.answerCall = function () {
         var _this = this;
@@ -65574,6 +65578,7 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
             case "connected":
+                self.connected = true;
                 // The connection has become fully connected
                 if (self.onremoteconnection)
                     self.onremoteconnection(ev);
@@ -65586,6 +65591,7 @@ var RtcReciever = /** @class */ (function () {
             case "failed":
             case "closed":
                 // The connection has been closed or failed
+                self.connected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
@@ -65879,12 +65885,14 @@ var Rtc = /** @class */ (function () {
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 if (remoteIceCandidate.outbound) {
-                    if (self.links[i].reciever)
+                    // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
+                    if (self.links[i].reciever && !self.links[i].reciever.connected)
                         self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
                     // else silent fail
                 }
                 else {
-                    if (self.links[i].sender)
+                    // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
+                    if (self.links[i].sender && !self.links[i].sender.connected)
                         self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
                     // else silent fail
                 }
