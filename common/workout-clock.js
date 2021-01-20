@@ -30,15 +30,40 @@ var WorkoutClockSpec = (function invocation() {
    WorkoutClockSpec.prototype.equals = function (rhs) {
 
       return (this.clockType.name === rhs.clockType.name
+         && this.startAt === rhs.startAt
          && this.countTo === rhs.countTo
          && this.intervals === rhs.intervals
          && this.period1 === rhs.period1
          && this.period2 === rhs.period2); 
    };
 
-   WorkoutClockSpec.prototype.setWall = function () {
+   WorkoutClockSpec.prototype.isValidWallSpec = function (startAt) {
+
+      var seconds = (new Date().getTime() - startAt.getTime()) / 1000;
+
+      return (seconds < 60000 && seconds > -60000); // Say its valid if current time plus or minus an hour
+   };
+
+   WorkoutClockSpec.prototype.isValidCountUpSpec = function (countTo) {
+
+      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
+   };
+
+   WorkoutClockSpec.prototype.isValidCountDownSpec = function (countTo) {
+
+      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
+   };
+
+   WorkoutClockSpec.prototype.isValidIntervalSpec = function (intervals, period1, period2) {
+
+      // Say its valid if intervals is positive, period1 is positive
+      return (intervals > 0 && intervals <= 60 && period1 > 0 && period1 <= 60 && period2 >= 0 && period2 <= 60); 
+   };
+
+   WorkoutClockSpec.prototype.setWall = function (startAt) {
 
       this.clockType = clockType.Wall;
+      this.startAt = startAt;
       this.countTo = null;
       this.intervals = null;
       this.period1 = null;
@@ -49,6 +74,7 @@ var WorkoutClockSpec = (function invocation() {
 
       this.clockType = clockType.CountUp;
       this.countTo = countTo;
+      this.startAt = null;
       this.intervals = null;
       this.period1 = null;
       this.period2 = null;
@@ -58,6 +84,7 @@ var WorkoutClockSpec = (function invocation() {
 
       this.clockType = clockType.CountDown;
       this.countTo = countTo;
+      this.startAt = null;
       this.intervals = null;
       this.period1 = null;
       this.period2 = null;
@@ -69,6 +96,7 @@ var WorkoutClockSpec = (function invocation() {
       this.intervals = intervals;
       this.period1 = period1;
       this.period2 = period2;
+      this.startAt = null;
       this.countTo = null;
    };
 
@@ -82,6 +110,7 @@ var WorkoutClockSpec = (function invocation() {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             clockType: this.clockType,
+            startAt: this.startAt,
             countTo: this.countTo,
             intervals: this.intervals,
             period1: this.period1,
@@ -112,6 +141,7 @@ var WorkoutClockSpec = (function invocation() {
       var spec = new WorkoutClockSpec();
 
       spec.clockType = data.clockType;
+      spec.startAt = data.startAt;
       spec.countTo = data.countTo;
       spec.intervals = data.intervals;
       spec.period1 = data.period1;
@@ -154,8 +184,7 @@ var WorkoutClock = (function invocation() {
    };
 
    WorkoutClock.prototype.start = function (onTick, onSignalEnd) {
-      this.start = new Date();
-
+      this.startedAt = new Date();
       this.ticker = setInterval(this.tick, 1000); 
       this.onTick = onTick;
       this.onSignalEnd = onSignalEnd;
@@ -170,7 +199,7 @@ var WorkoutClock = (function invocation() {
    };
 
    WorkoutClock.prototype.startTime = function () {
-      return this.start;
+      return this.startedAt;
    };
 
    WorkoutClock.prototype.tick = function () {
@@ -180,8 +209,9 @@ var WorkoutClock = (function invocation() {
          default:
          case clockType.Wall:
             now = new Date();
-            mm = now.getMinutes();
-            ss = now.getSeconds();
+            seconds = (now.getTime() - this.clock.startAt.getTime()) / 1000;
+            mm = Math.floor(seconds / 60);
+            ss = seconds - Math.floor(mm * 60);
             this.mm = ("00" + mm).slice(-2);
             this.ss = ("00" + ss).slice(-2);
             if (this.onTick)
@@ -190,7 +220,7 @@ var WorkoutClock = (function invocation() {
 
          case clockType.CountUp:
             now = new Date();
-            seconds = (now.getTime() - this.start.getTime()) / 1000;
+            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
             ss = seconds - Math.floor(mm * 60);
             this.mm = ("00" + mm).slice(-2);
@@ -201,7 +231,7 @@ var WorkoutClock = (function invocation() {
 
          case clockType.CountDown:
             now = new Date();
-            seconds = (now.getTime() - this.start.getTime()) / 1000;
+            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = this.clock.countTo - (Math.floor(seconds / 60)) - 1;
             ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
             this.mm = ("00" + mm).slice(-2);
@@ -213,7 +243,7 @@ var WorkoutClock = (function invocation() {
          case clockType.Interval:
             // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
             now = new Date();
-            seconds = (now.getTime() - this.start.getTime()) / 1000;
+            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
             ss = seconds - Math.floor(mm * 60);
 
