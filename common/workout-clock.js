@@ -5,7 +5,7 @@
 
 var Enum = require('./enum.js').Enum;
 
-const clockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
+const workoutClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
 
 //==============================//
 // WorkoutClockSpec class
@@ -17,7 +17,7 @@ var WorkoutClockSpec = (function invocation() {
    * Create a WorkoutClockSpec object
    */
    function WorkoutClockSpec() {
-      this.clockType = clockType.Wall;
+      this.clockType = workoutClockType.Wall;
    }
    
    WorkoutClockSpec.prototype.__type = "WorkoutClockSpec";
@@ -62,7 +62,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setWall = function (startAt) {
 
-      this.clockType = clockType.Wall;
+      this.clockType = workoutClockType.Wall;
       this.startAt = startAt;
       this.countTo = null;
       this.intervals = null;
@@ -72,7 +72,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setCountUp = function (countTo) {
 
-      this.clockType = clockType.CountUp;
+      this.clockType = workoutClockType.CountUp;
       this.countTo = countTo;
       this.startAt = null;
       this.intervals = null;
@@ -82,7 +82,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setCountDown = function (countTo) {
 
-      this.clockType = clockType.CountDown;
+      this.clockType = workoutClockType.CountDown;
       this.countTo = countTo;
       this.startAt = null;
       this.intervals = null;
@@ -92,7 +92,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setInterval = function (intervals, period1, period2) {
 
-      this.clockType = clockType.Interval;
+      this.clockType = workoutClockType.Interval;
       this.intervals = intervals;
       this.period1 = period1;
       this.period2 = period2;
@@ -207,7 +207,7 @@ var WorkoutClock = (function invocation() {
 
       switch (this.clock.__type) {
          default:
-         case clockType.Wall:
+         case workoutClockType.Wall:
             now = new Date();
             seconds = (now.getTime() - this.clock.startAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
@@ -218,7 +218,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
 
-         case clockType.CountUp:
+         case workoutClockType.CountUp:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
@@ -229,7 +229,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
 
-         case clockType.CountDown:
+         case workoutClockType.CountDown:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = this.clock.countTo - (Math.floor(seconds / 60)) - 1;
@@ -240,7 +240,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
 
-         case clockType.Interval:
+         case workoutClockType.Interval:
             // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
@@ -268,6 +268,7 @@ var WorkoutClock = (function invocation() {
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
+   exports.workoutClockType = workoutClockType;
    exports.WorkoutClockSpec = WorkoutClockSpec;
    exports.WorkoutClock = WorkoutClock;
 }

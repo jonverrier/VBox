@@ -14,6 +14,7 @@ import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
 import { IConnectionProps } from './call-status';
+import { workoutClockType, WorkoutClockSpec, WorkoutClock} from '../common/workout-clock.js';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -43,6 +44,14 @@ export const RemoteClock = (props: { mm: Number, ss: Number }) => (
 interface IClockState {
    openClockSpec: boolean;
    rtc: Rtc;
+   clockType: workoutClockType;
+   countUpTo: number,
+   countDownFrom: number,
+   intervals: number,
+   period1: number,
+   period2: number,
+   enableOK: boolean;
+   enableCancel: boolean;
 }
 
 export class MasterClock extends React.Component<IConnectionProps, IClockState> {
@@ -52,7 +61,71 @@ export class MasterClock extends React.Component<IConnectionProps, IClockState> 
    constructor(props: IConnectionProps) {
       super(props);
 
-      this.state = { openClockSpec: false, rtc: props.rtc };
+      this.state = {
+         openClockSpec: false,
+         rtc: props.rtc,
+         clockType: workoutClockType.Wall,
+         countUpTo: 20,
+         countDownFrom: 20,
+         intervals: 3,
+         period1: 5,
+         period2: 2,
+         enableOK: false,
+         enableCancel: false
+      };
+   }
+
+   componentDidMount() {
+      // Initialise form validation.
+   }
+
+   componentWillUnmount() {
+   }
+
+   UNSAFE_componentWillReceiveProps(nextProps) {
+      if (nextProps.rtc) {
+         // nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+      }
+   }
+
+   testEnableSave() {
+      var spec = new WorkoutClockSpec();
+
+      // Need to get the latest values for cross-field validation
+      this.forceUpdate(() => {
+         this.setState({ enableOK: false });
+
+         // test for valid wall clock selection
+         if (this.state.clockType === workoutClockType.Wall && spec.isValidWallSpec(new Date())) {
+            this.setState({ enableOK : true});
+         }
+
+         // test for valid countUp selection
+         if (this.state.clockType === workoutClockType.CountUp && spec.isValidCountUpSpec(this.state.countUpTo)) {
+            this.setState({ enableOK: true });
+         }
+
+         // test for valid countDown selection
+         if (this.state.clockType === workoutClockType.CountDown && spec.isValidCountDownSpec(this.state.countDownFrom)) {
+            this.setState({ enableOK: true });
+         }
+
+         // test for valid interval selection
+         if (this.state.clockType === workoutClockType.Interval && spec.isValidIntervalSpec(this.state.intervals,
+                                                                                            this.state.period1, 
+                                                                                            this.state.period2)) {
+            this.setState({ enableOK: true });
+         }
+      });
+   }
+
+   processSave() {
+      // To do 
+      this.setState({ openClockSpec: false });
+   }
+
+   processCancel() {
+      this.setState({ openClockSpec: false});
    }
 
    render() {
@@ -68,38 +141,58 @@ export class MasterClock extends React.Component<IConnectionProps, IClockState> 
                <div style={{ textAlign: 'left' }} >
                   <Form>
                      <Form.Row>
-                        <Form.Group controlId="formWallClockDetails">
-                           <Form.Check inline label="Wall clock" type="radio" id={'wall-clock-select'} />
+                        <Form.Group>
+                           <Form.Check inline label="Wall clock" type="radio" id={'wall-clock-select'}
+                              checked={this.state.clockType === workoutClockType.Wall}
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: workoutClockType.Wall }); this.testEnableSave(); } }}/>
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
-                        <Form.Group controlId="formCountUpClockDetails">
-                           <Form.Check inline label="Count up to:" type="radio" id={'count-up-select'} />
-                           <Form.Control type="text" placeholder="Mins" maxLength="2" style={fieldYSepStyleAuto}
-                           />
+                        <Form.Group>
+                           <Form.Check inline label="Count up to:" type="radio" id={'count-up-select'}
+                              checked={this.state.clockType === workoutClockType.CountUp}
+                                onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: workoutClockType.CountUp }); this.testEnableSave(); } }}/>
+                           <Form.Control type="number" placeholder="Mins" min='1' max='60' step='1' style={fieldYSepStyleAuto}
+                              disabled={!(this.state.clockType === workoutClockType.CountUp)} id={'count-up-value'}
+                              value={this.state.countUpTo}
+                              onChange={(ev) => { this.setState({ countUpTo: ev.target.value, enableCancel: true }); this.testEnableSave();}}/>
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
-                        <Form.Group controlId="formCountDownClockDetails">
-                           <Form.Check inline label="Count down from:" type="radio" id={'count-down-select'} />
-                           <Form.Control type="text" placeholder="Mins" maxLength="2" style={fieldYSepStyleAuto}
-                           />
+                        <Form.Group>
+                           <Form.Check inline label="Count down from:" type="radio" id={'count-down-select'}
+                              checked={this.state.clockType === workoutClockType.CountDown}
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: workoutClockType.CountDown }); this.testEnableSave(); } }}/>
+                           <Form.Control type="number" placeholder="Mins" min='1' max='60' step='1' style={fieldYSepStyleAuto} id={'count-down-value'}
+                              disabled={!(this.state.clockType === workoutClockType.CountDown)}
+                              value={this.state.countDownFrom}
+                              onChange={(ev) => { this.setState({ countDownFrom: ev.target.value, enableCancel: true }); this.testEnableSave(); }} />
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
-                        <Form.Group controlId="formIntervalClockDetails">
-                           <Form.Check inline label="Intervals of:" type="radio" id={'interval-select'} />
-                           <Form.Control type="text" placeholder="Intervals" maxLength="2" style={fieldYSepStyle}
-                           />
-                           <Form.Control type="text" placeholder="Work" maxLength="2" style={fieldYSepStyle}
-                           />
-                           <Form.Control type="text" placeholder="Rest" maxLength="2" style={fieldYSepStyle}
-                           />
+                        <Form.Group>
+                           <Form.Check inline label="Intervals of:" type="radio" id={'interval-select'}
+                              checked={this.state.clockType === workoutClockType.Interval}
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: workoutClockType.Interval }); this.testEnableSave(); }}}/>
+                           <Form.Control type="number" placeholder="Intervals" min='1' max='60' step='1' style={fieldYSepStyle} id={'interval-value'}
+                              disabled={!(this.state.clockType === workoutClockType.Interval)}
+                              value={this.state.intervals}
+                              onChange={(ev) => { this.setState({ intervals: ev.target.value, enableCancel: true }); this.testEnableSave(); }}/>
+                           <Form.Control type="number" placeholder="Work" min='0' max='60' step='1' style={fieldYSepStyle} id={'period1-value'}
+                              disabled={!(this.state.clockType === workoutClockType.Interval)} 
+                              value={this.state.period1}
+                              onChange={(ev) => { this.setState({ period1: ev.target.value,  enableCancel: true }); this.testEnableSave(); }} />
+                           <Form.Control type="number" placeholder="Rest" min='0' max='60' step='1' style={fieldYSepStyle} id={'period2-value'}
+                              disabled={!(this.state.clockType === workoutClockType.Interval)}
+                              value={this.state.period2}
+                              onChange={(ev) => { this.setState({ period2: ev.target.value, enableCancel: true }); this.testEnableSave(); }} />
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
-                        <Button variant="secondary" className='mr' style={fieldXSepStyle}>Save</Button>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant="secondary" disabled={!this.state.enableOK} className='mr' style={fieldXSepStyle}
+                           onClick={this.processSave.bind(this)}>Save</Button>
+                        <Button variant="secondary" disabled={!this.state.enableCancel}
+                           onClick={this.processCancel.bind(this)}>Cancel</Button>
                      </Form.Row>
                   </Form>
                </div>

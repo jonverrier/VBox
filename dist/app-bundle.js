@@ -1232,6 +1232,7 @@ if (false) {} else {
 /*! default exports */
 /*! export WorkoutClock [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export WorkoutClockSpec [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export workoutClockType [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
 /*! runtime requirements: __webpack_require__, __webpack_exports__ */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
@@ -1243,7 +1244,7 @@ if (false) {} else {
 
 var Enum = __webpack_require__(/*! ./enum.js */ "./common/enum.js").Enum;
 
-const clockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
+const workoutClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
 
 //==============================//
 // WorkoutClockSpec class
@@ -1255,7 +1256,7 @@ var WorkoutClockSpec = (function invocation() {
    * Create a WorkoutClockSpec object
    */
    function WorkoutClockSpec() {
-      this.clockType = clockType.Wall;
+      this.clockType = workoutClockType.Wall;
    }
    
    WorkoutClockSpec.prototype.__type = "WorkoutClockSpec";
@@ -1300,7 +1301,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setWall = function (startAt) {
 
-      this.clockType = clockType.Wall;
+      this.clockType = workoutClockType.Wall;
       this.startAt = startAt;
       this.countTo = null;
       this.intervals = null;
@@ -1310,7 +1311,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setCountUp = function (countTo) {
 
-      this.clockType = clockType.CountUp;
+      this.clockType = workoutClockType.CountUp;
       this.countTo = countTo;
       this.startAt = null;
       this.intervals = null;
@@ -1320,7 +1321,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setCountDown = function (countTo) {
 
-      this.clockType = clockType.CountDown;
+      this.clockType = workoutClockType.CountDown;
       this.countTo = countTo;
       this.startAt = null;
       this.intervals = null;
@@ -1330,7 +1331,7 @@ var WorkoutClockSpec = (function invocation() {
 
    WorkoutClockSpec.prototype.setInterval = function (intervals, period1, period2) {
 
-      this.clockType = clockType.Interval;
+      this.clockType = workoutClockType.Interval;
       this.intervals = intervals;
       this.period1 = period1;
       this.period2 = period2;
@@ -1445,7 +1446,7 @@ var WorkoutClock = (function invocation() {
 
       switch (this.clock.__type) {
          default:
-         case clockType.Wall:
+         case workoutClockType.Wall:
             now = new Date();
             seconds = (now.getTime() - this.clock.startAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
@@ -1456,7 +1457,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
 
-         case clockType.CountUp:
+         case workoutClockType.CountUp:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
@@ -1467,7 +1468,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
 
-         case clockType.CountDown:
+         case workoutClockType.CountDown:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = this.clock.countTo - (Math.floor(seconds / 60)) - 1;
@@ -1478,7 +1479,7 @@ var WorkoutClock = (function invocation() {
                this.onTick();
             break;
 
-         case clockType.Interval:
+         case workoutClockType.Interval:
             // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
@@ -1504,6 +1505,7 @@ var WorkoutClock = (function invocation() {
 }());
 
 if (false) {} else { 
+   exports.workoutClockType = workoutClockType;
    exports.WorkoutClockSpec = WorkoutClockSpec;
    exports.WorkoutClock = WorkoutClock;
 }
@@ -64496,10 +64498,9 @@ var CoachPage = /** @class */ (function (_super) {
     function CoachPage(props) {
         var _this = _super.call(this, props) || this;
         _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
-        _this.isLoggedIn = false;
         _this.pageData = _this.defaultPageData;
         _this.state = {
-            isLoggedIn: _this.isLoggedIn,
+            isLoggedIn: false,
             pageData: _this.pageData,
             rtc: null,
             login: new loginfb_1.LoginFb({
@@ -64934,6 +64935,7 @@ var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react
 var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js");
 var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
+var workout_clock_js_1 = __webpack_require__(/*! ../common/workout-clock.js */ "./common/workout-clock.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -64958,9 +64960,61 @@ var MasterClock = /** @class */ (function (_super) {
     __extends(MasterClock, _super);
     function MasterClock(props) {
         var _this = _super.call(this, props) || this;
-        _this.state = { openClockSpec: false, rtc: props.rtc };
+        _this.state = {
+            openClockSpec: false,
+            rtc: props.rtc,
+            clockType: workout_clock_js_1.workoutClockType.Wall,
+            countUpTo: 20,
+            countDownFrom: 20,
+            intervals: 3,
+            period1: 5,
+            period2: 2,
+            enableOK: false,
+            enableCancel: false
+        };
         return _this;
     }
+    MasterClock.prototype.componentDidMount = function () {
+        // Initialise form validation.
+    };
+    MasterClock.prototype.componentWillUnmount = function () {
+    };
+    MasterClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc) {
+            // nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+        }
+    };
+    MasterClock.prototype.testEnableSave = function () {
+        var _this = this;
+        var spec = new workout_clock_js_1.WorkoutClockSpec();
+        // Need to get the latest values for cross-field validation
+        this.forceUpdate(function () {
+            _this.setState({ enableOK: false });
+            // test for valid wall clock selection
+            if (_this.state.clockType === workout_clock_js_1.workoutClockType.Wall && spec.isValidWallSpec(new Date())) {
+                _this.setState({ enableOK: true });
+            }
+            // test for valid countUp selection
+            if (_this.state.clockType === workout_clock_js_1.workoutClockType.CountUp && spec.isValidCountUpSpec(_this.state.countUpTo)) {
+                _this.setState({ enableOK: true });
+            }
+            // test for valid countDown selection
+            if (_this.state.clockType === workout_clock_js_1.workoutClockType.CountDown && spec.isValidCountDownSpec(_this.state.countDownFrom)) {
+                _this.setState({ enableOK: true });
+            }
+            // test for valid interval selection
+            if (_this.state.clockType === workout_clock_js_1.workoutClockType.Interval && spec.isValidIntervalSpec(_this.state.intervals, _this.state.period1, _this.state.period2)) {
+                _this.setState({ enableOK: true });
+            }
+        });
+    };
+    MasterClock.prototype.processSave = function () {
+        // To do 
+        this.setState({ openClockSpec: false });
+    };
+    MasterClock.prototype.processCancel = function () {
+        this.setState({ openClockSpec: false });
+    };
     MasterClock.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", null,
@@ -64974,25 +65028,37 @@ var MasterClock = /** @class */ (function (_super) {
                 React.createElement("div", { style: { textAlign: 'left' } },
                     React.createElement(Form_1.default, null,
                         React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, { controlId: "formWallClockDetails" },
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select' }))),
+                            React.createElement(Form_1.default.Group, null,
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.Wall, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.Wall });
+                                        _this.testEnableSave();
+                                    } } }))),
                         React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, { controlId: "formCountUpClockDetails" },
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select' }),
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Mins", maxLength: "2", style: fieldYSepStyleAuto }))),
+                            React.createElement(Form_1.default.Group, null,
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.CountUp, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.CountUp });
+                                        _this.testEnableSave();
+                                    } } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.CountUp), id: 'count-up-value', value: this.state.countUpTo, onChange: function (ev) { _this.setState({ countUpTo: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, { controlId: "formCountDownClockDetails" },
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select' }),
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Mins", maxLength: "2", style: fieldYSepStyleAuto }))),
+                            React.createElement(Form_1.default.Group, null,
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.CountDown, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.CountDown });
+                                        _this.testEnableSave();
+                                    } } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, id: 'count-down-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.CountDown), value: this.state.countDownFrom, onChange: function (ev) { _this.setState({ countDownFrom: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, { controlId: "formIntervalClockDetails" },
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select' }),
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Intervals", maxLength: "2", style: fieldYSepStyle }),
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Work", maxLength: "2", style: fieldYSepStyle }),
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Rest", maxLength: "2", style: fieldYSepStyle }))),
+                            React.createElement(Form_1.default.Group, null,
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.Interval, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.Interval });
+                                        _this.testEnableSave();
+                                    } } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Intervals", min: '1', max: '60', step: '1', style: fieldYSepStyle, id: 'interval-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.Interval), value: this.state.intervals, onChange: function (ev) { _this.setState({ intervals: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Work", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period1-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.Interval), value: this.state.period1, onChange: function (ev) { _this.setState({ period1: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Rest", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period2-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.Interval), value: this.state.period2, onChange: function (ev) { _this.setState({ period2: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
-                            React.createElement(Button_1.default, { variant: "secondary", className: 'mr', style: fieldXSepStyle }, "Save"),
-                            React.createElement(Button_1.default, { variant: "secondary" }, "Cancel")))))));
+                            React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOK, className: 'mr', style: fieldXSepStyle, onClick: this.processSave.bind(this) }, "Save"),
+                            React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))));
     };
     return MasterClock;
 }(React.Component));
