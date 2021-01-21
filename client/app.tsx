@@ -247,7 +247,6 @@ interface ICoachPageState {
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
 
    //member variables
-   isLoggedIn: boolean;
    pageData: HomePageData;
    defaultPageData: HomePageData;
 
@@ -259,11 +258,10 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'),
          null);
 
-      this.isLoggedIn = false;
       this.pageData = this.defaultPageData;
 
       this.state = {
-         isLoggedIn: this.isLoggedIn,
+         isLoggedIn: false,
          pageData: this.pageData,
          rtc: null,
          login: new LoginFb({
