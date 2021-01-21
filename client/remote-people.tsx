@@ -14,16 +14,16 @@ import Row from 'react-bootstrap/Row';
 import { Person } from '../common/person';
 import { Party, PartySmall, PartyCaption, PartyNoImage } from './party';
 import { FourStateRagEnum } from '../common/enum.js';
+import { IConnectionProps, PartyMap } from './call-status';
 import { Rtc, RtcLink } from './rtc';
-import { IConnectionStatusProps, PartyMap } from './call-status';
 
 interface IRemotePeopleState {
    partyMap: PartyMap;
 }
 
-export class RemotePeople extends React.Component<IConnectionStatusProps, IRemotePeopleState> {
+export class RemotePeople extends React.Component<IConnectionProps, IRemotePeopleState> {
 
-   constructor(props: IConnectionStatusProps) {
+   constructor(props: IConnectionProps) {
       super(props);
       if (props.rtc) {
          props.rtc.onremotedata = this.onremotedata.bind(this);

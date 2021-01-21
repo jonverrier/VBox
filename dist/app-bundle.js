@@ -64346,7 +64346,6 @@ var Nav_1 = __webpack_require__(/*! react-bootstrap/Nav */ "./node_modules/react
 var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
 var ButtonGroup_1 = __webpack_require__(/*! react-bootstrap/ButtonGroup */ "./node_modules/react-bootstrap/esm/ButtonGroup.js");
 var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js");
-var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
 // Additional packages
 var react_helmet_1 = __webpack_require__(/*! react-helmet */ "./node_modules/react-helmet/es/Helmet.js");
 var react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/esm/react-router-dom.js");
@@ -64365,10 +64364,6 @@ var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facilit
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
-};
-var thinStyleBlock = {
-    margin: '0px', padding: '0px',
-    display: 'inline-block'
 };
 var facilityNavStyle = {
     margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color: 'gray'
@@ -64391,13 +64386,6 @@ var loginGroupStyle = {
 };
 var fieldYSepStyle = {
     marginBottom: '10px'
-};
-var fieldYSepStyleAuto = {
-    marginBottom: '10px',
-    width: "auto"
-};
-var fieldXSepStyle = {
-    marginRight: '10px'
 };
 var lpanelStyle = {
     margin: '0px', padding: '0px'
@@ -64496,7 +64484,7 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Col_1.default, { style: lpanelStyle },
                         React.createElement("div", { style: placeholderStyle })),
                     React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                        React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') }),
+                        React.createElement(clock_1.RemoteClock, { mm: Number('00'), ss: Number('00') }),
                         React.createElement("br", null),
                         React.createElement(remote_people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
     };
@@ -64564,7 +64552,6 @@ var CoachPage = /** @class */ (function (_super) {
         }
     };
     CoachPage.prototype.render = function () {
-        var _this = this;
         if (!this.state.isLoggedIn) {
             return (React.createElement("div", { className: "loginpage" },
                 React.createElement(react_helmet_1.Helmet, null,
@@ -64614,35 +64601,7 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement("div", { style: placeholderStyle })),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(Container_1.default, { style: thinStyle },
-                                React.createElement(Row_1.default, { style: thinStyle },
-                                    React.createElement(Col_1.default, { style: thinStyle },
-                                        React.createElement(clock_1.Clock, { mm: Number('00'), ss: Number('00') })),
-                                    React.createElement(Col_1.default, { style: thinStyle },
-                                        React.createElement(Button_1.default, { variant: "secondary", size: "sm", onClick: function () { return _this.setState({ openClockSpec: !_this.state.openClockSpec }); } }, "\u25BC")))),
-                            React.createElement(Collapse_1.default, { in: this.state.openClockSpec },
-                                React.createElement("div", { style: { textAlign: 'left' } },
-                                    React.createElement(Form_1.default, null,
-                                        React.createElement(Form_1.default.Row, null,
-                                            React.createElement(Form_1.default.Group, { controlId: "formWallClockDetails" },
-                                                React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select' }))),
-                                        React.createElement(Form_1.default.Row, null,
-                                            React.createElement(Form_1.default.Group, { controlId: "formCountUpClockDetails" },
-                                                React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select' }),
-                                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Mins", maxLength: "2", style: fieldYSepStyleAuto }))),
-                                        React.createElement(Form_1.default.Row, null,
-                                            React.createElement(Form_1.default.Group, { controlId: "formCountDownClockDetails" },
-                                                React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select' }),
-                                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Mins", maxLength: "2", style: fieldYSepStyleAuto }))),
-                                        React.createElement(Form_1.default.Row, null,
-                                            React.createElement(Form_1.default.Group, { controlId: "formIntervalClockDetails" },
-                                                React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select' }),
-                                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Intervals", maxLength: "2", style: fieldYSepStyle }),
-                                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Work", maxLength: "2", style: fieldYSepStyle }),
-                                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Rest", maxLength: "2", style: fieldYSepStyle }))),
-                                        React.createElement(Form_1.default.Row, null,
-                                            React.createElement(Button_1.default, { variant: "secondary", className: 'mr', style: fieldXSepStyle }, "Save"),
-                                            React.createElement(Button_1.default, { variant: "secondary" }, "Cancel"))))),
+                            React.createElement(clock_1.MasterClock, { rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
                             React.createElement(remote_people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
         }
@@ -64945,29 +64904,99 @@ exports.LinkConnectionStatus = LinkConnectionStatus;
 /*!**************************!*\
   !*** ./client/clock.tsx ***!
   \**************************/
-/*! flagged exports */
-/*! export Clock [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_exports__, __webpack_require__ */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
+/*! CommonJS bailout: this is used directly at 3:17-21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
 /*! Copyright TXPCo, 2020 */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Clock = void 0;
+exports.MasterClock = exports.RemoteClock = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-var clockRowStyle = {
-    margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center', lineHeight: '64px'
+var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js");
+var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
+var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
+var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js");
+var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
+var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
+var thinStyle = {
+    margin: '0px', padding: '0px',
 };
 var clockStyle = {
     color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
-exports.Clock = function (props) { return (React.createElement("p", { style: clockStyle },
+var fieldYSepStyle = {
+    marginBottom: '10px'
+};
+var fieldYSepStyleAuto = {
+    marginBottom: '10px',
+    width: "auto"
+};
+var fieldXSepStyle = {
+    marginRight: '10px'
+};
+exports.RemoteClock = function (props) { return (React.createElement("p", { style: clockStyle },
     ("00" + props.mm).slice(-2),
     ":",
     ("00" + props.ss).slice(-2))); };
+var MasterClock = /** @class */ (function (_super) {
+    __extends(MasterClock, _super);
+    function MasterClock(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = { openClockSpec: false, rtc: props.rtc };
+        return _this;
+    }
+    MasterClock.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("div", null,
+            React.createElement(Container_1.default, { style: thinStyle },
+                React.createElement(Row_1.default, { style: thinStyle },
+                    React.createElement(Col_1.default, { style: thinStyle },
+                        React.createElement(exports.RemoteClock, { mm: Number('00'), ss: Number('00') })),
+                    React.createElement(Col_1.default, { style: thinStyle },
+                        React.createElement(Button_1.default, { variant: "secondary", size: "sm", onClick: function () { return _this.setState({ openClockSpec: !_this.state.openClockSpec }); } }, "\u25BC")))),
+            React.createElement(Collapse_1.default, { in: this.state.openClockSpec },
+                React.createElement("div", { style: { textAlign: 'left' } },
+                    React.createElement(Form_1.default, null,
+                        React.createElement(Form_1.default.Row, null,
+                            React.createElement(Form_1.default.Group, { controlId: "formWallClockDetails" },
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select' }))),
+                        React.createElement(Form_1.default.Row, null,
+                            React.createElement(Form_1.default.Group, { controlId: "formCountUpClockDetails" },
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select' }),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Mins", maxLength: "2", style: fieldYSepStyleAuto }))),
+                        React.createElement(Form_1.default.Row, null,
+                            React.createElement(Form_1.default.Group, { controlId: "formCountDownClockDetails" },
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select' }),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Mins", maxLength: "2", style: fieldYSepStyleAuto }))),
+                        React.createElement(Form_1.default.Row, null,
+                            React.createElement(Form_1.default.Group, { controlId: "formIntervalClockDetails" },
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select' }),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Intervals", maxLength: "2", style: fieldYSepStyle }),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Work", maxLength: "2", style: fieldYSepStyle }),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Rest", maxLength: "2", style: fieldYSepStyle }))),
+                        React.createElement(Form_1.default.Row, null,
+                            React.createElement(Button_1.default, { variant: "secondary", className: 'mr', style: fieldXSepStyle }, "Save"),
+                            React.createElement(Button_1.default, { variant: "secondary" }, "Cancel")))))));
+    };
+    return MasterClock;
+}(React.Component));
+exports.MasterClock = MasterClock;
 
 
 /***/ }),

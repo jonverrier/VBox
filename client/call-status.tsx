@@ -17,7 +17,7 @@ import { Party, PartySmall, PartyCaption, PartyNoImage } from './party';
 import { FourStateRagEnum } from '../common/enum.js';
 import { Rtc, RtcLink } from './rtc';
 
-export interface IConnectionStatusProps {
+export interface IConnectionProps {
    rtc: Rtc;
 }
 
@@ -25,9 +25,9 @@ interface IServerConnectionStatusState {
    status: any;
 }
 
-export class ServerConnectionStatus extends React.Component<IConnectionStatusProps, IServerConnectionStatusState> {
+export class ServerConnectionStatus extends React.Component<IConnectionProps, IServerConnectionStatusState> {
 
-   constructor(props: IConnectionStatusProps) {
+   constructor(props: IConnectionProps) {
       super(props);
       if (props.rtc)
          props.rtc.onserverconnectionstatechange = this.onServerConnectionStateChange.bind(this);
@@ -102,9 +102,9 @@ interface ILinkConnectionStatusState {
    partyMap: PartyMap;
 }
 
-export class LinkConnectionStatus extends React.Component<IConnectionStatusProps, ILinkConnectionStatusState> {
+export class LinkConnectionStatus extends React.Component<IConnectionProps, ILinkConnectionStatusState> {
 
-   constructor(props: IConnectionStatusProps) {
+   constructor(props: IConnectionProps) {
       super(props);
       if (props.rtc) {
          props.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);

@@ -14,13 +14,10 @@ import Col from 'react-bootstrap/Col';
 import Navbar from 'react-bootstrap/Navbar';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Button from 'react-bootstrap/Button';
-import SplitButton from 'react-bootstrap/SplitButton';
 import Nav from 'react-bootstrap/Nav';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Form from 'react-bootstrap/Form';
-import Fade from 'react-bootstrap/Fade';
-import Collapse from 'react-bootstrap/Collapse';
 
 // Additional packages
 import { Helmet } from 'react-helmet';
@@ -31,7 +28,7 @@ import axios from 'axios';
 // This app
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
-import { Clock } from './clock';
+import { MasterClock, RemoteClock } from './clock';
 import { ServerConnectionStatus, LinkConnectionStatus } from './call-status';
 import { RemotePeople } from './remote-people';
 import { LoginFb } from './loginfb';
@@ -42,16 +39,10 @@ import { Person } from '../common/person';
 import { Facility } from '../common/facility';
 import { HomePageData } from '../common/homepagedata';
 
-
 import * as CSS from 'csstype';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
-};
-
-const thinStyleBlock: CSS.Properties = {
-   margin: '0px', padding: '0px',
-   display: 'inline-block'
 };
 
 const facilityNavStyle: CSS.Properties = {
@@ -80,15 +71,6 @@ const loginGroupStyle: CSS.Properties = {
 
 const fieldYSepStyle: CSS.Properties = {
    marginBottom: '10px'
-};
-
-const fieldYSepStyleAuto: CSS.Properties = {
-   marginBottom: '10px',
-   width: "auto"
-};
-
-const fieldXSepStyle: CSS.Properties = {
-   marginRight: '10px'
 };
 
 const lpanelStyle: CSS.Properties = {
@@ -240,7 +222,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      </div>
                   </Col>
                   <Col md='auto' style={rpanelStyle}>
-                     <Clock mm={Number('00')} ss={Number('00')} />
+                     <RemoteClock mm={Number('00')} ss={Number('00')} />
                      <br />
                      <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                   </Col>
@@ -419,52 +401,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                         </div>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <Container style={thinStyle}>
-                        <Row style={thinStyle}>
-                           <Col style={thinStyle}><Clock mm={Number('00')} ss={Number('00')} /></Col>
-                              <Col style={thinStyle}><Button variant="secondary" size="sm" onClick={() => this.setState({ openClockSpec: !this.state.openClockSpec })}>&#9660;</Button></Col>
-                        </Row>
-                        </Container>
-                        <Collapse in={this.state.openClockSpec}>
-                           <div style={{textAlign: 'left'}} >
-                              <Form>
-                                 <Form.Row>
-                                    <Form.Group controlId="formWallClockDetails">
-                                    <Form.Check inline label="Wall clock" type="radio" id={'wall-clock-select'} />
-                                    </Form.Group>
-                                 </Form.Row>
-                                 <Form.Row>
-                                    <Form.Group controlId="formCountUpClockDetails">
-                                    <Form.Check inline label="Count up to:" type="radio" id={'count-up-select'} />
-                                    <Form.Control type="text" placeholder="Mins" maxLength="2" style={fieldYSepStyleAuto}
-                                       />
-                                    </Form.Group>
-                                 </Form.Row>
-                                 <Form.Row>
-                                    <Form.Group controlId="formCountDownClockDetails">
-                                    <Form.Check inline label="Count down from:" type="radio" id={'count-down-select'} />
-                                    <Form.Control type="text" placeholder="Mins" maxLength="2" style={fieldYSepStyleAuto}
-                                          />
-                                    </Form.Group>
-                                 </Form.Row>
-                                 <Form.Row>
-                                    <Form.Group controlId="formIntervalClockDetails">
-                                    <Form.Check inline label="Intervals of:" type="radio" id={'interval-select'} />
-                                    <Form.Control type="text" placeholder="Intervals" maxLength="2" style={fieldYSepStyle}
-                                          />
-                                    <Form.Control type="text" placeholder="Work" maxLength="2" style={fieldYSepStyle}
-                                          />
-                                    <Form.Control type="text" placeholder="Rest" maxLength="2" style={fieldYSepStyle}
-                                          />
-                                    </Form.Group>
-                                 </Form.Row>
-                                 <Form.Row>
-                                    <Button variant="secondary" className='mr' style={fieldXSepStyle}>Save</Button>
-                                    <Button variant="secondary">Cancel</Button>
-                                 </Form.Row>
-                           </Form>
-                           </div>
-                           </Collapse>
+                        <MasterClock rtc={this.state.rtc}> </MasterClock>
                         <br />
                         <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                      </Col>
