@@ -1403,8 +1403,8 @@ var WorkoutClock = (function invocation() {
     */
    function WorkoutClock(clock) {
       this.clock = clock;
-      this.mm = '00';
-      this.ss = '00';
+      this.mm = 0;
+      this.ss = 0;
       this.running = false;
    }
 
@@ -1424,9 +1424,12 @@ var WorkoutClock = (function invocation() {
 
    WorkoutClock.prototype.start = function (onTick, onSignalEnd) {
       this.startedAt = new Date();
-      this.ticker = setInterval(this.tick, 1000); 
+      this.ticker = setInterval(this.tick.bind(this), 1000); 
       this.onTick = onTick;
       this.onSignalEnd = onSignalEnd;
+      this.running = true;
+
+      // call first tick to start the clock
       this.tick();
    };
 
@@ -1435,6 +1438,7 @@ var WorkoutClock = (function invocation() {
          clearInterval(this.ticker);
          this.ticker = null;
       }
+      this.running = false;
    };
 
    WorkoutClock.prototype.startTime = function () {
@@ -1448,35 +1452,22 @@ var WorkoutClock = (function invocation() {
          default:
          case workoutClockType.Wall:
             now = new Date();
-            seconds = (now.getTime() - this.clock.startAt.getTime()) / 1000;
-            mm = Math.floor(seconds / 60);
-            ss = seconds - Math.floor(mm * 60);
-            this.mm = ("00" + mm).slice(-2);
-            this.ss = ("00" + ss).slice(-2);
-            if (this.onTick)
-               this.onTick();
+            mm = Math.floor(now.getMinutes());
+            ss = Math.floor(now.getSeconds());
             break;
 
          case workoutClockType.CountUp:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
-            ss = seconds - Math.floor(mm * 60);
-            this.mm = ("00" + mm).slice(-2);
-            this.ss = ("00" + ss).slice(-2);
-            if (this.onTick)
-               this.onTick();
+            ss = Math.floor(seconds - Math.floor(mm * 60));
             break;
 
          case workoutClockType.CountDown:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = this.clock.countTo - (Math.floor(seconds / 60)) - 1;
+            mm = Math.floor(this.clock.countTo - (Math.floor(seconds / 60)) - 1);
             ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
-            this.mm = ("00" + mm).slice(-2);
-            this.ss = ("00" + ss).slice(-2);
-            if (this.onTick)
-               this.onTick();
             break;
 
          case workoutClockType.Interval:
@@ -1484,7 +1475,7 @@ var WorkoutClock = (function invocation() {
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
-            ss = seconds - Math.floor(mm * 60);
+            ss = Math.floor(seconds - Math.floor(mm * 60));
 
             for (var i = 0; i < this.clock.intervals; i++) {
                if (mm > this.clock.period1)
@@ -1492,13 +1483,13 @@ var WorkoutClock = (function invocation() {
                if (mm > this.clock.period2)
                   mm -= this.clock.period2;
             }
-            this.mm = ("00" + mm).slice(-2);
-            this.ss = ("00" + ss).slice(-2);
-            if (this.onTick)
-               this.onTick();
             break;
       }
 
+      this.mm = mm;
+      this.ss = ss;
+      if (this.onTick)
+         this.onTick(this.mm, this.ss);
    };
 
    return WorkoutClock;
@@ -64940,7 +64931,7 @@ var thinStyle = {
     margin: '0px', padding: '0px',
 };
 var clockStyle = {
-    color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
+    color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 var fieldYSepStyle = {
     marginBottom: '10px'
@@ -64960,8 +64951,11 @@ var MasterClock = /** @class */ (function (_super) {
     __extends(MasterClock, _super);
     function MasterClock(props) {
         var _this = _super.call(this, props) || this;
+        var spec = new workout_clock_js_1.WorkoutClockSpec();
+        spec.setWall(new Date());
         _this.state = {
             openClockSpec: false,
+            isMounted: false,
             rtc: props.rtc,
             clockType: workout_clock_js_1.workoutClockType.Wall,
             countUpTo: 20,
@@ -64970,12 +64964,21 @@ var MasterClock = /** @class */ (function (_super) {
             period1: 5,
             period2: 2,
             enableOK: false,
-            enableCancel: false
+            enableCancel: false,
+            clock: new workout_clock_js_1.WorkoutClock(spec),
+            mm: 0,
+            ss: 0
         };
+        _this.state.clock.start(_this.onTick.bind(_this), null);
         return _this;
     }
+    MasterClock.prototype.onTick = function (mm, ss) {
+        if (this.state.isMounted)
+            this.setState({ mm: mm, ss: ss });
+    };
     MasterClock.prototype.componentDidMount = function () {
         // Initialise form validation.
+        this.setState({ isMounted: true });
     };
     MasterClock.prototype.componentWillUnmount = function () {
     };
@@ -65021,7 +65024,7 @@ var MasterClock = /** @class */ (function (_super) {
             React.createElement(Container_1.default, { style: thinStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(Col_1.default, { style: thinStyle },
-                        React.createElement(exports.RemoteClock, { mm: Number('00'), ss: Number('00') })),
+                        React.createElement(exports.RemoteClock, { mm: this.state.mm, ss: this.state.ss })),
                     React.createElement(Col_1.default, { style: thinStyle },
                         React.createElement(Button_1.default, { variant: "secondary", size: "sm", onClick: function () { return _this.setState({ openClockSpec: !_this.state.openClockSpec }); } }, "\u25BC")))),
             React.createElement(Collapse_1.default, { in: this.state.openClockSpec },
