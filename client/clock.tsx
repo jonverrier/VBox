@@ -21,7 +21,7 @@ const thinStyle: CSS.Properties = {
 };
 
 const clockStyle: CSS.Properties = {
-   color: 'red', fontFamily: 'Orbitron', fontStyle: 'sans - serif', fontSize: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
+   color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 
 const fieldYSepStyle: CSS.Properties = {
@@ -43,6 +43,7 @@ export const RemoteClock = (props: { mm: Number, ss: Number }) => (
 
 interface IClockState {
    openClockSpec: boolean;
+   isMounted: boolean;
    rtc: Rtc;
    clockType: workoutClockType;
    countUpTo: number,
@@ -52,6 +53,9 @@ interface IClockState {
    period2: number,
    enableOK: boolean;
    enableCancel: boolean;
+   clock: WorkoutClock;
+   mm: number;
+   ss: number;
 }
 
 export class MasterClock extends React.Component<IConnectionProps, IClockState> {
@@ -61,8 +65,12 @@ export class MasterClock extends React.Component<IConnectionProps, IClockState> 
    constructor(props: IConnectionProps) {
       super(props);
 
+      var spec = new WorkoutClockSpec();
+      spec.setWall(new Date());
+
       this.state = {
          openClockSpec: false,
+         isMounted: false,
          rtc: props.rtc,
          clockType: workoutClockType.Wall,
          countUpTo: 20,
@@ -71,12 +79,23 @@ export class MasterClock extends React.Component<IConnectionProps, IClockState> 
          period1: 5,
          period2: 2,
          enableOK: false,
-         enableCancel: false
+         enableCancel: false,
+         clock: new WorkoutClock(spec),
+         mm: 0,
+         ss: 0
       };
+
+      this.state.clock.start(this.onTick.bind(this), null);
+   }
+
+   onTick(mm, ss) {
+      if (this.state.isMounted)
+         this.setState({mm: mm, ss: ss});
    }
 
    componentDidMount() {
       // Initialise form validation.
+      this.setState({ isMounted: true});
    }
 
    componentWillUnmount() {
@@ -133,7 +152,7 @@ export class MasterClock extends React.Component<IConnectionProps, IClockState> 
          <div>
             <Container style={thinStyle}>
                <Row style={thinStyle}>
-                  <Col style={thinStyle}><RemoteClock mm={Number('00')} ss={Number('00')} /></Col>
+                  <Col style={thinStyle}><RemoteClock mm={this.state.mm} ss={this.state.ss} /></Col>
                   <Col style={thinStyle}><Button variant="secondary" size="sm" onClick={() => this.setState({ openClockSpec: !this.state.openClockSpec })}>&#9660;</Button></Col>
                </Row>
             </Container>

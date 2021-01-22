@@ -164,54 +164,6 @@ p.strong {
     line-height: 24px;
 }
 
-/* make carousel iamges fade instead of slide */
-/* http://stackoverflow.com/questions/9526970/can-the-twitter-bootstrap-carousel-plugin-fade-in-and-out-on-slide-transition */
-
-.carousel.fade {
-  opacity: 1;
-}
-
-.carousel.fade .item {
-  -moz-transition: opacity ease-in-out 0.5s;
-  -o-transition: opacity ease-in-out 0.5s;
-  -webkit-transition: opacity ease-in-out 0.5s;
-  transition: opacity ease-in-out 0.5s;
-  left: 0 !important;
-  opacity: 0;
-  top:0;
-  position:absolute;
-  width: 100%;
-  display:block !important;
-  z-index:1;
-}
-.carousel.fade .item:first-child {
-  top:auto;
-  position:relative;
-}
-.carousel.fade .item.active {
-  opacity: 1;
-  -moz-transition: opacity ease-in-out 0.5s;
-  -o-transition: opacity ease-in-out 0.5s;
-  -webkit-transition: opacity ease-in-out 0.5s;
-  transition: opacity ease-in-out 0.5s;
-  z-index:2;
-}
-.carousel-indicators li {
-   width: 20px;
-   height: 2px;
-   color: yellow;
-   background-color: yellow;
-}
-
-.carousel-indicators .active {
-   background-color: yellow;
-}
-
-.carousel-indicators {
-   position: absolute;
-   bottom: 0px;
-}
-
 .footer {
     color: #696969;
     text-align: center;
@@ -291,6 +243,11 @@ form-default {
 
 .underline {
    text-decoration: underline;
+}
+
+@font-face {
+   font-family: "digital-clock";
+   src: local('digital-clock'), url('digital-7 (mono).ttf') format('truetype');
 }
 
 @-webkit-viewport   { width: device-width; }
