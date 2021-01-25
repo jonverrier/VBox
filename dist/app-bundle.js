@@ -67485,15 +67485,12 @@ var PartyMap = /** @class */ (function () {
         return this.map.get(key);
     };
     PartyMap.prototype.deletePartyData = function (key) {
-        if (!this.map.get(key))
+        if (this.map.get(key))
             this.count--;
         this.map.delete(key);
     };
     PartyMap.prototype.forEach = function (fn) {
         this.map.forEach(fn);
-    };
-    PartyMap.prototype.getCount = function () {
-        return this.count;
     };
     return PartyMap;
 }());
@@ -67504,8 +67501,8 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
     function LinkConnectionStatus(props) {
         var _this = _super.call(this, props) || this;
         if (props.rtc) {
-            props.rtc.onlinkstatechange = _this.onLinkStateChange.bind(_this);
-            props.rtc.onremoteperson = _this.onremoteperson.bind(_this);
+            props.rtc.addlinklistener(_this.onlinkstatuschange.bind(_this));
+            props.rtc.addremotepersonlistener(_this.onremoteperson.bind(_this));
         }
         var partyMap = new PartyMap();
         _this.state = { partyMap: partyMap };
@@ -67513,11 +67510,11 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
     }
     LinkConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
         if (nextProps.rtc) {
-            nextProps.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
+            nextProps.rtc.addlinklistener(this.onlinkstatuschange.bind(this));
             nextProps.rtc.onremoteperson = this.onremoteperson.bind(this);
         }
     };
-    LinkConnectionStatus.prototype.onLinkStateChange = function (ev, link) {
+    LinkConnectionStatus.prototype.onlinkstatuschange = function (ev, link) {
         var partyData;
         // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
         if (!this.state.partyMap.hasParty(link.to.personId)) {
@@ -67694,8 +67691,10 @@ var MasterClock = /** @class */ (function (_super) {
     };
     MasterClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
         if (nextProps.rtc) {
-            // nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
+    };
+    MasterClock.prototype.onremotedata = function (ev, link) {
     };
     MasterClock.prototype.testEnableSave = function () {
         var _this = this;
@@ -68130,7 +68129,7 @@ var RemotePeople = /** @class */ (function (_super) {
     function RemotePeople(props) {
         var _this = _super.call(this, props) || this;
         if (props.rtc) {
-            props.rtc.onremotedata = _this.onremotedata.bind(_this);
+            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
         var partyMap = new call_status_1.PartyMap();
         _this.state = { partyMap: partyMap };
@@ -68161,7 +68160,7 @@ var RemotePeople = /** @class */ (function (_super) {
             var newItem = { key: key, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
             items.push(newItem);
         });
-        if (this.state.partyMap.getCount() === 0) {
+        if (this.state.partyMap.count === 0) {
             return (React.createElement(Row_1.default, null,
                 React.createElement(party_1.PartyNoImage, { name: 'No-one else is connected.' })));
         }
@@ -68187,8 +68186,8 @@ exports.RemotePeople = RemotePeople;
   \************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
-/*! CommonJS bailout: this is used directly at 11:17-21 */
-/*! CommonJS bailout: this is used directly at 20:19-23 */
+/*! CommonJS bailout: this is used directly at 10:17-21 */
+/*! CommonJS bailout: this is used directly at 19:19-23 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -68199,9 +68198,8 @@ exports.RemotePeople = RemotePeople;
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
 //
-// TODO - all classes in this file have a weak implementation of event firing / callback functions, which is that 
-// functions are directly overwritten, so only one 'listener' per event.
-// Multiple listeners will silently override each other. 
+// TODO - improve implementation of event firing / callback functions, which is  
+// currently duplicate for a 'single' function overwrite vs adding multiple listeners 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -68259,7 +68257,18 @@ var RtcCaller = /** @class */ (function () {
         this.sendChannel = null;
         this.recieveChannel = null;
         this.connected = false;
+        this.datalisteners = new Array();
+        this.personlisteners = new Array();
     }
+    // Multi-listener versions of above
+    RtcCaller.prototype.addremotedatalistener = function (fn) {
+        this.datalisteners.push(fn);
+    };
+    ;
+    RtcCaller.prototype.addremotepersonlistener = function (fn) {
+        this.personlisteners.push(fn);
+    };
+    ;
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
         var self = this;
@@ -68397,11 +68406,23 @@ var RtcCaller = /** @class */ (function () {
         logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
-        if (remoteCallData.__type === person_js_1.Person.prototype.__type && this.onremoteperson) {
-            this.onremoteperson(remoteCallData);
+        if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
+            if (this.onremoteperson) {
+                this.onremoteperson(remoteCallData);
+            }
+            if (this.personlisteners) {
+                for (var i = 0; i < this.personlisteners.length; i++) {
+                    this.personlisteners[i](remoteCallData);
+                }
+            }
         }
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
+        }
+        if (this.datalisteners) {
+            for (var i = 0; i < this.datalisteners.length; i++) {
+                this.datalisteners[i](remoteCallData);
+            }
         }
     };
     RtcCaller.prototype.onrecievechannelerror = function (e) {
@@ -68422,7 +68443,18 @@ var RtcReciever = /** @class */ (function () {
         this.sendChannel = null;
         this.recieveChannel = null;
         this.connected = false;
+        this.datalisteners = new Array();
+        this.personlisteners = new Array();
     }
+    // Multi-listener version of above
+    RtcReciever.prototype.addremotedatalistener = function (fn) {
+        this.datalisteners.push(fn);
+    };
+    ;
+    RtcReciever.prototype.addremotepersonlistener = function (fn) {
+        this.personlisteners.push(fn);
+    };
+    ;
     RtcReciever.prototype.answerCall = function () {
         var _this = this;
         var self = this;
@@ -68551,11 +68583,23 @@ var RtcReciever = /** @class */ (function () {
         logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
-        if (remoteCallData.__type === person_js_1.Person.prototype.__type && this.onremoteperson) {
-            this.onremoteperson(remoteCallData);
+        if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
+            if (this.onremoteperson) {
+                this.onremoteperson(remoteCallData);
+            }
+            if (this.personlisteners) {
+                for (var i = 0; i < this.personlisteners.length; i++) {
+                    this.personlisteners[i](remoteCallData);
+                }
+            }
         }
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
+        }
+        if (this.datalisteners) {
+            for (var i = 0; i < this.datalisteners.length; i++) {
+                this.datalisteners[i](remoteCallData);
+            }
         }
     };
     RtcReciever.prototype.onrecievechannelerror = function (e) {
@@ -68577,15 +68621,11 @@ var RtcLink = /** @class */ (function () {
             reciever.onremoteclose = this.onremoterecieverclose.bind(this);
             reciever.onremoteissues = this.onremoterecieverissues.bind(this);
             reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
-            reciever.onremoteperson = this.onremoteperson.bind(this);
-            reciever.onremotedata = this.onremotedata.bind(this);
         }
         if (caller) {
             caller.onremoteclose = this.onremotesenderclose.bind(this);
             caller.onremoteissues = this.onremotesenderissues.bind(this);
             caller.onremoteconnection = this.onremotesenderconnection.bind(this);
-            caller.onremoteperson = this.onremoteperson.bind(this);
-            caller.onremotedata = this.onremotedata.bind(this);
         }
     }
     RtcLink.prototype.status = function () {
@@ -68607,14 +68647,6 @@ var RtcLink = /** @class */ (function () {
         this.linkStatus = enum_js_1.FourStateRagEnum.Green;
         if (this.onlinkstatechange)
             this.onlinkstatechange(this.linkStatus);
-    };
-    RtcLink.prototype.onremoteperson = function (ev) {
-        if (this.onremoteperson)
-            this.onremoteperson(ev);
-    };
-    RtcLink.prototype.onremotedata = function (ev) {
-        if (this.onremotedata)
-            this.onremotedata(ev);
     };
     RtcLink.prototype.onremotesenderclose = function (ev) {
         this.linkStatus = enum_js_1.FourStateRagEnum.Red;
@@ -68639,6 +68671,9 @@ var Rtc = /** @class */ (function () {
         this.localCallParticipation = null;
         this.links = new Array();
         this.lastSequenceNo = 0;
+        this.datalisteners = new Array();
+        this.personlisteners = new Array();
+        this.linklisteners = new Array();
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuid_1.v4());
         // Store data on the Person who is running the app - used in data handshake & exchange
@@ -68650,6 +68685,19 @@ var Rtc = /** @class */ (function () {
         // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
         logger.info("Rtc", 'constructor', 'Browser:', webrtc_adapter_1.default.browserDetails);
     }
+    // Multi-listener version of above
+    Rtc.prototype.addremotedatalistener = function (fn) {
+        this.datalisteners.push(fn);
+    };
+    ;
+    Rtc.prototype.addremotepersonlistener = function (fn) {
+        this.personlisteners.push(fn);
+    };
+    ;
+    Rtc.prototype.addlinklistener = function (fn) {
+        this.linklisteners.push(fn);
+    };
+    ;
     Rtc.prototype.connectFirst = function () {
         this.connect();
     };
@@ -68737,6 +68785,7 @@ var Rtc = /** @class */ (function () {
         }
     };
     Rtc.prototype.onParticipant = function (remoteParticipation) {
+        var _this = this;
         var self = this;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);
@@ -68744,20 +68793,40 @@ var Rtc = /** @class */ (function () {
         link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
             self.onlinkstatechange(ev, link); };
         // Hooks to pass up data
-        sender.onremoteperson = function (ev) { if (self.onremoteperson)
-            self.onremoteperson(ev, link); };
-        sender.onremotedata = function (ev) { if (self.onremotedata)
-            self.onremotedata(ev, link); };
+        sender.onremoteperson = function (ev) {
+            if (self.onremoteperson)
+                self.onremoteperson(ev, link);
+            if (_this.personlisteners) {
+                for (var i = 0; i < _this.personlisteners.length; i++) {
+                    _this.personlisteners[i](ev, link);
+                }
+            }
+        };
+        sender.onremotedata = function (ev) {
+            if (self.onremotedata)
+                self.onremotedata(ev, link);
+            if (_this.datalisteners) {
+                for (var i = 0; i < _this.datalisteners.length; i++) {
+                    _this.datalisteners[i](ev, link);
+                }
+            }
+        };
         // Hook so if remote closes, we close down links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
         // Notify parent of link status change
         if (this.onlinkstatechange)
             this.onlinkstatechange(link.linkStatus, link);
+        if (this.linklisteners) {
+            for (var i = 0; i < this.linklisteners.length; i++) {
+                this.linklisteners[i](link.linkStatus, link);
+            }
+        }
         // place the call after setting up 'links' to avoid a race condition
         sender.placeCall();
     };
     Rtc.prototype.onOffer = function (remoteOffer) {
+        var _this = this;
         var self = this;
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteOffer.from)) {
@@ -68774,19 +68843,45 @@ var Rtc = /** @class */ (function () {
         var reciever = new RtcReciever(self.localCallParticipation, remoteOffer, self.person);
         var link = new RtcLink(remoteOffer.from, false, null, reciever);
         // Hook to pass up link status changes. 
-        link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
-            self.onlinkstatechange(ev, link); };
+        link.onlinkstatechange = function (ev) {
+            if (self.onlinkstatechange)
+                self.onlinkstatechange(ev, link);
+            if (_this.linklisteners) {
+                for (var i = 0; i < _this.linklisteners.length; i++) {
+                    _this.linklisteners[i](link.linkStatus, link);
+                }
+            }
+        };
         // Hooks to pass up data
-        reciever.onremoteperson = function (ev) { if (self.onremoteperson)
-            self.onremoteperson(ev, link); };
-        reciever.onremotedata = function (ev) { if (self.onremotedata)
-            self.onremotedata(ev, link); };
+        reciever.onremoteperson = function (ev) {
+            if (self.onremoteperson)
+                self.onremoteperson(ev, link);
+            if (_this.personlisteners) {
+                for (var i = 0; i < _this.personlisteners.length; i++) {
+                    _this.personlisteners[i](ev, link);
+                }
+            }
+        };
+        reciever.onremotedata = function (ev) {
+            if (self.onremotedata)
+                self.onremotedata(ev, link);
+            if (_this.datalisteners) {
+                for (var i = 0; i < _this.datalisteners.length; i++) {
+                    _this.datalisteners[i](ev, link);
+                }
+            }
+        };
         // Hook so if remote closes, we close down links this side
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);
         // Notify parent of link status change
         if (this.onlinkstatechange)
             this.onlinkstatechange(link.linkStatus, link);
+        if (this.linklisteners) {
+            for (var i = 0; i < this.linklisteners.length; i++) {
+                this.linklisteners[i](link.linkStatus, link);
+            }
+        }
         // answer the call after setting up 'links' to avoid a race condition
         reciever.answerCall();
     };
@@ -68840,6 +68935,11 @@ var Rtc = /** @class */ (function () {
                 // Notify parent of link status change
                 if (self.onlinkstatechange)
                     self.onlinkstatechange(null, self.links[i]);
+                if (self.linklisteners) {
+                    for (var i = 0; i < self.linklisteners.length; i++) {
+                        self.linklisteners[i](null, self.links[i]);
+                    }
+                }
                 self.links.splice(i, 1);
                 found = true;
                 break;

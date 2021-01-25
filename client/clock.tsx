@@ -103,8 +103,11 @@ export class MasterClock extends React.Component<IConnectionProps, IClockState> 
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc) {
-         // nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
+   }
+
+   onremotedata(ev: any, link: RtcLink) {
    }
 
    testEnableSave() {

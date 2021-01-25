@@ -26,7 +26,7 @@ export class RemotePeople extends React.Component<IConnectionProps, IRemotePeopl
    constructor(props: IConnectionProps) {
       super(props);
       if (props.rtc) {
-         props.rtc.onremotedata = this.onremotedata.bind(this);
+         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
       var partyMap = new PartyMap();
       this.state = { partyMap: partyMap }
@@ -64,7 +64,7 @@ export class RemotePeople extends React.Component<IConnectionProps, IRemotePeopl
          items.push(newItem);
       });
 
-      if (this.state.partyMap.getCount() === 0) {
+      if (this.state.partyMap.count === 0) {
          return (
             <Row>
                <PartyNoImage name={'No-one else is connected.'} /> 
