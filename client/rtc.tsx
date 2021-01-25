@@ -71,7 +71,7 @@ class RtcCaller {
       this.sendConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.sendConnection, self); };
       this.sendConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
 
-      self.sendChannel = this.sendConnection.createDataChannel("FromOffer");
+      self.sendChannel = this.sendConnection.createDataChannel("FromCallerSend");
       self.sendChannel.onerror = this.onsendchannelerror;
       self.sendChannel.onmessage = this.onsendchannelmessage;
       self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
@@ -249,6 +249,7 @@ class RtcReciever {
       this.remoteOffer = remoteOffer;
       this.recieveConnection = null;
       this.sendChannel = null;
+      this.recieveChannel = null;
       this.connected = false;
    }
 
@@ -277,7 +278,7 @@ class RtcReciever {
       this.recieveConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.recieveConnection, self); };
       this.recieveConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
 
-      self.sendChannel = this.recieveConnection.createDataChannel("FromAnswer");
+      self.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
       self.sendChannel.onerror = this.onsendchannelerror;
       self.sendChannel.onmessage = this.onsendchannelmessage;
       self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
