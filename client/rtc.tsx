@@ -118,7 +118,7 @@ class RtcCaller {
 
    onnegotiationneeded(ev, self) {
 
-      logger.info('RtcCaller', 'onnegotiationneeded', null, null);
+      logger.info('RtcCaller', 'onnegotiationneeded', null, ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
       self.sendConnection.createOffer()
@@ -278,13 +278,13 @@ class RtcReciever {
       this.recieveConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.recieveConnection, self); };
       this.recieveConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
 
-      self.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
-      self.sendChannel.onerror = this.onsendchannelerror;
-      self.sendChannel.onmessage = this.onsendchannelmessage;
-      self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
-      self.sendChannel.onclose = this.onsendchannelclose;
+      this.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
+      this.sendChannel.onerror = this.onsendchannelerror;
+      this.sendChannel.onmessage = this.onsendchannelmessage;
+      this.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
+      this.sendChannel.onclose = this.onsendchannelclose;
 
-      self.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
+      this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
          .then(() => self.recieveConnection.createAnswer())
          .then((answer) => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
@@ -435,10 +435,10 @@ export class RtcLink {
    reciever: RtcReciever;
    linkStatus: FourStateRagEnum;
 
-   constructor(to: CallParticipation, outbound: boolean, sender: RtcCaller, reciever: RtcReciever) {
+   constructor(to: CallParticipation, outbound: boolean, caller: RtcCaller, reciever: RtcReciever) {
       this.to = to;
       this.outbound = outbound;
-      this.sender = sender;
+      this.sender = caller;
       this.reciever = reciever;
       this.linkStatus = FourStateRagEnum.Indeterminate;
 
@@ -449,10 +449,12 @@ export class RtcLink {
          reciever.onremoteperson = this.onremoteperson.bind(this);
          reciever.onremotedata = this.onremotedata.bind(this);
       }
-      if (sender) {
-         sender.onremoteclose = this.onremotesenderclose.bind(this);
-         sender.onremoteissues = this.onremotesenderissues.bind(this);
-         sender.onremoteconnection = this.onremotesenderconnection.bind(this);
+      if (caller) {
+         caller.onremoteclose = this.onremotesenderclose.bind(this);
+         caller.onremoteissues = this.onremotesenderissues.bind(this);
+         caller.onremoteconnection = this.onremotesenderconnection.bind(this);
+         caller.onremoteperson = this.onremoteperson.bind(this);
+         caller.onremotedata = this.onremotedata.bind(this);
       }
    }
 
