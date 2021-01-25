@@ -121,7 +121,7 @@ class RtcCaller {
       logger.info('RtcCaller', 'onnegotiationneeded', null, ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      self.sendConnection.createOffer()
+      self.sendConnection.createOffer({iceRestart: true})
          .then(offer => self.sendConnection.setLocalDescription(offer))
          .then(() => {
             // Send our call offer data in
@@ -285,7 +285,7 @@ class RtcReciever {
       this.sendChannel.onclose = this.onsendchannelclose;
 
       this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
-         .then(() => self.recieveConnection.createAnswer())
+         .then(() => self.recieveConnection.createAnswer({ iceRestart: true }))
          .then((answer) => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
             // Send our call answer data in
