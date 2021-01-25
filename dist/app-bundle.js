@@ -68317,7 +68317,7 @@ var RtcCaller = /** @class */ (function () {
         });
     };
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
-        logger.info('RtcCaller', 'onnegotiationneeded', null, null);
+        logger.info('RtcCaller', 'onnegotiationneeded', null, ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
         self.sendConnection.createOffer()
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
@@ -68439,12 +68439,12 @@ var RtcReciever = /** @class */ (function () {
         this.recieveConnection.oniceconnectionstatechange = function (ev) { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
         this.recieveConnection.onconnectionstatechange = function (ev) { self.onconnectionstatechange(ev, self.recieveConnection, self); };
         this.recieveConnection.onicecandidateerror = function (ev) { self.onicecandidateerror(ev, self); };
-        self.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
-        self.sendChannel.onerror = this.onsendchannelerror;
-        self.sendChannel.onmessage = this.onsendchannelmessage;
-        self.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
-        self.sendChannel.onclose = this.onsendchannelclose;
-        self.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
+        this.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
+        this.sendChannel.onerror = this.onsendchannelerror;
+        this.sendChannel.onmessage = this.onsendchannelmessage;
+        this.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
+        this.sendChannel.onclose = this.onsendchannelclose;
+        this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
             .then(function () { return self.recieveConnection.createAnswer(); })
             .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
@@ -68567,10 +68567,10 @@ var RtcReciever = /** @class */ (function () {
     return RtcReciever;
 }());
 var RtcLink = /** @class */ (function () {
-    function RtcLink(to, outbound, sender, reciever) {
+    function RtcLink(to, outbound, caller, reciever) {
         this.to = to;
         this.outbound = outbound;
-        this.sender = sender;
+        this.sender = caller;
         this.reciever = reciever;
         this.linkStatus = enum_js_1.FourStateRagEnum.Indeterminate;
         if (reciever) {
@@ -68580,10 +68580,12 @@ var RtcLink = /** @class */ (function () {
             reciever.onremoteperson = this.onremoteperson.bind(this);
             reciever.onremotedata = this.onremotedata.bind(this);
         }
-        if (sender) {
-            sender.onremoteclose = this.onremotesenderclose.bind(this);
-            sender.onremoteissues = this.onremotesenderissues.bind(this);
-            sender.onremoteconnection = this.onremotesenderconnection.bind(this);
+        if (caller) {
+            caller.onremoteclose = this.onremotesenderclose.bind(this);
+            caller.onremoteissues = this.onremotesenderissues.bind(this);
+            caller.onremoteconnection = this.onremotesenderconnection.bind(this);
+            caller.onremoteperson = this.onremoteperson.bind(this);
+            caller.onremotedata = this.onremotedata.bind(this);
         }
     }
     RtcLink.prototype.status = function () {
