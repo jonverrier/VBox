@@ -84,17 +84,13 @@ export class PartyMap {
    }
 
    deletePartyData(key: string) {
-      if (!this.map.get(key))
+      if (this.map.get(key))
          this.count--;
       this.map.delete(key);
    }
 
    forEach(fn) {
       this.map.forEach(fn);
-   }
-
-   getCount () : number {
-      return this.count;
    }
 };
 
@@ -107,8 +103,8 @@ export class LinkConnectionStatus extends React.Component<IConnectionProps, ILin
    constructor(props: IConnectionProps) {
       super(props);
       if (props.rtc) {
-         props.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
-         props.rtc.onremoteperson = this.onremoteperson.bind(this);
+         props.rtc.addlinklistener (this.onlinkstatuschange.bind(this));
+         props.rtc.addremotepersonlistener(this.onremoteperson.bind(this));
       }
       var partyMap = new PartyMap();
       this.state = { partyMap: partyMap}
@@ -116,12 +112,12 @@ export class LinkConnectionStatus extends React.Component<IConnectionProps, ILin
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc) {
-         nextProps.rtc.onlinkstatechange = this.onLinkStateChange.bind(this);
+         nextProps.rtc.addlinklistener(this.onlinkstatuschange.bind(this));
          nextProps.rtc.onremoteperson = this.onremoteperson.bind(this);
       }
    }
 
-   onLinkStateChange(ev: Event, link: RtcLink) {
+   onlinkstatuschange(ev: Event, link: RtcLink) {
       var partyData;
 
       // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
@@ -161,7 +157,7 @@ export class LinkConnectionStatus extends React.Component<IConnectionProps, ILin
       partyData = this.state.partyMap.getPartyData(link.to.personId);
       partyData.name = ev.name;
       partyData.statusMap.set(link.to.sessionSubId, FourStateRagEnum.Green); // Irrespective of previous link status, 
-                                                                               // set it green as we have data flow.
+                                                                             // set it green as we have data flow.
 
       this.state.partyMap.addPartyData (link.to.personId, partyData);
       this.setState({ partyMap: this.state.partyMap });
