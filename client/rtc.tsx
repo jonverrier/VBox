@@ -547,6 +547,9 @@ export class Rtc {
 
       if (this.onserverconnectionstatechange)
          this.onserverconnectionstatechange(this.serverStatus);
+
+      // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
+      logger.info("Rtc", 'constructor', 'Browser:', adapter.browserDetails);
    }
 
    // Override these for notifications  - TODO - see top of file
