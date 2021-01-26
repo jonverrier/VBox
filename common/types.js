@@ -36,6 +36,7 @@ var TypeRegistry = (function invocation() {
          this.types.SignalMessage = SignalMessage;
          this.types.GymClockSpec = GymClockSpec;
          this.types.GymClockTick = GymClockTick;
+         this.types.GymClockBeep = GymClockBeep;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
@@ -49,6 +50,7 @@ var TypeRegistry = (function invocation() {
          this.types.SignalMessage = signalModule.SignalMessage;
          this.types.GymClockSpec = clockModule.GymClockSpec;
          this.types.GymClockTick = clockModule.GymClockTick;
+         this.types.GymClockBeep = clockModule.GymClockBeep;
       }
    }
    

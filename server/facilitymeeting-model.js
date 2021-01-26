@@ -14,8 +14,19 @@ const facilityMeetingSchema = new mongoose.Schema({
       required: true,
       index: true,
       unique: true
+   },
+   isActive: {
+      type: Boolean,
+   },
+   description: {
+      type: String,
+      index: true,
+      maxLength: 256
    }
-});
+},
+   {  // Enable timestamps for archival as we allow archive of inactive meeting codes
+      timestamps: true
+   });
 
 const facilityMeetingModel = mongoose.model("FacilityMeeting", facilityMeetingSchema);
 

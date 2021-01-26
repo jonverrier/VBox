@@ -4,9 +4,11 @@
 if (typeof exports !== 'undefined') {
 
    var clockModule = require('../common/gymclock.js');
+   var gymClockBeepType = clockModule.gymClockBeepType;
    var GymClockSpec = clockModule.GymClockSpec;
    var GymClock = clockModule.GymClock;
    var GymClockTick = clockModule.GymClockTick;
+   var GymClockBeep = clockModule.GymClockBeep;
    var typesModule = require('../common/types.js');
    var TypeRegistry = typesModule.TypeRegistry;
 
@@ -170,5 +172,36 @@ describe("GymClockTick", function () {
 
       var obj = types.reviveFromJSON(output);
       expect(obj.equals(tick1)).to.equal(true);
+   });
+});
+
+describe("GymClockBeep", function () {
+   var beep1, beep2;
+
+   beforeEach(function () {
+      beep1 = new GymClockBeep(gymClockBeepType.ThreeBeepStart);
+      beep2 = new GymClockBeep(gymClockBeepType.LongBeepStop);
+   });
+
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(beep1.equals(beep1)).to.equal(true);
+      expect(beep1.equals(beep2)).to.equal(false);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(beep1.beepType).to.equal(gymClockBeepType.ThreeBeepStart);
+      expect(beep1.beepType).not.to.equal(gymClockBeepType.LongBeepStop);
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(beep1);
+
+      var obj = types.reviveFromJSON(output);
+      expect(obj.equals(beep1)).to.equal(true);
    });
 });
