@@ -724,8 +724,10 @@ if (false) {} else {
   \****************************/
 /*! default exports */
 /*! export GymClock [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export GymClockBeep [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export GymClockSpec [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export GymClockTick [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export gymClockBeepType [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export gymClockType [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
 /*! runtime requirements: __webpack_require__, __webpack_exports__ */
@@ -739,6 +741,7 @@ if (false) {} else {
 var Enum = __webpack_require__(/*! ./enum.js */ "./common/enum.js").Enum;
 
 const gymClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
+const gymClockBeepType = new Enum('ThreeBeepStart', 'LongBeepStop');
 
 //==============================//
 // GymClockSpec class
@@ -1063,11 +1066,84 @@ var GymClockTick = (function invocation() {
    return GymClockTick;
 }());
 
+//==============================//
+// GymClockBeep class
+//==============================//
+var GymClockBeep = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a GymClockBeep object
+    */
+   function GymClockBeep(beepType) {
+
+      this.beepType = beepType;
+   }
+
+   GymClockBeep.prototype.__type = "GymClockBeep";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   GymClockBeep.prototype.equals = function (rhs) {
+
+      return (this.beepType.name === rhs.beepType.name);
+   };
+
+
+   /**
+    * Method that serializes to JSON 
+    */
+   GymClockBeep.prototype.toJSON = function () {
+
+      return {
+         __type: GymClockBeep.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            beepType: this.beepType
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   GymClockBeep.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return GymClockBeep.prototype.reviveDb(data.attributes);
+
+      return GymClockBeep.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   GymClockBeep.prototype.reviveDb = function (data) {
+
+      var beep = new GymClockBeep();
+
+      beep.beepType = data.beepType;
+
+      return beep;
+   };
+
+   return GymClockBeep;
+}());
+
+
 if (false) {} else { 
    exports.gymClockType = gymClockType;
+   exports.gymClockBeepType = gymClockBeepType;
    exports.GymClockSpec = GymClockSpec;
    exports.GymClock = GymClock;
    exports.GymClockTick = GymClockTick;
+   exports.GymClockBeep = GymClockBeep;
 }
 
 
@@ -1527,6 +1603,7 @@ var TypeRegistry = (function invocation() {
          this.types.SignalMessage = SignalMessage;
          this.types.GymClockSpec = GymClockSpec;
          this.types.GymClockTick = GymClockTick;
+         this.types.GymClockBeep = GymClockBeep;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
@@ -1540,6 +1617,7 @@ var TypeRegistry = (function invocation() {
          this.types.SignalMessage = signalModule.SignalMessage;
          this.types.GymClockSpec = clockModule.GymClockSpec;
          this.types.GymClockTick = clockModule.GymClockTick;
+         this.types.GymClockBeep = clockModule.GymClockBeep;
       }
    }
    

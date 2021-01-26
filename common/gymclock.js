@@ -6,6 +6,7 @@
 var Enum = require('./enum.js').Enum;
 
 const gymClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
+const gymClockBeepType = new Enum('ThreeBeepStart', 'LongBeepStop');
 
 //==============================//
 // GymClockSpec class
@@ -330,11 +331,84 @@ var GymClockTick = (function invocation() {
    return GymClockTick;
 }());
 
+//==============================//
+// GymClockBeep class
+//==============================//
+var GymClockBeep = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a GymClockBeep object
+    */
+   function GymClockBeep(beepType) {
+
+      this.beepType = beepType;
+   }
+
+   GymClockBeep.prototype.__type = "GymClockBeep";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   GymClockBeep.prototype.equals = function (rhs) {
+
+      return (this.beepType.name === rhs.beepType.name);
+   };
+
+
+   /**
+    * Method that serializes to JSON 
+    */
+   GymClockBeep.prototype.toJSON = function () {
+
+      return {
+         __type: GymClockBeep.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            beepType: this.beepType
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   GymClockBeep.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return GymClockBeep.prototype.reviveDb(data.attributes);
+
+      return GymClockBeep.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   GymClockBeep.prototype.reviveDb = function (data) {
+
+      var beep = new GymClockBeep();
+
+      beep.beepType = data.beepType;
+
+      return beep;
+   };
+
+   return GymClockBeep;
+}());
+
+
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
    exports.gymClockType = gymClockType;
+   exports.gymClockBeepType = gymClockBeepType;
    exports.GymClockSpec = GymClockSpec;
    exports.GymClock = GymClock;
    exports.GymClockTick = GymClockTick;
+   exports.GymClockBeep = GymClockBeep;
 }
