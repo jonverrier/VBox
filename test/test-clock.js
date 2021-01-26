@@ -3,31 +3,31 @@
 
 if (typeof exports !== 'undefined') {
 
-   var clockModule = require('../common/workout-clock.js');
-   var WorkoutClockSpec = clockModule.WorkoutClockSpec;
-   var WorkoutClock = clockModule.WorkoutClock;
+   var clockModule = require('../common/gymclock.js');
+   var GymClockSpec = clockModule.GymClockSpec;
+   var GymClock = clockModule.GymClock;
+   var GymClockTick = clockModule.GymClockTick;
    var typesModule = require('../common/types.js');
    var TypeRegistry = typesModule.TypeRegistry;
 
    var expect = require("chai").expect;
 }
 
-
-describe("WorkoutClockSpec", function () {
+describe("GymClockSpec", function () {
    var spec1, spec2, spec3, spec4;
    var now = new Date();
    
    beforeEach(function () {
-      spec1 = new WorkoutClockSpec(); 
+      spec1 = new GymClockSpec(); 
       spec1.setCountUp(20);
 
-      spec2 = new WorkoutClockSpec();
+      spec2 = new GymClockSpec();
       spec2.setCountDown(20);
 
-      spec3 = new WorkoutClockSpec();
+      spec3 = new GymClockSpec();
       spec3.setInterval(4, 3, 1);
 
-      spec4 = new WorkoutClockSpec();
+      spec4 = new GymClockSpec();
       spec4.setWall(new Date());
    });
 
@@ -78,26 +78,26 @@ describe("WorkoutClockSpec", function () {
    });
 });
 
-describe("WorkoutClock", function () {
+describe("GymClock", function () {
    var spec1, spec2, spec3, spec4;
    var timer1, timer2, timer3, timer4;
 
    beforeEach(function () {
-      spec1 = new WorkoutClockSpec();
+      spec1 = new GymClockSpec();
       spec1.setWall(new Date());
-      timer1 = new WorkoutClock(spec1);
+      timer1 = new GymClock(spec1);
 
-      spec2 = new WorkoutClockSpec();
+      spec2 = new GymClockSpec();
       spec2.setCountUp(20);
-      timer2 = new WorkoutClock(spec2);
+      timer2 = new GymClock(spec2);
 
-      spec3 = new WorkoutClockSpec();
+      spec3 = new GymClockSpec();
       spec3.setCountDown(20);
-      timer3 = new WorkoutClock(spec3);
+      timer3 = new GymClock(spec3);
 
-      spec4 = new WorkoutClockSpec();
+      spec4 = new GymClockSpec();
       spec4.setInterval(4, 3, 1);
-      timer4 = new WorkoutClock(spec4);
+      timer4 = new GymClock(spec4);
    });
 
    // These are all simple-minded tests - they just test that after a gap of 3 seconds, the clock is correct. 
@@ -139,5 +139,36 @@ describe("WorkoutClock", function () {
          var seconds = timer1.ss;
          expect(seconds === '03' || seconds === '04').to.equal(true);
       }, 3000);
+   });
+});
+
+describe("GymClockTick", function () {
+   var tick1, tick2;
+
+   beforeEach(function () {
+      tick1 = new GymClockTick(1,2);
+      tick2 = new GymClockTick(2,3);
+   });
+
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(tick1.equals(tick1)).to.equal(true);
+      expect(tick1.equals(tick2)).to.equal(false);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(tick1.mm).to.equal(1);
+      expect(tick1.ss).to.equal(2);
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(tick1);
+
+      var obj = types.reviveFromJSON(output);
+      expect(obj.equals(tick1)).to.equal(true);
    });
 });
