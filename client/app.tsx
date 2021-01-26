@@ -29,8 +29,8 @@ import axios from 'axios';
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
 import { MasterClock, RemoteClock } from './clock';
-import { ServerConnectionStatus, LinkConnectionStatus } from './call-status';
-import { RemotePeople } from './remote-people';
+import { ServerConnectionStatus, LinkConnectionStatus } from './callstatus';
+import { RemotePeople } from './people';
 import { LoginFb } from './loginfb';
 import { LoginMc } from './loginmc';
 import { Rtc } from './rtc';
@@ -222,7 +222,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      </div>
                   </Col>
                   <Col md='auto' style={rpanelStyle}>
-                     <RemoteClock mm={Number('00')} ss={Number('00')} />
+                     <RemoteClock rtc={this.state.rtc} />
                      <br />
                      <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                   </Col>

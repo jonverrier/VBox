@@ -718,6 +718,361 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./common/gymclock.js":
+/*!****************************!*\
+  !*** ./common/gymclock.js ***!
+  \****************************/
+/*! default exports */
+/*! export GymClock [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export GymClockSpec [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export GymClockTick [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export gymClockType [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global Enum*/
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+var Enum = __webpack_require__(/*! ./enum.js */ "./common/enum.js").Enum;
+
+const gymClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
+
+//==============================//
+// GymClockSpec class
+//==============================//
+var GymClockSpec = (function invocation() {
+   "use strict";
+
+  /**
+   * Create a GymClockSpec object
+   */
+   function GymClockSpec() {
+      this.clockType = gymClockType.Wall;
+   }
+   
+   GymClockSpec.prototype.__type = "GymClockSpec";
+
+  /**
+   * test for equality - checks all fields are the same. 
+   * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+   * @param rhs - the object to compare this one to.  
+   */
+   GymClockSpec.prototype.equals = function (rhs) {
+
+      return (this.clockType.name === rhs.clockType.name
+         && this.startAt === rhs.startAt
+         && this.countTo === rhs.countTo
+         && this.intervals === rhs.intervals
+         && this.period1 === rhs.period1
+         && this.period2 === rhs.period2); 
+   };
+
+   GymClockSpec.prototype.isValidWallSpec = function (startAt) {
+
+      var seconds = (new Date().getTime() - startAt.getTime()) / 1000;
+
+      return (seconds < 60000 && seconds > -60000); // Say its valid if current time plus or minus an hour
+   };
+
+   GymClockSpec.prototype.isValidCountUpSpec = function (countTo) {
+
+      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
+   };
+
+   GymClockSpec.prototype.isValidCountDownSpec = function (countTo) {
+
+      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
+   };
+
+   GymClockSpec.prototype.isValidIntervalSpec = function (intervals, period1, period2) {
+
+      // Say its valid if intervals is positive, period1 is positive
+      return (intervals > 0 && intervals <= 60 && period1 > 0 && period1 <= 60 && period2 >= 0 && period2 <= 60); 
+   };
+
+   GymClockSpec.prototype.setWall = function (startAt) {
+
+      this.clockType = gymClockType.Wall;
+      this.startAt = startAt;
+      this.countTo = null;
+      this.intervals = null;
+      this.period1 = null;
+      this.period2 = null;
+   };
+
+   GymClockSpec.prototype.setCountUp = function (countTo) {
+
+      this.clockType = gymClockType.CountUp;
+      this.countTo = countTo;
+      this.startAt = null;
+      this.intervals = null;
+      this.period1 = null;
+      this.period2 = null;
+   };
+
+   GymClockSpec.prototype.setCountDown = function (countTo) {
+
+      this.clockType = gymClockType.CountDown;
+      this.countTo = countTo;
+      this.startAt = null;
+      this.intervals = null;
+      this.period1 = null;
+      this.period2 = null;
+   };
+
+   GymClockSpec.prototype.setInterval = function (intervals, period1, period2) {
+
+      this.clockType = gymClockType.Interval;
+      this.intervals = intervals;
+      this.period1 = period1;
+      this.period2 = period2;
+      this.startAt = null;
+      this.countTo = null;
+   };
+
+   /**
+ * Method that serializes to JSON 
+ */
+   GymClockSpec.prototype.toJSON = function () {
+
+      return {
+         __type: GymClockSpec.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            clockType: this.clockType,
+            startAt: this.startAt,
+            countTo: this.countTo,
+            intervals: this.intervals,
+            period1: this.period1,
+            period2: this.period2
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   GymClockSpec.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return GymClockSpec.prototype.reviveDb(data.attributes);
+
+      return GymClockSpec.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   GymClockSpec.prototype.reviveDb = function (data) {
+
+      var spec = new GymClockSpec();
+
+      spec.clockType = data.clockType;
+      spec.startAt = data.startAt;
+      spec.countTo = data.countTo;
+      spec.intervals = data.intervals;
+      spec.period1 = data.period1;
+      spec.period2 = data.period2;
+
+      return spec;
+   };
+
+   return GymClockSpec;
+}());
+
+//==============================//
+// GymClock class
+//==============================//
+var GymClock = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a GymClock object
+    */
+   function GymClock(clock) {
+      this.clock = clock;
+      this.mm = 0;
+      this.ss = 0;
+      this.running = false;
+   }
+
+   GymClock.prototype.__type = "GymClock";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   GymClock.prototype.equals = function (rhs) {
+
+      return (this.clock.equals(rhs.clock)
+         && this.mm === rhs.hh
+         && this.ss === rhs.mm);
+   };
+
+   GymClock.prototype.start = function (onTick, onSignalEnd) {
+      this.startedAt = new Date();
+      this.ticker = setInterval(this.tick.bind(this), 1000); 
+      this.onTick = onTick;
+      this.onSignalEnd = onSignalEnd;
+      this.running = true;
+
+      // call first tick to start the clock
+      this.tick();
+   };
+
+   GymClock.prototype.stop = function () {
+      if (this.ticker) {
+         clearInterval(this.ticker);
+         this.ticker = null;
+      }
+      this.running = false;
+   };
+
+   GymClock.prototype.startTime = function () {
+      return this.startedAt;
+   };
+
+   GymClock.prototype.tick = function () {
+      var now, mm, ss, seconds;
+
+      switch (this.clock.__type) {
+         default:
+         case gymClockType.Wall:
+            now = new Date();
+            mm = Math.floor(now.getMinutes());
+            ss = Math.floor(now.getSeconds());
+            break;
+
+         case gymClockType.CountUp:
+            now = new Date();
+            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
+            mm = Math.floor(seconds / 60);
+            ss = Math.floor(seconds - Math.floor(mm * 60));
+            break;
+
+         case gymClockType.CountDown:
+            now = new Date();
+            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
+            mm = Math.floor(this.clock.countTo - (Math.floor(seconds / 60)) - 1);
+            ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
+            break;
+
+         case gymClockType.Interval:
+            // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
+            now = new Date();
+            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
+            mm = Math.floor(seconds / 60);
+            ss = Math.floor(seconds - Math.floor(mm * 60));
+
+            for (var i = 0; i < this.clock.intervals; i++) {
+               if (mm > this.clock.period1)
+                  mm -= this.clock.period1;
+               if (mm > this.clock.period2)
+                  mm -= this.clock.period2;
+            }
+            break;
+      }
+
+      this.mm = mm;
+      this.ss = ss;
+      if (this.onTick)
+         this.onTick(this.mm, this.ss);
+   };
+
+   return GymClock;
+}());
+
+//==============================//
+// GymClockTick class
+//==============================//
+var GymClockTick = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a GymClockTick object
+    */
+   function GymClockTick(mm, ss) {
+
+      this.mm = mm;
+      this.ss = ss;
+   }
+
+   GymClockTick.prototype.__type = "GymClockTick";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   GymClockTick.prototype.equals = function (rhs) {
+
+      return (this.mm === rhs.mm
+         && this.ss === rhs.ss);
+   };
+
+
+   /**
+    * Method that serializes to JSON 
+    */
+   GymClockTick.prototype.toJSON = function () {
+
+      return {
+         __type: GymClockTick.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            mm: this.mm,
+            ss: this.ss
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   GymClockTick.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return GymClockTick.prototype.reviveDb(data.attributes);
+
+      return GymClockTick.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   GymClockTick.prototype.reviveDb = function (data) {
+
+      var tick = new GymClockTick();
+
+      tick.mm = data.mm;
+      tick.ss = data.ss;
+
+      return tick;
+   };
+
+   return GymClockTick;
+}());
+
+if (false) {} else { 
+   exports.gymClockType = gymClockType;
+   exports.GymClockSpec = GymClockSpec;
+   exports.GymClock = GymClock;
+   exports.GymClockTick = GymClockTick;
+}
+
+
+/***/ }),
+
 /***/ "./common/homepagedata.js":
 /*!********************************!*\
   !*** ./common/homepagedata.js ***!
@@ -1170,7 +1525,8 @@ var TypeRegistry = (function invocation() {
          this.types.CallKeepAlive = CallKeepAlive;
          this.types.Call = Call;
          this.types.SignalMessage = SignalMessage;
-         this.types.WorkoutClockSpec = WorkoutClockSpec;
+         this.types.GymClockSpec = GymClockSpec;
+         this.types.GymClockTick = GymClockTick;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
@@ -1182,7 +1538,8 @@ var TypeRegistry = (function invocation() {
          this.types.CallKeepAlive = callModule.CallKeepAlive;
          this.types.Call = callModule.Call;
          this.types.SignalMessage = signalModule.SignalMessage;
-         this.types.WorkoutClockSpec = clockModule.WorkoutClockSpec;
+         this.types.GymClockSpec = clockModule.GymClockSpec;
+         this.types.GymClockTick = clockModule.GymClockTick;
       }
    }
    
@@ -1217,289 +1574,10 @@ if (false) {} else {
    homePageModule = __webpack_require__(/*! ./homepagedata.js */ "./common/homepagedata.js");
    callModule = __webpack_require__(/*! ./call.js */ "./common/call.js");
    signalModule = __webpack_require__(/*! ./signal.js */ "./common/signal.js");
-   clockModule = __webpack_require__(/*! ./workout-clock.js */ "./common/workout-clock.js");
+   clockModule = __webpack_require__(/*! ./gymclock.js */ "./common/gymclock.js");
 }
 
 
-
-
-/***/ }),
-
-/***/ "./common/workout-clock.js":
-/*!*********************************!*\
-  !*** ./common/workout-clock.js ***!
-  \*********************************/
-/*! default exports */
-/*! export WorkoutClock [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export WorkoutClockSpec [provided] [no usage info] [missing usage info prevents renaming] */
-/*! export workoutClockType [provided] [no usage info] [missing usage info prevents renaming] */
-/*! other exports [not provided] [no usage info] */
-/*! runtime requirements: __webpack_require__, __webpack_exports__ */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-/*jslint white: false, indent: 3, maxerr: 1000 */
-/*global Enum*/
-/*global exports*/
-/*! Copyright TXPCo, 2020 */
-
-var Enum = __webpack_require__(/*! ./enum.js */ "./common/enum.js").Enum;
-
-const workoutClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
-
-//==============================//
-// WorkoutClockSpec class
-//==============================//
-var WorkoutClockSpec = (function invocation() {
-   "use strict";
-
-  /**
-   * Create a WorkoutClockSpec object
-   */
-   function WorkoutClockSpec() {
-      this.clockType = workoutClockType.Wall;
-   }
-   
-   WorkoutClockSpec.prototype.__type = "WorkoutClockSpec";
-
-  /**
-   * test for equality - checks all fields are the same. 
-   * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-   * @param rhs - the object to compare this one to.  
-   */
-   WorkoutClockSpec.prototype.equals = function (rhs) {
-
-      return (this.clockType.name === rhs.clockType.name
-         && this.startAt === rhs.startAt
-         && this.countTo === rhs.countTo
-         && this.intervals === rhs.intervals
-         && this.period1 === rhs.period1
-         && this.period2 === rhs.period2); 
-   };
-
-   WorkoutClockSpec.prototype.isValidWallSpec = function (startAt) {
-
-      var seconds = (new Date().getTime() - startAt.getTime()) / 1000;
-
-      return (seconds < 60000 && seconds > -60000); // Say its valid if current time plus or minus an hour
-   };
-
-   WorkoutClockSpec.prototype.isValidCountUpSpec = function (countTo) {
-
-      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
-   };
-
-   WorkoutClockSpec.prototype.isValidCountDownSpec = function (countTo) {
-
-      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
-   };
-
-   WorkoutClockSpec.prototype.isValidIntervalSpec = function (intervals, period1, period2) {
-
-      // Say its valid if intervals is positive, period1 is positive
-      return (intervals > 0 && intervals <= 60 && period1 > 0 && period1 <= 60 && period2 >= 0 && period2 <= 60); 
-   };
-
-   WorkoutClockSpec.prototype.setWall = function (startAt) {
-
-      this.clockType = workoutClockType.Wall;
-      this.startAt = startAt;
-      this.countTo = null;
-      this.intervals = null;
-      this.period1 = null;
-      this.period2 = null;
-   };
-
-   WorkoutClockSpec.prototype.setCountUp = function (countTo) {
-
-      this.clockType = workoutClockType.CountUp;
-      this.countTo = countTo;
-      this.startAt = null;
-      this.intervals = null;
-      this.period1 = null;
-      this.period2 = null;
-   };
-
-   WorkoutClockSpec.prototype.setCountDown = function (countTo) {
-
-      this.clockType = workoutClockType.CountDown;
-      this.countTo = countTo;
-      this.startAt = null;
-      this.intervals = null;
-      this.period1 = null;
-      this.period2 = null;
-   };
-
-   WorkoutClockSpec.prototype.setInterval = function (intervals, period1, period2) {
-
-      this.clockType = workoutClockType.Interval;
-      this.intervals = intervals;
-      this.period1 = period1;
-      this.period2 = period2;
-      this.startAt = null;
-      this.countTo = null;
-   };
-
-   /**
- * Method that serializes to JSON 
- */
-   WorkoutClockSpec.prototype.toJSON = function () {
-
-      return {
-         __type: WorkoutClockSpec.prototype.__type,
-         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-         attributes: {
-            clockType: this.clockType,
-            startAt: this.startAt,
-            countTo: this.countTo,
-            intervals: this.intervals,
-            period1: this.period1,
-            period2: this.period2
-         }
-      };
-   };
-
-   /**
-    * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revive from 
-    */
-   WorkoutClockSpec.prototype.revive = function (data) {
-
-      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      if (data.attributes)
-         return WorkoutClockSpec.prototype.reviveDb(data.attributes);
-
-      return WorkoutClockSpec.prototype.reviveDb(data);
-   };
-
-   /**
-   * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revive from 
-   */
-   WorkoutClockSpec.prototype.reviveDb = function (data) {
-
-      var spec = new WorkoutClockSpec();
-
-      spec.clockType = data.clockType;
-      spec.startAt = data.startAt;
-      spec.countTo = data.countTo;
-      spec.intervals = data.intervals;
-      spec.period1 = data.period1;
-      spec.period2 = data.period2;
-
-      return spec;
-   };
-
-   return WorkoutClockSpec;
-}());
-
-//==============================//
-// WorkoutClock class
-//==============================//
-var WorkoutClock = (function invocation() {
-   "use strict";
-
-   /**
-    * Create a WorkoutClock object
-    */
-   function WorkoutClock(clock) {
-      this.clock = clock;
-      this.mm = 0;
-      this.ss = 0;
-      this.running = false;
-   }
-
-   WorkoutClock.prototype.__type = "ClockTimer";
-
-   /**
-    * test for equality - checks all fields are the same. 
-    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-    * @param rhs - the object to compare this one to.  
-    */
-   WorkoutClock.prototype.equals = function (rhs) {
-
-      return (this.clock.equals(rhs.clock)
-         && this.mm === rhs.hh
-         && this.ss === rhs.mm);
-   };
-
-   WorkoutClock.prototype.start = function (onTick, onSignalEnd) {
-      this.startedAt = new Date();
-      this.ticker = setInterval(this.tick.bind(this), 1000); 
-      this.onTick = onTick;
-      this.onSignalEnd = onSignalEnd;
-      this.running = true;
-
-      // call first tick to start the clock
-      this.tick();
-   };
-
-   WorkoutClock.prototype.stop = function () {
-      if (this.ticker) {
-         clearInterval(this.ticker);
-         this.ticker = null;
-      }
-      this.running = false;
-   };
-
-   WorkoutClock.prototype.startTime = function () {
-      return this.startedAt;
-   };
-
-   WorkoutClock.prototype.tick = function () {
-      var now, mm, ss, seconds;
-
-      switch (this.clock.__type) {
-         default:
-         case workoutClockType.Wall:
-            now = new Date();
-            mm = Math.floor(now.getMinutes());
-            ss = Math.floor(now.getSeconds());
-            break;
-
-         case workoutClockType.CountUp:
-            now = new Date();
-            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(seconds / 60);
-            ss = Math.floor(seconds - Math.floor(mm * 60));
-            break;
-
-         case workoutClockType.CountDown:
-            now = new Date();
-            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(this.clock.countTo - (Math.floor(seconds / 60)) - 1);
-            ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
-            break;
-
-         case workoutClockType.Interval:
-            // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
-            now = new Date();
-            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(seconds / 60);
-            ss = Math.floor(seconds - Math.floor(mm * 60));
-
-            for (var i = 0; i < this.clock.intervals; i++) {
-               if (mm > this.clock.period1)
-                  mm -= this.clock.period1;
-               if (mm > this.clock.period2)
-                  mm -= this.clock.period2;
-            }
-            break;
-      }
-
-      this.mm = mm;
-      this.ss = ss;
-      if (this.onTick)
-         this.onTick(this.mm, this.ss);
-   };
-
-   return WorkoutClock;
-}());
-
-if (false) {} else { 
-   exports.workoutClockType = workoutClockType;
-   exports.WorkoutClockSpec = WorkoutClockSpec;
-   exports.WorkoutClock = WorkoutClock;
-}
 
 
 /***/ }),
@@ -67057,8 +67135,8 @@ var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
-var call_status_1 = __webpack_require__(/*! ./call-status */ "./client/call-status.tsx");
-var remote_people_1 = __webpack_require__(/*! ./remote-people */ "./client/remote-people.tsx");
+var callstatus_1 = __webpack_require__(/*! ./callstatus */ "./client/callstatus.tsx");
+var people_1 = __webpack_require__(/*! ./people */ "./client/people.tsx");
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
 var loginmc_1 = __webpack_require__(/*! ./loginmc */ "./client/loginmc.tsx");
 var rtc_1 = __webpack_require__(/*! ./rtc */ "./client/rtc.tsx");
@@ -67173,9 +67251,9 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Nav_1.default, { className: "ml-auto" },
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                React.createElement(callstatus_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                            React.createElement(call_status_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                            React.createElement(callstatus_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                 React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -67187,9 +67265,9 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Col_1.default, { style: lpanelStyle },
                         React.createElement("div", { style: placeholderStyle })),
                     React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                        React.createElement(clock_1.RemoteClock, { mm: Number('00'), ss: Number('00') }),
+                        React.createElement(clock_1.RemoteClock, { rtc: this.state.rtc }),
                         React.createElement("br", null),
-                        React.createElement(remote_people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
+                        React.createElement(people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
     };
     return MemberPage;
 }(React.Component));
@@ -67289,9 +67367,9 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Nav_1.default, { className: "ml-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(call_status_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                    React.createElement(callstatus_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                                React.createElement(call_status_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                React.createElement(callstatus_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                     React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -67305,7 +67383,7 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clock_1.MasterClock, { rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
-                            React.createElement(remote_people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
+                            React.createElement(people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
         }
     };
     return CoachPage;
@@ -67400,10 +67478,10 @@ ReactDOM.render(React.createElement(PageSwitcher, null), document.getElementById
 
 /***/ }),
 
-/***/ "./client/call-status.tsx":
-/*!********************************!*\
-  !*** ./client/call-status.tsx ***!
-  \********************************/
+/***/ "./client/callstatus.tsx":
+/*!*******************************!*\
+  !*** ./client/callstatus.tsx ***!
+  \*******************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
 /*! CommonJS bailout: this is used directly at 7:17-21 */
@@ -67433,6 +67511,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LinkConnectionStatus = exports.PartyMap = exports.ServerConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
+// This app
+var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
 var ServerConnectionStatus = /** @class */ (function (_super) {
@@ -67502,7 +67582,7 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         var _this = _super.call(this, props) || this;
         if (props.rtc) {
             props.rtc.addlinklistener(_this.onlinkstatuschange.bind(_this));
-            props.rtc.addremotepersonlistener(_this.onremoteperson.bind(_this));
+            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
         var partyMap = new PartyMap();
         _this.state = { partyMap: partyMap };
@@ -67511,7 +67591,7 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
     LinkConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
         if (nextProps.rtc) {
             nextProps.rtc.addlinklistener(this.onlinkstatuschange.bind(this));
-            nextProps.rtc.onremoteperson = this.onremoteperson.bind(this);
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
     LinkConnectionStatus.prototype.onlinkstatuschange = function (ev, link) {
@@ -67534,20 +67614,22 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         }
         this.setState({ partyMap: this.state.partyMap });
     };
-    LinkConnectionStatus.prototype.onremoteperson = function (ev, link) {
-        var partyData;
-        // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-        if (!this.state.partyMap.hasParty(link.to.personId)) {
-            partyData = { name: null, statusMap: new Map() };
+    LinkConnectionStatus.prototype.onremotedata = function (ev, link) {
+        if (Object.getPrototypeOf(ev).__type === person_1.Person.prototype.__type) {
+            var partyData;
+            // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+            if (!this.state.partyMap.hasParty(link.to.personId)) {
+                partyData = { name: null, statusMap: new Map() };
+                this.state.partyMap.addPartyData(link.to.personId, partyData);
+            }
+            // Store the new name back in state
+            partyData = this.state.partyMap.getPartyData(link.to.personId);
+            partyData.name = ev.name;
+            partyData.statusMap.set(link.to.sessionSubId, enum_js_1.FourStateRagEnum.Green); // Irrespective of previous link status, 
+            // set it green as we have data flow.
             this.state.partyMap.addPartyData(link.to.personId, partyData);
+            this.setState({ partyMap: this.state.partyMap });
         }
-        // Store the new name back in state
-        partyData = this.state.partyMap.getPartyData(link.to.personId);
-        partyData.name = ev.name;
-        partyData.statusMap.set(link.to.sessionSubId, enum_js_1.FourStateRagEnum.Green); // Irrespective of previous link status, 
-        // set it green as we have data flow.
-        this.state.partyMap.addPartyData(link.to.personId, partyData);
-        this.setState({ partyMap: this.state.partyMap });
     };
     LinkConnectionStatus.prototype.render = function () {
         var items = new Array();
@@ -67633,7 +67715,7 @@ var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react
 var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js");
 var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
-var workout_clock_js_1 = __webpack_require__(/*! ../common/workout-clock.js */ "./common/workout-clock.js");
+var gymclock_js_1 = __webpack_require__(/*! ../common/gymclock.js */ "./common/gymclock.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -67650,21 +67732,49 @@ var fieldYSepStyleAuto = {
 var fieldXSepStyle = {
     marginRight: '10px'
 };
-exports.RemoteClock = function (props) { return (React.createElement("p", { style: clockStyle },
-    ("00" + props.mm).slice(-2),
-    ":",
-    ("00" + props.ss).slice(-2))); };
+var first = true;
+var RemoteClock = /** @class */ (function (_super) {
+    __extends(RemoteClock, _super);
+    function RemoteClock(props) {
+        var _this = _super.call(this, props) || this;
+        if (props.rtc) {
+            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
+        }
+        _this.state = {
+            mm: 0,
+            ss: 0
+        };
+        return _this;
+    }
+    RemoteClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc) {
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+        }
+    };
+    RemoteClock.prototype.onremotedata = function (ev, link) {
+        if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockTick.prototype.__type) {
+            this.setState({ mm: ev.mm, ss: ev.ss });
+        }
+    };
+    RemoteClock.prototype.render = function () {
+        return (React.createElement("p", { style: clockStyle },
+            ("00" + this.state.mm).slice(-2),
+            ":",
+            ("00" + this.state.ss).slice(-2)));
+    };
+    return RemoteClock;
+}(React.Component));
+exports.RemoteClock = RemoteClock;
 var MasterClock = /** @class */ (function (_super) {
     __extends(MasterClock, _super);
     function MasterClock(props) {
         var _this = _super.call(this, props) || this;
-        var spec = new workout_clock_js_1.WorkoutClockSpec();
+        var spec = new gymclock_js_1.GymClockSpec();
         spec.setWall(new Date());
         _this.state = {
             openClockSpec: false,
             isMounted: false,
-            rtc: props.rtc,
-            clockType: workout_clock_js_1.workoutClockType.Wall,
+            clockType: gymclock_js_1.gymClockType.Wall,
             countUpTo: 20,
             countDownFrom: 20,
             intervals: 3,
@@ -67672,7 +67782,7 @@ var MasterClock = /** @class */ (function (_super) {
             period2: 2,
             enableOK: false,
             enableCancel: false,
-            clock: new workout_clock_js_1.WorkoutClock(spec),
+            clock: new gymclock_js_1.GymClock(spec),
             mm: 0,
             ss: 0
         };
@@ -67680,48 +67790,45 @@ var MasterClock = /** @class */ (function (_super) {
         return _this;
     }
     MasterClock.prototype.onTick = function (mm, ss) {
-        if (this.state.isMounted)
+        if (this.state.isMounted) {
             this.setState({ mm: mm, ss: ss });
+            // distribute the tick to all clients
+            var tick = new gymclock_js_1.GymClockTick(mm, ss);
+            this.props.rtc.send(tick);
+        }
     };
     MasterClock.prototype.componentDidMount = function () {
-        // Initialise form validation.
+        // Initialise sending of ticks to remote clocks 
         this.setState({ isMounted: true });
     };
     MasterClock.prototype.componentWillUnmount = function () {
     };
-    MasterClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
-        }
-    };
-    MasterClock.prototype.onremotedata = function (ev, link) {
-    };
     MasterClock.prototype.testEnableSave = function () {
         var _this = this;
-        var spec = new workout_clock_js_1.WorkoutClockSpec();
+        var spec = new gymclock_js_1.GymClockSpec();
         // Need to get the latest values for cross-field validation
         this.forceUpdate(function () {
             _this.setState({ enableOK: false });
             // test for valid wall clock selection
-            if (_this.state.clockType === workout_clock_js_1.workoutClockType.Wall && spec.isValidWallSpec(new Date())) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.Wall && spec.isValidWallSpec(new Date())) {
                 _this.setState({ enableOK: true });
             }
             // test for valid countUp selection
-            if (_this.state.clockType === workout_clock_js_1.workoutClockType.CountUp && spec.isValidCountUpSpec(_this.state.countUpTo)) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.CountUp && spec.isValidCountUpSpec(_this.state.countUpTo)) {
                 _this.setState({ enableOK: true });
             }
             // test for valid countDown selection
-            if (_this.state.clockType === workout_clock_js_1.workoutClockType.CountDown && spec.isValidCountDownSpec(_this.state.countDownFrom)) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.CountDown && spec.isValidCountDownSpec(_this.state.countDownFrom)) {
                 _this.setState({ enableOK: true });
             }
             // test for valid interval selection
-            if (_this.state.clockType === workout_clock_js_1.workoutClockType.Interval && spec.isValidIntervalSpec(_this.state.intervals, _this.state.period1, _this.state.period2)) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.Interval && spec.isValidIntervalSpec(_this.state.intervals, _this.state.period1, _this.state.period2)) {
                 _this.setState({ enableOK: true });
             }
         });
     };
     MasterClock.prototype.processSave = function () {
-        // To do 
+        // TODO - rest the clock type, enable 'start' button. 
         this.setState({ openClockSpec: false });
     };
     MasterClock.prototype.processCancel = function () {
@@ -67733,7 +67840,10 @@ var MasterClock = /** @class */ (function (_super) {
             React.createElement(Container_1.default, { style: thinStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(Col_1.default, { style: thinStyle },
-                        React.createElement(exports.RemoteClock, { mm: this.state.mm, ss: this.state.ss })),
+                        React.createElement("p", { style: clockStyle },
+                            ("00" + this.state.mm).slice(-2),
+                            ":",
+                            ("00" + this.state.ss).slice(-2))),
                     React.createElement(Col_1.default, { style: thinStyle },
                         React.createElement(Button_1.default, { variant: "secondary", size: "sm", onClick: function () { return _this.setState({ openClockSpec: !_this.state.openClockSpec }); } }, "\u25BC")))),
             React.createElement(Collapse_1.default, { in: this.state.openClockSpec },
@@ -67741,33 +67851,33 @@ var MasterClock = /** @class */ (function (_super) {
                     React.createElement(Form_1.default, null,
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.Wall, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.Wall });
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select', checked: this.state.clockType === gymclock_js_1.gymClockType.Wall, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.Wall });
                                         _this.testEnableSave();
                                     } } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.CountUp, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.CountUp });
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select', checked: this.state.clockType === gymclock_js_1.gymClockType.CountUp, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.CountUp });
                                         _this.testEnableSave();
                                     } } }),
-                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.CountUp), id: 'count-up-value', value: this.state.countUpTo, onChange: function (ev) { _this.setState({ countUpTo: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, disabled: !(this.state.clockType === gymclock_js_1.gymClockType.CountUp), id: 'count-up-value', value: this.state.countUpTo, onChange: function (ev) { _this.setState({ countUpTo: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.CountDown, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.CountDown });
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select', checked: this.state.clockType === gymclock_js_1.gymClockType.CountDown, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.CountDown });
                                         _this.testEnableSave();
                                     } } }),
-                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, id: 'count-down-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.CountDown), value: this.state.countDownFrom, onChange: function (ev) { _this.setState({ countDownFrom: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, id: 'count-down-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.CountDown), value: this.state.countDownFrom, onChange: function (ev) { _this.setState({ countDownFrom: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select', checked: this.state.clockType === workout_clock_js_1.workoutClockType.Interval, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: workout_clock_js_1.workoutClockType.Interval });
+                                React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select', checked: this.state.clockType === gymclock_js_1.gymClockType.Interval, onChange: function (ev) { if (ev.target.checked) {
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.Interval });
                                         _this.testEnableSave();
                                     } } }),
-                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Intervals", min: '1', max: '60', step: '1', style: fieldYSepStyle, id: 'interval-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.Interval), value: this.state.intervals, onChange: function (ev) { _this.setState({ intervals: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
-                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Work", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period1-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.Interval), value: this.state.period1, onChange: function (ev) { _this.setState({ period1: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
-                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Rest", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period2-value', disabled: !(this.state.clockType === workout_clock_js_1.workoutClockType.Interval), value: this.state.period2, onChange: function (ev) { _this.setState({ period2: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Intervals", min: '1', max: '60', step: '1', style: fieldYSepStyle, id: 'interval-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.intervals, onChange: function (ev) { _this.setState({ intervals: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Work", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period1-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.period1, onChange: function (ev) { _this.setState({ period1: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
+                                React.createElement(Form_1.default.Control, { type: "number", placeholder: "Rest", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period2-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.period2, onChange: function (ev) { _this.setState({ period2: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOK, className: 'mr', style: fieldXSepStyle, onClick: this.processSave.bind(this) }, "Save"),
                             React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))));
@@ -68089,10 +68199,10 @@ exports.PartySmall = function (props) { return (React.createElement(Image_1.defa
 
 /***/ }),
 
-/***/ "./client/remote-people.tsx":
-/*!**********************************!*\
-  !*** ./client/remote-people.tsx ***!
-  \**********************************/
+/***/ "./client/people.tsx":
+/*!***************************!*\
+  !*** ./client/people.tsx ***!
+  \***************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
 /*! CommonJS bailout: this is used directly at 7:17-21 */
@@ -68122,8 +68232,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RemotePeople = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
+// This app
+var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var call_status_1 = __webpack_require__(/*! ./call-status */ "./client/call-status.tsx");
+var callstatus_1 = __webpack_require__(/*! ./callstatus */ "./client/callstatus.tsx");
 var RemotePeople = /** @class */ (function (_super) {
     __extends(RemotePeople, _super);
     function RemotePeople(props) {
@@ -68131,7 +68243,7 @@ var RemotePeople = /** @class */ (function (_super) {
         if (props.rtc) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
-        var partyMap = new call_status_1.PartyMap();
+        var partyMap = new callstatus_1.PartyMap();
         _this.state = { partyMap: partyMap };
         return _this;
     }
@@ -68141,17 +68253,19 @@ var RemotePeople = /** @class */ (function (_super) {
         }
     };
     RemotePeople.prototype.onremotedata = function (ev, link) {
-        var partyData;
-        // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-        if (!this.state.partyMap.hasParty(link.to.personId)) {
-            partyData = { name: 'Unknown' };
+        if (Object.getPrototypeOf(ev).__type === person_1.Person.prototype.__type) {
+            var partyData;
+            // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
+            if (!this.state.partyMap.hasParty(link.to.personId)) {
+                partyData = { name: 'Unknown' };
+                this.state.partyMap.addPartyData(link.to.personId, partyData);
+            }
+            // Store the new name back in state
+            partyData = this.state.partyMap.getPartyData(link.to.personId);
+            partyData.name = ev.name;
             this.state.partyMap.addPartyData(link.to.personId, partyData);
+            this.setState({ partyMap: this.state.partyMap });
         }
-        // Store the new name back in state
-        partyData = this.state.partyMap.getPartyData(link.to.personId);
-        partyData.name = ev.name;
-        this.state.partyMap.addPartyData(link.to.personId, partyData);
-        this.setState({ partyMap: this.state.partyMap });
     };
     RemotePeople.prototype.render = function () {
         var items = new Array();
@@ -68256,17 +68370,13 @@ var RtcCaller = /** @class */ (function () {
         this.sendConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
-        this.connected = false;
+        this.peersConnected = false;
+        this.sendConnected = false;
         this.datalisteners = new Array();
-        this.personlisteners = new Array();
     }
     // Multi-listener versions of above
     RtcCaller.prototype.addremotedatalistener = function (fn) {
         this.datalisteners.push(fn);
-    };
-    ;
-    RtcCaller.prototype.addremotepersonlistener = function (fn) {
-        this.personlisteners.push(fn);
     };
     ;
     RtcCaller.prototype.placeCall = function () {
@@ -68383,6 +68493,7 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
+        this.sendConnected = true;
         try {
             dc.send(JSON.stringify(this.person));
         }
@@ -68406,16 +68517,6 @@ var RtcCaller = /** @class */ (function () {
         logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
-        if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
-            if (this.onremoteperson) {
-                this.onremoteperson(remoteCallData);
-            }
-            if (this.personlisteners) {
-                for (var i = 0; i < this.personlisteners.length; i++) {
-                    this.personlisteners[i](remoteCallData);
-                }
-            }
-        }
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
         }
@@ -68431,6 +68532,10 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onrecievechannelclose = function (ev) {
         logger.info('RtcCaller', 'onrecievechannelclose', "event:", ev);
     };
+    RtcCaller.prototype.send = function (obj) {
+        if (this.sendConnected)
+            this.sendChannel.send(JSON.stringify(obj));
+    };
     return RtcCaller;
 }());
 var RtcReciever = /** @class */ (function () {
@@ -68442,17 +68547,13 @@ var RtcReciever = /** @class */ (function () {
         this.recieveConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
-        this.connected = false;
+        this.peersConnected = false;
+        this.sendConnected = false;
         this.datalisteners = new Array();
-        this.personlisteners = new Array();
     }
     // Multi-listener version of above
     RtcReciever.prototype.addremotedatalistener = function (fn) {
         this.datalisteners.push(fn);
-    };
-    ;
-    RtcReciever.prototype.addremotepersonlistener = function (fn) {
-        this.personlisteners.push(fn);
     };
     ;
     RtcReciever.prototype.answerCall = function () {
@@ -68560,6 +68661,7 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
+        this.sendConnected = true;
         try {
             dc.send(JSON.stringify(this.person));
         }
@@ -68568,7 +68670,7 @@ var RtcReciever = /** @class */ (function () {
         }
     };
     RtcReciever.prototype.onsendchannelmessage = function (msg) {
-        logger.info('RtcReciever', 'ondatachannelmessage', 'message:', msg.data);
+        logger.info('RtcReciever', 'onsendchannelmessage', 'message:', msg.data);
     };
     RtcReciever.prototype.onsendchannelerror = function (e) {
         logger.error('RtcReciever', 'onsendchannelerror', "error:", e.error);
@@ -68583,16 +68685,6 @@ var RtcReciever = /** @class */ (function () {
         logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
-        if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
-            if (this.onremoteperson) {
-                this.onremoteperson(remoteCallData);
-            }
-            if (this.personlisteners) {
-                for (var i = 0; i < this.personlisteners.length; i++) {
-                    this.personlisteners[i](remoteCallData);
-                }
-            }
-        }
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
         }
@@ -68608,13 +68700,17 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.onrecievechannelclose = function (ev) {
         logger.info('RtcReciever', 'onrecievechannelclose', 'event:', ev);
     };
+    RtcReciever.prototype.send = function (obj) {
+        if (this.sendConnected)
+            this.sendChannel.send(JSON.stringify(obj));
+    };
     return RtcReciever;
 }());
 var RtcLink = /** @class */ (function () {
     function RtcLink(to, outbound, caller, reciever) {
         this.to = to;
         this.outbound = outbound;
-        this.sender = caller;
+        this.caller = caller;
         this.reciever = reciever;
         this.linkStatus = enum_js_1.FourStateRagEnum.Indeterminate;
         if (reciever) {
@@ -68663,6 +68759,12 @@ var RtcLink = /** @class */ (function () {
         if (this.onlinkstatechange)
             this.onlinkstatechange(this.linkStatus);
     };
+    RtcLink.prototype.send = function (obj) {
+        if (this.outbound && this.caller)
+            this.caller.send(obj);
+        if (!this.outbound && this.reciever)
+            this.reciever.send(obj);
+    };
     return RtcLink;
 }());
 exports.RtcLink = RtcLink;
@@ -68672,7 +68774,6 @@ var Rtc = /** @class */ (function () {
         this.links = new Array();
         this.lastSequenceNo = 0;
         this.datalisteners = new Array();
-        this.personlisteners = new Array();
         this.linklisteners = new Array();
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuid_1.v4());
@@ -68688,10 +68789,6 @@ var Rtc = /** @class */ (function () {
     // Multi-listener version of above
     Rtc.prototype.addremotedatalistener = function (fn) {
         this.datalisteners.push(fn);
-    };
-    ;
-    Rtc.prototype.addremotepersonlistener = function (fn) {
-        this.personlisteners.push(fn);
     };
     ;
     Rtc.prototype.addlinklistener = function (fn) {
@@ -68730,6 +68827,12 @@ var Rtc = /** @class */ (function () {
     };
     Rtc.prototype.status = function () {
         return this.serverStatus;
+    };
+    Rtc.prototype.send = function (obj) {
+        var self = this;
+        for (var i = 0; i < self.links.length; i++) {
+            self.links[i].send(obj);
+        }
     };
     Rtc.prototype.onServerEvent = function (ev) {
         this.retries = 0;
@@ -68793,15 +68896,6 @@ var Rtc = /** @class */ (function () {
         link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
             self.onlinkstatechange(ev, link); };
         // Hooks to pass up data
-        sender.onremoteperson = function (ev) {
-            if (self.onremoteperson)
-                self.onremoteperson(ev, link);
-            if (_this.personlisteners) {
-                for (var i = 0; i < _this.personlisteners.length; i++) {
-                    _this.personlisteners[i](ev, link);
-                }
-            }
-        };
         sender.onremotedata = function (ev) {
             if (self.onremotedata)
                 self.onremotedata(ev, link);
@@ -68853,15 +68947,6 @@ var Rtc = /** @class */ (function () {
             }
         };
         // Hooks to pass up data
-        reciever.onremoteperson = function (ev) {
-            if (self.onremoteperson)
-                self.onremoteperson(ev, link);
-            if (_this.personlisteners) {
-                for (var i = 0; i < _this.personlisteners.length; i++) {
-                    _this.personlisteners[i](ev, link);
-                }
-            }
-        };
         reciever.onremotedata = function (ev) {
             if (self.onremotedata)
                 self.onremotedata(ev, link);
@@ -68890,7 +68975,7 @@ var Rtc = /** @class */ (function () {
         var found = false;
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteAnswer.from)) {
-                self.links[i].sender.handleAnswer(remoteAnswer.answer);
+                self.links[i].caller.handleAnswer(remoteAnswer.answer);
                 found = true;
                 // Notify parent of link status change
                 if (this.onlinkstatechange)
@@ -68911,14 +68996,14 @@ var Rtc = /** @class */ (function () {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 if (remoteIceCandidate.outbound) {
                     // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
-                    if (self.links[i].reciever && !self.links[i].reciever.connected)
+                    if (self.links[i].reciever && !self.links[i].reciever.peersConnected)
                         self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
                     // else silent fail
                 }
                 else {
                     // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
-                    if (self.links[i].sender && !self.links[i].sender.connected)
-                        self.links[i].sender.handleIceCandidate(remoteIceCandidate.ice);
+                    if (self.links[i].caller && !self.links[i].caller.peersConnected)
+                        self.links[i].caller.handleIceCandidate(remoteIceCandidate.ice);
                     // else silent fail
                 }
                 found = true;
