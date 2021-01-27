@@ -28,9 +28,9 @@ import axios from 'axios';
 // This app
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
-import { MasterClock, RemoteClock } from './clock';
-import { ServerConnectionStatus, LinkConnectionStatus } from './callstatus';
-import { RemotePeople } from './people';
+import { MasterClock, RemoteClock } from './clockpanel';
+import { ServerConnectionStatus, LinkConnectionStatus } from './callpanel';
+import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
 import { LoginMc } from './loginmc';
 import { Rtc } from './rtc';

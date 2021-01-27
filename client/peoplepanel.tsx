@@ -13,7 +13,7 @@ import Row from 'react-bootstrap/Row';
 // This app
 import { Person } from '../common/person';
 import { Party, PartyNoImage } from './party';
-import { IConnectionProps, PartyMap } from './callstatus';
+import { IConnectionProps, PartyMap } from './callpanel';
 import { Rtc, RtcLink } from './rtc';
 
 interface IRemotePeopleState {

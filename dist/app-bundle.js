@@ -898,8 +898,8 @@ var GymClock = (function invocation() {
    /**
     * Create a GymClock object
     */
-   function GymClock(clock) {
-      this.clock = clock;
+   function GymClock(clockSpec) {
+      this.clockSpec = clockSpec;
       this.mm = 0;
       this.ss = 0;
       this.running = false;
@@ -914,20 +914,19 @@ var GymClock = (function invocation() {
     */
    GymClock.prototype.equals = function (rhs) {
 
-      return (this.clock.equals(rhs.clock)
+      return (this.clockSpec.equals(rhs.clockSpec)
          && this.mm === rhs.hh
          && this.ss === rhs.mm);
    };
 
-   GymClock.prototype.start = function (onTick, onSignalEnd) {
+   GymClock.prototype.start = function (onTick) {
       this.startedAt = new Date();
-      this.ticker = setInterval(this.tick.bind(this), 1000); 
+      this.ticker = setInterval(this.ontick.bind(this), 1000); 
       this.onTick = onTick;
-      this.onSignalEnd = onSignalEnd;
       this.running = true;
 
       // call first tick to start the clock
-      this.tick();
+      this.ontick();
    };
 
    GymClock.prototype.stop = function () {
@@ -935,6 +934,7 @@ var GymClock = (function invocation() {
          clearInterval(this.ticker);
          this.ticker = null;
       }
+      this.onTick = null;
       this.running = false;
    };
 
@@ -942,10 +942,10 @@ var GymClock = (function invocation() {
       return this.startedAt;
    };
 
-   GymClock.prototype.tick = function () {
+   GymClock.prototype.ontick = function () {
       var now, mm, ss, seconds;
 
-      switch (this.clock.__type) {
+      switch (this.clockSpec.clockType) {
          default:
          case gymClockType.Wall:
             now = new Date();
@@ -958,13 +958,27 @@ var GymClock = (function invocation() {
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
             ss = Math.floor(seconds - Math.floor(mm * 60));
+            if (mm >= this.clockSpec.countTo) {
+               mm = this.clockSpec.countTo;
+               ss = 0;
+               if (this.onTick)
+                  this.onTick(mm, ss);
+               this.stop();
+            }
             break;
 
          case gymClockType.CountDown:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(this.clock.countTo - (Math.floor(seconds / 60)) - 1);
-            ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
+            mm = Math.floor(this.clockSpec.countTo - (Math.floor(seconds / 60)) - 1);
+            ss = Math.floor(((this.clockSpec.countTo - mm) * 60) - seconds);
+            if (mm <= 0 && ss <= 0) {
+               mm = 0;
+               ss = 0;
+               if (this.onTick)
+                  this.onTick(mm, ss);
+               this.stop();
+            }
             break;
 
          case gymClockType.Interval:
@@ -974,11 +988,18 @@ var GymClock = (function invocation() {
             mm = Math.floor(seconds / 60);
             ss = Math.floor(seconds - Math.floor(mm * 60));
 
-            for (var i = 0; i < this.clock.intervals; i++) {
-               if (mm > this.clock.period1)
-                  mm -= this.clock.period1;
-               if (mm > this.clock.period2)
-                  mm -= this.clock.period2;
+            for (var i = 0; i < this.clockSpec.intervals; i++) {
+               if (mm > this.clockSpec.period1)
+                  mm -= this.clockSpec.period1;
+               if (mm > this.clockSpec.period2)
+                  mm -= this.clockSpec.period2;
+            }
+            if (seconds >= (this.clockSpec.intervals * (this.clockSpec.period1 + this.clockSpec.period2) * 60)) {
+               mm = Math.floor (this.clockSpec.intervals * (this.clockSpec.period1 + this.clockSpec.period2));
+               ss = 0;
+               if (this.onTick)
+                  this.onTick(mm, ss);
+               this.stop();
             }
             break;
       }
@@ -993,7 +1014,7 @@ var GymClock = (function invocation() {
 }());
 
 //==============================//
-// GymClockTick class
+// GymClockTick class harry is the best
 //==============================//
 var GymClockTick = (function invocation() {
    "use strict";
@@ -67212,9 +67233,9 @@ var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 // This app
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var clock_1 = __webpack_require__(/*! ./clock */ "./client/clock.tsx");
-var callstatus_1 = __webpack_require__(/*! ./callstatus */ "./client/callstatus.tsx");
-var people_1 = __webpack_require__(/*! ./people */ "./client/people.tsx");
+var clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./client/clockpanel.tsx");
+var callpanel_1 = __webpack_require__(/*! ./callpanel */ "./client/callpanel.tsx");
+var peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./client/peoplepanel.tsx");
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
 var loginmc_1 = __webpack_require__(/*! ./loginmc */ "./client/loginmc.tsx");
 var rtc_1 = __webpack_require__(/*! ./rtc */ "./client/rtc.tsx");
@@ -67329,9 +67350,9 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Nav_1.default, { className: "ml-auto" },
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(callstatus_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                React.createElement(callpanel_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
                             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                            React.createElement(callstatus_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                            React.createElement(callpanel_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                         React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                             React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                 React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -67343,9 +67364,9 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Col_1.default, { style: lpanelStyle },
                         React.createElement("div", { style: placeholderStyle })),
                     React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                        React.createElement(clock_1.RemoteClock, { rtc: this.state.rtc }),
+                        React.createElement(clockpanel_1.RemoteClock, { rtc: this.state.rtc }),
                         React.createElement("br", null),
-                        React.createElement(people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
+                        React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
     };
     return MemberPage;
 }(React.Component));
@@ -67445,9 +67466,9 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Nav_1.default, { className: "ml-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(callstatus_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                    React.createElement(callpanel_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                                React.createElement(callstatus_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                React.createElement(callpanel_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                     React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -67459,9 +67480,9 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement("div", { style: placeholderStyle })),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clock_1.MasterClock, { rtc: this.state.rtc }, " "),
+                            React.createElement(clockpanel_1.MasterClock, { rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
-                            React.createElement(people_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
+                            React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
         }
     };
     return CoachPage;
@@ -67556,10 +67577,10 @@ ReactDOM.render(React.createElement(PageSwitcher, null), document.getElementById
 
 /***/ }),
 
-/***/ "./client/callstatus.tsx":
-/*!*******************************!*\
-  !*** ./client/callstatus.tsx ***!
-  \*******************************/
+/***/ "./client/callpanel.tsx":
+/*!******************************!*\
+  !*** ./client/callpanel.tsx ***!
+  \******************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
 /*! CommonJS bailout: this is used directly at 7:17-21 */
@@ -67759,10 +67780,10 @@ exports.LinkConnectionStatus = LinkConnectionStatus;
 
 /***/ }),
 
-/***/ "./client/clock.tsx":
-/*!**************************!*\
-  !*** ./client/clock.tsx ***!
-  \**************************/
+/***/ "./client/clockpanel.tsx":
+/*!*******************************!*\
+  !*** ./client/clockpanel.tsx ***!
+  \*******************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
 /*! CommonJS bailout: this is used directly at 3:17-21 */
@@ -67892,22 +67913,52 @@ var MasterClock = /** @class */ (function (_super) {
                 _this.setState({ enableOK: true });
             }
             // test for valid countUp selection
-            if (_this.state.clockType === gymclock_js_1.gymClockType.CountUp && spec.isValidCountUpSpec(_this.state.countUpTo)) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.CountUp && spec.isValidCountUpSpec(new Number(_this.state.countUpTo))) {
                 _this.setState({ enableOK: true });
             }
             // test for valid countDown selection
-            if (_this.state.clockType === gymclock_js_1.gymClockType.CountDown && spec.isValidCountDownSpec(_this.state.countDownFrom)) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.CountDown && spec.isValidCountDownSpec(new Number(_this.state.countDownFrom))) {
                 _this.setState({ enableOK: true });
             }
             // test for valid interval selection
-            if (_this.state.clockType === gymclock_js_1.gymClockType.Interval && spec.isValidIntervalSpec(_this.state.intervals, _this.state.period1, _this.state.period2)) {
+            if (_this.state.clockType === gymclock_js_1.gymClockType.Interval && spec.isValidIntervalSpec(new Number(_this.state.intervals), new Number(_this.state.period1), new Number(_this.state.period2))) {
                 _this.setState({ enableOK: true });
             }
         });
     };
     MasterClock.prototype.processSave = function () {
-        // TODO - rest the clock type, enable 'start' button. 
-        this.setState({ openClockSpec: false });
+        var spec = new gymclock_js_1.GymClockSpec();
+        var clock;
+        // test for valid wall clock selection
+        if (this.state.clockType === gymclock_js_1.gymClockType.Wall && spec.isValidWallSpec(new Date())) {
+            this.state.clock.stop();
+            spec.setWall(new Date());
+            clock = new gymclock_js_1.GymClock(spec);
+            this.setState({ clock: clock, clockType: gymclock_js_1.gymClockType.Wall });
+        }
+        // test for valid countUp selection
+        if (this.state.clockType === gymclock_js_1.gymClockType.CountUp && spec.isValidCountUpSpec(this.state.countUpTo)) {
+            this.state.clock.stop();
+            spec.setCountUp(new Number(this.state.countUpTo));
+            clock = new gymclock_js_1.GymClock(spec);
+            this.setState({ clock: clock, clockType: gymclock_js_1.gymClockType.CountUp });
+        }
+        // test for valid countDown selection
+        if (this.state.clockType === gymclock_js_1.gymClockType.CountDown && spec.isValidCountDownSpec(this.state.countDownFrom)) {
+            this.state.clock.stop();
+            spec.setCountDown(new Number(this.state.countDownFrom));
+            clock = new gymclock_js_1.GymClock(spec);
+            this.setState({ clock: clock, clockType: gymclock_js_1.gymClockType.CountDown });
+        }
+        // test for valid interval selection
+        if (this.state.clockType === gymclock_js_1.gymClockType.Interval && spec.isValidIntervalSpec(this.state.intervals, this.state.period1, this.state.period2)) {
+            this.state.clock.stop();
+            spec.setInterval(new Number(this.state.intervals), new Number(this.state.period1), new Number(this.state.period2));
+            clock = new gymclock_js_1.GymClock(spec);
+            this.setState({ clock: clock, clockType: gymclock_js_1.gymClockType.Interval });
+        }
+        this.setState({ enableOK: false, enableCancel: false, openClockSpec: false });
+        clock.start(this.onTick.bind(this), null);
     };
     MasterClock.prototype.processCancel = function () {
         this.setState({ openClockSpec: false });
@@ -67930,27 +67981,27 @@ var MasterClock = /** @class */ (function (_super) {
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
                                 React.createElement(Form_1.default.Check, { inline: true, label: "Wall clock", type: "radio", id: 'wall-clock-select', checked: this.state.clockType === gymclock_js_1.gymClockType.Wall, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: gymclock_js_1.gymClockType.Wall });
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.Wall, enableCancel: true });
                                         _this.testEnableSave();
                                     } } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
                                 React.createElement(Form_1.default.Check, { inline: true, label: "Count up to:", type: "radio", id: 'count-up-select', checked: this.state.clockType === gymclock_js_1.gymClockType.CountUp, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: gymclock_js_1.gymClockType.CountUp });
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.CountUp, enableCancel: true });
                                         _this.testEnableSave();
                                     } } }),
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, disabled: !(this.state.clockType === gymclock_js_1.gymClockType.CountUp), id: 'count-up-value', value: this.state.countUpTo, onChange: function (ev) { _this.setState({ countUpTo: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
                                 React.createElement(Form_1.default.Check, { inline: true, label: "Count down from:", type: "radio", id: 'count-down-select', checked: this.state.clockType === gymclock_js_1.gymClockType.CountDown, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: gymclock_js_1.gymClockType.CountDown });
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.CountDown, enableCancel: true });
                                         _this.testEnableSave();
                                     } } }),
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Mins", min: '1', max: '60', step: '1', style: fieldYSepStyleAuto, id: 'count-down-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.CountDown), value: this.state.countDownFrom, onChange: function (ev) { _this.setState({ countDownFrom: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
                                 React.createElement(Form_1.default.Check, { inline: true, label: "Intervals of:", type: "radio", id: 'interval-select', checked: this.state.clockType === gymclock_js_1.gymClockType.Interval, onChange: function (ev) { if (ev.target.checked) {
-                                        _this.setState({ clockType: gymclock_js_1.gymClockType.Interval });
+                                        _this.setState({ clockType: gymclock_js_1.gymClockType.Interval, enableCancel: true });
                                         _this.testEnableSave();
                                     } } }),
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Intervals", min: '1', max: '60', step: '1', style: fieldYSepStyle, id: 'interval-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.intervals, onChange: function (ev) { _this.setState({ intervals: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
@@ -68277,10 +68328,10 @@ exports.PartySmall = function (props) { return (React.createElement(Image_1.defa
 
 /***/ }),
 
-/***/ "./client/people.tsx":
-/*!***************************!*\
-  !*** ./client/people.tsx ***!
-  \***************************/
+/***/ "./client/peoplepanel.tsx":
+/*!********************************!*\
+  !*** ./client/peoplepanel.tsx ***!
+  \********************************/
 /*! unknown exports (runtime-defined) */
 /*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
 /*! CommonJS bailout: this is used directly at 7:17-21 */
@@ -68313,7 +68364,7 @@ var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react
 // This app
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var callstatus_1 = __webpack_require__(/*! ./callstatus */ "./client/callstatus.tsx");
+var callpanel_1 = __webpack_require__(/*! ./callpanel */ "./client/callpanel.tsx");
 var RemotePeople = /** @class */ (function (_super) {
     __extends(RemotePeople, _super);
     function RemotePeople(props) {
@@ -68321,7 +68372,7 @@ var RemotePeople = /** @class */ (function (_super) {
         if (props.rtc) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
-        var partyMap = new callstatus_1.PartyMap();
+        var partyMap = new callpanel_1.PartyMap();
         _this.state = { partyMap: partyMap };
         return _this;
     }

@@ -13,7 +13,7 @@ import Button from 'react-bootstrap/Button';
 import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
-import { IConnectionProps } from './callstatus';
+import { IConnectionProps } from './callpanel';
 import { gymClockType, GymClockSpec, GymClock, GymClockTick} from '../common/gymclock.js';
 
 const thinStyle: CSS.Properties = {
@@ -155,27 +155,66 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
          }
 
          // test for valid countUp selection
-         if (this.state.clockType === gymClockType.CountUp && spec.isValidCountUpSpec(this.state.countUpTo)) {
+         if (this.state.clockType === gymClockType.CountUp && spec.isValidCountUpSpec(new Number(this.state.countUpTo))) {
             this.setState({ enableOK: true });
          }
 
          // test for valid countDown selection
-         if (this.state.clockType === gymClockType.CountDown && spec.isValidCountDownSpec(this.state.countDownFrom)) {
+         if (this.state.clockType === gymClockType.CountDown && spec.isValidCountDownSpec(new Number(this.state.countDownFrom))) {
             this.setState({ enableOK: true });
          }
 
          // test for valid interval selection
-         if (this.state.clockType === gymClockType.Interval && spec.isValidIntervalSpec(this.state.intervals,
-                                                                                            this.state.period1, 
-                                                                                            this.state.period2)) {
+         if (this.state.clockType === gymClockType.Interval && spec.isValidIntervalSpec(new Number(this.state.intervals),
+                                                                                        new Number(this.state.period1), 
+                                                                                        new Number(this.state.period2))) {
             this.setState({ enableOK: true });
          }
       });
    }
 
    processSave() {
-      // TODO - rest the clock type, enable 'start' button. 
-      this.setState({ openClockSpec: false });
+      var spec = new GymClockSpec();
+      var clock;
+
+      // test for valid wall clock selection
+      if (this.state.clockType === gymClockType.Wall && spec.isValidWallSpec(new Date())) {
+         this.state.clock.stop();
+         spec.setWall(new Date());
+         clock = new GymClock(spec);
+         this.setState({ clock: clock, clockType: gymClockType.Wall });
+      }
+
+      // test for valid countUp selection
+      if (this.state.clockType === gymClockType.CountUp && spec.isValidCountUpSpec(this.state.countUpTo)) {
+         this.state.clock.stop();
+         spec.setCountUp(new Number (this.state.countUpTo));
+         clock = new GymClock(spec);
+         this.setState({ clock: clock, clockType: gymClockType.CountUp });
+      }
+
+      // test for valid countDown selection
+      if (this.state.clockType === gymClockType.CountDown && spec.isValidCountDownSpec(this.state.countDownFrom)) {
+         this.state.clock.stop();
+         spec.setCountDown(new Number(this.state.countDownFrom));
+         clock = new GymClock(spec);
+         this.setState({ clock: clock, clockType: gymClockType.CountDown });
+      }
+
+      // test for valid interval selection
+      if (this.state.clockType === gymClockType.Interval && spec.isValidIntervalSpec(this.state.intervals,
+                                                                                     this.state.period1,
+                                                                                     this.state.period2)) {
+         this.state.clock.stop();
+         spec.setInterval(new Number(this.state.intervals),
+                          new Number(this.state.period1), 
+                          new Number(this.state.period2));
+         clock = new GymClock(spec);
+         this.setState({ clock: clock, clockType: gymClockType.Interval });
+      }
+
+      this.setState({ enableOK: false, enableCancel: false, openClockSpec: false});
+      clock.start(this.onTick.bind(this), null);
    }
 
    processCancel() {
@@ -198,14 +237,14 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
                         <Form.Group>
                            <Form.Check inline label="Wall clock" type="radio" id={'wall-clock-select'}
                               checked={this.state.clockType === gymClockType.Wall}
-                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.Wall }); this.testEnableSave(); } }}/>
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.Wall, enableCancel: true }); this.testEnableSave(); } }}/>
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
                         <Form.Group>
                            <Form.Check inline label="Count up to:" type="radio" id={'count-up-select'}
                               checked={this.state.clockType === gymClockType.CountUp}
-                                onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.CountUp }); this.testEnableSave(); } }}/>
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.CountUp, enableCancel: true }); this.testEnableSave(); } }}/>
                            <Form.Control type="number" placeholder="Mins" min='1' max='60' step='1' style={fieldYSepStyleAuto}
                               disabled={!(this.state.clockType === gymClockType.CountUp)} id={'count-up-value'}
                               value={this.state.countUpTo}
@@ -216,7 +255,7 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
                         <Form.Group>
                            <Form.Check inline label="Count down from:" type="radio" id={'count-down-select'}
                               checked={this.state.clockType === gymClockType.CountDown}
-                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.CountDown }); this.testEnableSave(); } }}/>
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.CountDown, enableCancel: true }); this.testEnableSave(); } }}/>
                            <Form.Control type="number" placeholder="Mins" min='1' max='60' step='1' style={fieldYSepStyleAuto} id={'count-down-value'}
                               disabled={!(this.state.clockType === gymClockType.CountDown)}
                               value={this.state.countDownFrom}
@@ -227,7 +266,7 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
                         <Form.Group>
                            <Form.Check inline label="Intervals of:" type="radio" id={'interval-select'}
                               checked={this.state.clockType === gymClockType.Interval}
-                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.Interval }); this.testEnableSave(); }}}/>
+                              onChange={(ev) => { if (ev.target.checked) { this.setState({ clockType: gymClockType.Interval, enableCancel: true  }); this.testEnableSave(); }}}/>
                            <Form.Control type="number" placeholder="Intervals" min='1' max='60' step='1' style={fieldYSepStyle} id={'interval-value'}
                               disabled={!(this.state.clockType === gymClockType.Interval)}
                               value={this.state.intervals}
