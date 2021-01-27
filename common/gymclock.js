@@ -163,8 +163,8 @@ var GymClock = (function invocation() {
    /**
     * Create a GymClock object
     */
-   function GymClock(clock) {
-      this.clock = clock;
+   function GymClock(clockSpec) {
+      this.clockSpec = clockSpec;
       this.mm = 0;
       this.ss = 0;
       this.running = false;
@@ -179,20 +179,19 @@ var GymClock = (function invocation() {
     */
    GymClock.prototype.equals = function (rhs) {
 
-      return (this.clock.equals(rhs.clock)
+      return (this.clockSpec.equals(rhs.clockSpec)
          && this.mm === rhs.hh
          && this.ss === rhs.mm);
    };
 
-   GymClock.prototype.start = function (onTick, onSignalEnd) {
+   GymClock.prototype.start = function (onTick) {
       this.startedAt = new Date();
-      this.ticker = setInterval(this.tick.bind(this), 1000); 
+      this.ticker = setInterval(this.ontick.bind(this), 1000); 
       this.onTick = onTick;
-      this.onSignalEnd = onSignalEnd;
       this.running = true;
 
       // call first tick to start the clock
-      this.tick();
+      this.ontick();
    };
 
    GymClock.prototype.stop = function () {
@@ -200,6 +199,7 @@ var GymClock = (function invocation() {
          clearInterval(this.ticker);
          this.ticker = null;
       }
+      this.onTick = null;
       this.running = false;
    };
 
@@ -207,10 +207,10 @@ var GymClock = (function invocation() {
       return this.startedAt;
    };
 
-   GymClock.prototype.tick = function () {
+   GymClock.prototype.ontick = function () {
       var now, mm, ss, seconds;
 
-      switch (this.clock.__type) {
+      switch (this.clockSpec.clockType) {
          default:
          case gymClockType.Wall:
             now = new Date();
@@ -223,13 +223,27 @@ var GymClock = (function invocation() {
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
             mm = Math.floor(seconds / 60);
             ss = Math.floor(seconds - Math.floor(mm * 60));
+            if (mm >= this.clockSpec.countTo) {
+               mm = this.clockSpec.countTo;
+               ss = 0;
+               if (this.onTick)
+                  this.onTick(mm, ss);
+               this.stop();
+            }
             break;
 
          case gymClockType.CountDown:
             now = new Date();
             seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(this.clock.countTo - (Math.floor(seconds / 60)) - 1);
-            ss = Math.floor ((this.clock.countTo * 60) - (mm * 60));
+            mm = Math.floor(this.clockSpec.countTo - (Math.floor(seconds / 60)) - 1);
+            ss = Math.floor(((this.clockSpec.countTo - mm) * 60) - seconds);
+            if (mm <= 0 && ss <= 0) {
+               mm = 0;
+               ss = 0;
+               if (this.onTick)
+                  this.onTick(mm, ss);
+               this.stop();
+            }
             break;
 
          case gymClockType.Interval:
@@ -239,11 +253,18 @@ var GymClock = (function invocation() {
             mm = Math.floor(seconds / 60);
             ss = Math.floor(seconds - Math.floor(mm * 60));
 
-            for (var i = 0; i < this.clock.intervals; i++) {
-               if (mm > this.clock.period1)
-                  mm -= this.clock.period1;
-               if (mm > this.clock.period2)
-                  mm -= this.clock.period2;
+            for (var i = 0; i < this.clockSpec.intervals; i++) {
+               if (mm > this.clockSpec.period1)
+                  mm -= this.clockSpec.period1;
+               if (mm > this.clockSpec.period2)
+                  mm -= this.clockSpec.period2;
+            }
+            if (seconds >= (this.clockSpec.intervals * (this.clockSpec.period1 + this.clockSpec.period2) * 60)) {
+               mm = Math.floor (this.clockSpec.intervals * (this.clockSpec.period1 + this.clockSpec.period2));
+               ss = 0;
+               if (this.onTick)
+                  this.onTick(mm, ss);
+               this.stop();
             }
             break;
       }
@@ -258,7 +279,7 @@ var GymClock = (function invocation() {
 }());
 
 //==============================//
-// GymClockTick class
+// GymClockTick class harry is the best
 //==============================//
 var GymClockTick = (function invocation() {
    "use strict";
