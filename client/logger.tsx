@@ -1,8 +1,4 @@
 /*! Copyright TXPCo, 2020 */
-// References:
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
-// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
 
 declare var require: any
 

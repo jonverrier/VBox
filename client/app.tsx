@@ -34,6 +34,7 @@ import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
 import { LoginMc } from './loginmc';
 import { Rtc } from './rtc';
+import { MeetingScreenState } from './localstore';
 
 import { Person } from '../common/person';
 import { Facility } from '../common/facility';
@@ -417,6 +418,8 @@ interface ILoginPageProps {
 interface ILoginPageState {
    isLoggedIn: boolean;
    isMcReadyToLogin: boolean;
+   meetCode: string;
+   name: string;
    isValidMeetCode: boolean;
    isValidName: boolean;
    loginFb: LoginFb;
@@ -426,18 +429,25 @@ interface ILoginPageState {
 export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
    //member variables
    isLoggedIn: boolean;
+   lastUserData: MeetingScreenState;
 
    constructor(props: ILoginPageProps) {
       super(props);
+      this.lastUserData = new MeetingScreenState();
+
       this.state = {
          isLoggedIn: false,
          isMcReadyToLogin: false,
+         meetCode: this.lastUserData.loadMeetingId(),
+         name: this.lastUserData.loadName(),
          isValidMeetCode: false,
          isValidName: false,
          loginFb: new LoginFb({ autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeFb.bind(this) }),
          loginMc: new LoginMc({
             autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
-            onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this)
+            onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this),
+            name: this.lastUserData.loadName(),
+            meetCode: this.lastUserData.loadMeetingId()
          })
       };
    }
@@ -452,6 +462,10 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
          isValidMeetCode: this.state.loginMc.isValidMeetCode(),
          isValidName: this.state.loginMc.isValidName()
       });
+      if (isReady) {
+         this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
+         this.lastUserData.saveName(this.state.loginMc.getName());
+      }
    }
 
    onLoginStatusChangeFb(isLoggedIn) {
@@ -461,9 +475,22 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
    componentDidMount() {
       // Initialise facebook API
       this.state.loginFb.loadAPI();
+
+      // Initialise meeting code API
+      this.state.loginMc.loadAPI();
    }
 
    componentWillUnmount() {
+   }
+
+   handleMeetCodeChange(ev: any) {
+      this.state.loginMc.handleMeetCodeChange(ev);
+      this.setState({ meetCode: this.state.loginMc.getMeetCode() });
+   }
+
+   handleNameChange(ev: any) {
+      this.state.loginMc.handleNameChange(ev);
+      this.setState({ name: this.state.loginMc.getName() });
    }
 
    render() {
@@ -491,16 +518,20 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                      </Col>
                      <Col style={loginGroupStyle}>
                         <Form.Group controlId="formMeetingCode">
-                        <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldYSepStyle}
-                                 onChange={this.state.loginMc.handleMeetCodeChange.bind(this.state.loginMc)}
-                                 isValid={this.state.isValidMeetCode}/>
+                              <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldYSepStyle}
+                                 onChange={this.handleMeetCodeChange.bind(this)}
+                                 isValid={this.state.isValidMeetCode}
+                                 value={this.state.meetCode} />
                         </Form.Group>
                         <Form.Group controlId="formName">
-                        <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldYSepStyle}
-                                 onChange={this.state.loginMc.handleNameChange.bind(this.state.loginMc)}
-                                 isValid={this.state.isValidName} />
+                              <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldYSepStyle}
+                                 onChange={this.handleNameChange.bind(this)}
+                                 isValid={this.state.isValidName}
+                                 value={this.state.name}/>
                         </Form.Group>
-                        <Button variant="primary" disabled={!this.state.isMcReadyToLogin} onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...</Button>
+                        <Button variant="primary" disabled={!this.state.isMcReadyToLogin}
+                           onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
+                        </Button>
                      </Col>
                      <Col className="d-none d-md-block ">
                      </Col>
