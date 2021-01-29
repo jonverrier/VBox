@@ -67239,6 +67239,7 @@ var peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./client/peoplepan
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
 var loginmc_1 = __webpack_require__(/*! ./loginmc */ "./client/loginmc.tsx");
 var rtc_1 = __webpack_require__(/*! ./rtc */ "./client/rtc.tsx");
+var localstore_1 = __webpack_require__(/*! ./localstore */ "./client/localstore.tsx");
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
@@ -67492,15 +67493,20 @@ var LoginPage = /** @class */ (function (_super) {
     __extends(LoginPage, _super);
     function LoginPage(props) {
         var _this = _super.call(this, props) || this;
+        _this.lastUserData = new localstore_1.MeetingScreenState();
         _this.state = {
             isLoggedIn: false,
             isMcReadyToLogin: false,
+            meetCode: _this.lastUserData.loadMeetingId(),
+            name: _this.lastUserData.loadName(),
             isValidMeetCode: false,
             isValidName: false,
             loginFb: new loginfb_1.LoginFb({ autoLogin: false, onLoginStatusChange: _this.onLoginStatusChangeFb.bind(_this) }),
             loginMc: new loginmc_1.LoginMc({
                 autoLogin: false, onLoginStatusChange: _this.onLoginStatusChangeMc.bind(_this),
-                onLoginReadinessChange: _this.onLoginReadinessChangeMc.bind(_this)
+                onLoginReadinessChange: _this.onLoginReadinessChangeMc.bind(_this),
+                name: _this.lastUserData.loadName(),
+                meetCode: _this.lastUserData.loadMeetingId()
             })
         };
         return _this;
@@ -67514,6 +67520,10 @@ var LoginPage = /** @class */ (function (_super) {
             isValidMeetCode: this.state.loginMc.isValidMeetCode(),
             isValidName: this.state.loginMc.isValidName()
         });
+        if (isReady) {
+            this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
+            this.lastUserData.saveName(this.state.loginMc.getName());
+        }
     };
     LoginPage.prototype.onLoginStatusChangeFb = function (isLoggedIn) {
         this.setState({ isLoggedIn: isLoggedIn });
@@ -67521,8 +67531,18 @@ var LoginPage = /** @class */ (function (_super) {
     LoginPage.prototype.componentDidMount = function () {
         // Initialise facebook API
         this.state.loginFb.loadAPI();
+        // Initialise meeting code API
+        this.state.loginMc.loadAPI();
     };
     LoginPage.prototype.componentWillUnmount = function () {
+    };
+    LoginPage.prototype.handleMeetCodeChange = function (ev) {
+        this.state.loginMc.handleMeetCodeChange(ev);
+        this.setState({ meetCode: this.state.loginMc.getMeetCode() });
+    };
+    LoginPage.prototype.handleNameChange = function (ev) {
+        this.state.loginMc.handleNameChange(ev);
+        this.setState({ name: this.state.loginMc.getName() });
     };
     LoginPage.prototype.render = function () {
         return (React.createElement("div", { className: "loginpage" },
@@ -67543,9 +67563,9 @@ var LoginPage = /** @class */ (function (_super) {
                             React.createElement(Button_1.default, { variant: "primary", onClick: this.state.loginFb.logIn }, "Coaches login with Facebook...")),
                         React.createElement(Col_1.default, { style: loginGroupStyle },
                             React.createElement(Form_1.default.Group, { controlId: "formMeetingCode" },
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: "10", style: fieldYSepStyle, onChange: this.state.loginMc.handleMeetCodeChange.bind(this.state.loginMc), isValid: this.state.isValidMeetCode })),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: "10", style: fieldYSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.isValidMeetCode, value: this.state.meetCode })),
                             React.createElement(Form_1.default.Group, { controlId: "formName" },
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: "30", style: fieldYSepStyle, onChange: this.state.loginMc.handleNameChange.bind(this.state.loginMc), isValid: this.state.isValidName })),
+                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: "30", style: fieldYSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.isValidName, value: this.state.name })),
                             React.createElement(Button_1.default, { variant: "primary", disabled: !this.state.isMcReadyToLogin, onClick: this.state.loginMc.logIn.bind(this.state.loginMc) }, "Join with a meeting code...")),
                         React.createElement(Col_1.default, { className: "d-none d-md-block " }))))));
     };
@@ -68018,6 +68038,131 @@ exports.MasterClock = MasterClock;
 
 /***/ }),
 
+/***/ "./client/localstore.tsx":
+/*!*******************************!*\
+  !*** ./client/localstore.tsx ***!
+  \*******************************/
+/*! flagged exports */
+/*! export LocalStore [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export MeetingScreenState [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global exports*/
+/*global $*/
+/*! Copyright TXPCo, 2015 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MeetingScreenState = exports.LocalStore = void 0;
+//==============================//
+// Library of JavaScript classes - identity infrastructure
+// TypeRegistry
+//==============================//
+if (false) {}
+//==============================//
+// LocalStore class
+//==============================//
+var LocalStore = /** @class */ (function () {
+    /**
+     * Initialises repository
+     */
+    function LocalStore() {
+    }
+    /**
+     *
+     * saveValue
+     * @param key - key to use to look up data
+     * @param value - value to save
+     */
+    LocalStore.prototype.saveValue = function (key, value) {
+        if (window.localStorage)
+            window.localStorage.setItem(key, value.toString());
+    };
+    ;
+    /**
+     *
+     * loadValue
+     * @param key - key to use to look up data
+     */
+    LocalStore.prototype.loadValue = function (key) {
+        if (window.localStorage)
+            return window.localStorage.getItem(key);
+        else
+            return null;
+    };
+    ;
+    /**
+     *
+     * clearValue
+     * @param key - key to use to look up data
+     */
+    LocalStore.prototype.clearValue = function (key) {
+        if (window.localStorage)
+            window.localStorage.removeItem(key);
+    };
+    return LocalStore;
+}());
+exports.LocalStore = LocalStore;
+var lastMeetingId = "lastMeetingId";
+var lastName = "lastName";
+//==============================//
+// MeetingScreenState class
+//==============================//
+var MeetingScreenState = /** @class */ (function () {
+    function MeetingScreenState() {
+        this.store = new LocalStore();
+    }
+    /**
+     *
+     * saveMeetingId
+     * @param meetingId - value to save
+     */
+    MeetingScreenState.prototype.saveMeetingId = function (meetingId) {
+        this.store.saveValue(lastMeetingId, meetingId);
+    };
+    ;
+    /**
+     *
+     * loadMeetingId
+     */
+    MeetingScreenState.prototype.loadMeetingId = function () {
+        var ret = this.store.loadValue(lastMeetingId);
+        if (!ret)
+            ret = "";
+        return ret;
+    };
+    ;
+    /**
+     *
+     * saveName
+     * @param meetingId - value to save
+     */
+    MeetingScreenState.prototype.saveName = function (meetingId) {
+        this.store.saveValue(lastName, meetingId);
+    };
+    ;
+    /**
+     *
+     * loadName
+     */
+    MeetingScreenState.prototype.loadName = function () {
+        var ret = this.store.loadValue(lastName);
+        if (!ret)
+            ret = "";
+        return ret;
+    };
+    ;
+    return MeetingScreenState;
+}());
+exports.MeetingScreenState = MeetingScreenState;
+
+
+/***/ }),
+
 /***/ "./client/logger.tsx":
 /*!***************************!*\
   !*** ./client/logger.tsx ***!
@@ -68032,10 +68177,6 @@ exports.MasterClock = MasterClock;
 "use strict";
 
 /*! Copyright TXPCo, 2020 */
-// References:
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
-// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Logger = void 0;
 var logging = __webpack_require__(/*! loglevel */ "./node_modules/loglevel/lib/loglevel.js");
@@ -68196,11 +68337,13 @@ var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 var LoginMc = /** @class */ (function () {
     function LoginMc(props) {
-        this.state = { isLoggedIn: false, meetCode: "", name: "", isValidMeetCode: false, isTimerPending: false };
+        this.state = { isLoggedIn: false, meetCode: props.meetCode, name: props.name, isValidMeetCode: false, isTimerPending: false };
         this.props = props;
     }
-    LoginMc.prototype.handleMeetCodeChange = function (ev) {
-        this.state.meetCode = ev.target.value;
+    LoginMc.prototype.loadAPI = function () {
+        this.checkMeetCode();
+    };
+    LoginMc.prototype.checkMeetCode = function () {
         var self = this;
         // make at most one call per second to the server to check for a valid meet code
         if (!this.state.isTimerPending) {
@@ -68218,6 +68361,10 @@ var LoginMc = /** @class */ (function () {
             }, 1000);
         }
     };
+    LoginMc.prototype.handleMeetCodeChange = function (ev) {
+        this.state.meetCode = ev.target.value;
+        this.checkMeetCode();
+    };
     LoginMc.prototype.handleNameChange = function (ev) {
         this.state.name = ev.target.value;
         this.props.onLoginReadinessChange(this.isLoginReady());
@@ -68230,6 +68377,12 @@ var LoginMc = /** @class */ (function () {
     };
     LoginMc.prototype.isLoginReady = function () {
         return this.state.name.length > 0 && this.state.isValidMeetCode;
+    };
+    LoginMc.prototype.getMeetCode = function () {
+        return this.state.meetCode;
+    };
+    LoginMc.prototype.getName = function () {
+        return this.state.name;
     };
     LoginMc.prototype.logIn = function () {
         var self = this;

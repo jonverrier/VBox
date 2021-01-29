@@ -12,6 +12,8 @@ var logger = new Logger();
 
 interface ILoginMcProps {
    autoLogin: Boolean;
+   name: string;
+   meetCode: string;
    onLoginReadinessChange: (boolean) => void;
    onLoginStatusChange: (boolean) => void;
 }
@@ -31,12 +33,15 @@ export class LoginMc {
 
    constructor(props: ILoginMcProps) {
 
-      this.state = { isLoggedIn: false, meetCode: "", name: "", isValidMeetCode: false, isTimerPending : false};
+      this.state = { isLoggedIn: false, meetCode: props.meetCode, name: props.name, isValidMeetCode: false, isTimerPending: false };
       this.props = props;
    }
 
-   handleMeetCodeChange(ev: any) {
-      this.state.meetCode = ev.target.value;  
+   loadAPI() {
+      this.checkMeetCode();
+   }
+
+   checkMeetCode() {
       var self = this;
 
       // make at most one call per second to the server to check for a valid meet code
@@ -57,6 +62,12 @@ export class LoginMc {
       }
    }
 
+   handleMeetCodeChange(ev: any) {
+      this.state.meetCode = ev.target.value;  
+
+      this.checkMeetCode();
+   }
+
    handleNameChange(ev: any) {
       this.state.name = ev.target.value;
 
@@ -73,6 +84,14 @@ export class LoginMc {
 
    isLoginReady(): boolean {
       return this.state.name.length > 0 && this.state.isValidMeetCode;
+   }
+
+   getMeetCode(): string {
+      return this.state.meetCode;
+   }
+
+   getName(): string {
+      return this.state.name;
    }
 
    logIn() {
