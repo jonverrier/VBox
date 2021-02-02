@@ -8,6 +8,7 @@ var callModule = null;
 var signalModule = null;
 var homePageModule = null;
 var clockModule = null;
+var whiteboardModule = null;
 
 //==============================//
 // TypeRegistry class
@@ -37,6 +38,7 @@ var TypeRegistry = (function invocation() {
          this.types.GymClockSpec = GymClockSpec;
          this.types.GymClockTick = GymClockTick;
          this.types.GymClockBeep = GymClockBeep;
+         this.types.Whiteboard = Whiteboard;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
@@ -51,6 +53,7 @@ var TypeRegistry = (function invocation() {
          this.types.GymClockSpec = clockModule.GymClockSpec;
          this.types.GymClockTick = clockModule.GymClockTick;
          this.types.GymClockBeep = clockModule.GymClockBeep;
+         this.types.Whiteboard = whiteboardModule.Whiteboard;
       }
    }
    
@@ -88,6 +91,7 @@ if (typeof exports == 'undefined') {
    callModule = require('./call.js');
    signalModule = require('./signal.js');
    clockModule = require('./gymclock.js');
+   whiteboardModule = require('../common/whiteboard.js');
 }
 
 

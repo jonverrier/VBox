@@ -840,7 +840,7 @@ export class Rtc {
    onRemoteClose(ev, rtclink, self) {
       var found = false;
 
-      for (var i = 0; i < self.links.length; i++) {
+      for (var i = 0; i < self.links.length && !found; i++) {
          if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
             // Notify parent of link status change
             if (self.onlinkstatechange)
@@ -850,7 +850,6 @@ export class Rtc {
                   self.linklisteners[i](null, self.links[i]);
                }
             }
-            self.links.splice(i, 1);
             found = true;
             break;
          }
