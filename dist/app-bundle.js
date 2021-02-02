@@ -462,6 +462,66 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./common/dates.js":
+/*!*************************!*\
+  !*** ./common/dates.js ***!
+  \*************************/
+/*! default exports */
+/*! export DateUtility [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+
+//==============================//
+// DateUtility class
+//==============================//
+var DateUtility = (function invocation() {
+   "use strict";
+   
+   /**
+    * Creates a DateUtility
+    * @param date - the date object to use - can be null, in which case the class creates its own via now() 
+    */
+   function DateUtility(date) {
+      if (!date)
+         date = new Date();
+      this.date = date;
+   }
+   
+   /**
+    * Function takes in a Date object and returns the day of the week in a text format.
+    */
+   DateUtility.prototype.getWeekDay = function () {
+      
+      //Create an array containing each day, starting with Sunday.
+      var weekdays = new Array(
+         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+      );
+
+      //Use the getDay() method to get the day.
+      var day = this.date.getDay();
+      //Return the element that corresponds to that index.
+      return weekdays[day];
+   };
+   
+   return DateUtility;
+})();
+
+
+if (false) {} else {   
+   exports.DateUtility = DateUtility;
+}
+
+
+
+
+/***/ }),
+
 /***/ "./common/enum.js":
 /*!************************!*\
   !*** ./common/enum.js ***!
@@ -1596,6 +1656,7 @@ var callModule = null;
 var signalModule = null;
 var homePageModule = null;
 var clockModule = null;
+var whiteboardModule = null;
 
 //==============================//
 // TypeRegistry class
@@ -1625,6 +1686,7 @@ var TypeRegistry = (function invocation() {
          this.types.GymClockSpec = GymClockSpec;
          this.types.GymClockTick = GymClockTick;
          this.types.GymClockBeep = GymClockBeep;
+         this.types.Whiteboard = Whiteboard;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
@@ -1639,6 +1701,7 @@ var TypeRegistry = (function invocation() {
          this.types.GymClockSpec = clockModule.GymClockSpec;
          this.types.GymClockTick = clockModule.GymClockTick;
          this.types.GymClockBeep = clockModule.GymClockBeep;
+         this.types.Whiteboard = whiteboardModule.Whiteboard;
       }
    }
    
@@ -1674,9 +1737,110 @@ if (false) {} else {
    callModule = __webpack_require__(/*! ./call.js */ "./common/call.js");
    signalModule = __webpack_require__(/*! ./signal.js */ "./common/signal.js");
    clockModule = __webpack_require__(/*! ./gymclock.js */ "./common/gymclock.js");
+   whiteboardModule = __webpack_require__(/*! ../common/whiteboard.js */ "./common/whiteboard.js");
 }
 
 
+
+
+/***/ }),
+
+/***/ "./common/whiteboard.js":
+/*!******************************!*\
+  !*** ./common/whiteboard.js ***!
+  \******************************/
+/*! default exports */
+/*! export Whiteboard [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global Enum*/
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+var TypeRegistry = __webpack_require__(/*! ../common/types.js */ "./common/types.js").TypeRegistry;
+
+//==============================//
+// Whiteboard class
+//==============================//
+var Whiteboard = (function invocation() {
+   "use strict";
+
+  /**
+   * Create a Whiteboard object
+
+   */
+   function Whiteboard(workout, results) {
+      
+      this.workout = workout;
+      this.results = results;
+   }
+   
+   Whiteboard.prototype.__type = "Whiteboard";
+
+  /**
+   * test for equality - checks all fields are the same. 
+   * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+   * @param rhs - the object to compare this one to.  
+   */
+   Whiteboard.prototype.equals = function (rhs) {
+
+      return (
+         (this.workout.equals(rhs.workout)) &&
+         (this.results.equals(rhs.results)));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   Whiteboard.prototype.toJSON = function () {
+
+      return {
+         __type: Whiteboard.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            workout: this.workout,
+            results: this.results
+         }
+      };
+   };
+
+  /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   Whiteboard.prototype.revive = function (data) {
+      
+      // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return Whiteboard.prototype.reviveDb(data.attributes);
+      else
+         return Whiteboard.prototype.reviveDb(data);
+   };
+   
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   Whiteboard.prototype.reviveDb = function (data) {
+      
+      var whiteboard = new Whiteboard();
+
+      var types = new TypeRegistry();
+      whiteboard.workout = types.reviveFromJSON(data.workout);
+      whiteboard.results = types.reviveFromJSON(data.results);
+      
+      return whiteboard;
+   };
+
+   return Whiteboard;
+}());
+
+if (false) {} else { 
+   exports.Whiteboard = Whiteboard;
+}
 
 
 /***/ }),
@@ -67243,8 +67407,9 @@ var localstore_1 = __webpack_require__(/*! ./localstore */ "./client/localstore.
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
+var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
 var thinStyle = {
-    margin: '0px', padding: '0px',
+    margin: '0px', padding: '0px'
 };
 var facilityNavStyle = {
     margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color: 'gray'
@@ -67278,10 +67443,30 @@ var rpanelStyle = {
     marginRight: '2px', paddingRight: '0px',
     minHeight: '575px'
 };
-var formBorder = {
-    borderWidth: "1px",
-    borderColor: "black",
-    borderStyle: 'solid'
+var whiteboardStyle = {
+    minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
+    margin: '0px', padding: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+var whiteboardHeaderStyle = {
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '64px',
+    marginTop: '0px', paddingTop: '0px',
+    marginBottom: '10px', paddingBottom: '0px',
+    marginLeft: '0px', paddingLeft: '0px',
+    marginRight: '0px', paddingRight: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+var whiteboardElementStyle = {
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '32px',
+    margin: '0px', padding: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
 };
 var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
@@ -67479,7 +67664,20 @@ var CoachPage = /** @class */ (function (_super) {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement("div", { style: placeholderStyle })),
+                            React.createElement("div", { style: whiteboardStyle },
+                                React.createElement(Row_1.default, { style: thinStyle },
+                                    React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility().getWeekDay())),
+                                React.createElement(Row_1.default, { style: thinStyle },
+                                    React.createElement(Col_1.default, { style: whiteboardElementStyle },
+                                        "Workout",
+                                        React.createElement(Form_1.default, null,
+                                            React.createElement(Form_1.default.Group, { controlId: "idWorkout" },
+                                                React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type the workout details here", rows: 10 })))),
+                                    React.createElement(Col_1.default, { style: whiteboardElementStyle },
+                                        "Results",
+                                        React.createElement(Form_1.default, null,
+                                            React.createElement(Form_1.default.Group, { controlId: "idResults" },
+                                                React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type results here after the workout", rows: 10 }))))))),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.MasterClock, { rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
@@ -69297,7 +69495,7 @@ var Rtc = /** @class */ (function () {
     };
     Rtc.prototype.onRemoteClose = function (ev, rtclink, self) {
         var found = false;
-        for (var i = 0; i < self.links.length; i++) {
+        for (var i = 0; i < self.links.length && !found; i++) {
             if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
                 // Notify parent of link status change
                 if (self.onlinkstatechange)
@@ -69307,7 +69505,6 @@ var Rtc = /** @class */ (function () {
                         self.linklisteners[i](null, self.links[i]);
                     }
                 }
-                self.links.splice(i, 1);
                 found = true;
                 break;
             }
