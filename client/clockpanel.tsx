@@ -135,11 +135,13 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
    }
 
    componentDidMount() {
-      // Initialise sending of ticks to remote clocks 
+      // Initialise sending to remotes
       this.setState({ isMounted: true});
    }
 
    componentWillUnmount() {
+      // Stop sending data to remotes
+      this.setState({ isMounted: false });
    }
 
    testEnableSave() {

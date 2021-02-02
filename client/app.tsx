@@ -29,6 +29,7 @@ import axios from 'axios';
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
 import { MasterClock, RemoteClock } from './clockpanel';
+import { MasterWhiteboard } from './whiteboardpanel';
 import { ServerConnectionStatus, LinkConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
@@ -39,7 +40,6 @@ import { MeetingScreenState } from './localstore';
 import { Person } from '../common/person';
 import { Facility } from '../common/facility';
 import { HomePageData } from '../common/homepagedata';
-import { DateUtility } from '../common/dates';
 
 import * as CSS from 'csstype';
 
@@ -85,34 +85,6 @@ const rpanelStyle: CSS.Properties = {
    marginLeft: '10px', paddingLeft: '0px',
    marginRight: '2px', paddingRight: '0px',
    minHeight: '575px'
-};
-
-const whiteboardStyle: CSS.Properties = {
-   minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
-   margin: '0px', padding: '0px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
-};
-
-const whiteboardHeaderStyle: CSS.Properties = {
-   color: 'black', background: 'white',
-   fontFamily: 'Permanent Marker',
-   fontSize: '64px',
-   marginTop: '0px', paddingTop: '0px',
-   marginBottom: '10px', paddingBottom: '0px',
-   marginLeft: '0px', paddingLeft: '0px',
-   marginRight: '0px', paddingRight: '0px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
-};
-
-const whiteboardElementStyle: CSS.Properties = {
-   color: 'black', background: 'white',
-   fontFamily: 'Permanent Marker',
-   fontSize: '32px',
-   margin: '0px', padding: '0px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
 };
 
 interface IMemberPageProps {
@@ -419,31 +391,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <div style={whiteboardStyle}>
-                           <Row style={thinStyle}>
-                              <Col style={whiteboardHeaderStyle}>
-                                 {new DateUtility().getWeekDay()}
-                              </Col>
-                           </Row>
-                           <Row style={thinStyle}>
-                              <Col style={whiteboardElementStyle}>
-                                 Workout
-                                 <Form>
-                                    <Form.Group controlId="idWorkout">
-                                       <Form.Control as="textarea" placeholder="Type the workout details here" rows={10}/>
-                                    </Form.Group>
-                                 </Form>
-                              </Col>
-                              <Col style={whiteboardElementStyle}>
-                                 Results
-                                 <Form>
-                                    <Form.Group controlId="idResults">
-                                       <Form.Control as="textarea" placeholder="Type results here after the workout" rows={10}/>
-                                    </Form.Group>
-                                 </Form>
-                              </Col>
-                           </Row>
-                        </div>
+                        <MasterWhiteboard rtc={this.state.rtc}> </MasterWhiteboard>                        
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
                         <MasterClock rtc={this.state.rtc}> </MasterClock>

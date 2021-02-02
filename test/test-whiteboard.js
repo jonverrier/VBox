@@ -7,6 +7,7 @@ const { Person } = require('../common/person.js');
 if (typeof exports !== 'undefined') {
 
    var whiteboardModule = require('../common/whiteboard.js');
+   var WhiteboardElement = whiteboardModule.WhiteboardElement;
    var Whiteboard = whiteboardModule.Whiteboard;
 
    var typesModule = require('../common/types.js');
@@ -15,14 +16,45 @@ if (typeof exports !== 'undefined') {
    var expect = require("chai").expect;
 }
 
+describe("WhiteboardElement", function () {
+   var person1, person2, element1, element2;
+
+   beforeEach(function () {
+      element1 = new WhiteboardElement(1, "text");
+      element2 = new WhiteboardElement(2, "text\ntext");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(element1).to.equal(element1);
+      expect(element1).to.not.equal(element2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(element1.rows === 1).to.equal(true);
+      expect(element1.text === 'text').to.equal(true);
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(element1);
+      console.log(output);
+
+      var obj = types.reviveFromJSON(output);
+      expect(element1.equals(obj)).to.equal(true);
+   });
+});
+
 describe("Whiteboard", function () {
-   var person1, person2, whiteboard1, whiteboard2;
+   var element1, element2, whiteboard1, whiteboard2;
    
    beforeEach(function () {
-      person1 = new Person(1, "123", "Joe", "Joe@mail.com", "https://jo.pics.com", "1234");
-      person2 = new Person(2, "123", "Joe", "Joe@mail.com", "https://jo.pics.com", "5678");
-      whiteboard1 = new Whiteboard(person1, person1);
-      whiteboard2 = new Whiteboard(person1, person2);
+      element1 = new WhiteboardElement(1, "text");
+      element2 = new WhiteboardElement(2, "text\ntext");
+      whiteboard1 = new Whiteboard(element1, element1);
+      whiteboard2 = new Whiteboard(element1, element2);
    });
    
    it("Needs to compare for equality and inequality", function () {
@@ -33,8 +65,8 @@ describe("Whiteboard", function () {
    
    it("Needs to correctly store attributes", function () {
       
-      expect(whiteboard1.workout.equals(person1)).to.equal(true);    
-      expect(whiteboard1.results.equals(person1)).to.equal(true);          
+      expect(whiteboard1.workout.equals(element1)).to.equal(true);    
+      expect(whiteboard1.results.equals(element1)).to.equal(true);          
    });
    
    it("Needs to save and restore to/from JSON", function () {
