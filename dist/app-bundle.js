@@ -1687,6 +1687,7 @@ var TypeRegistry = (function invocation() {
          this.types.GymClockTick = GymClockTick;
          this.types.GymClockBeep = GymClockBeep;
          this.types.Whiteboard = Whiteboard;
+         this.types.WhiteboardElement = WhiteboardElement;
       } else {
          this.types.Facility = facilityModule.Facility;
          this.types.Person = personModule.Person;
@@ -1702,6 +1703,7 @@ var TypeRegistry = (function invocation() {
          this.types.GymClockTick = clockModule.GymClockTick;
          this.types.GymClockBeep = clockModule.GymClockBeep;
          this.types.Whiteboard = whiteboardModule.Whiteboard;
+         this.types.WhiteboardElement = whiteboardModule.WhiteboardElement;
       }
    }
    
@@ -1751,6 +1753,7 @@ if (false) {} else {
   \******************************/
 /*! default exports */
 /*! export Whiteboard [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export WhiteboardElement [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
 /*! runtime requirements: __webpack_require__, __webpack_exports__ */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
@@ -1770,7 +1773,8 @@ var Whiteboard = (function invocation() {
 
   /**
    * Create a Whiteboard object
-
+   * @param workout - text description to display for the workout
+   * @param results - text description to display for the results
    */
    function Whiteboard(workout, results) {
       
@@ -1838,8 +1842,85 @@ var Whiteboard = (function invocation() {
    return Whiteboard;
 }());
 
+//==============================//
+// WhiteboardWorkout class
+//==============================//
+var WhiteboardElement = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a WhiteboardWorkout object
+     * @param rows - the number of rows (to set visible field size).
+     * @param text - the text to display.
+    */
+   function WhiteboardElement(rows, text) {
+
+      this.rows = rows;
+      this.text = text;
+   }
+
+   WhiteboardElement.prototype.__type = "WhiteboardElement";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   WhiteboardElement.prototype.equals = function (rhs) {
+
+      return (
+         (this.rows === rhs.rows) &&
+         (this.text === rhs.text));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   WhiteboardElement.prototype.toJSON = function () {
+
+      return {
+         __type: WhiteboardElement.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            rows: this.rows,
+            text: this.text
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   WhiteboardElement.prototype.revive = function (data) {
+
+      // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return WhiteboardElement.prototype.reviveDb(data.attributes);
+      else
+         return WhiteboardElement.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   WhiteboardElement.prototype.reviveDb = function (data) {
+
+      var element = new WhiteboardElement();
+
+      element.rows = data.rows;
+      element.text = data.text;
+
+      return element;
+   };
+
+   return WhiteboardElement;
+}());
+
 if (false) {} else { 
    exports.Whiteboard = Whiteboard;
+   exports.WhiteboardElement = WhiteboardElement;
 }
 
 
@@ -67398,6 +67479,7 @@ var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./client/clockpanel.tsx");
+var whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./client/whiteboardpanel.tsx");
 var callpanel_1 = __webpack_require__(/*! ./callpanel */ "./client/callpanel.tsx");
 var peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./client/peoplepanel.tsx");
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
@@ -67407,7 +67489,6 @@ var localstore_1 = __webpack_require__(/*! ./localstore */ "./client/localstore.
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
-var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
 var thinStyle = {
     margin: '0px', padding: '0px'
 };
@@ -67442,31 +67523,6 @@ var rpanelStyle = {
     marginLeft: '10px', paddingLeft: '0px',
     marginRight: '2px', paddingRight: '0px',
     minHeight: '575px'
-};
-var whiteboardStyle = {
-    minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
-    margin: '0px', padding: '0px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat'
-};
-var whiteboardHeaderStyle = {
-    color: 'black', background: 'white',
-    fontFamily: 'Permanent Marker',
-    fontSize: '64px',
-    marginTop: '0px', paddingTop: '0px',
-    marginBottom: '10px', paddingBottom: '0px',
-    marginLeft: '0px', paddingLeft: '0px',
-    marginRight: '0px', paddingRight: '0px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat'
-};
-var whiteboardElementStyle = {
-    color: 'black', background: 'white',
-    fontFamily: 'Permanent Marker',
-    fontSize: '32px',
-    margin: '0px', padding: '0px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat'
 };
 var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
@@ -67664,20 +67720,7 @@ var CoachPage = /** @class */ (function (_super) {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement("div", { style: whiteboardStyle },
-                                React.createElement(Row_1.default, { style: thinStyle },
-                                    React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility().getWeekDay())),
-                                React.createElement(Row_1.default, { style: thinStyle },
-                                    React.createElement(Col_1.default, { style: whiteboardElementStyle },
-                                        "Workout",
-                                        React.createElement(Form_1.default, null,
-                                            React.createElement(Form_1.default.Group, { controlId: "idWorkout" },
-                                                React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type the workout details here", rows: 10 })))),
-                                    React.createElement(Col_1.default, { style: whiteboardElementStyle },
-                                        "Results",
-                                        React.createElement(Form_1.default, null,
-                                            React.createElement(Form_1.default.Group, { controlId: "idResults" },
-                                                React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type results here after the workout", rows: 10 }))))))),
+                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { rtc: this.state.rtc }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.MasterClock, { rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
@@ -68115,10 +68158,12 @@ var MasterClock = /** @class */ (function (_super) {
         }
     };
     MasterClock.prototype.componentDidMount = function () {
-        // Initialise sending of ticks to remote clocks 
+        // Initialise sending to remotes
         this.setState({ isMounted: true });
     };
     MasterClock.prototype.componentWillUnmount = function () {
+        // Stop sending data to remotes
+        this.setState({ isMounted: false });
     };
     MasterClock.prototype.testEnableSave = function () {
         var _this = this;
@@ -69513,6 +69558,106 @@ var Rtc = /** @class */ (function () {
     return Rtc;
 }());
 exports.Rtc = Rtc;
+
+
+/***/ }),
+
+/***/ "./client/whiteboardpanel.tsx":
+/*!************************************!*\
+  !*** ./client/whiteboardpanel.tsx ***!
+  \************************************/
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
+/*! CommonJS bailout: this is used directly at 3:17-21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020 */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MasterWhiteboard = void 0;
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
+var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
+var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js");
+var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
+var thinStyle = {
+    margin: '0px', padding: '0px',
+};
+var whiteboardStyle = {
+    minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
+    margin: '0px', padding: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+var whiteboardHeaderStyle = {
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '64px',
+    marginTop: '0px', paddingTop: '0px',
+    marginBottom: '10px', paddingBottom: '0px',
+    marginLeft: '0px', paddingLeft: '0px',
+    marginRight: '0px', paddingRight: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+var whiteboardElementStyle = {
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '32px',
+    margin: '0px', padding: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+var MasterWhiteboard = /** @class */ (function (_super) {
+    __extends(MasterWhiteboard, _super);
+    function MasterWhiteboard(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            isMounted: false
+        };
+        return _this;
+    }
+    MasterWhiteboard.prototype.componentDidMount = function () {
+        // Initialise sending data to remotes
+        this.setState({ isMounted: true });
+    };
+    MasterWhiteboard.prototype.componentWillUnmount = function () {
+        // Stop sending data to remotes
+        this.setState({ isMounted: false });
+    };
+    MasterWhiteboard.prototype.render = function () {
+        return (React.createElement("div", { style: whiteboardStyle },
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: whiteboardElementStyle },
+                    "Workout",
+                    React.createElement(Form_1.default, null,
+                        React.createElement(Form_1.default.Group, { controlId: "idWorkout" },
+                            React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type the workout details here", rows: 10, backgroundImage: 'url("board.png")', backgroundRepeat: 'repeat' })))),
+                React.createElement(Col_1.default, { style: whiteboardElementStyle },
+                    "Results",
+                    React.createElement(Form_1.default, null,
+                        React.createElement(Form_1.default.Group, { controlId: "idResults" },
+                            React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type results here after the workout", rows: 10 })))))));
+    };
+    return MasterWhiteboard;
+}(React.Component));
+exports.MasterWhiteboard = MasterWhiteboard;
 
 
 /***/ }),
