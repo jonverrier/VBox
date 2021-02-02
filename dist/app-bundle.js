@@ -1801,8 +1801,8 @@ var Whiteboard = (function invocation() {
          __type: Whiteboard.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            workout: this.workout,
-            results: this.results
+            workout: JSON.stringify(this.workout),
+            results: JSON.stringify(this.results)
          }
       };
    };
