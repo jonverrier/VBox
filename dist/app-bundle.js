@@ -67604,7 +67604,7 @@ var MemberPage = /** @class */ (function (_super) {
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement(Row_1.default, { style: thinStyle },
                     React.createElement(Col_1.default, { style: lpanelStyle },
-                        React.createElement("div", { style: placeholderStyle })),
+                        React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.rtc }, " ")),
                     React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                         React.createElement(clockpanel_1.RemoteClock, { rtc: this.state.rtc }),
                         React.createElement("br", null),
@@ -69596,7 +69596,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MasterWhiteboard = void 0;
+exports.RemoteWhiteboardElement = exports.RemoteWhiteboard = exports.MasterWhiteboard = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
 var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
@@ -69604,6 +69604,7 @@ var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/rea
 var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
+var whiteboard_1 = __webpack_require__(/*! ../common/whiteboard */ "./common/whiteboard.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -69668,8 +69669,12 @@ var MasterWhiteboard = /** @class */ (function (_super) {
     __extends(MasterWhiteboard, _super);
     function MasterWhiteboard(props) {
         var _this = _super.call(this, props) || this;
+        var workout = new whiteboard_1.WhiteboardElement(10, 'Waiting');
+        var results = new whiteboard_1.WhiteboardElement(10, 'Waiting');
         _this.state = {
-            isMounted: false
+            isMounted: false,
+            workout: workout,
+            results: results
         };
         return _this;
     }
@@ -69681,15 +69686,25 @@ var MasterWhiteboard = /** @class */ (function (_super) {
         // Stop sending data to remotes
         this.setState({ isMounted: false });
     };
+    MasterWhiteboard.prototype.onworkoutchange = function (element) {
+        this.setState({ workout: element });
+        var board = new whiteboard_1.Whiteboard(element, this.state.results);
+        this.props.rtc.send(board);
+    };
+    MasterWhiteboard.prototype.onresultschange = function (element) {
+        this.setState({ results: element });
+        var board = new whiteboard_1.Whiteboard(this.state.workout, element);
+        this.props.rtc.send(board);
+    };
     MasterWhiteboard.prototype.render = function () {
         return (React.createElement("div", { style: whiteboardStyle },
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, defaultValue: 'Workout details will be here - click the button above.' })),
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: 'Workout details will be here - click the button above.', onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, defaultValue: 'Workout results will be here - click the button above.' })))));
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: 'Workout results will be here - click the button above.', onchange: this.onresultschange.bind(this) })))));
     };
     return MasterWhiteboard;
 }(React.Component));
@@ -69706,7 +69721,8 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
             caption: props.caption,
             placeholder: props.placeholder,
             rows: props.initialRows,
-            defaultValue: props.defaultValue
+            displayValue: props.displayValue,
+            value: props.displayValue
         };
         return _this;
     }
@@ -69722,6 +69738,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         var enableOk;
         var enableCancel;
         if (value.length > 0) {
+            this.state.value = value;
             enableOk = true;
             enableCancel = true;
         }
@@ -69732,7 +69749,9 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         this.setState({ enableOk: enableOk, enableCancel: enableCancel });
     };
     MasterWhiteboardElement.prototype.processSave = function () {
-        this.setState({ inEditMode: false });
+        this.state.enableCancel = this.state.enableOk = false;
+        this.props.onchange(new whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.value));
+        this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel, displayValue: this.state.value });
     };
     MasterWhiteboardElement.prototype.processCancel = function () {
         this.setState({ inEditMode: false });
@@ -69756,10 +69775,86 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.state.defaultValue))));
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.state.displayValue))));
     };
     return MasterWhiteboardElement;
 }(React.Component));
+var RemoteWhiteboard = /** @class */ (function (_super) {
+    __extends(RemoteWhiteboard, _super);
+    function RemoteWhiteboard(props) {
+        var _this = _super.call(this, props) || this;
+        if (props.rtc) {
+            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
+        }
+        _this.state = {
+            isMounted: false,
+            workoutValue: new whiteboard_1.WhiteboardElement(10, 'Waiting...'),
+            resultsValue: new whiteboard_1.WhiteboardElement(10, 'Waiting...')
+        };
+        return _this;
+    }
+    RemoteWhiteboard.prototype.componentDidMount = function () {
+        // Initialise sending data to remotes
+        this.setState({ isMounted: true });
+    };
+    RemoteWhiteboard.prototype.componentWillUnmount = function () {
+        // Stop sending data to remotes
+        this.setState({ isMounted: false });
+    };
+    RemoteWhiteboard.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc) {
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+        }
+    };
+    RemoteWhiteboard.prototype.onremotedata = function (ev, link) {
+        if (Object.getPrototypeOf(ev).__type === whiteboard_1.Whiteboard.prototype.__type) {
+            if (!this.state.workoutValue.equals(ev.workout)) {
+                this.state.workoutValue.rows = ev.workout.rows;
+                this.state.workoutValue.text = ev.workout.text;
+                this.setState({ workoutValue: this.state.workoutValue });
+                this.forceUpdate();
+            }
+            if (!this.state.resultsValue.equals(ev.results)) {
+                this.state.resultsValue.rows = ev.results.rows;
+                this.state.resultsValue.text = ev.results.text;
+                this.setState({ resultsValue: this.state.resultsValue });
+                this.forceUpdate();
+            }
+        }
+    };
+    RemoteWhiteboard.prototype.render = function () {
+        return (React.createElement("div", { style: whiteboardStyle },
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', initialRows: this.state.workoutValue.rows, value: this.state.workoutValue }, " ")),
+                React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', initialRows: this.state.resultsValue.rows, value: this.state.resultsValue }, " ")))));
+    };
+    return RemoteWhiteboard;
+}(React.Component));
+exports.RemoteWhiteboard = RemoteWhiteboard;
+var RemoteWhiteboardElement = /** @class */ (function (_super) {
+    __extends(RemoteWhiteboardElement, _super);
+    function RemoteWhiteboardElement(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            caption: props.caption
+        };
+        return _this;
+    }
+    RemoteWhiteboardElement.prototype.render = function () {
+        return (React.createElement("div", null,
+            React.createElement(Row_1.default, { style: thinCentredStyle },
+                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
+                React.createElement("p", { style: blockCharStyle })),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value.text))));
+    };
+    return RemoteWhiteboardElement;
+}(React.Component));
+exports.RemoteWhiteboardElement = RemoteWhiteboardElement;
 
 
 /***/ }),

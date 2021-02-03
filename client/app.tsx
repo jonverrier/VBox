@@ -29,7 +29,7 @@ import axios from 'axios';
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
 import { MasterClock, RemoteClock } from './clockpanel';
-import { MasterWhiteboard } from './whiteboardpanel';
+import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { ServerConnectionStatus, LinkConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
@@ -214,8 +214,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
             <Container fluid style={pageStyle}>
                <Row style={thinStyle}>
                   <Col style={lpanelStyle}>
-                     <div style={placeholderStyle}>
-                     </div>
+                     <RemoteWhiteboard rtc={this.state.rtc}> </RemoteWhiteboard>  
                   </Col>
                   <Col md='auto' style={rpanelStyle}>
                      <RemoteClock rtc={this.state.rtc} />
