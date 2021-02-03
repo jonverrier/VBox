@@ -68245,7 +68245,7 @@ var MasterClock = /** @class */ (function (_super) {
                     React.createElement(Col_1.default, { style: thinStyle },
                         React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: popdownBtnStyle, onClick: function () { return _this.setState({ inEditMode: !_this.state.inEditMode }); } }, "\u25BC")))),
             React.createElement(Collapse_1.default, { in: this.state.inEditMode },
-                React.createElement("div", { style: { textAlign: 'right' } },
+                React.createElement("div", null,
                     React.createElement(Form_1.default, null,
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
@@ -68276,7 +68276,8 @@ var MasterClock = /** @class */ (function (_super) {
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Intervals", min: '1', max: '60', step: '1', style: fieldYSepStyle, id: 'interval-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.intervals, onChange: function (ev) { _this.setState({ intervals: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Work", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period1-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.period1, onChange: function (ev) { _this.setState({ period1: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Rest", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period2-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.period2, onChange: function (ev) { _this.setState({ period2: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
-                        React.createElement(Form_1.default.Row, null,
+                        React.createElement(Form_1.default.Row, { style: { textAlign: 'centre' } },
+                            React.createElement("p", { style: blockCharStyle }),
                             React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
                             React.createElement("p", { style: blockCharStyle }),
                             React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))));
@@ -69660,6 +69661,9 @@ var blockCharStyle = {
     paddingLeft: '8px', paddingRight: '8px',
     paddingTop: '0px', paddingBottom: '0px',
 };
+var fieldXSepStyle = {
+    marginLeft: '8px'
+};
 var MasterWhiteboard = /** @class */ (function (_super) {
     __extends(MasterWhiteboard, _super);
     function MasterWhiteboard(props) {
@@ -69682,10 +69686,10 @@ var MasterWhiteboard = /** @class */ (function (_super) {
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { class: thinStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10 })),
-                React.createElement(Col_1.default, { class: thinStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10 })))));
+                React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, defaultValue: 'Workout details will be here - click the button above.' })),
+                React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, defaultValue: 'Workout results will be here - click the button above.' })))));
     };
     return MasterWhiteboard;
 }(React.Component));
@@ -69701,7 +69705,8 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
             enableCancel: false,
             caption: props.caption,
             placeholder: props.placeholder,
-            rows: props.initialRows
+            rows: props.initialRows,
+            defaultValue: props.defaultValue
         };
         return _this;
     }
@@ -69713,9 +69718,24 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         // Stop sending data to remotes
         this.setState({ isMounted: false });
     };
+    MasterWhiteboardElement.prototype.processChange = function (value) {
+        var enableOk;
+        var enableCancel;
+        if (value.length > 0) {
+            enableOk = true;
+            enableCancel = true;
+        }
+        else {
+            enableOk = false;
+            enableCancel = false;
+        }
+        this.setState({ enableOk: enableOk, enableCancel: enableCancel });
+    };
     MasterWhiteboardElement.prototype.processSave = function () {
+        this.setState({ inEditMode: false });
     };
     MasterWhiteboardElement.prototype.processCancel = function () {
+        this.setState({ inEditMode: false });
     };
     MasterWhiteboardElement.prototype.render = function () {
         var _this = this;
@@ -69726,23 +69746,20 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
                 React.createElement(Button_1.default, { style: popdownBtnStyle, variant: "secondary", size: "sm", onClick: function () { return _this.setState({ inEditMode: !_this.state.inEditMode }); } }, "\u25BC")),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Collapse_1.default, { in: this.state.inEditMode, style: thinLeftStyle },
-                    React.createElement("div", { style: { textAlign: 'right' } },
+                    React.createElement("div", null,
                         React.createElement(Form_1.default, null,
                             React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
-                                React.createElement(Form_1.default.Control, { as: "textarea", placeholder: this.state.placeholder, rows: this.state.rows, cols: 60, backgroundImage: 'url("board.png")', backgroundRepeat: 'repeat' })),
-                            React.createElement(Form_1.default.Row, null,
+                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.state.placeholder, rows: this.state.rows, cols: 60, maxLength: 1023, onChange: function (ev) { _this.processChange(ev.target.value); } })),
+                            React.createElement(Form_1.default.Row, { style: { textAlign: 'centre' } },
+                                React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.state.placeholder))));
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.state.defaultValue))));
     };
     return MasterWhiteboardElement;
 }(React.Component));
-/*
-<Col style={thinStyle}>{this.state.caption}</Col>
-               <Col style={thinStyle}><Button variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>&#9660;</Button></Col>
-               */ 
 
 
 /***/ }),

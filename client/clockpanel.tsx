@@ -244,7 +244,7 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
                </Row>
             </Container>
             <Collapse in={this.state.inEditMode}>
-               <div style={{ textAlign: 'right' }} >
+               <div>
                   <Form>
                      <Form.Row>
                         <Form.Group>
@@ -294,7 +294,8 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
                               onChange={(ev) => { this.setState({ period2: ev.target.value, enableCancel: true }); this.testEnableSave(); }} />
                         </Form.Group>
                      </Form.Row>
-                     <Form.Row>
+                     <Form.Row style={{textAlign: 'centre'}}>
+                        <p style={blockCharStyle}></p>
                         <Button variant="secondary" disabled={!this.state.enableOk} className='mr' 
                            onClick={this.processSave.bind(this)}>Save</Button>
                         <p style={blockCharStyle}></p>
