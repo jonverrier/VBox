@@ -33,8 +33,15 @@ const fieldYSepStyleAuto: CSS.Properties = {
    width: "auto"
 };
 
-const fieldXSepStyle: CSS.Properties = {
-   marginRight: '10px'
+const popdownBtnStyle: CSS.Properties = {
+   margin: '0px', padding: '4px',
+   fontSize: '14px'
+};
+
+const blockCharStyle: CSS.Properties = {
+   margin: '0px',
+   paddingLeft: '8px', paddingRight: '8px',
+   paddingTop: '0px', paddingBottom: '0px',
 };
 
 var first = true;
@@ -80,7 +87,7 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
 }
 
 interface IMasterClockState {
-   openClockSpec: boolean;
+   inEditMode: boolean;
    isMounted: boolean;
    clockType: gymClockType;
    countUpTo: number,
@@ -88,7 +95,7 @@ interface IMasterClockState {
    intervals: number,
    period1: number,
    period2: number,
-   enableOK: boolean;
+   enableOk: boolean;
    enableCancel: boolean;
    clock: GymClock;
    mm: number;
@@ -106,7 +113,7 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
       spec.setWall(new Date());
 
       this.state = {
-         openClockSpec: false,
+         inEditMode: false,
          isMounted: false,
          clockType: gymClockType.Wall,
          countUpTo: 20,
@@ -114,7 +121,7 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
          intervals: 3,
          period1: 5,
          period2: 2,
-         enableOK: false,
+         enableOk: false,
          enableCancel: false,
          clock: new GymClock(spec),
          mm: 0,
@@ -149,28 +156,28 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
 
       // Need to get the latest values for cross-field validation
       this.forceUpdate(() => {
-         this.setState({ enableOK: false });
+         this.setState({ enableOk: false });
 
          // test for valid wall clock selection
          if (this.state.clockType === gymClockType.Wall && spec.isValidWallSpec(new Date())) {
-            this.setState({ enableOK : true});
+            this.setState({ enableOk : true});
          }
 
          // test for valid countUp selection
          if (this.state.clockType === gymClockType.CountUp && spec.isValidCountUpSpec(new Number(this.state.countUpTo))) {
-            this.setState({ enableOK: true });
+            this.setState({ enableOk: true });
          }
 
          // test for valid countDown selection
          if (this.state.clockType === gymClockType.CountDown && spec.isValidCountDownSpec(new Number(this.state.countDownFrom))) {
-            this.setState({ enableOK: true });
+            this.setState({ enableOk: true });
          }
 
          // test for valid interval selection
          if (this.state.clockType === gymClockType.Interval && spec.isValidIntervalSpec(new Number(this.state.intervals),
                                                                                         new Number(this.state.period1), 
                                                                                         new Number(this.state.period2))) {
-            this.setState({ enableOK: true });
+            this.setState({ enableOk: true });
          }
       });
    }
@@ -215,12 +222,12 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
          this.setState({ clock: clock, clockType: gymClockType.Interval });
       }
 
-      this.setState({ enableOK: false, enableCancel: false, openClockSpec: false});
+      this.setState({ enableOk: false, enableCancel: false, inEditMode: false});
       clock.start(this.onTick.bind(this), null);
    }
 
    processCancel() {
-      this.setState({ openClockSpec: false});
+      this.setState({ inEditMode: false});
    }
 
    render() {
@@ -229,11 +236,15 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
             <Container style={thinStyle}>
                <Row style={thinStyle}>
                   <Col style={thinStyle}><p style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</p></Col>
-                  <Col style={thinStyle}><Button variant="secondary" size="sm" onClick={() => this.setState({ openClockSpec: !this.state.openClockSpec })}>&#9660;</Button></Col>
+                  <Col style={thinStyle}>
+                     <Button variant="secondary" size="sm" style={popdownBtnStyle}
+                     onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>&#9660;
+                     </Button>
+                  </Col>
                </Row>
             </Container>
-            <Collapse in={this.state.openClockSpec}>
-               <div style={{ textAlign: 'left' }} >
+            <Collapse in={this.state.inEditMode}>
+               <div style={{ textAlign: 'right' }} >
                   <Form>
                      <Form.Row>
                         <Form.Group>
@@ -284,8 +295,9 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
-                        <Button variant="secondary" disabled={!this.state.enableOK} className='mr' style={fieldXSepStyle}
+                        <Button variant="secondary" disabled={!this.state.enableOk} className='mr' 
                            onClick={this.processSave.bind(this)}>Save</Button>
+                        <p style={blockCharStyle}></p>
                         <Button variant="secondary" disabled={!this.state.enableCancel}
                            onClick={this.processCancel.bind(this)}>Cancel</Button>
                      </Form.Row>

@@ -68089,8 +68089,14 @@ var fieldYSepStyleAuto = {
     marginBottom: '10px',
     width: "auto"
 };
-var fieldXSepStyle = {
-    marginRight: '10px'
+var popdownBtnStyle = {
+    margin: '0px', padding: '4px',
+    fontSize: '14px'
+};
+var blockCharStyle = {
+    margin: '0px',
+    paddingLeft: '8px', paddingRight: '8px',
+    paddingTop: '0px', paddingBottom: '0px',
 };
 var first = true;
 var RemoteClock = /** @class */ (function (_super) {
@@ -68132,7 +68138,7 @@ var MasterClock = /** @class */ (function (_super) {
         var spec = new gymclock_js_1.GymClockSpec();
         spec.setWall(new Date());
         _this.state = {
-            openClockSpec: false,
+            inEditMode: false,
             isMounted: false,
             clockType: gymclock_js_1.gymClockType.Wall,
             countUpTo: 20,
@@ -68140,7 +68146,7 @@ var MasterClock = /** @class */ (function (_super) {
             intervals: 3,
             period1: 5,
             period2: 2,
-            enableOK: false,
+            enableOk: false,
             enableCancel: false,
             clock: new gymclock_js_1.GymClock(spec),
             mm: 0,
@@ -68170,22 +68176,22 @@ var MasterClock = /** @class */ (function (_super) {
         var spec = new gymclock_js_1.GymClockSpec();
         // Need to get the latest values for cross-field validation
         this.forceUpdate(function () {
-            _this.setState({ enableOK: false });
+            _this.setState({ enableOk: false });
             // test for valid wall clock selection
             if (_this.state.clockType === gymclock_js_1.gymClockType.Wall && spec.isValidWallSpec(new Date())) {
-                _this.setState({ enableOK: true });
+                _this.setState({ enableOk: true });
             }
             // test for valid countUp selection
             if (_this.state.clockType === gymclock_js_1.gymClockType.CountUp && spec.isValidCountUpSpec(new Number(_this.state.countUpTo))) {
-                _this.setState({ enableOK: true });
+                _this.setState({ enableOk: true });
             }
             // test for valid countDown selection
             if (_this.state.clockType === gymclock_js_1.gymClockType.CountDown && spec.isValidCountDownSpec(new Number(_this.state.countDownFrom))) {
-                _this.setState({ enableOK: true });
+                _this.setState({ enableOk: true });
             }
             // test for valid interval selection
             if (_this.state.clockType === gymclock_js_1.gymClockType.Interval && spec.isValidIntervalSpec(new Number(_this.state.intervals), new Number(_this.state.period1), new Number(_this.state.period2))) {
-                _this.setState({ enableOK: true });
+                _this.setState({ enableOk: true });
             }
         });
     };
@@ -68220,11 +68226,11 @@ var MasterClock = /** @class */ (function (_super) {
             clock = new gymclock_js_1.GymClock(spec);
             this.setState({ clock: clock, clockType: gymclock_js_1.gymClockType.Interval });
         }
-        this.setState({ enableOK: false, enableCancel: false, openClockSpec: false });
+        this.setState({ enableOk: false, enableCancel: false, inEditMode: false });
         clock.start(this.onTick.bind(this), null);
     };
     MasterClock.prototype.processCancel = function () {
-        this.setState({ openClockSpec: false });
+        this.setState({ inEditMode: false });
     };
     MasterClock.prototype.render = function () {
         var _this = this;
@@ -68237,9 +68243,9 @@ var MasterClock = /** @class */ (function (_super) {
                             ":",
                             ("00" + this.state.ss).slice(-2))),
                     React.createElement(Col_1.default, { style: thinStyle },
-                        React.createElement(Button_1.default, { variant: "secondary", size: "sm", onClick: function () { return _this.setState({ openClockSpec: !_this.state.openClockSpec }); } }, "\u25BC")))),
-            React.createElement(Collapse_1.default, { in: this.state.openClockSpec },
-                React.createElement("div", { style: { textAlign: 'left' } },
+                        React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: popdownBtnStyle, onClick: function () { return _this.setState({ inEditMode: !_this.state.inEditMode }); } }, "\u25BC")))),
+            React.createElement(Collapse_1.default, { in: this.state.inEditMode },
+                React.createElement("div", { style: { textAlign: 'right' } },
                     React.createElement(Form_1.default, null,
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
@@ -68271,7 +68277,8 @@ var MasterClock = /** @class */ (function (_super) {
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Work", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period1-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.period1, onChange: function (ev) { _this.setState({ period1: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }),
                                 React.createElement(Form_1.default.Control, { type: "number", placeholder: "Rest", min: '0', max: '60', step: '1', style: fieldYSepStyle, id: 'period2-value', disabled: !(this.state.clockType === gymclock_js_1.gymClockType.Interval), value: this.state.period2, onChange: function (ev) { _this.setState({ period2: ev.target.value, enableCancel: true }); _this.testEnableSave(); } }))),
                         React.createElement(Form_1.default.Row, null,
-                            React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOK, className: 'mr', style: fieldXSepStyle, onClick: this.processSave.bind(this) }, "Save"),
+                            React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
+                            React.createElement("p", { style: blockCharStyle }),
                             React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))));
     };
     return MasterClock;
@@ -69593,12 +69600,28 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
 var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
 var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js");
+var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
+var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
+var thinCentredStyle = {
+    margin: '0px', padding: '0px',
+    alignItems: 'center',
+    verticalAlign: 'top',
+    justifyContent: 'center'
+};
+var thinLeftStyle = {
+    margin: '0px', padding: '0px',
+    alignItems: 'left'
+};
+var popdownBtnStyle = {
+    margin: '0px', padding: '4px',
+    fontSize: '14px'
+};
 var whiteboardStyle = {
-    minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
+    color: 'white', background: 'white',
     margin: '0px', padding: '0px',
     backgroundImage: 'url("board.png")',
     backgroundRepeat: 'repeat'
@@ -69614,13 +69637,28 @@ var whiteboardHeaderStyle = {
     backgroundImage: 'url("board.png")',
     backgroundRepeat: 'repeat'
 };
-var whiteboardElementStyle = {
+var whiteboardElementHeaderStyle = {
+    margin: '0px', padding: '0px',
     color: 'black', background: 'white',
     fontFamily: 'Permanent Marker',
-    fontSize: '32px',
-    margin: '0px', padding: '0px',
+    fontSize: '40px',
     backgroundImage: 'url("board.png")',
     backgroundRepeat: 'repeat'
+};
+var whiteboardElementBodyStyle = {
+    margin: '0px', padding: '0px',
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '24px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat',
+    minHeight: '100%',
+    minWidth: '320px', maxWidth: '*'
+};
+var blockCharStyle = {
+    margin: '0px',
+    paddingLeft: '8px', paddingRight: '8px',
+    paddingTop: '0px', paddingBottom: '0px',
 };
 var MasterWhiteboard = /** @class */ (function (_super) {
     __extends(MasterWhiteboard, _super);
@@ -69644,20 +69682,67 @@ var MasterWhiteboard = /** @class */ (function (_super) {
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { style: whiteboardElementStyle },
-                    "Workout",
-                    React.createElement(Form_1.default, null,
-                        React.createElement(Form_1.default.Group, { controlId: "idWorkout" },
-                            React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type the workout details here", rows: 10, backgroundImage: 'url("board.png")', backgroundRepeat: 'repeat' })))),
-                React.createElement(Col_1.default, { style: whiteboardElementStyle },
-                    "Results",
-                    React.createElement(Form_1.default, null,
-                        React.createElement(Form_1.default.Group, { controlId: "idResults" },
-                            React.createElement(Form_1.default.Control, { as: "textarea", placeholder: "Type results here after the workout", rows: 10 })))))));
+                React.createElement(Col_1.default, { class: thinStyle },
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10 })),
+                React.createElement(Col_1.default, { class: thinStyle },
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10 })))));
     };
     return MasterWhiteboard;
 }(React.Component));
 exports.MasterWhiteboard = MasterWhiteboard;
+var MasterWhiteboardElement = /** @class */ (function (_super) {
+    __extends(MasterWhiteboardElement, _super);
+    function MasterWhiteboardElement(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            isMounted: false,
+            inEditMode: false,
+            enableOk: false,
+            enableCancel: false,
+            caption: props.caption,
+            placeholder: props.placeholder,
+            rows: props.initialRows
+        };
+        return _this;
+    }
+    MasterWhiteboardElement.prototype.componentDidMount = function () {
+        // Initialise sending data to remotes
+        this.setState({ isMounted: true });
+    };
+    MasterWhiteboardElement.prototype.componentWillUnmount = function () {
+        // Stop sending data to remotes
+        this.setState({ isMounted: false });
+    };
+    MasterWhiteboardElement.prototype.processSave = function () {
+    };
+    MasterWhiteboardElement.prototype.processCancel = function () {
+    };
+    MasterWhiteboardElement.prototype.render = function () {
+        var _this = this;
+        return (React.createElement("div", null,
+            React.createElement(Row_1.default, { style: thinCentredStyle },
+                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
+                React.createElement("p", { style: blockCharStyle }),
+                React.createElement(Button_1.default, { style: popdownBtnStyle, variant: "secondary", size: "sm", onClick: function () { return _this.setState({ inEditMode: !_this.state.inEditMode }); } }, "\u25BC")),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Collapse_1.default, { in: this.state.inEditMode, style: thinLeftStyle },
+                    React.createElement("div", { style: { textAlign: 'right' } },
+                        React.createElement(Form_1.default, null,
+                            React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
+                                React.createElement(Form_1.default.Control, { as: "textarea", placeholder: this.state.placeholder, rows: this.state.rows, cols: 60, backgroundImage: 'url("board.png")', backgroundRepeat: 'repeat' })),
+                            React.createElement(Form_1.default.Row, null,
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
+                                React.createElement("p", { style: blockCharStyle }),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.state.placeholder))));
+    };
+    return MasterWhiteboardElement;
+}(React.Component));
+/*
+<Col style={thinStyle}>{this.state.caption}</Col>
+               <Col style={thinStyle}><Button variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>&#9660;</Button></Col>
+               */ 
 
 
 /***/ }),
