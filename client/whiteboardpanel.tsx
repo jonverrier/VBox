@@ -15,6 +15,7 @@ import * as CSS from 'csstype';
 import { Rtc, RtcLink } from './rtc';
 import { IConnectionProps } from './callpanel';
 import { DateUtility } from '../common/dates';
+import { Whiteboard, WhiteboardElement } from '../common/whiteboard';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -88,6 +89,8 @@ const fieldXSepStyle: CSS.Properties = {
 
 interface IMasterWhiteboardState {
    isMounted: boolean;
+   workout: WhiteboardElement;
+   results: WhiteboardElement;
 }
 
 interface IMasterWhiteboardElementProps {
@@ -95,7 +98,8 @@ interface IMasterWhiteboardElementProps {
    caption: string;
    placeholder: string;
    initialRows: number;
-   defaultValue: string;
+   displayValue: string;
+   onchange: Function;
 }
 
 interface IMasterWhiteboardElementState {
@@ -106,7 +110,8 @@ interface IMasterWhiteboardElementState {
    caption: string;
    placeholder: string;
    rows: number;
-   defaultValue: string;
+   displayValue: string;
+   value: string;
 }
 
 export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterWhiteboardState> {
@@ -116,8 +121,13 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
    constructor(props: IConnectionProps) {
       super(props);
 
+      var workout = new WhiteboardElement(10, 'Waiting');
+      var results = new WhiteboardElement(10, 'Waiting');
+
       this.state = {
-         isMounted: false
+         isMounted: false,
+         workout: workout,
+         results: results
       };
 
    }
@@ -130,6 +140,18 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
    componentWillUnmount() {
       // Stop sending data to remotes
       this.setState({ isMounted: false });
+   }
+
+   onworkoutchange(element) {
+      this.setState({ workout: element });
+      var board = new Whiteboard(element, this.state.results);
+      this.props.rtc.send(board);
+   }
+
+   onresultschange(element) {
+      this.setState({ results: element });
+      var board = new Whiteboard(this.state.workout, element);
+      this.props.rtc.send(board);
    }
 
    render() {
@@ -145,13 +167,15 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
                   <MasterWhiteboardElement rtc={this.props.rtc}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
                      initialRows={10}
-                     defaultValue={'Workout details will be here - click the button above.'}></MasterWhiteboardElement>
+                     displayValue={'Workout details will be here - click the button above.'}
+                     onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinStyle}>
                   <MasterWhiteboardElement rtc={this.props.rtc}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
                      initialRows={10}
-                     defaultValue={'Workout results will be here - click the button above.'}></MasterWhiteboardElement>
+                     displayValue={'Workout results will be here - click the button above.'}
+                     onchange={this.onresultschange.bind(this)}></MasterWhiteboardElement>
                </Col>
             </Row>
          </div>
@@ -174,7 +198,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          caption: props.caption,
          placeholder: props.placeholder,
          rows: props.initialRows,
-         defaultValue: props.defaultValue
+         displayValue: props.displayValue,
+         value: props.displayValue
       };
 
    }
@@ -194,6 +219,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       var enableCancel: boolean;
 
       if (value.length > 0) {
+         this.state.value = value;
          enableOk = true;
          enableCancel = true;
       } else {
@@ -205,7 +231,9 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
    }
 
    processSave() {
-      this.setState({ inEditMode: false });
+      this.state.enableCancel = this.state.enableOk = false;
+      this.props.onchange(new WhiteboardElement(this.props.initialRows, this.state.value));
+      this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel, displayValue: this.state.value });
    }
 
    processCancel() {
@@ -241,7 +269,126 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                </Collapse>
             </Row>
             <Row style={thinStyle}>
-               <p style={whiteboardElementBodyStyle}>{this.state.defaultValue}</p>
+               <p style={whiteboardElementBodyStyle}>{this.state.displayValue}</p>
+            </Row>
+         </div>
+      );
+   }
+}
+
+interface IRemoteWhiteboardState {
+   isMounted: boolean;
+   workoutValue: WhiteboardElement;
+   resultsValue: WhiteboardElement;
+}
+
+export interface IRemoteWhiteboardElementProps {
+   rtc: Rtc;
+   caption: string;
+   initialRows: number;
+   value: WhiteboardElement;
+}
+
+export interface IRemoteWhiteboardElementState {
+   caption: string;
+}
+
+export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteWhiteboardState> {
+   //member variables
+   state: IRemoteWhiteboardState;
+
+   constructor(props: IConnectionProps) {
+      super(props);
+
+      if (props.rtc) {
+         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+      }
+
+      this.state = {
+         isMounted: false,
+         workoutValue: new WhiteboardElement(10, 'Waiting...'),
+         resultsValue: new WhiteboardElement(10, 'Waiting...')
+      };
+
+   }
+
+   componentDidMount() {
+      // Initialise sending data to remotes
+      this.setState({ isMounted: true });
+   }
+
+   componentWillUnmount() {
+      // Stop sending data to remotes
+      this.setState({ isMounted: false });
+   }
+
+   UNSAFE_componentWillReceiveProps(nextProps) {
+      if (nextProps.rtc) {
+         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+      }
+   }
+
+   onremotedata(ev: any, link: RtcLink) {
+      if (Object.getPrototypeOf(ev).__type === Whiteboard.prototype.__type) {
+         if (! this.state.workoutValue.equals (ev.workout)) {
+            this.state.workoutValue.rows = ev.workout.rows;
+            this.state.workoutValue.text = ev.workout.text;
+            this.setState({ workoutValue: this.state.workoutValue });
+            this.forceUpdate();
+         }
+         if (! this.state.resultsValue.equals(ev.results)) {
+            this.state.resultsValue.rows = ev.results.rows;
+            this.state.resultsValue.text = ev.results.text;
+            this.setState({ resultsValue: this.state.resultsValue });
+            this.forceUpdate();
+         }
+      }
+   }
+
+   render() {
+      return (
+         <div style={whiteboardStyle}>
+            <Row style={thinStyle}>
+               <Col style={whiteboardHeaderStyle}>
+                  {new DateUtility(null).getWeekDay()}
+               </Col>
+            </Row>
+            <Row style={thinStyle}>
+               <Col style={thinStyle}>
+                  <RemoteWhiteboardElement rtc={this.props.rtc}
+                     caption={'Workout'}
+                     initialRows={this.state.workoutValue.rows} value={this.state.workoutValue}> </RemoteWhiteboardElement>
+               </Col>
+               <Col style={thinStyle}>
+                  <RemoteWhiteboardElement rtc={this.props.rtc}
+                     caption={'Results'}
+                     initialRows={this.state.resultsValue.rows} value={this.state.resultsValue}> </RemoteWhiteboardElement>
+               </Col>
+            </Row>
+         </div>
+      );
+   }
+}
+
+export class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementProps, IRemoteWhiteboardElementState> {
+   state: IRemoteWhiteboardElementState;
+
+   constructor(props: IRemoteWhiteboardElementProps) {
+      super(props);
+
+      this.state = {
+         caption: props.caption
+      };
+   }
+
+   render() {
+      return (
+         <div>
+            <Row style={thinCentredStyle}>
+               <p style={whiteboardElementHeaderStyle}>{this.state.caption}</p><p style={blockCharStyle}></p>
+            </Row>
+            <Row style={thinStyle}>
+               <p style={whiteboardElementBodyStyle}>{this.props.value.text}</p>
             </Row>
          </div>
       );
