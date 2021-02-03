@@ -82,6 +82,10 @@ const blockCharStyle: CSS.Properties = {
    paddingTop: '0px', paddingBottom: '0px',
 };
 
+const fieldXSepStyle: CSS.Properties = {
+   marginLeft: '8px'
+};
+
 interface IMasterWhiteboardState {
    isMounted: boolean;
 }
@@ -91,6 +95,7 @@ interface IMasterWhiteboardElementProps {
    caption: string;
    placeholder: string;
    initialRows: number;
+   defaultValue: string;
 }
 
 interface IMasterWhiteboardElementState {
@@ -101,6 +106,7 @@ interface IMasterWhiteboardElementState {
    caption: string;
    placeholder: string;
    rows: number;
+   defaultValue: string;
 }
 
 export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterWhiteboardState> {
@@ -135,13 +141,17 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
                </Col>
             </Row>
             <Row style={thinStyle}>
-               <Col class={thinStyle}>
+               <Col style={thinStyle}>
                   <MasterWhiteboardElement rtc={this.props.rtc}
-                     caption={'Workout'} placeholder={'Type the workout details here.'} initialRows={10}></MasterWhiteboardElement>
+                     caption={'Workout'} placeholder={'Type the workout details here.'}
+                     initialRows={10}
+                     defaultValue={'Workout details will be here - click the button above.'}></MasterWhiteboardElement>
                </Col>
-               <Col class={thinStyle}>
+               <Col style={thinStyle}>
                   <MasterWhiteboardElement rtc={this.props.rtc}
-                     caption={'Results'} placeholder={'Type results here after the workout.'} initialRows={10}></MasterWhiteboardElement>
+                     caption={'Results'} placeholder={'Type results here after the workout.'}
+                     initialRows={10}
+                     defaultValue={'Workout results will be here - click the button above.'}></MasterWhiteboardElement>
                </Col>
             </Row>
          </div>
@@ -163,7 +173,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          enableCancel: false,
          caption: props.caption,
          placeholder: props.placeholder,
-         rows: props.initialRows
+         rows: props.initialRows,
+         defaultValue: props.defaultValue
       };
 
    }
@@ -178,10 +189,27 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       this.setState({ isMounted: false });
    }
 
+   processChange(value: string) {
+      var enableOk: boolean;
+      var enableCancel: boolean;
+
+      if (value.length > 0) {
+         enableOk = true;
+         enableCancel = true;
+      } else {
+         enableOk = false;
+         enableCancel = false;
+      }
+
+      this.setState({ enableOk: enableOk, enableCancel: enableCancel });
+   }
+
    processSave() {
+      this.setState({ inEditMode: false });
    }
 
    processCancel() {
+      this.setState({ inEditMode: false });
    }
 
    render() {
@@ -193,13 +221,15 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
             </Row>      
             <Row style={thinStyle}>
             <Collapse in={this.state.inEditMode} style={thinLeftStyle}>
-               <div style={{ textAlign: 'right' }} >
+               <div>
                   <Form>
                      <Form.Group controlId="elementFormId">
-                        <Form.Control as="textarea" placeholder={this.state.placeholder} rows={this.state.rows} cols={60}
-                           backgroundImage={'url("board.png")'} backgroundRepeat={'repeat'} />
+                        <Form.Control as="textarea" style={fieldXSepStyle} 
+                              placeholder={this.state.placeholder} rows={this.state.rows} cols={60} maxLength={1023}
+                              onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
-                     <Form.Row>
+                     <Form.Row style={{ textAlign: 'centre' }}>
+                        <p style={blockCharStyle}></p>
                         <Button variant="secondary" disabled={!this.state.enableOk} className='mr'
                            onClick={this.processSave.bind(this)}>Save</Button>
                         <p style={blockCharStyle}></p>
@@ -211,14 +241,9 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                </Collapse>
             </Row>
             <Row style={thinStyle}>
-               <p style={whiteboardElementBodyStyle}>{this.state.placeholder}</p>
+               <p style={whiteboardElementBodyStyle}>{this.state.defaultValue}</p>
             </Row>
          </div>
       );
    }
 }
-
-/*
-<Col style={thinStyle}>{this.state.caption}</Col>
-               <Col style={thinStyle}><Button variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>&#9660;</Button></Col>
-               */
