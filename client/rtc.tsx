@@ -716,6 +716,14 @@ export class Rtc {
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
+      // Hook to pass up link status changes. 
+      link.onlinkstatechange = (ev) => {
+         if (this.linklisteners) {
+            for (var i = 0; i < this.linklisteners.length; i++) {
+               this.linklisteners[i](link.linkStatus, link);
+            }
+         }
+      };
 
       // Hooks to pass up data
       sender.onremotedata = (ev) => {
