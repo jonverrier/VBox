@@ -61,7 +61,7 @@ class RtcCaller {
             "urls": "stun:stun.1.google.com:19302"
          },
          {
-            "urls": "stun:stun.services.mozilla.com:3478"
+            "urls": "stun:global.stun.twilio.com:3478?transport=udp"
          }]
       };
 
@@ -292,7 +292,7 @@ class RtcReciever {
             "urls": "stun:stun.1.google.com:19302"
          },
          {
-            "urls": "stun:stun.services.mozilla.com:3478"
+            "urls": "stun:global.stun.twilio.com:3478?transport=udp"
          }]
       };
 
