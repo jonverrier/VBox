@@ -69440,6 +69440,14 @@ var Rtc = /** @class */ (function () {
         var self = this;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);
+        // Hook to pass up link status changes. 
+        link.onlinkstatechange = function (ev) {
+            if (_this.linklisteners) {
+                for (var i = 0; i < _this.linklisteners.length; i++) {
+                    _this.linklisteners[i](link.linkStatus, link);
+                }
+            }
+        };
         // Hooks to pass up data
         sender.onremotedata = function (ev) {
             if (_this.datalisteners) {
