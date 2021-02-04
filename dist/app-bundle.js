@@ -68914,7 +68914,7 @@ var RtcCaller = /** @class */ (function () {
                     "urls": "stun:stun.1.google.com:19302"
                 },
                 {
-                    "urls": "stun:stun.services.mozilla.com:3478"
+                    "urls": "stun:global.stun.twilio.com:3478?transport=udp"
                 }]
         };
         this.sendConnection = new RTCPeerConnection(configuration);
@@ -69099,7 +69099,7 @@ var RtcReciever = /** @class */ (function () {
                     "urls": "stun:stun.1.google.com:19302"
                 },
                 {
-                    "urls": "stun:stun.services.mozilla.com:3478"
+                    "urls": "stun:global.stun.twilio.com:3478?transport=udp"
                 }]
         };
         this.recieveConnection = new RTCPeerConnection(configuration);
