@@ -21,6 +21,10 @@ const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
 };
 
+const thinishStyle: CSS.Properties = {
+   margin: '2px', padding: '0px',
+};
+
 const thinCentredStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
    alignItems: 'center',
@@ -144,15 +148,19 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
    }
 
    onworkoutchange(element) {
-      this.setState({ workout: element });
-      var board = new Whiteboard(element, this.state.results);
-      this.props.rtc.send(board);
+      if (this.state.isMounted) {
+         this.setState({ workout: element });
+         var board = new Whiteboard(element, this.state.results);
+         this.props.rtc.broadcast(board);
+      }
    }
 
    onresultschange(element) {
-      this.setState({ results: element });
-      var board = new Whiteboard(this.state.workout, element);
-      this.props.rtc.send(board);
+      if (this.state.isMounted) {
+         this.setState({ results: element });
+         var board = new Whiteboard(this.state.workout, element);
+         this.props.rtc.broadcast(board);
+      }
    }
 
    render() {
@@ -164,14 +172,14 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
                </Col>
             </Row>
             <Row style={thinStyle}>
-               <Col style={thinStyle}>
+               <Col style={thinishStyle}>
                   <MasterWhiteboardElement rtc={this.props.rtc}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
                      initialRows={10}
                      displayValue={'Workout details will be here - click the button above.'}
                      onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
-               <Col style={thinStyle}>
+               <Col style={thinishStyle}>
                   <MasterWhiteboardElement rtc={this.props.rtc}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
                      initialRows={10}
@@ -278,7 +286,6 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 }
 
 interface IRemoteWhiteboardState {
-   isMounted: boolean;
    workoutValue: WhiteboardElement;
    resultsValue: WhiteboardElement;
 }
@@ -306,21 +313,10 @@ export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteW
       }
 
       this.state = {
-         isMounted: false,
          workoutValue: new WhiteboardElement(10, 'Waiting...'),
          resultsValue: new WhiteboardElement(10, 'Waiting...')
       };
 
-   }
-
-   componentDidMount() {
-      // Initialise sending data to remotes
-      this.setState({ isMounted: true });
-   }
-
-   componentWillUnmount() {
-      // Stop sending data to remotes
-      this.setState({ isMounted: false });
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
@@ -331,13 +327,13 @@ export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteW
 
    onremotedata(ev: any, link: RtcLink) {
       if (Object.getPrototypeOf(ev).__type === Whiteboard.prototype.__type) {
-         if (! this.state.workoutValue.equals (ev.workout)) {
+         if (!this.state.workoutValue.equals(ev.workout)) {
             this.state.workoutValue.rows = ev.workout.rows;
             this.state.workoutValue.text = ev.workout.text;
             this.setState({ workoutValue: this.state.workoutValue });
             this.forceUpdate();
          }
-         if (! this.state.resultsValue.equals(ev.results)) {
+         if (!this.state.resultsValue.equals(ev.results)) {
             this.state.resultsValue.rows = ev.results.rows;
             this.state.resultsValue.text = ev.results.text;
             this.setState({ resultsValue: this.state.resultsValue });
