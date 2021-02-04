@@ -69655,7 +69655,8 @@ var whiteboardElementBodyStyle = {
     backgroundImage: 'url("board.png")',
     backgroundRepeat: 'repeat',
     minHeight: '100%',
-    minWidth: '320px', maxWidth: '*'
+    minWidth: '240px', maxWidth: '*',
+    whiteSpace: 'pre-wrap'
 };
 var blockCharStyle = {
     margin: '0px',
