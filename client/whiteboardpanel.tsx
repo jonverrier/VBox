@@ -93,7 +93,6 @@ const fieldXSepStyle: CSS.Properties = {
 };
 
 interface IMasterWhiteboardState {
-   isMounted: boolean;
    workout: WhiteboardElement;
    results: WhiteboardElement;
 }
@@ -108,7 +107,6 @@ interface IMasterWhiteboardElementProps {
 }
 
 interface IMasterWhiteboardElementState {
-   isMounted: boolean;
    inEditMode: boolean;
    enableOk,
    enableCancel,
@@ -130,7 +128,6 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
       var results = new WhiteboardElement(10, 'Waiting');
 
       this.state = {
-         isMounted: false,
          workout: workout,
          results: results
       };
@@ -138,29 +135,21 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
    }
 
    componentDidMount() {
-      // Initialise sending data to remotes
-      this.setState({ isMounted: true });
    }
 
    componentWillUnmount() {
-      // Stop sending data to remotes
-      this.setState({ isMounted: false });
    }
 
    onworkoutchange(element) {
-      if (this.state.isMounted) {
-         this.setState({ workout: element });
-         var board = new Whiteboard(element, this.state.results);
-         this.props.rtc.broadcast(board);
-      }
+      this.setState({ workout: element });
+      var board = new Whiteboard(element, this.state.results);
+      this.props.rtc.broadcast(board);
    }
 
    onresultschange(element) {
-      if (this.state.isMounted) {
-         this.setState({ results: element });
-         var board = new Whiteboard(this.state.workout, element);
-         this.props.rtc.broadcast(board);
-      }
+      this.setState({ results: element });
+      var board = new Whiteboard(this.state.workout, element);
+      this.props.rtc.broadcast(board);
    }
 
    render() {
@@ -200,7 +189,6 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       super(props);
 
       this.state = {
-         isMounted: false,
          inEditMode: false,
          enableOk: false,
          enableCancel: false,
@@ -214,13 +202,10 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
    }
 
    componentDidMount() {
-      // Initialise sending data to remotes
-      this.setState({ isMounted: true });
+
    }
 
    componentWillUnmount() {
-      // Stop sending data to remotes
-      this.setState({ isMounted: false });
    }
 
    processChange(value: string) {

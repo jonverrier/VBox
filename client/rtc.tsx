@@ -33,8 +33,8 @@ class RtcCaller {
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
    peersConnected: boolean;
-   sendConnected: boolean;
-   datalisteners: Array<Function>;
+   channelConnected: boolean;
+   iceConnected: boolean;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -44,9 +44,8 @@ class RtcCaller {
       this.sendChannel = null;
       this.recieveChannel = null;
       this.peersConnected = false;
-      this.sendConnected = false;
-
-      this.datalisteners = new Array();
+      this.channelConnected = false;
+      this.iceConnected = false;
    }
 
    // Override these for notifications - TODO - see top of file
@@ -55,18 +54,17 @@ class RtcCaller {
    onremoteconnection: ((this: RtcCaller, ev: Event) => any) | null;
    onremotedata: ((this: RtcCaller, ev: Event) => any) | null;
 
-   // Multi-listener versions of above
-   addremotedatalistener(fn) {
-      this.datalisteners.push(fn);
-   };
-
    placeCall() {
 
       var self = this;
 
-      // Connect to the signalling server
       let configuration = {
-         iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+         iceServers: [{
+            "urls": "stun:stun.1.google.com:19302"
+         },
+         {
+            "urls": "stun:stun2.1.google.com:19302"
+         }]
       };
 
       this.sendConnection = new RTCPeerConnection(configuration);
@@ -98,11 +96,13 @@ class RtcCaller {
    }
 
    handleIceCandidate(ice) {
-      this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
-         .catch(e => {
-            // TODO - analyse error paths
-            logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
-         });;
+      if (!this.iceConnected) { // Dont try another candidate if we are onnected already
+         this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+            .catch(e => {
+               // TODO - analyse error paths
+               logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
+            });;
+      }
    }
 
    onicecandidate(candidate, to, outbound) {
@@ -126,7 +126,7 @@ class RtcCaller {
 
    onnegotiationneeded(ev, self) {
 
-      logger.info('RtcCaller', 'onnegotiationneeded', null, ev);
+      logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
       self.sendConnection.createOffer({iceRestart: true})
@@ -159,7 +159,11 @@ class RtcCaller {
       var state = pc.iceConnectionState;
       logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
 
+      if (state === "connected") {
+         this.iceConnected = true;
+      }
       if (state === "failed") {
+         this.iceConnected = false;
          if (pc.restartIce) {
             pc.restartIce();
          }
@@ -169,8 +173,6 @@ class RtcCaller {
    onconnectionstatechange(ev, pc, self) {
       switch (pc.connectionState) {
          case "connected":
-            self.connected = true;
-
             // The connection has become fully connected
             if (self.onremoteconnection)
                self.onremoteconnection (ev);
@@ -182,13 +184,13 @@ class RtcCaller {
             break;
          case "failed":
             // The connection has been closed or failed
-            self.connected = false;
+            self.channelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
          case "closed":
             // The connection has been closed or failed
-            self.connected = false;
+            self.channelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
@@ -202,7 +204,7 @@ class RtcCaller {
    onsendchannelopen(ev, dc, localCallParticipation) {
       logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
 
-      this.sendConnected = true;
+      this.channelConnected = true;
 
       try {
          dc.send(JSON.stringify (this.person));
@@ -237,11 +239,6 @@ class RtcCaller {
       if (this.onremotedata) {
          this.onremotedata(remoteCallData);
       }
-      if (this.datalisteners) {
-         for (var i = 0; i < this.datalisteners.length; i++) {
-            this.datalisteners[i](remoteCallData);
-         }
-      }
    }
 
    onrecievechannelerror(e) {
@@ -253,7 +250,7 @@ class RtcCaller {
    }
 
    send(obj) {
-      if (this.sendConnected) 
+      if (this.sendChannel.readyState === 'open') 
          this.sendChannel.send(JSON.stringify(obj));
    }
 }
@@ -268,8 +265,8 @@ class RtcReciever {
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
    peersConnected: boolean;
-   sendConnected: boolean;
-   datalisteners: Array<Function>;
+   channelConnected: boolean;
+   iceConnected: boolean;
 
    constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -280,8 +277,8 @@ class RtcReciever {
       this.sendChannel = null;
       this.recieveChannel = null;
       this.peersConnected = false;
-      this.sendConnected = false;
-      this.datalisteners = new Array();
+      this.channelConnected = false;
+      this.iceConnected = false;
    }
 
    // Override these for notifications  - TODO - see top of file
@@ -290,17 +287,17 @@ class RtcReciever {
    onremoteconnection: ((this: RtcReciever, ev: Event) => any) | null;
    onremotedata: ((this: RtcReciever, ev: Event) => any) | null;
 
-   // Multi-listener version of above
-   addremotedatalistener(fn) {
-      this.datalisteners.push(fn);
-   };
-
    answerCall() {
 
       var self = this;
-      // Connect to the signalling server
+
       let configuration = {
-         iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+         iceServers: [{
+            "urls": "stun:stun.1.google.com:19302"
+         },
+         {
+            "urls": "stun:stun2.1.google.com:19302"
+         }]
       };
 
       this.recieveConnection = new RTCPeerConnection(configuration);
@@ -337,11 +334,13 @@ class RtcReciever {
    }
 
    handleIceCandidate(ice) {
-      this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
-         .catch(e => {
-            // TODO - analyse error paths
-            logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
-         });;
+      if (!this.iceConnected) { // Dont try another candidate if we are onnected already
+         this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+            .catch(e => {
+               // TODO - analyse error paths
+               logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+            });
+      }
    }
 
    onicecandidate(candidate, to, outbound) {
@@ -363,10 +362,10 @@ class RtcReciever {
          });
    }
 
-   onnegotiationneeded() {
+   onnegotiationneeded(ev) {
       var self = this;
 
-      logger.info('RtcReciever', 'onnegotiationneeded', '', null);
+      logger.info('RtcReciever', 'onnegotiationneeded', 'Event:', ev);
    };
 
    onrecievedatachannel(ev, self) {
@@ -382,7 +381,11 @@ class RtcReciever {
       var state = pc.iceConnectionState;
       logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
 
+      if (state === "connected") {
+         this.iceConnected = true;
+      }
       if (state === "failed") {
+         this.iceConnected = false;
          if (pc.restartIce) {
             pc.restartIce();
          }
@@ -392,8 +395,6 @@ class RtcReciever {
    onconnectionstatechange(ev, pc, self) {
       switch (pc.connectionState) {
          case "connected":
-            self.connected = true;
-
             // The connection has become fully connected
             if (self.onremoteconnection)
                self.onremoteconnection(ev);
@@ -404,9 +405,13 @@ class RtcReciever {
                self.onremoteissues(ev);
             break;
          case "failed":
+            // The connection has been closed or failed
+            self.channelConnected = false;
+            if (self.onremoteclose)
+               self.onremoteclose(ev);
          case "closed":
             // The connection has been closed or failed
-            self.connected = false;
+            self.channelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
@@ -420,7 +425,7 @@ class RtcReciever {
    onsendchannelopen(ev, dc, localCallParticipation) {
       logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
 
-      this.sendConnected = true;
+      this.channelConnected = true;
       try {
          dc.send(JSON.stringify(this.person));
       }
@@ -454,11 +459,6 @@ class RtcReciever {
       if (this.onremotedata) {
          this.onremotedata(remoteCallData);
       }
-      if (this.datalisteners) {
-         for (var i = 0; i < this.datalisteners.length; i++) {
-            this.datalisteners[i](remoteCallData);
-         }
-      }
    }
 
    onrecievechannelerror(e) {
@@ -470,7 +470,7 @@ class RtcReciever {
    }
 
    send(obj) {
-      if (this.sendConnected)
+      if (this.sendChannel.readyState === 'open') 
          this.sendChannel.send(JSON.stringify(obj));
    }
 }
@@ -603,7 +603,6 @@ export class Rtc {
    // Override these for notifications  - TODO - see top of file
    onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
 
-   // Multi-listener version of above
    addremotedatalistener(fn) {
       this.datalisteners.push(fn);
    };
@@ -616,7 +615,7 @@ export class Rtc {
    }
 
    connect() {
-      logger.info('RtcReciever', 'connect', "", null);
+      logger.info('Rtc', 'connect', "", null);
 
       var self = this;
 
@@ -840,8 +839,10 @@ export class Rtc {
             break;
          }
       }
-      if (!found)
-         logger.error('RtcLink', 'onRemoteIceCandidate', "cannot find target:", remoteIceCandidate);
+      if (!found) {
+         logger.error('Rtc', 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
+         logger.error('Rtc', 'onRemoteIceCandidate', "Links:", self.links);
+      }
    }
 
    onRemoteClose(ev, rtclink, self) {
