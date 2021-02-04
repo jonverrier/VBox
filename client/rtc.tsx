@@ -32,7 +32,6 @@ class RtcCaller {
    sendConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
-   peersConnected: boolean;
    channelConnected: boolean;
    iceConnected: boolean;
 
@@ -43,7 +42,6 @@ class RtcCaller {
       this.sendConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
-      this.peersConnected = false;
       this.channelConnected = false;
       this.iceConnected = false;
    }
@@ -264,7 +262,6 @@ class RtcReciever {
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
-   peersConnected: boolean;
    channelConnected: boolean;
    iceConnected: boolean;
 
@@ -276,7 +273,6 @@ class RtcReciever {
       this.recieveConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
-      this.peersConnected = false;
       this.channelConnected = false;
       this.iceConnected = false;
    }
@@ -302,7 +298,7 @@ class RtcReciever {
 
       this.recieveConnection = new RTCPeerConnection(configuration);
       this.recieveConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, self.remoteOffer.from, false);
+         self.onicecandidate(ice.candidate, self.remoteCallParticipation, false);
       };
       this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
       this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
@@ -834,12 +830,12 @@ export class Rtc {
          if (self.links[i].to.equals(remoteIceCandidate.from)) {
             if (remoteIceCandidate.outbound) {
                // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
-               if (self.links[i].reciever && !self.links[i].reciever.peersConnected) 
+               if (self.links[i].reciever && !self.links[i].reciever.channelConnected) 
                   self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
                // else silent fail
             } else {
                // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
-               if (self.links[i].caller && !self.links[i].caller.peersConnected)
+               if (self.links[i].caller && !self.links[i].caller.channelConnected)
                   self.links[i].caller.handleIceCandidate(remoteIceCandidate.ice);
                // else silent fail
             }
