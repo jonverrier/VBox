@@ -33,7 +33,7 @@ export class RemotePeople extends React.Component<IConnectionProps, IRemotePeopl
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc) {
-         nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
    }
 

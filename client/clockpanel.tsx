@@ -137,7 +137,7 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
 
          // distribute the tick to all clients
          let tick = new GymClockTick(mm, ss);
-         this.props.rtc.send(tick);
+         this.props.rtc.broadcast(tick);
       }
    }
 

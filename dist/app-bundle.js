@@ -68160,7 +68160,7 @@ var MasterClock = /** @class */ (function (_super) {
             this.setState({ mm: mm, ss: ss });
             // distribute the tick to all clients
             var tick = new gymclock_js_1.GymClockTick(mm, ss);
-            this.props.rtc.send(tick);
+            this.props.rtc.broadcast(tick);
         }
     };
     MasterClock.prototype.componentDidMount = function () {
@@ -68782,7 +68782,7 @@ var RemotePeople = /** @class */ (function (_super) {
     }
     RemotePeople.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
         if (nextProps.rtc) {
-            nextProps.rtc.onremotedata = this.onremotedata.bind(this);
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
     RemotePeople.prototype.onremotedata = function (ev, link) {
@@ -68998,6 +68998,11 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
         var state = pc.iceConnectionState;
         logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
+        if (state === "failed") {
+            if (pc.restartIce) {
+                pc.restartIce();
+            }
+        }
     };
     RtcCaller.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
@@ -69013,6 +69018,11 @@ var RtcCaller = /** @class */ (function () {
                     self.onremoteissues(ev);
                 break;
             case "failed":
+                // The connection has been closed or failed
+                self.connected = false;
+                if (self.onremoteclose)
+                    self.onremoteclose(ev);
+                break;
             case "closed":
                 // The connection has been closed or failed
                 self.connected = false;
@@ -69118,7 +69128,7 @@ var RtcReciever = /** @class */ (function () {
             var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
-                logger.info('RtcReciever', 'answerCall', '', null);
+                logger.info('RtcReciever', 'answerCall', 'ok', null);
             });
         })
             .catch(function (e) {
@@ -69166,6 +69176,11 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
         var state = pc.iceConnectionState;
         logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
+        if (state === "failed") {
+            if (pc.restartIce) {
+                pc.restartIce();
+            }
+        }
     };
     RtcReciever.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
@@ -69361,7 +69376,7 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.status = function () {
         return this.serverStatus;
     };
-    Rtc.prototype.send = function (obj) {
+    Rtc.prototype.broadcast = function (obj) {
         var self = this;
         for (var i = 0; i < self.links.length; i++) {
             self.links[i].send(obj);
@@ -69425,25 +69440,18 @@ var Rtc = /** @class */ (function () {
         var self = this;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);
-        // Hook to pass up link status changes. 
-        link.onlinkstatechange = function (ev) { if (self.onlinkstatechange)
-            self.onlinkstatechange(ev, link); };
         // Hooks to pass up data
         sender.onremotedata = function (ev) {
-            if (self.onremotedata)
-                self.onremotedata(ev, link);
             if (_this.datalisteners) {
                 for (var i = 0; i < _this.datalisteners.length; i++) {
                     _this.datalisteners[i](ev, link);
                 }
             }
         };
-        // Hook so if remote closes, we close down links this side
+        // Hook so if remote closes, we update links this side
         sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
         // Notify parent of link status change
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(link.linkStatus, link);
         if (this.linklisteners) {
             for (var i = 0; i < this.linklisteners.length; i++) {
                 this.linklisteners[i](link.linkStatus, link);
@@ -69471,8 +69479,6 @@ var Rtc = /** @class */ (function () {
         var link = new RtcLink(remoteOffer.from, false, null, reciever);
         // Hook to pass up link status changes. 
         link.onlinkstatechange = function (ev) {
-            if (self.onlinkstatechange)
-                self.onlinkstatechange(ev, link);
             if (_this.linklisteners) {
                 for (var i = 0; i < _this.linklisteners.length; i++) {
                     _this.linklisteners[i](link.linkStatus, link);
@@ -69481,8 +69487,6 @@ var Rtc = /** @class */ (function () {
         };
         // Hooks to pass up data
         reciever.onremotedata = function (ev) {
-            if (self.onremotedata)
-                self.onremotedata(ev, link);
             if (_this.datalisteners) {
                 for (var i = 0; i < _this.datalisteners.length; i++) {
                     _this.datalisteners[i](ev, link);
@@ -69493,8 +69497,6 @@ var Rtc = /** @class */ (function () {
         reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);
         // Notify parent of link status change
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(link.linkStatus, link);
         if (this.linklisteners) {
             for (var i = 0; i < this.linklisteners.length; i++) {
                 this.linklisteners[i](link.linkStatus, link);
@@ -69511,8 +69513,11 @@ var Rtc = /** @class */ (function () {
                 self.links[i].caller.handleAnswer(remoteAnswer.answer);
                 found = true;
                 // Notify parent of link status change
-                if (this.onlinkstatechange)
-                    this.onlinkstatechange(self.links[i].linkStatus, self.links[i]);
+                if (self.linklisteners) {
+                    for (var i = 0; i < this.linklisteners.length; i++) {
+                        this.linklisteners[i](self.links[i].linkStatus, self.links[i]);
+                    }
+                }
                 break;
             }
         }
@@ -69551,8 +69556,6 @@ var Rtc = /** @class */ (function () {
         for (var i = 0; i < self.links.length && !found; i++) {
             if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
                 // Notify parent of link status change
-                if (self.onlinkstatechange)
-                    self.onlinkstatechange(null, self.links[i]);
                 if (self.linklisteners) {
                     for (var i = 0; i < self.linklisteners.length; i++) {
                         self.linklisteners[i](null, self.links[i]);
@@ -69607,6 +69610,9 @@ var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
 var whiteboard_1 = __webpack_require__(/*! ../common/whiteboard */ "./common/whiteboard.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
+};
+var thinishStyle = {
+    margin: '2px', padding: '0px',
 };
 var thinCentredStyle = {
     margin: '0px', padding: '0px',
@@ -69688,23 +69694,27 @@ var MasterWhiteboard = /** @class */ (function (_super) {
         this.setState({ isMounted: false });
     };
     MasterWhiteboard.prototype.onworkoutchange = function (element) {
-        this.setState({ workout: element });
-        var board = new whiteboard_1.Whiteboard(element, this.state.results);
-        this.props.rtc.send(board);
+        if (this.state.isMounted) {
+            this.setState({ workout: element });
+            var board = new whiteboard_1.Whiteboard(element, this.state.results);
+            this.props.rtc.broadcast(board);
+        }
     };
     MasterWhiteboard.prototype.onresultschange = function (element) {
-        this.setState({ results: element });
-        var board = new whiteboard_1.Whiteboard(this.state.workout, element);
-        this.props.rtc.send(board);
+        if (this.state.isMounted) {
+            this.setState({ results: element });
+            var board = new whiteboard_1.Whiteboard(this.state.workout, element);
+            this.props.rtc.broadcast(board);
+        }
     };
     MasterWhiteboard.prototype.render = function () {
         return (React.createElement("div", { style: whiteboardStyle },
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: thinishStyle },
                     React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: 'Workout details will be here - click the button above.', onchange: this.onworkoutchange.bind(this) })),
-                React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: thinishStyle },
                     React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: 'Workout results will be here - click the button above.', onchange: this.onresultschange.bind(this) })))));
     };
     return MasterWhiteboard;
@@ -69788,20 +69798,11 @@ var RemoteWhiteboard = /** @class */ (function (_super) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
         _this.state = {
-            isMounted: false,
             workoutValue: new whiteboard_1.WhiteboardElement(10, 'Waiting...'),
             resultsValue: new whiteboard_1.WhiteboardElement(10, 'Waiting...')
         };
         return _this;
     }
-    RemoteWhiteboard.prototype.componentDidMount = function () {
-        // Initialise sending data to remotes
-        this.setState({ isMounted: true });
-    };
-    RemoteWhiteboard.prototype.componentWillUnmount = function () {
-        // Stop sending data to remotes
-        this.setState({ isMounted: false });
-    };
     RemoteWhiteboard.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
         if (nextProps.rtc) {
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));

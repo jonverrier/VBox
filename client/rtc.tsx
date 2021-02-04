@@ -158,6 +158,12 @@ class RtcCaller {
    oniceconnectionstatechange(ev, pc, outbound) {
       var state = pc.iceConnectionState;
       logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
+
+      if (state === "failed") {
+         if (pc.restartIce) {
+            pc.restartIce();
+         }
+      }
    }
 
    onconnectionstatechange(ev, pc, self) {
@@ -175,6 +181,11 @@ class RtcCaller {
                self.onremoteissues(ev);
             break;
          case "failed":
+            // The connection has been closed or failed
+            self.connected = false;
+            if (self.onremoteclose)
+               self.onremoteclose(ev);
+            break;
          case "closed":
             // The connection has been closed or failed
             self.connected = false;
@@ -316,7 +327,7 @@ class RtcReciever {
             var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
-                  logger.info('RtcReciever', 'answerCall', '', null);
+                  logger.info('RtcReciever', 'answerCall', 'ok', null);
                })
          })
          .catch((e) => {
@@ -370,6 +381,12 @@ class RtcReciever {
    oniceconnectionstatechange(ev, pc, outbound) {
       var state = pc.iceConnectionState;
       logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
+
+      if (state === "failed") {
+         if (pc.restartIce) {
+            pc.restartIce();
+         }
+      }
    }
 
    onconnectionstatechange(ev, pc, self) {
@@ -585,8 +602,6 @@ export class Rtc {
 
    // Override these for notifications  - TODO - see top of file
    onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
-   onlinkstatechange: ((this: Rtc, ev: Event, link: RtcLink) => any) | null;
-   onremotedata: ((this: Rtc, ev: Event, link: RtcLink) => any) | null;
 
    // Multi-listener version of above
    addremotedatalistener(fn) {
@@ -627,7 +642,7 @@ export class Rtc {
       return this.serverStatus;
    }
 
-   send (obj) {
+   broadcast (obj) {
       var self = this;
 
       for (var i = 0; i < self.links.length; i++) {
@@ -702,12 +717,9 @@ export class Rtc {
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
-      // Hook to pass up link status changes. 
-      link.onlinkstatechange = (ev) => { if (self.onlinkstatechange) self.onlinkstatechange(ev, link); };
 
       // Hooks to pass up data
       sender.onremotedata = (ev) => {
-         if (self.onremotedata) self.onremotedata(ev, link);
          if (this.datalisteners) {
             for (var i = 0; i < this.datalisteners.length; i++) {
                this.datalisteners[i](ev, link);
@@ -715,14 +727,12 @@ export class Rtc {
          }
       };
 
-      // Hook so if remote closes, we close down links this side
+      // Hook so if remote closes, we update links this side
       sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
 
       self.links.push(link);
 
       // Notify parent of link status change
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(link.linkStatus, link);
       if (this.linklisteners) {
          for (var i = 0; i < this.linklisteners.length; i++) {
             this.linklisteners[i](link.linkStatus, link);
@@ -753,8 +763,6 @@ export class Rtc {
 
       // Hook to pass up link status changes. 
       link.onlinkstatechange = (ev) => {
-         if (self.onlinkstatechange)
-            self.onlinkstatechange(ev, link);
          if (this.linklisteners) {
             for (var i = 0; i < this.linklisteners.length; i++) {
                this.linklisteners[i](link.linkStatus, link);
@@ -764,8 +772,6 @@ export class Rtc {
 
       // Hooks to pass up data
       reciever.onremotedata = (ev) => {
-         if (self.onremotedata)
-            self.onremotedata(ev, link);
          if (this.datalisteners) {
             for (var i = 0; i < this.datalisteners.length; i++) {
                this.datalisteners[i](ev, link);
@@ -778,8 +784,6 @@ export class Rtc {
       self.links.push(link);
 
       // Notify parent of link status change
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(link.linkStatus, link);
       if (this.linklisteners) {
          for (var i = 0; i < this.linklisteners.length; i++) {
             this.linklisteners[i](link.linkStatus, link);
@@ -800,8 +804,11 @@ export class Rtc {
             found = true;
 
             // Notify parent of link status change
-            if (this.onlinkstatechange)
-               this.onlinkstatechange(self.links[i].linkStatus, self.links[i]);
+            if (self.linklisteners) {
+               for (var i = 0; i < this.linklisteners.length; i++) {
+                  this.linklisteners[i](self.links[i].linkStatus, self.links[i]);
+               }
+            }
             break;
          }
       }
@@ -843,8 +850,6 @@ export class Rtc {
       for (var i = 0; i < self.links.length && !found; i++) {
          if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
             // Notify parent of link status change
-            if (self.onlinkstatechange)
-               self.onlinkstatechange(null, self.links[i]);
             if (self.linklisteners) {
                for (var i = 0; i < self.linklisteners.length; i++) {
                   self.linklisteners[i](null, self.links[i]);
