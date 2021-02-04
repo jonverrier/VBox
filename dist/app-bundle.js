@@ -68904,20 +68904,19 @@ var RtcCaller = /** @class */ (function () {
         this.sendChannel = null;
         this.recieveChannel = null;
         this.peersConnected = false;
-        this.sendConnected = false;
-        this.datalisteners = new Array();
+        this.channelConnected = false;
+        this.iceConnected = false;
     }
-    // Multi-listener versions of above
-    RtcCaller.prototype.addremotedatalistener = function (fn) {
-        this.datalisteners.push(fn);
-    };
-    ;
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
         var self = this;
-        // Connect to the signalling server
         var configuration = {
-            iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+            iceServers: [{
+                    "urls": "stun:stun.1.google.com:19302"
+                },
+                {
+                    "urls": "stun:stun2.1.google.com:19302"
+                }]
         };
         this.sendConnection = new RTCPeerConnection(configuration);
         this.sendConnection.onicecandidate = function (ice) {
@@ -68945,12 +68944,14 @@ var RtcCaller = /** @class */ (function () {
         });
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
-        this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
-            .catch(function (e) {
-            // TODO - analyse error paths
-            logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
-        });
-        ;
+        if (!this.iceConnected) { // Dont try another candidate if we are onnected already
+            this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+                .catch(function (e) {
+                // TODO - analyse error paths
+                logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
+            });
+            ;
+        }
     };
     RtcCaller.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
@@ -68969,7 +68970,7 @@ var RtcCaller = /** @class */ (function () {
         });
     };
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
-        logger.info('RtcCaller', 'onnegotiationneeded', null, ev);
+        logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
         self.sendConnection.createOffer({ iceRestart: true })
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
@@ -68998,7 +68999,11 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
         var state = pc.iceConnectionState;
         logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
+        if (state === "connected") {
+            this.iceConnected = true;
+        }
         if (state === "failed") {
+            this.iceConnected = false;
             if (pc.restartIce) {
                 pc.restartIce();
             }
@@ -69007,7 +69012,6 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
             case "connected":
-                self.connected = true;
                 // The connection has become fully connected
                 if (self.onremoteconnection)
                     self.onremoteconnection(ev);
@@ -69019,13 +69023,13 @@ var RtcCaller = /** @class */ (function () {
                 break;
             case "failed":
                 // The connection has been closed or failed
-                self.connected = false;
+                self.channelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
             case "closed":
                 // The connection has been closed or failed
-                self.connected = false;
+                self.channelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
@@ -69036,7 +69040,7 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
-        this.sendConnected = true;
+        this.channelConnected = true;
         try {
             dc.send(JSON.stringify(this.person));
         }
@@ -69063,11 +69067,6 @@ var RtcCaller = /** @class */ (function () {
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
         }
-        if (this.datalisteners) {
-            for (var i = 0; i < this.datalisteners.length; i++) {
-                this.datalisteners[i](remoteCallData);
-            }
-        }
     };
     RtcCaller.prototype.onrecievechannelerror = function (e) {
         logger.error('RtcCaller', 'onrecievechannelerror', "error:", e);
@@ -69076,7 +69075,7 @@ var RtcCaller = /** @class */ (function () {
         logger.info('RtcCaller', 'onrecievechannelclose', "event:", ev);
     };
     RtcCaller.prototype.send = function (obj) {
-        if (this.sendConnected)
+        if (this.sendChannel.readyState === 'open')
             this.sendChannel.send(JSON.stringify(obj));
     };
     return RtcCaller;
@@ -69091,20 +69090,19 @@ var RtcReciever = /** @class */ (function () {
         this.sendChannel = null;
         this.recieveChannel = null;
         this.peersConnected = false;
-        this.sendConnected = false;
-        this.datalisteners = new Array();
+        this.channelConnected = false;
+        this.iceConnected = false;
     }
-    // Multi-listener version of above
-    RtcReciever.prototype.addremotedatalistener = function (fn) {
-        this.datalisteners.push(fn);
-    };
-    ;
     RtcReciever.prototype.answerCall = function () {
         var _this = this;
         var self = this;
-        // Connect to the signalling server
         var configuration = {
-            iceServers: [{ "urls": "stun:stun.1.google.com:19302" }]
+            iceServers: [{
+                    "urls": "stun:stun.1.google.com:19302"
+                },
+                {
+                    "urls": "stun:stun2.1.google.com:19302"
+                }]
         };
         this.recieveConnection = new RTCPeerConnection(configuration);
         this.recieveConnection.onicecandidate = function (ice) {
@@ -69137,12 +69135,13 @@ var RtcReciever = /** @class */ (function () {
         });
     };
     RtcReciever.prototype.handleIceCandidate = function (ice) {
-        this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
-            .catch(function (e) {
-            // TODO - analyse error paths
-            logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
-        });
-        ;
+        if (!this.iceConnected) { // Dont try another candidate if we are onnected already
+            this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+                .catch(function (e) {
+                // TODO - analyse error paths
+                logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+            });
+        }
     };
     RtcReciever.prototype.onicecandidate = function (candidate, to, outbound) {
         // a null candidate means ICE gathering is finished
@@ -69160,9 +69159,9 @@ var RtcReciever = /** @class */ (function () {
             logger.error('RtcReciever', 'onicecandidate', "error:", e);
         });
     };
-    RtcReciever.prototype.onnegotiationneeded = function () {
+    RtcReciever.prototype.onnegotiationneeded = function (ev) {
         var self = this;
-        logger.info('RtcReciever', 'onnegotiationneeded', '', null);
+        logger.info('RtcReciever', 'onnegotiationneeded', 'Event:', ev);
     };
     ;
     RtcReciever.prototype.onrecievedatachannel = function (ev, self) {
@@ -69176,7 +69175,11 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.oniceconnectionstatechange = function (ev, pc, outbound) {
         var state = pc.iceConnectionState;
         logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
+        if (state === "connected") {
+            this.iceConnected = true;
+        }
         if (state === "failed") {
+            this.iceConnected = false;
             if (pc.restartIce) {
                 pc.restartIce();
             }
@@ -69185,7 +69188,6 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.onconnectionstatechange = function (ev, pc, self) {
         switch (pc.connectionState) {
             case "connected":
-                self.connected = true;
                 // The connection has become fully connected
                 if (self.onremoteconnection)
                     self.onremoteconnection(ev);
@@ -69196,9 +69198,13 @@ var RtcReciever = /** @class */ (function () {
                     self.onremoteissues(ev);
                 break;
             case "failed":
+                // The connection has been closed or failed
+                self.channelConnected = false;
+                if (self.onremoteclose)
+                    self.onremoteclose(ev);
             case "closed":
                 // The connection has been closed or failed
-                self.connected = false;
+                self.channelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
@@ -69209,7 +69215,7 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
-        this.sendConnected = true;
+        this.channelConnected = true;
         try {
             dc.send(JSON.stringify(this.person));
         }
@@ -69236,11 +69242,6 @@ var RtcReciever = /** @class */ (function () {
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
         }
-        if (this.datalisteners) {
-            for (var i = 0; i < this.datalisteners.length; i++) {
-                this.datalisteners[i](remoteCallData);
-            }
-        }
     };
     RtcReciever.prototype.onrecievechannelerror = function (e) {
         logger.error('RtcReciever', 'onrecievechannelerror', "error:", e.error);
@@ -69249,7 +69250,7 @@ var RtcReciever = /** @class */ (function () {
         logger.info('RtcReciever', 'onrecievechannelclose', 'event:', ev);
     };
     RtcReciever.prototype.send = function (obj) {
-        if (this.sendConnected)
+        if (this.sendChannel.readyState === 'open')
             this.sendChannel.send(JSON.stringify(obj));
     };
     return RtcReciever;
@@ -69334,7 +69335,6 @@ var Rtc = /** @class */ (function () {
         // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
         logger.info("Rtc", 'constructor', 'Browser:', webrtc_adapter_1.default.browserDetails);
     }
-    // Multi-listener version of above
     Rtc.prototype.addremotedatalistener = function (fn) {
         this.datalisteners.push(fn);
     };
@@ -69347,7 +69347,7 @@ var Rtc = /** @class */ (function () {
         this.connect();
     };
     Rtc.prototype.connect = function () {
-        logger.info('RtcReciever', 'connect', "", null);
+        logger.info('Rtc', 'connect', "", null);
         var self = this;
         // Send our own details & subscribe to more
         var sourceUrl = '/callevents/?callParticipation='
@@ -69548,8 +69548,10 @@ var Rtc = /** @class */ (function () {
                 break;
             }
         }
-        if (!found)
-            logger.error('RtcLink', 'onRemoteIceCandidate', "cannot find target:", remoteIceCandidate);
+        if (!found) {
+            logger.error('Rtc', 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
+            logger.error('Rtc', 'onRemoteIceCandidate', "Links:", self.links);
+        }
     };
     Rtc.prototype.onRemoteClose = function (ev, rtclink, self) {
         var found = false;
@@ -69679,33 +69681,24 @@ var MasterWhiteboard = /** @class */ (function (_super) {
         var workout = new whiteboard_1.WhiteboardElement(10, 'Waiting');
         var results = new whiteboard_1.WhiteboardElement(10, 'Waiting');
         _this.state = {
-            isMounted: false,
             workout: workout,
             results: results
         };
         return _this;
     }
     MasterWhiteboard.prototype.componentDidMount = function () {
-        // Initialise sending data to remotes
-        this.setState({ isMounted: true });
     };
     MasterWhiteboard.prototype.componentWillUnmount = function () {
-        // Stop sending data to remotes
-        this.setState({ isMounted: false });
     };
     MasterWhiteboard.prototype.onworkoutchange = function (element) {
-        if (this.state.isMounted) {
-            this.setState({ workout: element });
-            var board = new whiteboard_1.Whiteboard(element, this.state.results);
-            this.props.rtc.broadcast(board);
-        }
+        this.setState({ workout: element });
+        var board = new whiteboard_1.Whiteboard(element, this.state.results);
+        this.props.rtc.broadcast(board);
     };
     MasterWhiteboard.prototype.onresultschange = function (element) {
-        if (this.state.isMounted) {
-            this.setState({ results: element });
-            var board = new whiteboard_1.Whiteboard(this.state.workout, element);
-            this.props.rtc.broadcast(board);
-        }
+        this.setState({ results: element });
+        var board = new whiteboard_1.Whiteboard(this.state.workout, element);
+        this.props.rtc.broadcast(board);
     };
     MasterWhiteboard.prototype.render = function () {
         return (React.createElement("div", { style: whiteboardStyle },
@@ -69725,7 +69718,6 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
     function MasterWhiteboardElement(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            isMounted: false,
             inEditMode: false,
             enableOk: false,
             enableCancel: false,
@@ -69738,12 +69730,8 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         return _this;
     }
     MasterWhiteboardElement.prototype.componentDidMount = function () {
-        // Initialise sending data to remotes
-        this.setState({ isMounted: true });
     };
     MasterWhiteboardElement.prototype.componentWillUnmount = function () {
-        // Stop sending data to remotes
-        this.setState({ isMounted: false });
     };
     MasterWhiteboardElement.prototype.processChange = function (value) {
         var enableOk;
