@@ -68979,7 +68979,7 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
         logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        self.sendConnection.createOffer({ iceRestart: false }) // Dont restart as we are the caller
+        self.sendConnection.createOffer({ iceRestart: true }) // Dont restart as we are the caller
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
             .then(function () {
             // Send our call offer data in
@@ -69135,7 +69135,7 @@ var RtcReciever = /** @class */ (function () {
         this.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
         this.sendChannel.onclose = this.onsendchannelclose;
         this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
-            .then(function () { return self.recieveConnection.createAnswer({ iceRestart: false }); })
+            .then(function () { return self.recieveConnection.createAnswer({ iceRestart: true }); })
             .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
             logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
