@@ -19,6 +19,7 @@ import { Person } from '../common/person.js';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate} from '../common/call.js';
 import { TypeRegistry } from '../common/types.js';
 import { FourStateRagEnum } from '../common/enum.js';
+import { Queue } from '../common/queue.js';
 import { Logger } from './logger';
 
 
@@ -34,6 +35,7 @@ class RtcCaller {
    recieveChannel: RTCDataChannel;
    channelConnected: boolean;
    iceConnected: boolean;
+   iceQueue: Queue;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -44,6 +46,7 @@ class RtcCaller {
       this.recieveChannel = null;
       this.channelConnected = false;
       this.iceConnected = false;
+      this.iceQueue = new Queue();
    }
 
    // Override these for notifications - TODO - see top of file
@@ -86,9 +89,16 @@ class RtcCaller {
    }
 
    handleAnswer(answer) {
+      var self = this;
+
       this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
          .then(() => {
             logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
+
+            // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+            while (!self.iceQueue.isEmpty()) {
+               self.handleIceCandidate(self.iceQueue.dequeue())
+            }
          })
          .catch(e => {
             // TODO - analyse error paths
@@ -98,6 +108,12 @@ class RtcCaller {
 
    handleIceCandidate(ice) {
       if (ice) {
+         // If we have not yet set remoteDescription, queue the iceCandidate for later
+         if (!this.sendConnection.remoteDescription.type) {
+            this.iceQueue.enque(ice);
+            return;
+         }
+
          if (!this.iceConnected) { // dont add another candidate if we are connected
             this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
                .catch(e => {
@@ -135,7 +151,7 @@ class RtcCaller {
       logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      self.sendConnection.createOffer({iceRestart: true}) // Dont restart as we are the caller
+      self.sendConnection.createOffer({iceRestart: false}) // Dont restart as we are the caller
          .then(offer => self.sendConnection.setLocalDescription(offer))
          .then(() => {
             // Send our call offer data in
@@ -272,23 +288,23 @@ class RtcReciever {
    localCallParticipation: CallParticipation;
    remoteCallParticipation: CallParticipation;
    person: Person;
-   remoteOffer: CallOffer;
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
    channelConnected: boolean;
    iceConnected: boolean;
+   iceQueue: Queue;
 
-   constructor(localCallParticipation: CallParticipation, remoteOffer: CallOffer, person: Person) {
+   constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
-      this.remoteCallParticipation = remoteOffer.from;
+      this.remoteCallParticipation = remoteCallParticipation;
       this.person = person;
-      this.remoteOffer = remoteOffer;
       this.recieveConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
       this.channelConnected = false;
       this.iceConnected = false;
+      this.iceQueue = new Queue();
    }
 
    // Override these for notifications  - TODO - see top of file
@@ -297,7 +313,7 @@ class RtcReciever {
    onremoteconnection: ((this: RtcReciever, ev: Event) => any) | null;
    onremotedata: ((this: RtcReciever, ev: Event) => any) | null;
 
-   answerCall() {
+   answerCall(remoteOffer) {
 
       var self = this;
 
@@ -329,15 +345,20 @@ class RtcReciever {
       this.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
       this.sendChannel.onclose = this.onsendchannelclose;
 
-      this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
-         .then(() => self.recieveConnection.createAnswer({ iceRestart: true })) 
+      this.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+         .then(() => self.recieveConnection.createAnswer({ iceRestart: false })) 
          .then((answer) => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
             logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
             // Send our call answer data in
-            var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
+            var callAnswer = new CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
             axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
+                  // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+                  while (!self.iceQueue.isEmpty()) {
+                     self.handleIceCandidate(self.iceQueue.dequeue())
+                  }
+
                   logger.info('RtcReciever', 'answerCall', 'Post Ok', null);
                })
          })
@@ -349,6 +370,12 @@ class RtcReciever {
 
    handleIceCandidate(ice) {
       if (ice) {
+         // If we have not yet set remoteDescription, queue the iceCandidate for later
+         if (!this.recieveConnection.remoteDescription.type) {
+            this.iceQueue.enque(ice);
+            return;
+         }
+
          if (!this.iceConnected) { // dont add another candidate if we are connected
             this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
                .catch(e => {
@@ -741,6 +768,7 @@ export class Rtc {
       }
    }
 
+
    onParticipant(remoteParticipation) {
       var self = this;
 
@@ -781,23 +809,11 @@ export class Rtc {
       sender.placeCall();
    }
 
-   onOffer(remoteOffer) {
+   setupRecieverLink(remoteParticipant: CallParticipation): RtcReciever {
       var self = this;
 
-      for (var i = 0; i < self.links.length; i++) {
-         if (self.links[i].to.equals(remoteOffer.from)) {
-            // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
-            // The recipient with the greater glareResolve makes the winning offer 
-            if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
-               self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
-            } else {
-               return;               // if we win, they will answer our offer, we do nothing more 
-            }
-         }
-      }
-
-      var reciever = new RtcReciever(self.localCallParticipation, remoteOffer, self.person); 
-      var link = new RtcLink(remoteOffer.from, false, null, reciever);
+      var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person);
+      var link = new RtcLink(remoteParticipant, false, null, reciever);
 
       // Hook to pass up link status changes. 
       link.onlinkstatechange = (ev) => {
@@ -828,8 +844,28 @@ export class Rtc {
          }
       }
 
-      // answer the call after setting up 'links' to avoid a race condition
-      reciever.answerCall();
+      return reciever;
+   }
+
+   onOffer(remoteOffer) {
+      var self = this;
+
+      // This loop removes glare, when we may be trying to set up calls with each other.
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(remoteOffer.from)) {
+            // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
+            // The recipient with the greater glareResolve makes the winning offer 
+            if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
+               self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
+            } else {
+               return;               // if we win, they will answer our offer, we do nothing more 
+            }
+         }
+      }
+
+      // Setup links befoe answering the call to remove race conditions from asynchronous arrival
+      var reciever = this.setupRecieverLink(remoteOffer.from);
+      reciever.answerCall(remoteOffer);
    }
 
    onAnswer(remoteAnswer) {
@@ -854,9 +890,21 @@ export class Rtc {
          logger.error('RtcLink', 'onAnswer', "cannot find target:", remoteAnswer);
    }
 
-   onRemoteIceCandidate(remoteIceCandidate) {
+   onRemoteIceCandidate(remoteIceCandidate: CallIceCandidate) {
       var self = this;
-      var found = false;
+      var found : boolean = false;
+
+      for (var i = 0; i < self.links.length; i++) {
+         if (self.links[i].to.equals(remoteIceCandidate.from)) {
+            found = true;
+         }
+      }
+
+      if (!found) {
+         this.setupRecieverLink(remoteIceCandidate.from);
+      }
+
+      found = false;
 
       // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
       // incoming messages still pending
