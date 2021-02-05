@@ -62,6 +62,9 @@ class RtcCaller {
          },
          {
             "urls": "stun:stun1.l.google.com:19302"
+         },
+         {
+            "urls": "stun:global.stun.twilio.com:3478?transport=udp"
          }]
       };
 
@@ -196,7 +199,11 @@ class RtcCaller {
    }
 
    onicecandidateerror(ev, self) {
-      logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
+      if (ev.errorCode === 701) {
+         logger.error('RtcCaller', 'onicecandidateerror', ev.url, ev.errorText);
+      } else {
+         logger.info('RtcCaller', 'onicecandidateerror', 'event:', ev);
+      }
    }
 
    onsendchannelopen(ev, dc, localCallParticipation) {
@@ -293,6 +300,9 @@ class RtcReciever {
          },
          {
             "urls": "stun:stun1.l.google.com:19302"
+         },
+         {
+            "urls": "stun:global.stun.twilio.com:3478?transport=udp"
          }]
       };
 
@@ -415,7 +425,11 @@ class RtcReciever {
    }
 
    onicecandidateerror(ev, self) {
-      logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
+      if (ev.errorCode === 701) {
+         logger.error('RtcReciever', 'onicecandidateerror', ev.url, ev.errorText);
+      } else {
+         logger.info('RtcReciever', 'onicecandidateerror', 'event:', ev);
+      }
    }
 
    onsendchannelopen(ev, dc, localCallParticipation) {

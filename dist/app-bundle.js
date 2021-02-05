@@ -68911,7 +68911,10 @@ var RtcCaller = /** @class */ (function () {
         var self = this;
         var configuration = {
             iceServers: [{
-                    "urls": "stun:stun.1.google.com:19302"
+                    "urls": "stun:stun.l.google.com:19302"
+                },
+                {
+                    "urls": "stun:stun1.l.google.com:19302"
                 },
                 {
                     "urls": "stun:global.stun.twilio.com:3478?transport=udp"
@@ -69035,7 +69038,12 @@ var RtcCaller = /** @class */ (function () {
         }
     };
     RtcCaller.prototype.onicecandidateerror = function (ev, self) {
-        logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
+        if (ev.errorCode === 701) {
+            logger.error('RtcCaller', 'onicecandidateerror', ev.url, ev.errorText);
+        }
+        else {
+            logger.info('RtcCaller', 'onicecandidateerror', 'event:', ev);
+        }
     };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
@@ -69096,7 +69104,10 @@ var RtcReciever = /** @class */ (function () {
         var self = this;
         var configuration = {
             iceServers: [{
-                    "urls": "stun:stun.1.google.com:19302"
+                    "urls": "stun:stun.l.google.com:19302"
+                },
+                {
+                    "urls": "stun:stun1.l.google.com:19302"
                 },
                 {
                     "urls": "stun:global.stun.twilio.com:3478?transport=udp"
@@ -69209,7 +69220,12 @@ var RtcReciever = /** @class */ (function () {
         }
     };
     RtcReciever.prototype.onicecandidateerror = function (ev, self) {
-        logger.error('RtcReciever', 'onicecandidateerror', 'event:', ev);
+        if (ev.errorCode === 701) {
+            logger.error('RtcReciever', 'onicecandidateerror', ev.url, ev.errorText);
+        }
+        else {
+            logger.info('RtcReciever', 'onicecandidateerror', 'event:', ev);
+        }
     };
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
