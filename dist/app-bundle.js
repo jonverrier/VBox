@@ -69039,7 +69039,7 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onicecandidateerror = function (ev, self) {
         if (ev.errorCode === 701) {
-            logger.error('RtcCaller', 'onicecandidateerror', ev.url, ev.errorText);
+            logger.error('RtcCaller', 'onicecandidateerror', ev.url + ' ', ev.errorText);
         }
         else {
             logger.info('RtcCaller', 'onicecandidateerror', 'event:', ev);
@@ -69068,7 +69068,8 @@ var RtcCaller = /** @class */ (function () {
         logger.info('RtcCaller', 'onrecievechannelopen', "event:", ev);
     };
     RtcCaller.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
-        logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+        // Too noisy to keep this on 
+        // logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
         if (this.onremotedata) {
@@ -69221,7 +69222,7 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.onicecandidateerror = function (ev, self) {
         if (ev.errorCode === 701) {
-            logger.error('RtcReciever', 'onicecandidateerror', ev.url, ev.errorText);
+            logger.error('RtcReciever', 'onicecandidateerror', ev.url + ' ', ev.errorText);
         }
         else {
             logger.info('RtcReciever', 'onicecandidateerror', 'event:', ev);
