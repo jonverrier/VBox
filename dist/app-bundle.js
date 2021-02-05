@@ -68983,6 +68983,7 @@ var RtcCaller = /** @class */ (function () {
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
             .then(function () {
             // Send our call offer data in
+            logger.info('RtcCaller', 'onnegotiationneeded', 'Posting offer', null);
             var callOffer = new call_js_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios_1.default.post('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
@@ -69137,6 +69138,7 @@ var RtcReciever = /** @class */ (function () {
             .then(function () { return self.recieveConnection.createAnswer({ iceRestart: true }); })
             .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
+            logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
             // Send our call answer data in
             var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })

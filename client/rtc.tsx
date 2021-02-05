@@ -139,6 +139,7 @@ class RtcCaller {
          .then(offer => self.sendConnection.setLocalDescription(offer))
          .then(() => {
             // Send our call offer data in
+            logger.info('RtcCaller', 'onnegotiationneeded', 'Posting offer', null);
             var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios.post ('/api/offer', { params: { callOffer: callOffer } })
                .then((response) => {
@@ -332,6 +333,7 @@ class RtcReciever {
          .then(() => self.recieveConnection.createAnswer({ iceRestart: true }))
          .then((answer) => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
+            logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
             // Send our call answer data in
             var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
