@@ -287,7 +287,7 @@ var CallIceCandidate = (function invocation() {
     * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipation
     * @param to - CallParticipation
-    * @param ice - the WebRTC ice 
+    * @param ice - the WebRTC ice, may be null
     * @param outbound - TRUE if this is from an outbound (Offer) connection
     */
    function CallIceCandidate (_id, from, to, ice, outbound) {

@@ -303,7 +303,7 @@ var CallIceCandidate = (function invocation() {
     * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipation
     * @param to - CallParticipation
-    * @param ice - the WebRTC ice 
+    * @param ice - the WebRTC ice, may be null
     * @param outbound - TRUE if this is from an outbound (Offer) connection
     */
    function CallIceCandidate (_id, from, to, ice, outbound) {
@@ -68946,19 +68946,24 @@ var RtcCaller = /** @class */ (function () {
         });
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
-        if (!this.iceConnected) { // Dont try another candidate if we are onnected already
-            this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+        if (ice) {
+            if (!this.iceConnected) { // dont add another candidate if we are connected
+                this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+                    .catch(function (e) {
+                    // TODO - analyse error paths
+                    logger.error('RtcCaller', 'handleIceCandidate', "error:", e);
+                });
+            }
+        }
+        else {
+            this.sendConnection.addIceCandidate(null)
                 .catch(function (e) {
                 // TODO - analyse error paths
-                logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
+                logger.error('RtcCaller', 'handleIceCandidate', "error on null ICE candidate:", e);
             });
-            ;
         }
     };
     RtcCaller.prototype.onicecandidate = function (candidate, to, outbound) {
-        // a null candidate means ICE gathering is finished
-        if (!candidate)
-            return;
         var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
@@ -69145,18 +69150,24 @@ var RtcReciever = /** @class */ (function () {
         });
     };
     RtcReciever.prototype.handleIceCandidate = function (ice) {
-        if (!this.iceConnected) { // Dont try another candidate if we are onnected already
-            this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+        if (ice) {
+            if (!this.iceConnected) { // dont add another candidate if we are connected
+                this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+                    .catch(function (e) {
+                    // TODO - analyse error paths
+                    logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+                });
+            }
+        }
+        else {
+            this.recieveConnection.addIceCandidate(null)
                 .catch(function (e) {
                 // TODO - analyse error paths
-                logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+                logger.error('RtcReciever', 'handleIceCandidate', "error on null ICE candidate:", e);
             });
         }
     };
     RtcReciever.prototype.onicecandidate = function (candidate, to, outbound) {
-        // a null candidate means ICE gathering is finished
-        if (!candidate)
-            return;
         var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
@@ -69188,7 +69199,7 @@ var RtcReciever = /** @class */ (function () {
         if (state === "connected") {
             this.iceConnected = true;
         }
-        if (state === "failed") {
+        else if (state === "failed") {
             this.iceConnected = false;
             if (pc.restartIce) {
                 pc.restartIce();
@@ -69251,7 +69262,8 @@ var RtcReciever = /** @class */ (function () {
         logger.info('RtcReciever', 'onrecievechannelopen', 'event:', ev);
     };
     RtcReciever.prototype.onrecievechannelmessage = function (msg, localCallParticipation) {
-        logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
+        // Too noisy to keep this on 
+        // logger.info('RtcReciever', 'onrecievechannelmessage', "message:", msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
         if (this.onremotedata) {
