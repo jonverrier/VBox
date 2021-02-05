@@ -69042,7 +69042,7 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.handleIceCandidate = function (ice) {
         if (ice) {
             // If we have not yet set remoteDescription, queue the iceCandidate for later
-            if (!this.sendConnection.remoteDescription.type) {
+            if (!this.sendConnection.remoteDescription || !this.sendConnection.remoteDescription.type) {
                 this.iceQueue.enque(ice);
                 return;
             }
@@ -69257,7 +69257,7 @@ var RtcReciever = /** @class */ (function () {
     RtcReciever.prototype.handleIceCandidate = function (ice) {
         if (ice) {
             // If we have not yet set remoteDescription, queue the iceCandidate for later
-            if (!this.recieveConnection.remoteDescription.type) {
+            if (!this.recieveConnection.remoteDescription || !this.recieveConnection.remoteDescription.type) {
                 this.iceQueue.enque(ice);
                 return;
             }
