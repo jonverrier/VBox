@@ -110,7 +110,7 @@ class RtcCaller {
       if (ice) {
          // If we have not yet set remoteDescription, queue the iceCandidate for later
          if (!this.sendConnection.remoteDescription || !this.sendConnection.remoteDescription.type) {
-            this.iceQueue.enque(ice);
+            this.iceQueue.enqueue(ice);
             return;
          }
 
@@ -372,7 +372,7 @@ class RtcReciever {
       if (ice) {
          // If we have not yet set remoteDescription, queue the iceCandidate for later
          if (!this.recieveConnection.remoteDescription || !this.recieveConnection.remoteDescription.type) {
-            this.iceQueue.enque(ice);
+            this.iceQueue.enqueue(ice);
             return;
          }
 
