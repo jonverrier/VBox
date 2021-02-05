@@ -69549,8 +69549,8 @@ var Rtc = /** @class */ (function () {
                 found = true;
                 // Notify parent of link status change
                 if (self.linklisteners) {
-                    for (var i = 0; i < this.linklisteners.length; i++) {
-                        this.linklisteners[i](self.links[i].linkStatus, self.links[i]);
+                    for (var j = 0; j < this.linklisteners.length; j++) {
+                        this.linklisteners[j](self.links[i].linkStatus, self.links[i]);
                     }
                 }
                 break;
@@ -69594,8 +69594,8 @@ var Rtc = /** @class */ (function () {
             if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
                 // Notify parent of link status change
                 if (self.linklisteners) {
-                    for (var i = 0; i < self.linklisteners.length; i++) {
-                        self.linklisteners[i](null, self.links[i]);
+                    for (var j = 0; j < self.linklisteners.length; j++) {
+                        self.linklisteners[j](null, self.links[i]);
                     }
                 }
                 found = true;
