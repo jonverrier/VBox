@@ -700,6 +700,8 @@ export class Rtc {
          case "CallIceCandidate":
             this.onRemoteIceCandidate(payload);
             break;
+         case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
+            break;
          default:
             logger.info('RtcReciever', 'onServerEvent', "data:", payload);
             break;
