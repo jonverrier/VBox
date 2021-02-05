@@ -68969,11 +68969,11 @@ var RtcCaller = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            logger.info('RtcCaller', 'onicecandidate', 'OK', null);
+            logger.info('RtcCaller', 'onicecandidate', 'Post OK', null);
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            logger.error('RtcCaller', 'onicecandidate', 'error:', e);
+            logger.error('RtcCaller', 'onicecandidate', 'Post error:', e);
         });
     };
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
@@ -68986,7 +68986,7 @@ var RtcCaller = /** @class */ (function () {
             var callOffer = new call_js_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios_1.default.post('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
-                logger.info('RtcCaller', 'createOffer', "Call succeeded", null);
+                logger.info('RtcCaller', 'createOffer', "Post ok", null);
             });
         })
             .catch(function (error) {
@@ -69141,7 +69141,7 @@ var RtcReciever = /** @class */ (function () {
             var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
-                logger.info('RtcReciever', 'answerCall', 'ok', null);
+                logger.info('RtcReciever', 'answerCall', 'Post ok', null);
             });
         })
             .catch(function (e) {
@@ -69173,11 +69173,11 @@ var RtcReciever = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            logger.info('RtcReciever', 'onicecandidate', 'ok', null);
+            logger.info('RtcReciever', 'onicecandidate', 'Post ok', null);
         })
             .catch(function (e) {
             // TODO - analyse error paths
-            logger.error('RtcReciever', 'onicecandidate', "error:", e);
+            logger.error('RtcReciever', 'onicecandidate', "Post error:", e);
         });
     };
     RtcReciever.prototype.onnegotiationneeded = function (ev) {
