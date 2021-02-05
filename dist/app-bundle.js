@@ -69422,15 +69422,19 @@ var Rtc = /** @class */ (function () {
         var payload = remoteCallData.data;
         switch (payload.__type) {
             case "CallParticipation":
+                logger.info('RtcReciever', 'onServerEvent', "CallParticipation", null);
                 this.onParticipant(payload);
                 break;
             case "CallOffer":
+                logger.info('RtcReciever', 'onServerEvent', "CallOffer", null);
                 this.onOffer(payload);
                 break;
             case "CallAnswer":
+                logger.info('RtcReciever', 'onServerEvent', "CallAnswer", null);
                 this.onAnswer(payload);
                 break;
             case "CallIceCandidate":
+                logger.info('RtcReciever', 'onServerEvent', "CallIceCandidate", null);
                 this.onRemoteIceCandidate(payload);
                 break;
             case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
