@@ -371,7 +371,7 @@ class RtcReciever {
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcReciever', 'onicecandidate', '', null);
+            logger.info ('RtcReciever', 'onicecandidate', 'ok', null);
          })
          .catch((e) => {
             // TODO - analyse error paths
