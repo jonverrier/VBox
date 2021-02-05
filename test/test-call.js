@@ -125,13 +125,14 @@ describe("CallAnswer", function () {
 
 describe("CallIceCandidate", function () {
    var callerFrom, callerTo;
-   var ice1, ice2;
+   var ice1, ice2, iceNull;
 
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", "123", "yy");
       ice1 = new CallIceCandidate("id", callerFrom, callerTo, "ice1", true);
       ice2 = new CallIceCandidate("id", callerTo, callerFrom, "ice2", false);
+      iceNull = new CallIceCandidate("id", callerTo, callerFrom, null, false);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -157,6 +158,16 @@ describe("CallIceCandidate", function () {
       var obj = types.reviveFromJSON(output);
 
       expect(ice1.equals(obj)).to.equal(true);
+   });
+
+   it("Needs to save and restore to/from JSON with a null ICE", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(iceNull);
+
+      var obj = types.reviveFromJSON(output);
+
+      expect(iceNull.equals(obj)).to.equal(true);
    });
 });
 

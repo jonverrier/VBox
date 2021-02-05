@@ -40,7 +40,6 @@ describe("WhiteboardElement", function () {
 
       var types = new TypeRegistry();
       var output = JSON.stringify(element1);
-      console.log(output);
 
       var obj = types.reviveFromJSON(output);
       expect(element1.equals(obj)).to.equal(true);

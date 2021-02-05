@@ -97,19 +97,24 @@ class RtcCaller {
    }
 
    handleIceCandidate(ice) {
-      if (!this.iceConnected) { // Dont try another candidate if we are onnected already
-         this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+      if (ice) {
+         if (!this.iceConnected) { // dont add another candidate if we are connected
+            this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+               .catch(e => {
+                  // TODO - analyse error paths
+                  logger.error('RtcCaller', 'handleIceCandidate', "error:", e);
+               });
+         }
+      } else {
+         this.sendConnection.addIceCandidate(null)
             .catch(e => {
                // TODO - analyse error paths
-               logger.error('RtcCaller', 'handleIceCandidate', 'error:', e);
-            });;
+               logger.error('RtcCaller', 'handleIceCandidate', "error on null ICE candidate:", e);
+            });
       }
    }
 
    onicecandidate(candidate, to, outbound) {
-      // a null candidate means ICE gathering is finished
-      if (!candidate)
-         return;
 
       var self = this;
 
@@ -341,19 +346,24 @@ class RtcReciever {
    }
 
    handleIceCandidate(ice) {
-      if (!this.iceConnected) { // Dont try another candidate if we are onnected already
-         this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+      if (ice) {
+         if (!this.iceConnected) { // dont add another candidate if we are connected
+            this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+               .catch(e => {
+                  // TODO - analyse error paths
+                  logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+               });
+         }
+      } else {
+         this.recieveConnection.addIceCandidate(null)
             .catch(e => {
                // TODO - analyse error paths
-               logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
+               logger.error('RtcReciever', 'handleIceCandidate', "error on null ICE candidate:", e);
             });
       }
    }
 
    onicecandidate(candidate, to, outbound) {
-      // a null candidate means ICE gathering is finished
-      if (!candidate)
-         return;
 
       var self = this;
 
@@ -391,6 +401,7 @@ class RtcReciever {
       if (state === "connected") {
          this.iceConnected = true;
       }
+      else
       if (state === "failed") {
          this.iceConnected = false;
          if (pc.restartIce) {
@@ -462,7 +473,8 @@ class RtcReciever {
    }
 
    onrecievechannelmessage(msg, localCallParticipation) {
-      logger.info('RtcReciever', 'onrecievechannelmessage', 'message:', msg.data);
+      // Too noisy to keep this on 
+      // logger.info('RtcReciever', 'onrecievechannelmessage', "message:", msg.data);
 
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(msg.data);
