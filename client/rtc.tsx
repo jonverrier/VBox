@@ -200,7 +200,7 @@ class RtcCaller {
 
    onicecandidateerror(ev, self) {
       if (ev.errorCode === 701) {
-         logger.error('RtcCaller', 'onicecandidateerror', ev.url, ev.errorText);
+         logger.error('RtcCaller', 'onicecandidateerror', ev.url + ' ', ev.errorText);
       } else {
          logger.info('RtcCaller', 'onicecandidateerror', 'event:', ev);
       }
@@ -236,7 +236,8 @@ class RtcCaller {
    }
 
    onrecievechannelmessage(msg, localCallParticipation) {
-      logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+      // Too noisy to keep this on 
+      // logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
 
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(msg.data);
@@ -426,7 +427,7 @@ class RtcReciever {
 
    onicecandidateerror(ev, self) {
       if (ev.errorCode === 701) {
-         logger.error('RtcReciever', 'onicecandidateerror', ev.url, ev.errorText);
+         logger.error('RtcReciever', 'onicecandidateerror', ev.url + ' ', ev.errorText);
       } else {
          logger.info('RtcReciever', 'onicecandidateerror', 'event:', ev);
       }
