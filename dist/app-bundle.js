@@ -1480,6 +1480,93 @@ if (false) {} else {
 
 /***/ }),
 
+/***/ "./common/queue.js":
+/*!*************************!*\
+  !*** ./common/queue.js ***!
+  \*************************/
+/*! default exports */
+/*! export Queue [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports) => {
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global exports*/
+/*! Copyright TXPCo, 2020 */
+
+
+//==============================//
+// Queue class
+//==============================//
+var Queue = (function invocation() {
+   "use strict";
+
+   /**
+    * Creates a Queue 
+    */
+   function Queue() {
+
+      // initialise the queue and offset
+      this.queue = [];
+      this.offset = 0;
+   }
+   
+   // Returns the length of the queue.
+   Queue.prototype.getLength = function () {
+      return (this.queue.length - this.offset);
+   }
+
+   // Returns true if the queue is empty, and false otherwise.
+   Queue.prototype.isEmpty = function () {
+      return (this.queue.length == 0);
+   }
+
+   /* Enqueues the specified item. The parameter is:
+    *
+    * item - the item to enqueue
+    */
+   Queue.prototype.enqueue = function (item) {
+      this.queue.push(item);
+   }
+
+   /* Dequeues an item and returns it. If the queue is empty, the value
+    * 'undefined' is returned.
+    */
+   Queue.prototype.dequeue = function () {
+
+      // if the queue is empty, return immediately
+      if (this.queue.length == 0) return undefined;
+
+      // store the item at the front of the queue
+      var item = this.queue[offset];
+
+      // increment the offset and remove the free space if necessary
+      if (++(this.offset) * 2 >= this.queue.length) {
+         this.queue = this.queue.slice(this.offset);
+         this.offset = 0;
+      }
+
+      // return the dequeued item
+      return item;
+
+   }
+
+   /* Returns the item at the front of the queue (without dequeuing it). If the
+    * queue is empty then undefined is returned.
+    */
+   Queue.prototype.peek = function () {
+      return (this.queue.length > 0 ? this.queue[offset] : undefined);
+   }
+
+   return Queue;
+}());
+
+
+exports.Queue = Queue;
+
+
+/***/ }),
+
 /***/ "./common/signal.js":
 /*!**************************!*\
   !*** ./common/signal.js ***!
@@ -68893,6 +68980,7 @@ var person_js_1 = __webpack_require__(/*! ../common/person.js */ "./common/perso
 var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js");
 var types_js_1 = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
+var queue_js_1 = __webpack_require__(/*! ../common/queue.js */ "./common/queue.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 var RtcCaller = /** @class */ (function () {
@@ -68905,6 +68993,7 @@ var RtcCaller = /** @class */ (function () {
         this.recieveChannel = null;
         this.channelConnected = false;
         this.iceConnected = false;
+        this.iceQueue = new queue_js_1.Queue();
     }
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
@@ -68936,9 +69025,14 @@ var RtcCaller = /** @class */ (function () {
         self.sendChannel.onclose = this.onsendchannelclose;
     };
     RtcCaller.prototype.handleAnswer = function (answer) {
+        var self = this;
         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
             .then(function () {
             logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
+            // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+            while (!self.iceQueue.isEmpty()) {
+                self.handleIceCandidate(self.iceQueue.dequeue());
+            }
         })
             .catch(function (e) {
             // TODO - analyse error paths
@@ -68947,6 +69041,11 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
         if (ice) {
+            // If we have not yet set remoteDescription, queue the iceCandidate for later
+            if (!this.sendConnection.remoteDescription.type) {
+                this.iceQueue.enque(ice);
+                return;
+            }
             if (!this.iceConnected) { // dont add another candidate if we are connected
                 this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
                     .catch(function (e) {
@@ -68979,7 +69078,7 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
         logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        self.sendConnection.createOffer({ iceRestart: true }) // Dont restart as we are the caller
+        self.sendConnection.createOffer({ iceRestart: false }) // Dont restart as we are the caller
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
             .then(function () {
             // Send our call offer data in
@@ -69095,18 +69194,18 @@ var RtcCaller = /** @class */ (function () {
     return RtcCaller;
 }());
 var RtcReciever = /** @class */ (function () {
-    function RtcReciever(localCallParticipation, remoteOffer, person) {
+    function RtcReciever(localCallParticipation, remoteCallParticipation, person) {
         this.localCallParticipation = localCallParticipation;
-        this.remoteCallParticipation = remoteOffer.from;
+        this.remoteCallParticipation = remoteCallParticipation;
         this.person = person;
-        this.remoteOffer = remoteOffer;
         this.recieveConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
         this.channelConnected = false;
         this.iceConnected = false;
+        this.iceQueue = new queue_js_1.Queue();
     }
-    RtcReciever.prototype.answerCall = function () {
+    RtcReciever.prototype.answerCall = function (remoteOffer) {
         var _this = this;
         var self = this;
         var configuration = {
@@ -69134,15 +69233,19 @@ var RtcReciever = /** @class */ (function () {
         this.sendChannel.onmessage = this.onsendchannelmessage;
         this.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
         this.sendChannel.onclose = this.onsendchannelclose;
-        this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
-            .then(function () { return self.recieveConnection.createAnswer({ iceRestart: true }); })
+        this.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+            .then(function () { return self.recieveConnection.createAnswer({ iceRestart: false }); })
             .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
             logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
             // Send our call answer data in
-            var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
+            var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
+                // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+                while (!self.iceQueue.isEmpty()) {
+                    self.handleIceCandidate(self.iceQueue.dequeue());
+                }
                 logger.info('RtcReciever', 'answerCall', 'Post Ok', null);
             });
         })
@@ -69153,6 +69256,11 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.handleIceCandidate = function (ice) {
         if (ice) {
+            // If we have not yet set remoteDescription, queue the iceCandidate for later
+            if (!this.recieveConnection.remoteDescription.type) {
+                this.iceQueue.enque(ice);
+                return;
+            }
             if (!this.iceConnected) { // dont add another candidate if we are connected
                 this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
                     .catch(function (e) {
@@ -69503,23 +69611,11 @@ var Rtc = /** @class */ (function () {
         // place the call after setting up 'links' to avoid a race condition
         sender.placeCall();
     };
-    Rtc.prototype.onOffer = function (remoteOffer) {
+    Rtc.prototype.setupRecieverLink = function (remoteParticipant) {
         var _this = this;
         var self = this;
-        for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(remoteOffer.from)) {
-                // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
-                // The recipient with the greater glareResolve makes the winning offer 
-                if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
-                    self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
-                }
-                else {
-                    return; // if we win, they will answer our offer, we do nothing more 
-                }
-            }
-        }
-        var reciever = new RtcReciever(self.localCallParticipation, remoteOffer, self.person);
-        var link = new RtcLink(remoteOffer.from, false, null, reciever);
+        var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person);
+        var link = new RtcLink(remoteParticipant, false, null, reciever);
         // Hook to pass up link status changes. 
         link.onlinkstatechange = function (ev) {
             if (_this.linklisteners) {
@@ -69545,8 +69641,26 @@ var Rtc = /** @class */ (function () {
                 this.linklisteners[i](link.linkStatus, link);
             }
         }
-        // answer the call after setting up 'links' to avoid a race condition
-        reciever.answerCall();
+        return reciever;
+    };
+    Rtc.prototype.onOffer = function (remoteOffer) {
+        var self = this;
+        // This loop removes glare, when we may be trying to set up calls with each other.
+        for (var i = 0; i < self.links.length; i++) {
+            if (self.links[i].to.equals(remoteOffer.from)) {
+                // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
+                // The recipient with the greater glareResolve makes the winning offer 
+                if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
+                    self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
+                }
+                else {
+                    return; // if we win, they will answer our offer, we do nothing more 
+                }
+            }
+        }
+        // Setup links befoe answering the call to remove race conditions from asynchronous arrival
+        var reciever = this.setupRecieverLink(remoteOffer.from);
+        reciever.answerCall(remoteOffer);
     };
     Rtc.prototype.onAnswer = function (remoteAnswer) {
         var self = this;
@@ -69570,6 +69684,15 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.onRemoteIceCandidate = function (remoteIceCandidate) {
         var self = this;
         var found = false;
+        for (var i = 0; i < self.links.length; i++) {
+            if (self.links[i].to.equals(remoteIceCandidate.from)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            this.setupRecieverLink(remoteIceCandidate.from);
+        }
+        found = false;
         // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
         // incoming messages still pending
         // So fail silently if we get unexpected Ice candidate messages 
