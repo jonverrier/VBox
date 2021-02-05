@@ -46,7 +46,7 @@ var Queue = (function invocation() {
       if (this.queue.length == 0) return undefined;
 
       // store the item at the front of the queue
-      var item = this.queue[offset];
+      var item = this.queue[this.offset];
 
       // increment the offset and remove the free space if necessary
       if (++(this.offset) * 2 >= this.queue.length) {
@@ -63,7 +63,7 @@ var Queue = (function invocation() {
     * queue is empty then undefined is returned.
     */
    Queue.prototype.peek = function () {
-      return (this.queue.length > 0 ? this.queue[offset] : undefined);
+      return (this.queue.length > 0 ? this.queue[this.offset] : undefined);
    }
 
    return Queue;
