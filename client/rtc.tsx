@@ -122,7 +122,7 @@ class RtcCaller {
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcCaller', 'onicecandidate', 'Post OK', null);
+            logger.info ('RtcCaller', 'onicecandidate', 'Post Ok', null);
          })
          .catch((e) => {
             // TODO - analyse error paths
@@ -135,7 +135,7 @@ class RtcCaller {
       logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      self.sendConnection.createOffer({iceRestart: true})
+      self.sendConnection.createOffer({iceRestart: false}) // Dont restart ICE as sometimes ICE candidates come in from other party before we get here
          .then(offer => self.sendConnection.setLocalDescription(offer))
          .then(() => {
             // Send our call offer data in
@@ -143,12 +143,12 @@ class RtcCaller {
             var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios.post ('/api/offer', { params: { callOffer: callOffer } })
                .then((response) => {
-                  logger.info('RtcCaller', 'createOffer', "Post ok", null);
+                  logger.info('RtcCaller', 'onnegotiationneeded', "Post Ok", null);
                });
          })
          .catch(function (error) {
             // TODO - analyse error paths 
-            logger.error ('RtcCaller', 'createOffer', 'error', error);
+            logger.error('RtcCaller', 'onnegotiationneeded', 'error', error);
          });
    };
 
@@ -330,7 +330,7 @@ class RtcReciever {
       this.sendChannel.onclose = this.onsendchannelclose;
 
       this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
-         .then(() => self.recieveConnection.createAnswer({ iceRestart: true }))
+         .then(() => self.recieveConnection.createAnswer({ iceRestart: false })) // Dont restart ICE as sometimes ICE candidates come in from other party before we get here
          .then((answer) => self.recieveConnection.setLocalDescription(answer))
          .then(() => {
             logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
@@ -338,7 +338,7 @@ class RtcReciever {
             var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
-                  logger.info('RtcReciever', 'answerCall', 'Post ok', null);
+                  logger.info('RtcReciever', 'answerCall', 'Post Ok', null);
                })
          })
          .catch((e) => {
@@ -373,7 +373,7 @@ class RtcReciever {
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcReciever', 'onicecandidate', 'Post ok', null);
+            logger.info ('RtcReciever', 'onicecandidate', 'Post Ok', null);
          })
          .catch((e) => {
             // TODO - analyse error paths
