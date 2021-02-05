@@ -689,25 +689,25 @@ export class Rtc {
 
       switch (payload.__type) {
          case "CallParticipation":
-            logger.info('RtcReciever', 'onServerEvent', "CallParticipation", null);
+            logger.info('Rtc', 'onServerEvent', "CallParticipation", null);
             this.onParticipant(payload);
             break;
          case "CallOffer":
-            logger.info('RtcReciever', 'onServerEvent', "CallOffer", null);
+            logger.info('Rtc', 'onServerEvent', "CallOffer", null);
             this.onOffer(payload);
             break;
          case "CallAnswer":
-            logger.info('RtcReciever', 'onServerEvent', "CallAnswer", null);
+            logger.info('Rtc', 'onServerEvent', "CallAnswer", null);
             this.onAnswer(payload);
             break;
          case "CallIceCandidate":
-            logger.info('RtcReciever', 'onServerEvent', "CallIceCandidate", null);
+            logger.info('Rtc', 'onServerEvent', "CallIceCandidate", null);
             this.onRemoteIceCandidate(payload);
             break;
          case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
             break;
          default:
-            logger.info('RtcReciever', 'onServerEvent', "data:", payload);
+            logger.info('Rtc', 'onServerEvent', "data:", payload);
             break;
       }
 
