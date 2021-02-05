@@ -69031,7 +69031,7 @@ var RtcCaller = /** @class */ (function () {
             logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
             // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
             while (!self.iceQueue.isEmpty()) {
-                self.handleIceCandidate(self.iceQueue.dequeue());
+                self.handleIceCandidate.bind(self)(self.iceQueue.dequeue());
             }
         })
             .catch(function (e) {
@@ -69244,7 +69244,7 @@ var RtcReciever = /** @class */ (function () {
                 .then(function (response) {
                 // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
                 while (!self.iceQueue.isEmpty()) {
-                    self.handleIceCandidate(self.iceQueue.dequeue());
+                    self.handleIceCandidate.bind(self)(self.iceQueue.dequeue());
                 }
                 logger.info('RtcReciever', 'answerCall', 'Post Ok', null);
             });

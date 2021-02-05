@@ -97,7 +97,7 @@ class RtcCaller {
 
             // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
             while (!self.iceQueue.isEmpty()) {
-               self.handleIceCandidate(self.iceQueue.dequeue())
+               self.handleIceCandidate.bind(self) (self.iceQueue.dequeue());
             }
          })
          .catch(e => {
@@ -356,7 +356,7 @@ class RtcReciever {
                .then((response) => {
                   // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
                   while (!self.iceQueue.isEmpty()) {
-                     self.handleIceCandidate(self.iceQueue.dequeue())
+                     self.handleIceCandidate.bind(self) (self.iceQueue.dequeue())
                   }
 
                   logger.info('RtcReciever', 'answerCall', 'Post Ok', null);
