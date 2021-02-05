@@ -122,11 +122,11 @@ class RtcCaller {
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcCaller', 'onicecandidate', 'OK', null);
+            logger.info ('RtcCaller', 'onicecandidate', 'Post OK', null);
          })
          .catch((e) => {
             // TODO - analyse error paths
-            logger.error ('RtcCaller', 'onicecandidate', 'error:', e);
+            logger.error ('RtcCaller', 'onicecandidate', 'Post error:', e);
          });
    }
 
@@ -142,7 +142,7 @@ class RtcCaller {
             var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios.post ('/api/offer', { params: { callOffer: callOffer } })
                .then((response) => {
-                  logger.info('RtcCaller', 'createOffer', "Call succeeded", null);
+                  logger.info('RtcCaller', 'createOffer', "Post ok", null);
                });
          })
          .catch(function (error) {
@@ -336,7 +336,7 @@ class RtcReciever {
             var callAnswer = new CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
-                  logger.info('RtcReciever', 'answerCall', 'ok', null);
+                  logger.info('RtcReciever', 'answerCall', 'Post ok', null);
                })
          })
          .catch((e) => {
@@ -371,11 +371,11 @@ class RtcReciever {
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcReciever', 'onicecandidate', 'ok', null);
+            logger.info ('RtcReciever', 'onicecandidate', 'Post ok', null);
          })
          .catch((e) => {
             // TODO - analyse error paths
-            logger.error('RtcReciever', 'onicecandidate', "error:", e);
+            logger.error('RtcReciever', 'onicecandidate', "Post error:", e);
          });
    }
 
