@@ -68969,7 +68969,7 @@ var RtcCaller = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            logger.info('RtcCaller', 'onicecandidate', 'Post OK', null);
+            logger.info('RtcCaller', 'onicecandidate', 'Post Ok', null);
         })
             .catch(function (e) {
             // TODO - analyse error paths
@@ -68979,7 +68979,7 @@ var RtcCaller = /** @class */ (function () {
     RtcCaller.prototype.onnegotiationneeded = function (ev, self) {
         logger.info('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        self.sendConnection.createOffer({ iceRestart: true })
+        self.sendConnection.createOffer({ iceRestart: false }) // Dont restart ICE as sometimes ICE candidates come in from other party before we get here
             .then(function (offer) { return self.sendConnection.setLocalDescription(offer); })
             .then(function () {
             // Send our call offer data in
@@ -68987,12 +68987,12 @@ var RtcCaller = /** @class */ (function () {
             var callOffer = new call_js_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
             axios_1.default.post('/api/offer', { params: { callOffer: callOffer } })
                 .then(function (response) {
-                logger.info('RtcCaller', 'createOffer', "Post ok", null);
+                logger.info('RtcCaller', 'onnegotiationneeded', "Post Ok", null);
             });
         })
             .catch(function (error) {
             // TODO - analyse error paths 
-            logger.error('RtcCaller', 'createOffer', 'error', error);
+            logger.error('RtcCaller', 'onnegotiationneeded', 'error', error);
         });
     };
     ;
@@ -69135,7 +69135,7 @@ var RtcReciever = /** @class */ (function () {
         this.sendChannel.onopen = function (ev) { _this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
         this.sendChannel.onclose = this.onsendchannelclose;
         this.recieveConnection.setRemoteDescription(new RTCSessionDescription(self.remoteOffer.offer))
-            .then(function () { return self.recieveConnection.createAnswer({ iceRestart: true }); })
+            .then(function () { return self.recieveConnection.createAnswer({ iceRestart: false }); }) // Dont restart ICE as sometimes ICE candidates come in from other party before we get here
             .then(function (answer) { return self.recieveConnection.setLocalDescription(answer); })
             .then(function () {
             logger.info('RtcReciever', 'answerCall', 'Posting answer', null);
@@ -69143,7 +69143,7 @@ var RtcReciever = /** @class */ (function () {
             var callAnswer = new call_js_1.CallAnswer(null, self.localCallParticipation, self.remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })
                 .then(function (response) {
-                logger.info('RtcReciever', 'answerCall', 'Post ok', null);
+                logger.info('RtcReciever', 'answerCall', 'Post Ok', null);
             });
         })
             .catch(function (e) {
@@ -69175,7 +69175,7 @@ var RtcReciever = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            logger.info('RtcReciever', 'onicecandidate', 'Post ok', null);
+            logger.info('RtcReciever', 'onicecandidate', 'Post Ok', null);
         })
             .catch(function (e) {
             // TODO - analyse error paths
