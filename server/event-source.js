@@ -97,8 +97,8 @@ function eventFeed(req, res, next) {
 // broadcast a keep alive message - required on Heroku
 function broadcastKeepAlive(facilityId) {
    const message = new SignalMessage(null, facilityId, null, null, sequence, new CallKeepAlive(sequence));
-   sequence = sequence + 1;
    // Dont bother saving keep alive messages to the replay log - no functional purpose. 
+   // sequence = sequence + 1;
    // new SignalMessageModel(SignalMessage.prototype.toStored(message)).save(); 
 
    var subscribers = facilityMap.get(facilityId);

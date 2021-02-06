@@ -17,8 +17,17 @@ var GymClockSpec = (function invocation() {
   /**
    * Create a GymClockSpec object
    */
-   function GymClockSpec() {
-      this.clockType = gymClockType.Wall;
+   function GymClockSpec(clockEnum, countTo, intervals, period1, period2) {
+
+      if (!clockEnum) {
+         this.clockEnum = gymClockType.Wall;
+      } else {
+         this.clockEnum = clockEnum;
+         this.countTo = countTo;
+         this.intervals = intervals;
+         this.period1 = period1;
+         this.period2 = period2;
+      }
    }
    
    GymClockSpec.prototype.__type = "GymClockSpec";
@@ -30,19 +39,16 @@ var GymClockSpec = (function invocation() {
    */
    GymClockSpec.prototype.equals = function (rhs) {
 
-      return (this.clockType.name === rhs.clockType.name
-         && this.startAt === rhs.startAt
+      return (this.clockEnum.name === rhs.clockEnum.name
          && this.countTo === rhs.countTo
          && this.intervals === rhs.intervals
          && this.period1 === rhs.period1
          && this.period2 === rhs.period2); 
    };
 
-   GymClockSpec.prototype.isValidWallSpec = function (startAt) {
+   GymClockSpec.prototype.isValidWallSpec = function () {
 
-      var seconds = (new Date().getTime() - startAt.getTime()) / 1000;
-
-      return (seconds < 60000 && seconds > -60000); // Say its valid if current time plus or minus an hour
+      return (true); 
    };
 
    GymClockSpec.prototype.isValidCountUpSpec = function (countTo) {
@@ -61,44 +67,29 @@ var GymClockSpec = (function invocation() {
       return (intervals > 0 && intervals <= 60 && period1 > 0 && period1 <= 60 && period2 >= 0 && period2 <= 60); 
    };
 
-   GymClockSpec.prototype.setWall = function (startAt) {
+   GymClockSpec.prototype.setWall = function () {
 
-      this.clockType = gymClockType.Wall;
-      this.startAt = startAt;
-      this.countTo = null;
-      this.intervals = null;
-      this.period1 = null;
-      this.period2 = null;
+      this.clockEnum = gymClockType.Wall;
    };
 
    GymClockSpec.prototype.setCountUp = function (countTo) {
 
-      this.clockType = gymClockType.CountUp;
+      this.clockEnum = gymClockType.CountUp;
       this.countTo = countTo;
-      this.startAt = null;
-      this.intervals = null;
-      this.period1 = null;
-      this.period2 = null;
    };
 
    GymClockSpec.prototype.setCountDown = function (countTo) {
 
-      this.clockType = gymClockType.CountDown;
+      this.clockEnum = gymClockType.CountDown;
       this.countTo = countTo;
-      this.startAt = null;
-      this.intervals = null;
-      this.period1 = null;
-      this.period2 = null;
    };
 
    GymClockSpec.prototype.setInterval = function (intervals, period1, period2) {
 
-      this.clockType = gymClockType.Interval;
+      this.clockEnum = gymClockType.Interval;
       this.intervals = intervals;
       this.period1 = period1;
       this.period2 = period2;
-      this.startAt = null;
-      this.countTo = null;
    };
 
    /**
@@ -110,8 +101,7 @@ var GymClockSpec = (function invocation() {
          __type: GymClockSpec.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            clockType: this.clockType,
-            startAt: this.startAt,
+            clockEnum: this.clockEnum,
             countTo: this.countTo,
             intervals: this.intervals,
             period1: this.period1,
@@ -141,8 +131,17 @@ var GymClockSpec = (function invocation() {
 
       var spec = new GymClockSpec();
 
-      spec.clockType = data.clockType;
-      spec.startAt = data.startAt;
+      // TODO - find a maintainable way to do this
+      if (data.clockEnum.name === gymClockType.Wall.name)
+         spec.clockEnum = gymClockType.Wall;
+      if (data.clockEnum.name === gymClockType.CountUp.name)
+         spec.clockEnum = gymClockType.CountUp;
+      if (data.clockEnum.name === gymClockType.CountDown.name)
+         spec.clockEnum = gymClockType.CountDown;
+      if (data.clockEnum.name === gymClockType.Interval.name)
+         spec.clockEnum = gymClockType.Interval;
+
+      spec.clockEnum = data.clockEnum;
       spec.countTo = data.countTo;
       spec.intervals = data.intervals;
       spec.period1 = data.period1;
@@ -210,7 +209,7 @@ var GymClock = (function invocation() {
    GymClock.prototype.ontick = function () {
       var now, mm, ss, seconds;
 
-      switch (this.clockSpec.clockType) {
+      switch (this.clockSpec.clockEnum) {
          default:
          case gymClockType.Wall:
             now = new Date();
