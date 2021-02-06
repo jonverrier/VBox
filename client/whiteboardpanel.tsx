@@ -73,7 +73,9 @@ const whiteboardElementHeaderStyle: CSS.Properties = {
 };
 
 const whiteboardElementBodyStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
+   margin: '0px', 
+   paddingLeft: '8px', paddingRight: '8px',
+   paddingTop: '0px', paddingBottom: '0px',
    color: 'black', background: 'white',
    fontFamily: 'Permanent Marker',
    fontSize: '24px',
