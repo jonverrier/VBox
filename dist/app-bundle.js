@@ -69012,7 +69012,7 @@ var RtcCaller = /** @class */ (function () {
         };
         this.sendConnection = new RTCPeerConnection(configuration);
         this.sendConnection.onicecandidate = function (ice) {
-            self.onicecandidate(ice.candidate, self.remoteCallParticipation, true);
+            self.onicecandidate(ice.candidate, self.remoteCallParticipation);
         };
         this.sendConnection.onnegotiationneeded = function (ev) { self.onnegotiationneeded(ev, self); };
         this.sendConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
@@ -69066,10 +69066,10 @@ var RtcCaller = /** @class */ (function () {
             });
         }
     };
-    RtcCaller.prototype.onicecandidate = function (candidate, to, outbound) {
+    RtcCaller.prototype.onicecandidate = function (candidate, to) {
         var self = this;
         // Send our call ICE candidate in
-        var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
+        var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, true);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
             logger.info('RtcCaller', 'onicecandidate', 'Post Ok', null);
@@ -69709,7 +69709,7 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.onRemoteIceCandidate = function (remoteIceCandidate) {
         var self = this;
         var found = false;
-        for (var i = 0; i < self.links.length; i++) {
+        for (var i = 0; i < self.links.length && !found; i++) {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 found = true;
             }
@@ -69724,14 +69724,12 @@ var Rtc = /** @class */ (function () {
         for (var i = 0; i < self.links.length; i++) {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 if (remoteIceCandidate.outbound) {
-                    // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
-                    if (self.links[i].reciever && !self.links[i].reciever.channelConnected)
+                    if (self.links[i].reciever)
                         self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
                     // else silent fail
                 }
                 else {
-                    // second test for connection avoids sending ice candidates that raise an error - to simplify debugging
-                    if (self.links[i].caller && !self.links[i].caller.channelConnected)
+                    if (self.links[i].caller)
                         self.links[i].caller.handleIceCandidate(remoteIceCandidate.ice);
                     // else silent fail
                 }
