@@ -17,6 +17,7 @@ import { IConnectionProps } from './callpanel';
 import { DateUtility } from '../common/dates';
 import { Person } from '../common/person';
 import { Whiteboard, WhiteboardElement } from '../common/whiteboard';
+import { MeetingWorkoutState } from './localstore';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -100,7 +101,9 @@ interface IMasterWhiteboardState {
    results: WhiteboardElement;
 }
 
-const initialBoardText = 'Waiting...';
+const initialBoardText : string = 'Waiting...';
+const defaultMasterWorkoutText: string = 'Workout will show here - click the button above.';
+const defaultMasterResultsText: string = 'Workout results will show here - click the button above.';
 
 interface IMasterWhiteboardElementProps {
    rtc: Rtc;
@@ -124,21 +127,32 @@ interface IMasterWhiteboardElementState {
 export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterWhiteboardState> {
    //member variables
    state: IMasterWhiteboardState;
-   defaultWorkoutText: string = 'Workout will show here - click the button above.';
-   defaultResultsText: string = 'Workout results will show here - click the button above.';
+   storedWorkoutState: MeetingWorkoutState;
 
    constructor(props: IConnectionProps) {
       super(props);
+
+      var haveWorkout: boolean = false;
 
       if (props.rtc) {
          props.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
 
-      var workout = new WhiteboardElement(10, initialBoardText);
-      var results = new WhiteboardElement(10, initialBoardText);
+      this.storedWorkoutState = new MeetingWorkoutState();
+      var workout;
+
+      // Use cached copy of the workout if there is one
+      var storedWorkout = this.storedWorkoutState.loadWorkout();
+      if (storedWorkout.length > 0) {
+         haveWorkout = true;
+         workout = new WhiteboardElement(10, storedWorkout);
+      } else
+         workout = new WhiteboardElement(10, defaultMasterWorkoutText);
+
+      var results = new WhiteboardElement(10, defaultMasterResultsText);
 
       this.state = {
-         haveRealWorkout: false,
+         haveRealWorkout: haveWorkout,
          haveRealResults: false,
          workout: workout,
          results: results
@@ -166,7 +180,7 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
          var text = this.state.results.text;
          var rows = this.state.results.rows;
 
-         if (text === initialBoardText) {
+         if (text === defaultMasterResultsText) {
             // Overrwite contents if its the first participant
             text = ev.name;
          }
@@ -190,6 +204,9 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
       this.setState({ haveRealWorkout: true, workout: element });
       var board = new Whiteboard(element, this.state.results);
       this.props.rtc.broadcast(board);
+
+      // save in local cache
+      this.storedWorkoutState.saveWorkout(element.text);
    }
 
    onresultschange(element: WhiteboardElement) {
@@ -211,14 +228,14 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
                   <MasterWhiteboardElement rtc={this.props.rtc}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
                      initialRows={10}
-                     displayValue={this.state.haveRealWorkout ? this.state.workout.text : this.defaultWorkoutText}
+                     displayValue={this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText}
                      onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
                   <MasterWhiteboardElement rtc={this.props.rtc}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
                      initialRows={10}
-                     displayValue={this.state.haveRealResults? this.state.results.text : this.defaultResultsText}
+                     displayValue={this.state.haveRealResults? this.state.results.text : defaultMasterResultsText}
                      onchange={this.onresultschange.bind(this)}></MasterWhiteboardElement>
                </Col>
             </Row>
@@ -343,8 +360,8 @@ export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteW
       }
 
       this.state = {
-         workoutValue: new WhiteboardElement(10, 'Waiting...'),
-         resultsValue: new WhiteboardElement(10, 'Waiting...')
+         workoutValue: new WhiteboardElement(10, initialBoardText),
+         resultsValue: new WhiteboardElement(10, initialBoardText)
       };
 
    }
