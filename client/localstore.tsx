@@ -58,7 +58,8 @@ export class LocalStore {
 }
 
 const lastMeetingId = "lastMeetingId";
-const lastName = "lastName";
+const lastNameId = "lastName";
+const lastWorkoutId= "lastWorkout";
 
 //==============================//
 // MeetingScreenState class
@@ -97,7 +98,7 @@ export class MeetingScreenState {
     * @param meetingId - value to save
     */
    saveName(meetingId: string) {
-      this.store.saveValue(lastName, meetingId);
+      this.store.saveValue(lastNameId, meetingId);
    };
 
    /**
@@ -105,7 +106,39 @@ export class MeetingScreenState {
     * loadName
     */
    loadName(): string {
-      var ret = this.store.loadValue(lastName);
+      var ret = this.store.loadValue(lastNameId);
+      if (!ret)
+         ret = "";
+      return ret;
+   };
+}
+
+//==============================//
+// MeetingWorkoutState class
+//==============================//
+export class MeetingWorkoutState {
+
+   store: LocalStore;
+
+   constructor() {
+      this.store = new LocalStore();
+   }
+
+   /**
+    *
+    * saveWorkout
+    * @param workout - value to save
+    */
+   saveWorkout(workout: string) {
+      this.store.saveValue(lastWorkoutId, workout);
+   };
+
+   /**
+    *
+    * loadWorkout
+    */
+   loadWorkout(): string {
+      var ret = this.store.loadValue(lastWorkoutId);
       if (!ret)
          ret = "";
       return ret;

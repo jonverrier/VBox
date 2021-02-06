@@ -68383,6 +68383,7 @@ exports.MasterClock = MasterClock;
 /*! flagged exports */
 /*! export LocalStore [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export MeetingScreenState [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export MeetingWorkoutState [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
 /*! runtime requirements: __webpack_exports__ */
@@ -68395,7 +68396,7 @@ exports.MasterClock = MasterClock;
 /*global $*/
 /*! Copyright TXPCo, 2015 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MeetingScreenState = exports.LocalStore = void 0;
+exports.MeetingWorkoutState = exports.MeetingScreenState = exports.LocalStore = void 0;
 //==============================//
 // Library of JavaScript classes - identity infrastructure
 // TypeRegistry
@@ -68446,7 +68447,8 @@ var LocalStore = /** @class */ (function () {
 }());
 exports.LocalStore = LocalStore;
 var lastMeetingId = "lastMeetingId";
-var lastName = "lastName";
+var lastNameId = "lastName";
+var lastWorkoutId = "lastWorkout";
 //==============================//
 // MeetingScreenState class
 //==============================//
@@ -68480,7 +68482,7 @@ var MeetingScreenState = /** @class */ (function () {
      * @param meetingId - value to save
      */
     MeetingScreenState.prototype.saveName = function (meetingId) {
-        this.store.saveValue(lastName, meetingId);
+        this.store.saveValue(lastNameId, meetingId);
     };
     ;
     /**
@@ -68488,7 +68490,7 @@ var MeetingScreenState = /** @class */ (function () {
      * loadName
      */
     MeetingScreenState.prototype.loadName = function () {
-        var ret = this.store.loadValue(lastName);
+        var ret = this.store.loadValue(lastNameId);
         if (!ret)
             ret = "";
         return ret;
@@ -68497,6 +68499,36 @@ var MeetingScreenState = /** @class */ (function () {
     return MeetingScreenState;
 }());
 exports.MeetingScreenState = MeetingScreenState;
+//==============================//
+// MeetingWorkoutState class
+//==============================//
+var MeetingWorkoutState = /** @class */ (function () {
+    function MeetingWorkoutState() {
+        this.store = new LocalStore();
+    }
+    /**
+     *
+     * saveWorkout
+     * @param workout - value to save
+     */
+    MeetingWorkoutState.prototype.saveWorkout = function (workout) {
+        this.store.saveValue(lastWorkoutId, workout);
+    };
+    ;
+    /**
+     *
+     * loadWorkout
+     */
+    MeetingWorkoutState.prototype.loadWorkout = function () {
+        var ret = this.store.loadValue(lastWorkoutId);
+        if (!ret)
+            ret = "";
+        return ret;
+    };
+    ;
+    return MeetingWorkoutState;
+}());
+exports.MeetingWorkoutState = MeetingWorkoutState;
 
 
 /***/ }),
@@ -69800,6 +69832,7 @@ var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules
 var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var whiteboard_1 = __webpack_require__(/*! ../common/whiteboard */ "./common/whiteboard.js");
+var localstore_1 = __webpack_require__(/*! ./localstore */ "./client/localstore.tsx");
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -69865,19 +69898,29 @@ var fieldXSepStyle = {
     marginLeft: '8px'
 };
 var initialBoardText = 'Waiting...';
+var defaultMasterWorkoutText = 'Workout will show here - click the button above.';
+var defaultMasterResultsText = 'Workout results will show here - click the button above.';
 var MasterWhiteboard = /** @class */ (function (_super) {
     __extends(MasterWhiteboard, _super);
     function MasterWhiteboard(props) {
         var _this = _super.call(this, props) || this;
-        _this.defaultWorkoutText = 'Workout will show here - click the button above.';
-        _this.defaultResultsText = 'Workout results will show here - click the button above.';
+        var haveWorkout = false;
         if (props.rtc) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
-        var workout = new whiteboard_1.WhiteboardElement(10, initialBoardText);
-        var results = new whiteboard_1.WhiteboardElement(10, initialBoardText);
+        _this.storedWorkoutState = new localstore_1.MeetingWorkoutState();
+        var workout;
+        // Use cached copy of the workout if there is one
+        var storedWorkout = _this.storedWorkoutState.loadWorkout();
+        if (storedWorkout.length > 0) {
+            haveWorkout = true;
+            workout = new whiteboard_1.WhiteboardElement(10, storedWorkout);
+        }
+        else
+            workout = new whiteboard_1.WhiteboardElement(10, defaultMasterWorkoutText);
+        var results = new whiteboard_1.WhiteboardElement(10, defaultMasterResultsText);
         _this.state = {
-            haveRealWorkout: false,
+            haveRealWorkout: haveWorkout,
             haveRealResults: false,
             workout: workout,
             results: results
@@ -69900,7 +69943,7 @@ var MasterWhiteboard = /** @class */ (function (_super) {
             // Add the new participant to the Results board element
             var text = this.state.results.text;
             var rows = this.state.results.rows;
-            if (text === initialBoardText) {
+            if (text === defaultMasterResultsText) {
                 // Overrwite contents if its the first participant
                 text = ev.name;
             }
@@ -69921,6 +69964,8 @@ var MasterWhiteboard = /** @class */ (function (_super) {
         this.setState({ haveRealWorkout: true, workout: element });
         var board = new whiteboard_1.Whiteboard(element, this.state.results);
         this.props.rtc.broadcast(board);
+        // save in local cache
+        this.storedWorkoutState.saveWorkout(element.text);
     };
     MasterWhiteboard.prototype.onresultschange = function (element) {
         this.setState({ haveRealResults: true, results: element });
@@ -69933,9 +69978,9 @@ var MasterWhiteboard = /** @class */ (function (_super) {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: this.state.haveRealWorkout ? this.state.workout.text : this.defaultWorkoutText, onchange: this.onworkoutchange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText, onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: this.state.haveRealResults ? this.state.results.text : this.defaultResultsText, onchange: this.onresultschange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: this.state.haveRealResults ? this.state.results.text : defaultMasterResultsText, onchange: this.onresultschange.bind(this) })))));
     };
     return MasterWhiteboard;
 }(React.Component));
@@ -70012,8 +70057,8 @@ var RemoteWhiteboard = /** @class */ (function (_super) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
         _this.state = {
-            workoutValue: new whiteboard_1.WhiteboardElement(10, 'Waiting...'),
-            resultsValue: new whiteboard_1.WhiteboardElement(10, 'Waiting...')
+            workoutValue: new whiteboard_1.WhiteboardElement(10, initialBoardText),
+            resultsValue: new whiteboard_1.WhiteboardElement(10, initialBoardText)
         };
         return _this;
     }
