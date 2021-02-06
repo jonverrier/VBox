@@ -144,7 +144,7 @@ class RtcCaller {
       var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, true);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcCaller', 'onicecandidate', 'Post Ok', null);
+            logger.info('RtcCaller', 'onicecandidate', 'Post Ok, candidate:', candidate);
          })
          .catch((e) => {
             // TODO - analyse error paths

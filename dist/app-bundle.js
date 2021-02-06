@@ -69072,7 +69072,7 @@ var RtcCaller = /** @class */ (function () {
         var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, true);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            logger.info('RtcCaller', 'onicecandidate', 'Post Ok', null);
+            logger.info('RtcCaller', 'onicecandidate', 'Post Ok, candidate:', candidate);
         })
             .catch(function (e) {
             // TODO - analyse error paths
