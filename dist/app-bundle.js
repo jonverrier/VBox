@@ -69234,7 +69234,7 @@ var RtcReciever = /** @class */ (function () {
         };
         this.recieveConnection = new RTCPeerConnection(configuration);
         this.recieveConnection.onicecandidate = function (ice) {
-            self.onicecandidate(ice.candidate, self.remoteCallParticipation, false);
+            self.onicecandidate(ice.candidate, self.remoteCallParticipation);
         };
         this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
         this.recieveConnection.ondatachannel = function (ev) { self.onrecievedatachannel(ev, self); };
@@ -69293,13 +69293,13 @@ var RtcReciever = /** @class */ (function () {
             });
         }
     };
-    RtcReciever.prototype.onicecandidate = function (candidate, to, outbound) {
+    RtcReciever.prototype.onicecandidate = function (candidate, to) {
         var self = this;
         // Send our call ICE candidate in
-        var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
+        var callIceCandidate = new call_js_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, false);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then(function (response) {
-            logger.info('RtcReciever', 'onicecandidate', 'Post Ok', null);
+            logger.info('RtcReciever', 'onicecandidate', 'Post Ok, candidate:', candidate);
         })
             .catch(function (e) {
             // TODO - analyse error paths
