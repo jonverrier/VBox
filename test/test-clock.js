@@ -30,14 +30,13 @@ describe("GymClockSpec", function () {
       spec3.setInterval(4, 3, 1);
 
       spec4 = new GymClockSpec();
-      spec4.setWall(new Date());
+      spec4.setWall();
    });
 
    it("Needs to confirm validity of inputs", function () {
 
       // Wall clock validation
       expect(spec1.isValidWallSpec(now)).to.equal(true);
-      expect(spec1.isValidWallSpec(new Date(1970, 12, 1, 0, 0, 0, 0))).to.equal(false);
 
       // CountUp validation
       expect(spec1.isValidCountUpSpec(20)).to.equal(true);
