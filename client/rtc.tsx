@@ -346,7 +346,7 @@ class RtcReciever {
 
       this.recieveConnection = new RTCPeerConnection(configuration);
       this.recieveConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, self.remoteCallParticipation, false);
+         self.onicecandidate(ice.candidate, self.remoteCallParticipation);
       };
       this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
       this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
@@ -410,15 +410,15 @@ class RtcReciever {
       }
    }
 
-   onicecandidate(candidate, to, outbound) {
+   onicecandidate(candidate, to) {
 
       var self = this;
 
       // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, outbound);
+      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, false);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
-            logger.info ('RtcReciever', 'onicecandidate', 'Post Ok', null);
+            logger.info('RtcReciever', 'onicecandidate', 'Post Ok, candidate:', candidate);
          })
          .catch((e) => {
             // TODO - analyse error paths
