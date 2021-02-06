@@ -122,8 +122,7 @@ interface IMasterWhiteboardElementState {
    enableCancel,
    caption: string;
    placeholder: string;
-   rows: number;
-   value: string;
+   editValue: string;
 }
 
 export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterWhiteboardState> {
@@ -259,8 +258,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          enableCancel: false,
          caption: props.caption,
          placeholder: props.placeholder,
-         rows: props.initialRows,
-         value: props.displayValue
+         editValue: props.displayValue
       };
 
    }
@@ -277,7 +275,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       var enableCancel: boolean;
 
       if (value.length > 0) {
-         this.state.value = value;
+         this.state.editValue = value;
          enableOk = true;
          enableCancel = true;
       } else {
@@ -290,7 +288,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 
    processSave() {
       this.state.enableCancel = this.state.enableOk = false;
-      this.props.onchange(new WhiteboardElement(this.props.initialRows, this.state.value));
+      this.props.onchange(new WhiteboardElement(this.props.initialRows, this.state.editValue));
       this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
    }
 
@@ -310,8 +308,9 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                <div>
                   <Form>
                      <Form.Group controlId="elementFormId">
-                        <Form.Control as="textarea" style={fieldXSepStyle} 
-                              placeholder={this.state.placeholder} rows={this.state.rows} cols={60} maxLength={1023}
+                           <Form.Control as="textarea" style={fieldXSepStyle}
+                              placeholder={this.state.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023}
+                              value={this.state.editValue}
                               onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
                      <Form.Row style={{ textAlign: 'centre' }}>

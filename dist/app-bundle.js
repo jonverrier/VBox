@@ -70085,8 +70085,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
             enableCancel: false,
             caption: props.caption,
             placeholder: props.placeholder,
-            rows: props.initialRows,
-            value: props.displayValue
+            editValue: props.displayValue
         };
         return _this;
     }
@@ -70098,7 +70097,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         var enableOk;
         var enableCancel;
         if (value.length > 0) {
-            this.state.value = value;
+            this.state.editValue = value;
             enableOk = true;
             enableCancel = true;
         }
@@ -70110,7 +70109,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
     };
     MasterWhiteboardElement.prototype.processSave = function () {
         this.state.enableCancel = this.state.enableOk = false;
-        this.props.onchange(new whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.value));
+        this.props.onchange(new whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.editValue));
         this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
     };
     MasterWhiteboardElement.prototype.processCancel = function () {
@@ -70128,7 +70127,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
                     React.createElement("div", null,
                         React.createElement(Form_1.default, null,
                             React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
-                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.state.placeholder, rows: this.state.rows, cols: 60, maxLength: 1023, onChange: function (ev) { _this.processChange(ev.target.value); } })),
+                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.state.placeholder, rows: this.props.initialRows, cols: 60, maxLength: 1023, value: this.state.editValue, onChange: function (ev) { _this.processChange(ev.target.value); } })),
                             React.createElement(Form_1.default.Row, { style: { textAlign: 'centre' } },
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
