@@ -756,7 +756,7 @@ export class Rtc {
             this.onAnswer(payload);
             break;
          case "CallIceCandidate":
-            logger.info('Rtc', 'onServerEvent', "CallIceCandidate", null);
+            logger.info('Rtc', 'onServerEvent', "CallIceCandidate", payload.ice);
             this.onRemoteIceCandidate(payload);
             break;
          case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
