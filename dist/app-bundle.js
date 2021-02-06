@@ -68994,6 +68994,7 @@ var RtcCaller = /** @class */ (function () {
         this.channelConnected = false;
         this.iceConnected = false;
         this.iceQueue = new queue_js_1.Queue();
+        this.sendQueue = new queue_js_1.Queue();
     }
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
@@ -69040,12 +69041,15 @@ var RtcCaller = /** @class */ (function () {
         });
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
+        // ICE candidates can arrive before call offer/answer
+        // If we have not yet set remoteDescription, queue the iceCandidate for later
+        if (!this.sendConnection
+            || !this.sendConnection.remoteDescription
+            || !this.sendConnection.remoteDescription.type) {
+            this.iceQueue.enqueue(ice);
+            return;
+        }
         if (ice) {
-            // If we have not yet set remoteDescription, queue the iceCandidate for later
-            if (!this.sendConnection.remoteDescription || !this.sendConnection.remoteDescription.type) {
-                this.iceQueue.enqueue(ice);
-                return;
-            }
             if (!this.iceConnected) { // dont add another candidate if we are connected
                 this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
                     .catch(function (e) {
@@ -69188,8 +69192,16 @@ var RtcCaller = /** @class */ (function () {
         logger.info('RtcCaller', 'onrecievechannelclose', "event:", ev);
     };
     RtcCaller.prototype.send = function (obj) {
-        if (this.sendChannel.readyState === 'open')
+        if (this.sendChannel && this.sendChannel.readyState === 'open') {
+            // Dequeue any messages that were enqueued while we were not ready
+            while (!this.sendQueue.isEmpty()) {
+                this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
+            }
             this.sendChannel.send(JSON.stringify(obj));
+        }
+        else {
+            this.sendQueue.enqueue(obj);
+        }
     };
     return RtcCaller;
 }());
@@ -69204,6 +69216,7 @@ var RtcReciever = /** @class */ (function () {
         this.channelConnected = false;
         this.iceConnected = false;
         this.iceQueue = new queue_js_1.Queue();
+        this.sendQueue = new queue_js_1.Queue();
     }
     RtcReciever.prototype.answerCall = function (remoteOffer) {
         var _this = this;
@@ -69255,12 +69268,15 @@ var RtcReciever = /** @class */ (function () {
         });
     };
     RtcReciever.prototype.handleIceCandidate = function (ice) {
+        // ICE candidates can arrive before call offer/answer
+        // If we have not yet set remoteDescription, queue the iceCandidate for later
+        if (!this.recieveConnection
+            || !this.recieveConnection.remoteDescription
+            || !this.recieveConnection.remoteDescription.type) {
+            this.iceQueue.enqueue(ice);
+            return;
+        }
         if (ice) {
-            // If we have not yet set remoteDescription, queue the iceCandidate for later
-            if (!this.recieveConnection.remoteDescription || !this.recieveConnection.remoteDescription.type) {
-                this.iceQueue.enqueue(ice);
-                return;
-            }
             if (!this.iceConnected) { // dont add another candidate if we are connected
                 this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
                     .catch(function (e) {
@@ -69353,6 +69369,7 @@ var RtcReciever = /** @class */ (function () {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
         this.channelConnected = true;
         try {
+            // By convention, new joiners broadcast a 'Person' object
             dc.send(JSON.stringify(this.person));
         }
         catch (e) {
@@ -69387,8 +69404,16 @@ var RtcReciever = /** @class */ (function () {
         logger.info('RtcReciever', 'onrecievechannelclose', 'event:', ev);
     };
     RtcReciever.prototype.send = function (obj) {
-        if (this.sendChannel.readyState === 'open')
+        if (this.sendChannel && this.sendChannel.readyState === 'open') {
+            // Dequeue any messages that were enqueued while we were not ready
+            while (!this.sendQueue.isEmpty()) {
+                this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
+            }
             this.sendChannel.send(JSON.stringify(obj));
+        }
+        else {
+            this.sendQueue.enqueue(obj);
+        }
     };
     return RtcReciever;
 }());
@@ -69775,6 +69800,7 @@ var Form_1 = __webpack_require__(/*! react-bootstrap/Form */ "./node_modules/rea
 var Collapse_1 = __webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var dates_1 = __webpack_require__(/*! ../common/dates */ "./common/dates.js");
+var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var whiteboard_1 = __webpack_require__(/*! ../common/whiteboard */ "./common/whiteboard.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
@@ -69840,13 +69866,21 @@ var blockCharStyle = {
 var fieldXSepStyle = {
     marginLeft: '8px'
 };
+var initialBoardText = 'Waiting...';
 var MasterWhiteboard = /** @class */ (function (_super) {
     __extends(MasterWhiteboard, _super);
     function MasterWhiteboard(props) {
         var _this = _super.call(this, props) || this;
-        var workout = new whiteboard_1.WhiteboardElement(10, 'Waiting');
-        var results = new whiteboard_1.WhiteboardElement(10, 'Waiting');
+        _this.defaultWorkoutText = 'Workout will show here - click the button above.';
+        _this.defaultResultsText = 'Workout results will show here - click the button above.';
+        if (props.rtc) {
+            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
+        }
+        var workout = new whiteboard_1.WhiteboardElement(10, initialBoardText);
+        var results = new whiteboard_1.WhiteboardElement(10, initialBoardText);
         _this.state = {
+            haveRealWorkout: false,
+            haveRealResults: false,
             workout: workout,
             results: results
         };
@@ -69856,13 +69890,42 @@ var MasterWhiteboard = /** @class */ (function (_super) {
     };
     MasterWhiteboard.prototype.componentWillUnmount = function () {
     };
+    MasterWhiteboard.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc) {
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+        }
+    };
+    MasterWhiteboard.prototype.onremotedata = function (ev, link) {
+        var _this = this;
+        // By convention, new joiners broadcast a 'Person' object
+        if (Object.getPrototypeOf(ev).__type === person_1.Person.prototype.__type) {
+            // Add the new participant to the Results board element
+            var text = this.state.results.text;
+            var rows = this.state.results.rows;
+            if (text === initialBoardText) {
+                // Overrwite contents if its the first participant
+                text = ev.name;
+            }
+            else if (!text.includes(ev.name)) {
+                // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
+                text = text + '\n' + ev.name;
+                rows = rows + 1;
+            }
+            this.setState({ haveRealResults: true, results: new whiteboard_1.WhiteboardElement(rows, text) });
+            this.forceUpdate(function () {
+                // Send them the whole contents of the board
+                var board = new whiteboard_1.Whiteboard(_this.state.workout, _this.state.results);
+                _this.props.rtc.broadcast(board);
+            });
+        }
+    };
     MasterWhiteboard.prototype.onworkoutchange = function (element) {
-        this.setState({ workout: element });
+        this.setState({ haveRealWorkout: true, workout: element });
         var board = new whiteboard_1.Whiteboard(element, this.state.results);
         this.props.rtc.broadcast(board);
     };
     MasterWhiteboard.prototype.onresultschange = function (element) {
-        this.setState({ results: element });
+        this.setState({ haveRealResults: true, results: element });
         var board = new whiteboard_1.Whiteboard(this.state.workout, element);
         this.props.rtc.broadcast(board);
     };
@@ -69872,9 +69935,9 @@ var MasterWhiteboard = /** @class */ (function (_super) {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: 'Workout details will be here - click the button above.', onchange: this.onworkoutchange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: this.state.haveRealWorkout ? this.state.workout.text : this.defaultWorkoutText, onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: 'Workout results will be here - click the button above.', onchange: this.onresultschange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: this.state.haveRealResults ? this.state.results.text : this.defaultResultsText, onchange: this.onresultschange.bind(this) })))));
     };
     return MasterWhiteboard;
 }(React.Component));
@@ -69890,7 +69953,6 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
             caption: props.caption,
             placeholder: props.placeholder,
             rows: props.initialRows,
-            displayValue: props.displayValue,
             value: props.displayValue
         };
         return _this;
@@ -69916,7 +69978,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
     MasterWhiteboardElement.prototype.processSave = function () {
         this.state.enableCancel = this.state.enableOk = false;
         this.props.onchange(new whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.value));
-        this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel, displayValue: this.state.value });
+        this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
     };
     MasterWhiteboardElement.prototype.processCancel = function () {
         this.setState({ inEditMode: false });
@@ -69940,7 +70002,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.state.displayValue))));
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.displayValue))));
     };
     return MasterWhiteboardElement;
 }(React.Component));

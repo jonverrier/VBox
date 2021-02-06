@@ -36,6 +36,7 @@ class RtcCaller {
    channelConnected: boolean;
    iceConnected: boolean;
    iceQueue: Queue;
+   sendQueue: Queue;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -47,6 +48,7 @@ class RtcCaller {
       this.channelConnected = false;
       this.iceConnected = false;
       this.iceQueue = new Queue();
+      this.sendQueue = new Queue();
    }
 
    // Override these for notifications - TODO - see top of file
@@ -107,13 +109,17 @@ class RtcCaller {
    }
 
    handleIceCandidate(ice) {
-      if (ice) {
-         // If we have not yet set remoteDescription, queue the iceCandidate for later
-         if (!this.sendConnection.remoteDescription || !this.sendConnection.remoteDescription.type) {
-            this.iceQueue.enqueue(ice);
-            return;
-         }
 
+      // ICE candidates can arrive before call offer/answer
+      // If we have not yet set remoteDescription, queue the iceCandidate for later
+      if (!this.sendConnection
+         || !this.sendConnection.remoteDescription
+         || !this.sendConnection.remoteDescription.type) {
+         this.iceQueue.enqueue(ice);
+         return;
+      }
+
+      if (ice) {
          if (!this.iceConnected) { // dont add another candidate if we are connected
             this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
                .catch(e => {
@@ -278,8 +284,15 @@ class RtcCaller {
    }
 
    send(obj) {
-      if (this.sendChannel.readyState === 'open') 
+      if (this.sendChannel && this.sendChannel.readyState === 'open') {
+         // Dequeue any messages that were enqueued while we were not ready
+         while (!this.sendQueue.isEmpty()) {
+            this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
+         }
          this.sendChannel.send(JSON.stringify(obj));
+      } else {
+         this.sendQueue.enqueue(obj);
+      }
    }
 }
 
@@ -294,6 +307,7 @@ class RtcReciever {
    channelConnected: boolean;
    iceConnected: boolean;
    iceQueue: Queue;
+   sendQueue: Queue;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
@@ -305,6 +319,7 @@ class RtcReciever {
       this.channelConnected = false;
       this.iceConnected = false;
       this.iceQueue = new Queue();
+      this.sendQueue = new Queue();
    }
 
    // Override these for notifications  - TODO - see top of file
@@ -369,13 +384,16 @@ class RtcReciever {
    }
 
    handleIceCandidate(ice) {
-      if (ice) {
-         // If we have not yet set remoteDescription, queue the iceCandidate for later
-         if (!this.recieveConnection.remoteDescription || !this.recieveConnection.remoteDescription.type) {
-            this.iceQueue.enqueue(ice);
-            return;
-         }
+      // ICE candidates can arrive before call offer/answer
+      // If we have not yet set remoteDescription, queue the iceCandidate for later
+      if (!this.recieveConnection
+         || !this.recieveConnection.remoteDescription
+         || !this.recieveConnection.remoteDescription.type) {
+         this.iceQueue.enqueue(ice);
+         return;
+      }
 
+      if (ice) {
          if (!this.iceConnected) { // dont add another candidate if we are connected
             this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
                .catch(e => {
@@ -478,6 +496,7 @@ class RtcReciever {
 
       this.channelConnected = true;
       try {
+         // By convention, new joiners broadcast a 'Person' object
          dc.send(JSON.stringify(this.person));
       }
       catch (e) {
@@ -522,8 +541,15 @@ class RtcReciever {
    }
 
    send(obj) {
-      if (this.sendChannel.readyState === 'open') 
+      if (this.sendChannel && this.sendChannel.readyState === 'open') {
+         // Dequeue any messages that were enqueued while we were not ready
+         while (!this.sendQueue.isEmpty()) {
+            this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
+         }
          this.sendChannel.send(JSON.stringify(obj));
+      } else {
+         this.sendQueue.enqueue(obj);
+      }
    }
 }
 
