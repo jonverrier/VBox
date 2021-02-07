@@ -198,7 +198,8 @@ describe("CallLeaderResolve", function () {
       var output = JSON.stringify(resolve1);
 
       var obj = types.reviveFromJSON(output);
-
+      console.log(output);
+      console.log(JSON.stringify (obj));
       expect(resolve1.equals(obj)).to.equal(true);
    });
 });

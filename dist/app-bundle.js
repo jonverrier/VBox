@@ -67,7 +67,7 @@ var CallParticipation = (function invocation() {
          (this.personId === rhs.personId) &&
          (this.sessionId === rhs.sessionId) && 
          (this.sessionSubId === rhs.sessionSubId) &&
-         (this.glareResolve === rhs.glareResolve));
+         (this.glareResolve.toPrecision(10) === rhs.glareResolve.toPrecision(10)));
    };
 
    /**
@@ -396,6 +396,7 @@ var CallLeaderResolve = (function invocation() {
    function CallLeaderResolve(_id) {
 
       this._id = _id;
+      this.glareDate = new Date();
       this.glareResolve = Math.random();
    }
 
@@ -408,7 +409,22 @@ var CallLeaderResolve = (function invocation() {
     */
    CallLeaderResolve.prototype.equals = function (rhs) {
 
-      return ((this._id === rhs._id));
+      return ((this._id === rhs._id) &&
+         this.glareDate.getTime() === rhs.glareDate.getTime() &&
+         this.glareResolve.toPrecision(10) === rhs.glareResolve.toPrecision(10));
+   };
+
+   
+   /**
+    * test to see if this object wins the resolution
+    * @param rhs - the object to compare this one to.  
+    */
+   CallLeaderResolve.prototype.isWinnerVs = function (rhs) {
+
+      // Use the date first - this means first person logged in is usually the winner
+      // else use the random value to do a lottery, lowest wins so directionality is the same
+      return ((this.glareDate.getTime() < rhs.glareDate.getTime()) || 
+         ((this.glareDate.getTime() === rhs.glareDate.getTime()) && (this.glareResolve < rhs.glareResolve)));
    };
 
    /**
@@ -421,6 +437,7 @@ var CallLeaderResolve = (function invocation() {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
+            glareDate: this.glareDate,
             glareResolve: this.glareResolve
          }
       };
@@ -448,7 +465,8 @@ var CallLeaderResolve = (function invocation() {
       var callLeaderResolve = new CallLeaderResolve();
 
       callLeaderResolve._id = data._id;
-      callLeaderResolve.glareResolve = data.glareResolve;
+      callLeaderResolve.glareDate = new Date(data.glareDate),
+      callLeaderResolve.glareResolve = new Number (data.glareResolve);
 
       return callLeaderResolve;
    };
@@ -531,7 +549,7 @@ if (false) {} else {
    exports.CallAnswer = CallAnswer;
    exports.CallIceCandidate = CallIceCandidate;
    exports.CallLeaderResolve = CallLeaderResolve;
-   exports.CallKeepAlive = CallLeaderResolve;
+   exports.CallKeepAlive = CallKeepAlive;
 }
 
 
@@ -68863,7 +68881,7 @@ var LeaderResolve = /** @class */ (function (_super) {
         }
         // If we recieve a CallLeaderResolve that beats us, we are not leader.
         if (Object.getPrototypeOf(ev).__type === call_js_1.CallLeaderResolve.prototype.__type) {
-            if (ev.glareResolve > this.state.myLeaderResolve.glareResolve) {
+            if (!this.state.myLeaderResolve.isWinnerVs(ev)) {
                 this.setState({ isLeader: false });
                 if (this.props.onleaderchange)
                     this.props.onleaderchange(false);

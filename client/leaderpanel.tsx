@@ -65,7 +65,7 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
       }
       // If we recieve a CallLeaderResolve that beats us, we are not leader.
       if (Object.getPrototypeOf(ev).__type === CallLeaderResolve.prototype.__type) {
-         if (ev.glareResolve > this.state.myLeaderResolve.glareResolve) {
+         if (! this.state.myLeaderResolve.isWinnerVs(ev)) {
             this.setState({ isLeader: false });
             if (this.props.onleaderchange)
                this.props.onleaderchange(false);
