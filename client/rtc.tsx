@@ -90,7 +90,7 @@ class RtcCaller {
       self.sendChannel.onclose = this.onsendchannelclose;
    }
 
-   handleAnswer(answer) {
+   handleAnswer(answer: CallAnswer) {
       var self = this;
 
       this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
@@ -136,7 +136,7 @@ class RtcCaller {
       }
    }
 
-   onicecandidate(candidate, to) {
+   onicecandidate(candidate, to: CallParticipation) {
 
       var self = this;
 
@@ -234,7 +234,7 @@ class RtcCaller {
       }
    }
 
-   onsendchannelopen(ev, dc, localCallParticipation) {
+   onsendchannelopen(ev, dc, localCallParticipation: CallParticipation) {
       logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
 
       this.channelConnected = true;
@@ -263,7 +263,7 @@ class RtcCaller {
       logger.info('RtcCaller', 'onrecievechannelopen', "event:", ev);
    }
 
-   onrecievechannelmessage(msg, localCallParticipation) {
+   onrecievechannelmessage(msg, localCallParticipation: CallParticipation) {
       // Too noisy to keep this on 
       // logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
 
@@ -328,7 +328,7 @@ class RtcReciever {
    onremoteconnection: ((this: RtcReciever, ev: Event) => any) | null;
    onremotedata: ((this: RtcReciever, ev: Event) => any) | null;
 
-   answerCall(remoteOffer) {
+   answerCall(remoteOffer: CallOffer) {
 
       var self = this;
 
@@ -410,7 +410,7 @@ class RtcReciever {
       }
    }
 
-   onicecandidate(candidate, to) {
+   onicecandidate(candidate, to: CallParticipation) {
 
       var self = this;
 
@@ -491,7 +491,7 @@ class RtcReciever {
       }
    }
 
-   onsendchannelopen(ev, dc, localCallParticipation) {
+   onsendchannelopen(ev, dc, localCallParticipation: CallParticipation) {
       logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
 
       this.channelConnected = true;
@@ -520,7 +520,7 @@ class RtcReciever {
       logger.info('RtcReciever', 'onrecievechannelopen', 'event:', ev);
    }
 
-   onrecievechannelmessage(msg, localCallParticipation) {
+   onrecievechannelmessage(msg, localCallParticipation: CallParticipation) {
       // Too noisy to keep this on 
       // logger.info('RtcReciever', 'onrecievechannelmessage', "message:", msg.data);
 
@@ -640,6 +640,7 @@ export interface IRtcProps {
    personId: string;
    personName: string;
    personThumbnailUrl: string;
+   isEdgeOnly: boolean; // If this is set, does not set up links with new participants - we are reciever only
 }
 
 export class Rtc {
@@ -654,6 +655,7 @@ export class Rtc {
    retries: number;
    datalisteners: Array<Function>;
    linklisteners: Array<Function>;
+   isEdgeOnly: boolean; 
 
    constructor(props: IRtcProps) {
       this.localCallParticipation = null;
@@ -661,6 +663,7 @@ export class Rtc {
       this.lastSequenceNo = 0;
       this.datalisteners = new Array();
       this.linklisteners = new Array();
+      this.isEdgeOnly = props.isEdgeOnly;
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
       this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuidv4());
@@ -797,6 +800,9 @@ export class Rtc {
 
    onParticipant(remoteParticipation) {
       var self = this;
+
+      if (self.isEdgeOnly)
+         return;
 
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
