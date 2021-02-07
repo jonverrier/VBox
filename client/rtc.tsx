@@ -687,6 +687,7 @@ export class Rtc {
    addremotedatalistener(fn) {
       this.datalisteners.push(fn);
    };
+
    addlinklistener(fn) {
       this.linklisteners.push(fn);
    };

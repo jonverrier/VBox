@@ -8,7 +8,7 @@ if (typeof exports !== 'undefined') {
    var CallOffer = callModule.CallOffer;
    var CallAnswer = callModule.CallAnswer;
    var CallIceCandidate = callModule.CallIceCandidate;
-   var CallSignal = callModule.CallSignal;
+   var CallLeaderResolve = callModule.CallLeaderResolve;
    var CallKeepAlive = callModule.CallKeepAlive;
 
    var typesModule = require('../common/types.js');
@@ -168,6 +168,38 @@ describe("CallIceCandidate", function () {
       var obj = types.reviveFromJSON(output);
 
       expect(iceNull.equals(obj)).to.equal(true);
+   });
+});
+
+describe("CallLeaderResolve", function () {
+   var resolve1, resolve2;
+
+   beforeEach(function () {
+      resolve1 = new CallLeaderResolve("id");
+      resolve2 = new CallLeaderResolve("id2");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(resolve1).to.equal(resolve1);
+      expect(resolve1).to.not.equal(resolve2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(resolve1._id).to.equal("id");
+      expect(resolve1.glareResolve).to.not.equal(null);
+
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(resolve1);
+
+      var obj = types.reviveFromJSON(output);
+
+      expect(resolve1.equals(obj)).to.equal(true);
    });
 });
 

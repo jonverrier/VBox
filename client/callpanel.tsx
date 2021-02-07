@@ -39,8 +39,9 @@ export class ServerConnectionStatus extends React.Component<IConnectionProps, IS
    }
 
    UNSAFE_componentWillReceiveProps (nextProps) {
-      if (nextProps.rtc)
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
          nextProps.rtc.onserverconnectionstatechange = this.onServerConnectionStateChange.bind(this);
+      }
    }
 
    render() {
@@ -111,7 +112,7 @@ export class LinkConnectionStatus extends React.Component<IConnectionProps, ILin
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc) {
+      if (nextProps.rtc && (! (nextProps.rtc === this.props.rtc))) {
          nextProps.rtc.addlinklistener(this.onlinkstatuschange.bind(this));
          nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }

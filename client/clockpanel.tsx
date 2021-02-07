@@ -70,7 +70,7 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
          nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
    }
@@ -88,6 +88,11 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
    }
 }
 
+interface IMasterClockProps {
+   rtc: Rtc;
+   allowEdit: boolean;
+}
+
 interface IMasterClockState {
    inEditMode: boolean;
    isMounted: boolean;
@@ -99,12 +104,12 @@ interface IMasterClockState {
    ss: number;
 }
 
-export class MasterClock extends React.Component<IConnectionProps, IMasterClockState> {
+export class MasterClock extends React.Component<IMasterClockProps, IMasterClockState> {
    //member variables
    state: IMasterClockState;
    storedWorkoutState: MeetingWorkoutState;
 
-   constructor(props: IConnectionProps) {
+   constructor(props: IMasterClockProps) {
       super(props);
 
       this.storedWorkoutState = new MeetingWorkoutState();
@@ -161,6 +166,11 @@ export class MasterClock extends React.Component<IConnectionProps, IMasterClockS
 
    testEnableSave() {
       var self = this;
+
+      if (!this.props.allowEdit) {
+         self.setState({ enableOk: false });
+         return;
+      }
 
       // Need to get the latest values for cross-field validation
       self.forceUpdate(() => {

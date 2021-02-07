@@ -367,6 +367,79 @@ var CallIceCandidate = (function invocation() {
 }());
 
 //==============================//
+// CallLeaderResolve class - used to resolve who is the call leader. 
+// Send random numbers to each other, highest wins. 
+//==============================//
+var CallLeaderResolve = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a CallLeaderResolve object
+    */
+   function CallLeaderResolve(_id) {
+
+      this._id = _id;
+      this.glareResolve = Math.random();
+   }
+
+   CallLeaderResolve.prototype.__type = "CallLeaderResolve";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   CallLeaderResolve.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   CallLeaderResolve.prototype.toJSON = function () {
+
+      return {
+         __type: CallLeaderResolve.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            glareResolve: this.glareResolve
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   CallLeaderResolve.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallLeaderResolve.prototype.reviveDb(data.attributes);
+
+      return CallLeaderResolve.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   CallLeaderResolve.prototype.reviveDb = function (data) {
+
+      var callLeaderResolve = new CallLeaderResolve();
+
+      callLeaderResolve._id = data._id;
+      callLeaderResolve.glareResolve = data.glareResolve;
+
+      return callLeaderResolve;
+   };
+
+   return CallLeaderResolve;
+}());
+
+//==============================//
 // CallKeepAlive class
 //==============================//
 var CallKeepAlive = (function invocation() {
@@ -442,5 +515,6 @@ if (typeof exports == 'undefined') {
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
    exports.CallIceCandidate = CallIceCandidate;
-   exports.CallKeepAlive = CallKeepAlive;
+   exports.CallLeaderResolve = CallLeaderResolve;
+   exports.CallKeepAlive = CallLeaderResolve;
 }

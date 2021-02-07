@@ -9,6 +9,7 @@
 /*! export CallAnswer [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallIceCandidate [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallKeepAlive [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export CallLeaderResolve [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallOffer [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export CallParticipation [provided] [no usage info] [missing usage info prevents renaming] */
 /*! other exports [not provided] [no usage info] */
@@ -383,6 +384,79 @@ var CallIceCandidate = (function invocation() {
 }());
 
 //==============================//
+// CallLeaderResolve class - used to resolve who is the call leader. 
+// Send random numbers to each other, highest wins. 
+//==============================//
+var CallLeaderResolve = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a CallLeaderResolve object
+    */
+   function CallLeaderResolve(_id) {
+
+      this._id = _id;
+      this.glareResolve = Math.random();
+   }
+
+   CallLeaderResolve.prototype.__type = "CallLeaderResolve";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   CallLeaderResolve.prototype.equals = function (rhs) {
+
+      return ((this._id === rhs._id));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   CallLeaderResolve.prototype.toJSON = function () {
+
+      return {
+         __type: CallLeaderResolve.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            glareResolve: this.glareResolve
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   CallLeaderResolve.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallLeaderResolve.prototype.reviveDb(data.attributes);
+
+      return CallLeaderResolve.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   CallLeaderResolve.prototype.reviveDb = function (data) {
+
+      var callLeaderResolve = new CallLeaderResolve();
+
+      callLeaderResolve._id = data._id;
+      callLeaderResolve.glareResolve = data.glareResolve;
+
+      return callLeaderResolve;
+   };
+
+   return CallLeaderResolve;
+}());
+
+//==============================//
 // CallKeepAlive class
 //==============================//
 var CallKeepAlive = (function invocation() {
@@ -456,7 +530,8 @@ if (false) {} else {
    exports.CallOffer = CallOffer;
    exports.CallAnswer = CallAnswer;
    exports.CallIceCandidate = CallIceCandidate;
-   exports.CallKeepAlive = CallKeepAlive;
+   exports.CallLeaderResolve = CallLeaderResolve;
+   exports.CallKeepAlive = CallLeaderResolve;
 }
 
 
@@ -1766,6 +1841,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallOffer = CallOffer;  
          this.types.CallAnswer = CallAnswer;   
          this.types.CallIceCandidate = CallIceCandidate;  
+         this.types.CallLeaderResolve = CallLeaderResolve;
          this.types.CallKeepAlive = CallKeepAlive;
          this.types.Call = Call;
          this.types.SignalMessage = SignalMessage;
@@ -1782,6 +1858,7 @@ var TypeRegistry = (function invocation() {
          this.types.CallOffer = callModule.CallOffer; 
          this.types.CallAnswer = callModule.CallAnswer; 
          this.types.CallIceCandidate = callModule.CallIceCandidate; 
+         this.types.CallLeaderResolve = callModule.CallLeaderResolve;
          this.types.CallKeepAlive = callModule.CallKeepAlive;
          this.types.Call = callModule.Call;
          this.types.SignalMessage = signalModule.SignalMessage;
@@ -27982,6 +28059,106 @@ AbstractNavItem.defaultProps = defaultProps;
 
 /***/ }),
 
+/***/ "./node_modules/react-bootstrap/esm/Alert.js":
+/*!***************************************************!*\
+  !*** ./node_modules/react-bootstrap/esm/Alert.js ***!
+  \***************************************************/
+/*! namespace exports */
+/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutPropertiesLoose */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var uncontrollable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! uncontrollable */ "./node_modules/uncontrollable/esm/index.js");
+/* harmony import */ var _restart_hooks_useEventCallback__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @restart/hooks/useEventCallback */ "./node_modules/@restart/hooks/esm/useEventCallback.js");
+/* harmony import */ var _ThemeProvider__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./ThemeProvider */ "./node_modules/react-bootstrap/esm/ThemeProvider.js");
+/* harmony import */ var _Fade__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Fade */ "./node_modules/react-bootstrap/esm/Fade.js");
+/* harmony import */ var _CloseButton__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./CloseButton */ "./node_modules/react-bootstrap/esm/CloseButton.js");
+/* harmony import */ var _divWithClassName__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./divWithClassName */ "./node_modules/react-bootstrap/esm/divWithClassName.js");
+/* harmony import */ var _createWithBsPrefix__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./createWithBsPrefix */ "./node_modules/react-bootstrap/esm/createWithBsPrefix.js");
+/* harmony import */ var _SafeAnchor__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./SafeAnchor */ "./node_modules/react-bootstrap/esm/SafeAnchor.js");
+;
+
+
+
+
+
+
+
+
+
+
+
+var DivStyledAsH4 = (0,_divWithClassName__WEBPACK_IMPORTED_MODULE_6__.default)('h4');
+DivStyledAsH4.displayName = 'DivStyledAsH4';
+var AlertHeading = (0,_createWithBsPrefix__WEBPACK_IMPORTED_MODULE_7__.default)('alert-heading', {
+  Component: DivStyledAsH4
+});
+var AlertLink = (0,_createWithBsPrefix__WEBPACK_IMPORTED_MODULE_7__.default)('alert-link', {
+  Component: _SafeAnchor__WEBPACK_IMPORTED_MODULE_8__.default
+});
+var defaultProps = {
+  show: true,
+  transition: _Fade__WEBPACK_IMPORTED_MODULE_9__.default,
+  closeLabel: 'Close alert'
+};
+var Alert = react__WEBPACK_IMPORTED_MODULE_3__.forwardRef(function (uncontrolledProps, ref) {
+  var _useUncontrolled = (0,uncontrollable__WEBPACK_IMPORTED_MODULE_4__.useUncontrolled)(uncontrolledProps, {
+    show: 'onClose'
+  }),
+      bsPrefix = _useUncontrolled.bsPrefix,
+      show = _useUncontrolled.show,
+      closeLabel = _useUncontrolled.closeLabel,
+      className = _useUncontrolled.className,
+      children = _useUncontrolled.children,
+      variant = _useUncontrolled.variant,
+      onClose = _useUncontrolled.onClose,
+      dismissible = _useUncontrolled.dismissible,
+      transition = _useUncontrolled.transition,
+      props = (0,_babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__.default)(_useUncontrolled, ["bsPrefix", "show", "closeLabel", "className", "children", "variant", "onClose", "dismissible", "transition"]);
+
+  var prefix = (0,_ThemeProvider__WEBPACK_IMPORTED_MODULE_10__.useBootstrapPrefix)(bsPrefix, 'alert');
+  var handleClose = (0,_restart_hooks_useEventCallback__WEBPACK_IMPORTED_MODULE_5__.default)(function (e) {
+    if (onClose) {
+      onClose(false, e);
+    }
+  });
+  var Transition = transition === true ? _Fade__WEBPACK_IMPORTED_MODULE_9__.default : transition;
+  var alert = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({
+    role: "alert"
+  }, Transition ? props : undefined, {
+    ref: ref,
+    className: classnames__WEBPACK_IMPORTED_MODULE_2___default()(className, prefix, variant && prefix + "-" + variant, dismissible && prefix + "-dismissible")
+  }), dismissible && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement(_CloseButton__WEBPACK_IMPORTED_MODULE_11__.default, {
+    onClick: handleClose,
+    label: closeLabel
+  }), children);
+  if (!Transition) return show ? alert : null;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement(Transition, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({
+    unmountOnExit: true
+  }, props, {
+    ref: undefined,
+    in: show
+  }), alert);
+});
+Alert.displayName = 'Alert';
+Alert.defaultProps = defaultProps;
+Alert.Link = AlertLink;
+Alert.Heading = AlertHeading;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Alert);
+
+/***/ }),
+
 /***/ "./node_modules/react-bootstrap/esm/Button.js":
 /*!****************************************************!*\
   !*** ./node_modules/react-bootstrap/esm/Button.js ***!
@@ -28133,6 +28310,64 @@ __webpack_require__.r(__webpack_exports__);
 var context = react__WEBPACK_IMPORTED_MODULE_0__.createContext(null);
 context.displayName = 'CardContext';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (context);
+
+/***/ }),
+
+/***/ "./node_modules/react-bootstrap/esm/CloseButton.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/react-bootstrap/esm/CloseButton.js ***!
+  \*********************************************************/
+/*! namespace exports */
+/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutPropertiesLoose */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! prop-types */ "./node_modules/prop-types/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_4__);
+;
+
+
+
+
+var propTypes = {
+  label: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().string.isRequired),
+  onClick: (prop_types__WEBPACK_IMPORTED_MODULE_2___default().func)
+};
+var defaultProps = {
+  label: 'Close'
+};
+var CloseButton = react__WEBPACK_IMPORTED_MODULE_3__.forwardRef(function (_ref, ref) {
+  var label = _ref.label,
+      onClick = _ref.onClick,
+      className = _ref.className,
+      props = (0,_babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__.default)(_ref, ["label", "onClick", "className"]);
+
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement("button", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({
+    ref: ref,
+    type: "button",
+    className: classnames__WEBPACK_IMPORTED_MODULE_4___default()('close', className),
+    onClick: onClick
+  }, props), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement("span", {
+    "aria-hidden": "true"
+  }, "\xD7"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_3__.createElement("span", {
+    className: "sr-only"
+  }, label));
+});
+CloseButton.displayName = 'CloseButton';
+CloseButton.propTypes = propTypes;
+CloseButton.defaultProps = defaultProps;
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (CloseButton);
 
 /***/ }),
 
@@ -28815,6 +29050,73 @@ var DropdownToggle = react__WEBPACK_IMPORTED_MODULE_4__.forwardRef(function (_re
 });
 DropdownToggle.displayName = 'DropdownToggle';
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DropdownToggle);
+
+/***/ }),
+
+/***/ "./node_modules/react-bootstrap/esm/Fade.js":
+/*!**************************************************!*\
+  !*** ./node_modules/react-bootstrap/esm/Fade.js ***!
+  \**************************************************/
+/*! namespace exports */
+/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var _babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/esm/objectWithoutPropertiesLoose */ "./node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var dom_helpers_transitionEnd__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! dom-helpers/transitionEnd */ "./node_modules/dom-helpers/esm/transitionEnd.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react_transition_group_Transition__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react-transition-group/Transition */ "./node_modules/react-transition-group/esm/Transition.js");
+/* harmony import */ var _triggerBrowserReflow__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./triggerBrowserReflow */ "./node_modules/react-bootstrap/esm/triggerBrowserReflow.js");
+;
+
+
+var _fadeStyles;
+
+
+
+
+
+
+var defaultProps = {
+  in: false,
+  timeout: 300,
+  mountOnEnter: false,
+  unmountOnExit: false,
+  appear: false
+};
+var fadeStyles = (_fadeStyles = {}, _fadeStyles[react_transition_group_Transition__WEBPACK_IMPORTED_MODULE_5__.ENTERING] = 'show', _fadeStyles[react_transition_group_Transition__WEBPACK_IMPORTED_MODULE_5__.ENTERED] = 'show', _fadeStyles);
+var Fade = react__WEBPACK_IMPORTED_MODULE_4__.forwardRef(function (_ref, ref) {
+  var className = _ref.className,
+      children = _ref.children,
+      props = (0,_babel_runtime_helpers_esm_objectWithoutPropertiesLoose__WEBPACK_IMPORTED_MODULE_1__.default)(_ref, ["className", "children"]);
+
+  var handleEnter = (0,react__WEBPACK_IMPORTED_MODULE_4__.useCallback)(function (node) {
+    (0,_triggerBrowserReflow__WEBPACK_IMPORTED_MODULE_6__.default)(node);
+    if (props.onEnter) props.onEnter(node);
+  }, [props]);
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_4__.createElement(react_transition_group_Transition__WEBPACK_IMPORTED_MODULE_5__.default, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({
+    ref: ref,
+    addEndListener: dom_helpers_transitionEnd__WEBPACK_IMPORTED_MODULE_3__.default
+  }, props, {
+    onEnter: handleEnter
+  }), function (status, innerProps) {
+    return react__WEBPACK_IMPORTED_MODULE_4__.cloneElement(children, (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({}, innerProps, {
+      className: classnames__WEBPACK_IMPORTED_MODULE_2___default()('fade', className, children.props.className, fadeStyles[status])
+    }));
+  });
+});
+Fade.defaultProps = defaultProps;
+Fade.displayName = 'Fade';
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Fade);
 
 /***/ }),
 
@@ -30819,6 +31121,39 @@ function createWithBsPrefix(prefix, _temp) {
   BsComponent.displayName = displayName;
   return BsComponent;
 }
+
+/***/ }),
+
+/***/ "./node_modules/react-bootstrap/esm/divWithClassName.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/react-bootstrap/esm/divWithClassName.js ***!
+  \**************************************************************/
+/*! namespace exports */
+/*! export default [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_require__, __webpack_require__.n, __webpack_exports__, __webpack_require__.r, __webpack_require__.d, __webpack_require__.* */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var _babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/esm/extends */ "./node_modules/@babel/runtime/helpers/esm/extends.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! classnames */ "./node_modules/classnames/index.js");
+/* harmony import */ var classnames__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(classnames__WEBPACK_IMPORTED_MODULE_2__);
+;
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (function (className) {
+  return react__WEBPACK_IMPORTED_MODULE_1__.forwardRef(function (p, ref) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_1__.createElement("div", (0,_babel_runtime_helpers_esm_extends__WEBPACK_IMPORTED_MODULE_0__.default)({}, p, {
+      ref: ref,
+      className: classnames__WEBPACK_IMPORTED_MODULE_2___default()(p.className, className)
+    }));
+  });
+});
 
 /***/ }),
 
@@ -67564,8 +67899,6 @@ var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 // This app
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var party_2 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./client/clockpanel.tsx");
-var whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./client/whiteboardpanel.tsx");
 var callpanel_1 = __webpack_require__(/*! ./callpanel */ "./client/callpanel.tsx");
 var peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./client/peoplepanel.tsx");
 var loginfb_1 = __webpack_require__(/*! ./loginfb */ "./client/loginfb.tsx");
@@ -67575,6 +67908,9 @@ var localstore_1 = __webpack_require__(/*! ./localstore */ "./client/localstore.
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var facility_1 = __webpack_require__(/*! ../common/facility */ "./common/facility.js");
 var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common/homepagedata.js");
+var clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./client/clockpanel.tsx");
+var whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./client/whiteboardpanel.tsx");
+var leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./client/leaderpanel.tsx");
 var thinStyle = {
     margin: '0px', padding: '0px'
 };
@@ -67708,6 +68044,7 @@ var CoachPage = /** @class */ (function (_super) {
         _this.pageData = _this.defaultPageData;
         _this.state = {
             isLoggedIn: false,
+            isLeader: true,
             pageData: _this.pageData,
             rtc: null,
             login: new loginfb_1.LoginFb({
@@ -67727,6 +68064,10 @@ var CoachPage = /** @class */ (function (_super) {
         this.state.login.loadAPI();
     };
     CoachPage.prototype.componentWillUnmount = function () {
+    };
+    CoachPage.prototype.onleaderchange = function (isLeader) {
+        var self = this;
+        this.setState({ isLeader: isLeader });
     };
     CoachPage.prototype.onLoginStatusChange = function (isLoggedIn) {
         var self = this;
@@ -67807,10 +68148,13 @@ var CoachPage = /** @class */ (function (_super) {
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.login.logOut }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
+                        React.createElement(Col_1.default, { style: thinStyle },
+                            React.createElement(leaderpanel_1.LeaderResolve, { onleaderchange: this.onleaderchange.bind(this), rtc: this.state.rtc }, " "))),
+                    React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { rtc: this.state.rtc }, " ")),
+                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, rtc: this.state.rtc }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clockpanel_1.MasterClock, { rtc: this.state.rtc }, " "),
+                            React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
                             React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
         }
@@ -67976,8 +68320,9 @@ var ServerConnectionStatus = /** @class */ (function (_super) {
         this.setState({ status: status });
     };
     ServerConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc)
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.onserverconnectionstatechange = this.onServerConnectionStateChange.bind(this);
+        }
     };
     ServerConnectionStatus.prototype.render = function () {
         switch (this.state.status) {
@@ -68037,7 +68382,7 @@ var LinkConnectionStatus = /** @class */ (function (_super) {
         return _this;
     }
     LinkConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.addlinklistener(this.onlinkstatuschange.bind(this));
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
@@ -68203,7 +68548,7 @@ var RemoteClock = /** @class */ (function (_super) {
         return _this;
     }
     RemoteClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
@@ -68269,6 +68614,10 @@ var MasterClock = /** @class */ (function (_super) {
     };
     MasterClock.prototype.testEnableSave = function () {
         var self = this;
+        if (!this.props.allowEdit) {
+            self.setState({ enableOk: false });
+            return;
+        }
         // Need to get the latest values for cross-field validation
         self.forceUpdate(function () {
             self.setState({ enableOk: false });
@@ -68441,6 +68790,101 @@ var MasterClock = /** @class */ (function (_super) {
     return MasterClock;
 }(React.Component));
 exports.MasterClock = MasterClock;
+
+
+/***/ }),
+
+/***/ "./client/leaderpanel.tsx":
+/*!********************************!*\
+  !*** ./client/leaderpanel.tsx ***!
+  \********************************/
+/*! unknown exports (runtime-defined) */
+/*! runtime requirements: top-level-this-exports, __webpack_exports__, __webpack_require__ */
+/*! CommonJS bailout: this is used directly at 3:17-21 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020 */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LeaderResolve = void 0;
+var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var Alert_1 = __webpack_require__(/*! react-bootstrap/Alert */ "./node_modules/react-bootstrap/esm/Alert.js");
+var Nav_1 = __webpack_require__(/*! react-bootstrap/Nav */ "./node_modules/react-bootstrap/esm/Nav.js");
+var person_js_1 = __webpack_require__(/*! ../common/person.js */ "./common/person.js");
+var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js");
+var thinStyle = {
+    margin: '0px', padding: '0px',
+};
+var LeaderResolve = /** @class */ (function (_super) {
+    __extends(LeaderResolve, _super);
+    //member variables
+    function LeaderResolve(props) {
+        var _this = _super.call(this, props) || this;
+        // Store a resolve object as early as possible to avoid race conditions when we send CallLeaderResolve to each other.
+        // This ensures we have one before we hook data updates
+        var resolve = new call_js_1.CallLeaderResolve();
+        _this.state = { isLeader: true, myLeaderResolve: resolve };
+        if (_this.props.rtc) {
+            _this.props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
+        }
+        return _this;
+    }
+    LeaderResolve.prototype.componentDidMount = function () {
+    };
+    LeaderResolve.prototype.componentWillUnmount = function () {
+    };
+    LeaderResolve.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+        }
+    };
+    LeaderResolve.prototype.onremotedata = function (ev, link) {
+        var _this = this;
+        // By convention, new joiners broadcast a 'Person' object
+        if (Object.getPrototypeOf(ev).__type === person_js_1.Person.prototype.__type) {
+            // Send them our CallLeaderResolve 
+            this.forceUpdate(function () {
+                _this.props.rtc.broadcast(_this.state.myLeaderResolve);
+            });
+        }
+        // If we recieve a CallLeaderResolve that beats us, we are not leader.
+        if (Object.getPrototypeOf(ev).__type === call_js_1.CallLeaderResolve.prototype.__type) {
+            if (ev.glareResolve > this.state.myLeaderResolve.glareResolve) {
+                this.setState({ isLeader: false });
+                if (this.props.onleaderchange)
+                    this.props.onleaderchange(false);
+            }
+        }
+    };
+    LeaderResolve.prototype.render = function () {
+        if (this.state.isLeader) {
+            return (React.createElement("div", { style: thinStyle }));
+        }
+        else {
+            return (React.createElement("div", { style: thinStyle },
+                React.createElement(Alert_1.default, { key: 'notLeaderId', variant: 'secondary' },
+                    "It looks like another coach is leading this session. Please click below to go back to the login page.",
+                    React.createElement(Nav_1.default.Item, null,
+                        React.createElement(Nav_1.default.Link, { href: "/login", eventKey: "reJoinId" }, "Rejoin")))));
+        }
+    };
+    return LeaderResolve;
+}(React.Component));
+exports.LeaderResolve = LeaderResolve;
 
 
 /***/ }),
@@ -68990,7 +69434,7 @@ var RemotePeople = /** @class */ (function (_super) {
         return _this;
     }
     RemotePeople.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
@@ -70027,7 +70471,7 @@ var MasterWhiteboard = /** @class */ (function (_super) {
     MasterWhiteboard.prototype.componentWillUnmount = function () {
     };
     MasterWhiteboard.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
@@ -70073,9 +70517,9 @@ var MasterWhiteboard = /** @class */ (function (_super) {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText, onchange: this.onworkoutchange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText, onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: this.state.haveRealResults ? this.state.results.text : defaultMasterResultsText, onchange: this.onresultschange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: this.state.haveRealResults ? this.state.results.text : defaultMasterResultsText, onchange: this.onresultschange.bind(this) })))));
     };
     return MasterWhiteboard;
 }(React.Component));
@@ -70109,6 +70553,9 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         else {
             enableOk = false;
             enableCancel = false;
+        }
+        if (!this.props.allowEdit) {
+            enableOk = false;
         }
         this.setState({ enableOk: enableOk, enableCancel: enableCancel });
     };
@@ -70157,7 +70604,7 @@ var RemoteWhiteboard = /** @class */ (function (_super) {
         return _this;
     }
     RemoteWhiteboard.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
