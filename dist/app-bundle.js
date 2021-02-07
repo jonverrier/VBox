@@ -67634,6 +67634,7 @@ var MemberPage = /** @class */ (function (_super) {
             self.pageData = self.pageData.revive(response.data);
             // Initialise WebRTC and connect
             var rtc = new rtc_1.Rtc({
+                isEdgeOnly: true,
                 sessionId: self.pageData.sessionId,
                 facilityId: self.pageData.currentFacility.externalId,
                 personId: self.pageData.person.externalId,
@@ -67737,6 +67738,7 @@ var CoachPage = /** @class */ (function (_super) {
                 self.pageData = self.pageData.revive(response.data);
                 // Initialise WebRTC and connect
                 var rtc = new rtc_1.Rtc({
+                    isEdgeOnly: false,
                     sessionId: self.pageData.sessionId,
                     facilityId: self.pageData.currentFacility.externalId,
                     personId: self.pageData.person.externalId,
@@ -69606,6 +69608,7 @@ var Rtc = /** @class */ (function () {
         this.lastSequenceNo = 0;
         this.datalisteners = new Array();
         this.linklisteners = new Array();
+        this.isEdgeOnly = props.isEdgeOnly;
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuid_1.v4());
         // Store data on the Person who is running the app - used in data handshake & exchange
@@ -69726,6 +69729,8 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.onParticipant = function (remoteParticipation) {
         var _this = this;
         var self = this;
+        if (self.isEdgeOnly)
+            return;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hook to pass up link status changes. 

@@ -135,6 +135,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
             // Initialise WebRTC and connect
             var rtc = new Rtc({
+               isEdgeOnly: true, // Member nodes are edge only, coaches are full hubs
                sessionId: self.pageData.sessionId,
                facilityId: self.pageData.currentFacility.externalId,
                personId: self.pageData.person.externalId,
@@ -292,6 +293,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
                // Initialise WebRTC and connect
                var rtc = new Rtc({
+                  isEdgeOnly: false, // Member nodes are edge only, coaches are full hubs
                   sessionId: self.pageData.sessionId,
                   facilityId: self.pageData.currentFacility.externalId,
                   personId: self.pageData.person.externalId,
