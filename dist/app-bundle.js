@@ -70569,6 +70569,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
             enableCancel = true;
         }
         else {
+            this.state.editValue = "";
             enableOk = false;
             enableCancel = false;
         }
@@ -70597,7 +70598,7 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
                     React.createElement("div", null,
                         React.createElement(Form_1.default, null,
                             React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
-                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.state.placeholder, rows: this.props.initialRows, cols: 60, maxLength: 1023, value: this.state.editValue, onChange: function (ev) { _this.processChange(ev.target.value); } })),
+                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.state.placeholder, rows: this.props.initialRows, cols: 60, maxLength: 1023, minLength: 0, value: this.state.editValue, onChange: function (ev) { _this.processChange(ev.target.value); } })),
                             React.createElement(Form_1.default.Row, { style: { textAlign: 'centre' } },
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),

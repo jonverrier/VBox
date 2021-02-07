@@ -285,6 +285,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          enableOk = true;
          enableCancel = true;
       } else {
+         this.state.editValue = "";
          enableOk = false;
          enableCancel = false;
       }
@@ -318,7 +319,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                   <Form>
                      <Form.Group controlId="elementFormId">
                         <Form.Control as="textarea" style={fieldXSepStyle}
-                           placeholder={this.state.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023}
+                           placeholder={this.state.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023} minLength={0}
                            value={this.state.editValue}
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
