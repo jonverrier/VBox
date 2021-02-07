@@ -96,6 +96,11 @@ const fieldXSepStyle: CSS.Properties = {
    marginLeft: '8px'
 };
 
+interface IMasterWhiteboardProps {
+   rtc: Rtc;
+   allowEdit: boolean;
+}
+
 interface IMasterWhiteboardState {
    haveRealWorkout: boolean;
    haveRealResults: boolean;
@@ -109,6 +114,7 @@ const defaultMasterResultsText: string = 'Workout results will show here - click
 
 interface IMasterWhiteboardElementProps {
    rtc: Rtc;
+   allowEdit: boolean;
    caption: string;
    placeholder: string;
    initialRows: number;
@@ -125,12 +131,12 @@ interface IMasterWhiteboardElementState {
    editValue: string;
 }
 
-export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterWhiteboardState> {
+export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IMasterWhiteboardState> {
    //member variables
    state: IMasterWhiteboardState;
    storedWorkoutState: MeetingWorkoutState;
 
-   constructor(props: IConnectionProps) {
+   constructor(props: IMasterWhiteboardProps) {
       super(props);
 
       var haveWorkout: boolean = false;
@@ -168,7 +174,7 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
          nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
    }
@@ -226,14 +232,14 @@ export class MasterWhiteboard extends React.Component<IConnectionProps, IMasterW
             </Row>
             <Row style={thinStyle}>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement rtc={this.props.rtc}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.rtc}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
                      initialRows={10}
                      displayValue={this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText}
                      onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement rtc={this.props.rtc}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.rtc}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
                      initialRows={10}
                      displayValue={this.state.haveRealResults? this.state.results.text : defaultMasterResultsText}
@@ -283,6 +289,9 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          enableCancel = false;
       }
 
+      if (!this.props.allowEdit) {
+         enableOk = false;
+      }
       this.setState({ enableOk: enableOk, enableCancel: enableCancel });
    }
 
@@ -308,10 +317,10 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                <div>
                   <Form>
                      <Form.Group controlId="elementFormId">
-                           <Form.Control as="textarea" style={fieldXSepStyle}
-                              placeholder={this.state.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023}
-                              value={this.state.editValue}
-                              onChange={(ev) => { this.processChange(ev.target.value) }} />
+                        <Form.Control as="textarea" style={fieldXSepStyle}
+                           placeholder={this.state.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023}
+                           value={this.state.editValue}
+                           onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
                      <Form.Row style={{ textAlign: 'centre' }}>
                         <p style={blockCharStyle}></p>
@@ -368,7 +377,7 @@ export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteW
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
          nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
    }

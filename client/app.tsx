@@ -28,8 +28,6 @@ import axios from 'axios';
 // This app
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
-import { MasterClock, RemoteClock } from './clockpanel';
-import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { ServerConnectionStatus, LinkConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
@@ -40,6 +38,11 @@ import { MeetingScreenState } from './localstore';
 import { Person } from '../common/person';
 import { Facility } from '../common/facility';
 import { HomePageData } from '../common/homepagedata';
+
+import { MasterClock, RemoteClock } from './clockpanel';
+import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
+import { LeaderResolve } from './leaderpanel';
+
 
 import * as CSS from 'csstype';
 
@@ -234,6 +237,7 @@ interface ICoachPageProps {
 
 interface ICoachPageState {
    isLoggedIn: boolean;
+   isLeader: boolean;
    pageData: HomePageData
    rtc: Rtc;
    login: LoginFb;
@@ -258,6 +262,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
       this.state = {
          isLoggedIn: false,
+         isLeader: true, // we are leader until someone beats us in 'glareResolve' exchange
          pageData: this.pageData,
          rtc: null,
          login: new LoginFb({
@@ -279,6 +284,11 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    }
 
    componentWillUnmount() {
+   }
+
+   onleaderchange (isLeader) {
+      var self = this;
+      this.setState({isLeader: isLeader});
    }
 
    onLoginStatusChange(isLoggedIn) {
@@ -391,11 +401,16 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
+                     <Col style={thinStyle}>
+                        <LeaderResolve onleaderchange={this.onleaderchange.bind(this)} rtc={this.state.rtc}> </LeaderResolve>
+                     </Col>
+                  </Row>
+                  <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <MasterWhiteboard rtc={this.state.rtc}> </MasterWhiteboard>                        
+                        <MasterWhiteboard allowEdit={this.state.isLeader} rtc={this.state.rtc}> </MasterWhiteboard>                        
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <MasterClock rtc={this.state.rtc}> </MasterClock>
+                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.rtc}> </MasterClock>
                         <br />
                         <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                      </Col>
