@@ -7,7 +7,7 @@ module.exports = {
       devtoolModuleFilenameTemplate: '[resource-path]'  // removes the webpack:/// prefix
    },
    resolve: {
-      extensions: ['.Webpack.js', '.web.js', '.ts', '.js', '.jsx', '.tsx']
+      extensions: ['.Webpack.js', '.web.js', '.ts', '.js', '.jsx', '.tsx', '.css']
    },
    module: {
       rules: [
@@ -17,6 +17,15 @@ module.exports = {
             use: {
                loader: 'ts-loader'
             }
+         },
+         {
+            test: /\.css$/,
+            use: [{
+               loader: 'css-loader'
+            },
+            {
+               loader: 'style-loader'
+            }]
          }
       ]
    }

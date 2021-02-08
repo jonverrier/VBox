@@ -9,6 +9,7 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
+import { TriangleDownIcon } from '@primer/octicons-react'
 
 import * as CSS from 'csstype';
 
@@ -265,7 +266,8 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                   <Col style={thinStyle}><p style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</p></Col>
                   <Col style={thinStyle}>
                      <Button variant="secondary" size="sm" style={popdownBtnStyle}
-                     onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>&#9660;
+                        onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
+                        <TriangleDownIcon />
                      </Button>
                   </Col>
                </Row>
