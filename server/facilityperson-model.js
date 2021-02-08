@@ -13,6 +13,10 @@ const facilityPersonSchema = new mongoose.Schema({
       type: String,
       required: true,
       index: true
+   },
+   temporary: {
+      type: Boolean,
+      required: true
    }
 },
 {  // Enable timestamps for archival as we create pseudo users for anonymous guests joining on a meeting code.

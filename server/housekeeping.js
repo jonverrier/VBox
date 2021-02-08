@@ -20,6 +20,7 @@ if (process.env.NODE_ENV === 'development') {
 // Model for signalMessage
 var SignalMessageModel = require("../server/signalmessage-model.js");
 var PersonModel = require("./person-model.js");
+var FacilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 
 var app = express();
 
@@ -51,8 +52,9 @@ mongoose.set('useFindAndModify', false);
 
 var args = process.argv.slice(2);
 var deleteMode = false;
+var target =args[0];
 
-switch (args[0]) {
+switch (args[1]) {
    case 'delete':
       console.log('In delete mode');
       deleteMode = true;
@@ -67,50 +69,95 @@ const connect = async () => {
    try {
       await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
-      console.log('Listening on ' + process.env.PORT + ' ...');
-
       var now = new Date();
       var limit = new Date();
       limit.setTime(now.getTime() - 1000 * 60 * 60 * 24); // Archive anything over a day old. 
 
       if (deleteMode) {
-         // Remove all old signal messages
-         SignalMessageModel.deleteMany({
-            updatedAt: { $lt: limit }
-         })
-            .limit(100)
-            .sort({ 'updatedAt': -1 })
-            .exec(function (err, messages) {
-
+         switch (target) {
+            case "People":
                // Remove all old People where the email is made up (no @ sign) 
                PersonModel.deleteMany({ updatedAt: { $lt: limit }, email: { $not: { $regex: ".*@.*" } } })
-                  .sort({ 'updatedAt': -1 })
+                  .sort({ 'updatedAt': 1 })
+                  .limit(100)
+                  .exec(function (err, people) {
+                     process.exit();
+                  });
+               break;
+            case 'Signals':
+               // Remove all old signal messages
+               SignalMessageModel.deleteMany({
+                  updatedAt: { $lt: limit }
+               })
+                  .limit(100)
+                  .sort({ 'updatedAt': 1 })
+                  .exec(function (err, messages) {
+                     process.exit();
+                  });
+               break
+            case "FacilityMembers":
+               FacilityMemberModel.deleteMany({
+                  // temporary: true,
+                  updatedAt: { $lt: limit }
+               })
+                  .sort({ 'updatedAt': 1 })
                   .limit(100)
                   .exec(function (err, people) {
 
                      process.exit();
                   });
-            });
+               break;
+            default:
+               console.log('Nothing to do.');
+               process.exit();
+               break;
+         }
       } else {
-         SignalMessageModel.find({
-            updatedAt: { $lt: limit }
-         })
-            .limit(100)
-            .sort({ 'updatedAt': 1 })
-            .exec(function (err, messages) {
-               for (var i = 0; i < messages.length; i++) {
-                  console.log(JSON.stringify(messages[i]) + '\n');
-               }
+         switch (target) {
+            case "People":
                PersonModel.find({ updatedAt: { $lt: limit }, email: { $not: { $regex: ".*@.*" } } })
-                  .sort({ 'updatedAt': -1 })
+                  .sort({ 'updatedAt': 1 })
                   .limit(100)
                   .exec(function (err, people) {
                      for (var i = 0; i < people.length; i++) {
                         console.log(JSON.stringify(people[i]) + '\n');
-                  }
-                  process.exit();
-               });
-            });
+                     }
+                     process.exit();
+                  });
+               break;
+            case 'Signals':
+               // Remove all old signal messages
+               SignalMessageModel.find({
+                  updatedAt: { $lt: limit }
+               })
+                  .limit(100)
+                  .sort({ 'updatedAt': 1 })
+                  .exec(function (err, messages) {
+                     for (var i = 0; i < messages.length; i++) {
+                        console.log(JSON.stringify(messages[i]) + '\n');
+                     }
+                     process.exit();
+                  });
+               break;
+            case "FacilityMembers":
+               FacilityMemberModel.find({
+                  // temporary: true,
+                  updatedAt: { $lt: limit }
+               })
+                  .sort({ 'updatedAt': 1 })
+                  .limit(100)
+                  .exec(function (err, people) {
+                     for (var i = 0; people && i < people.length; i++) {
+                        console.log(JSON.stringify(people[i]) + '\n');
+                     }
+                     process.exit();
+                  });
+               break;
+            default:
+               console.log('Nothing to do.');
+               process.exit();
+               beak;
+         }
       }
    } catch (error) {
       console.log('Error:' + error);
