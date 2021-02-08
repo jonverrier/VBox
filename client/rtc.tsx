@@ -666,7 +666,7 @@ export class Rtc {
       this.isEdgeOnly = props.isEdgeOnly;
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
-      this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuidv4());
+      this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuidv4());
 
       // Store data on the Person who is running the app - used in data handshake & exchange
       this.person = new Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
@@ -802,7 +802,8 @@ export class Rtc {
    onParticipant(remoteParticipation) {
       var self = this;
 
-      if (self.isEdgeOnly)
+      // If we are an edge node, and the caller is nota leader, dont respond.
+      if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
          return;
 
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
