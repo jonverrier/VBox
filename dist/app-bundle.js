@@ -72100,6 +72100,7 @@ exports.MeetingWorkoutState = MeetingWorkoutState;
 /*! Copyright TXPCo, 2020 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Logger = void 0;
+var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var logging = __webpack_require__(/*! loglevel */ "./node_modules/loglevel/lib/loglevel.js");
 logging.setLevel("info");
 var Logger = /** @class */ (function () {
@@ -72110,7 +72111,11 @@ var Logger = /** @class */ (function () {
         this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : ""));
     };
     Logger.prototype.error = function (fromClass, fromMethod, info, obj) {
-        this.logger.error('Error: ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : ""));
+        var msg = ' ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : "");
+        this.logger.error('Error:' + msg);
+        axios_1.default.post('/api/error', { params: { message: encodeURIComponent(msg) } })
+            .then(function (response) {
+        });
     };
     return Logger;
 }());
