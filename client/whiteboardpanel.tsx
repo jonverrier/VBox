@@ -9,6 +9,7 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
+import { TriangleDownIcon } from '@primer/octicons-react'
 
 import * as CSS from 'csstype';
 
@@ -41,7 +42,7 @@ const thinLeftStyle: CSS.Properties = {
 
 const popdownBtnStyle: CSS.Properties = {
    margin: '0px', padding: '4px',
-   fontSize: '14px'
+   fontSize: '13.333px'
 };
 
 const whiteboardStyle: CSS.Properties = {
@@ -54,7 +55,7 @@ const whiteboardStyle: CSS.Properties = {
 const whiteboardHeaderStyle: CSS.Properties = {
    color: 'black', background: 'white',
    fontFamily: 'Permanent Marker',
-   fontSize: '64px',
+   fontSize: '40px',
    marginTop: '0px', paddingTop: '0px',
    marginBottom: '10px', paddingBottom: '0px',
    marginLeft: '0px', paddingLeft: '0px',
@@ -67,7 +68,7 @@ const whiteboardElementHeaderStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
    color: 'black', background: 'white',
    fontFamily: 'Permanent Marker',
-   fontSize: '40px',
+   fontSize: '32px',
    backgroundImage: 'url("board.png")',
    backgroundRepeat: 'repeat'
 };
@@ -78,7 +79,7 @@ const whiteboardElementBodyStyle: CSS.Properties = {
    paddingTop: '0px', paddingBottom: '0px',
    color: 'black', background: 'white',
    fontFamily: 'Permanent Marker',
-   fontSize: '24px',
+   fontSize: '20px',
    backgroundImage: 'url("board.png")',
    backgroundRepeat: 'repeat',
    minHeight: '100%',
@@ -311,7 +312,9 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          <div>
             <Row style={thinCentredStyle}>
                <p style={whiteboardElementHeaderStyle}>{this.state.caption}</p><p style={blockCharStyle}></p>
-               <Button style={popdownBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>&#9660;</Button>
+               <Button style={popdownBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
+                  <TriangleDownIcon />
+               </Button>
             </Row>      
             <Row style={thinStyle}>
             <Collapse in={this.state.inEditMode} style={thinLeftStyle}>

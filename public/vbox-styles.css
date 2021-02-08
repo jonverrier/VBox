@@ -1,112 +1,122 @@
 
 /* Large desktop  */
 @media (min-width: 992px) {
-    body {
-        padding-top: 59px;
-    }
+   body {
+      padding-top: 59px;
+   }
 
-    .rowdiv {
-        border-bottom: 1px black solid;
-    }
-    /* Reduce column padding on desktop, align left border */
-    .col-xs-12, col-xs-6, col-sm-12, col-sm-6, col-sm-4, col-lg-12, col-lg-6, col-lg-4  {
+   .rowdiv {
+      border-bottom: 1px black solid;
+   }
+
+   /* Reduce column padding on desktop, align left border */
+   .col-xs-12, col-xs-6, col-sm-12, col-sm-6, col-sm-4, col-lg-12, col-lg-6, col-lg-4  {
+      padding-left: 0px;
+      padding-right:20px;
+   }
+   /* remove row indentation - not used for formatting */
+   .row {
        padding-left: 0px;
-       padding-right:20px;
-    }
-    /* remove row indentation - not used for formatting */
-    .row {
-        padding-left: 0px;
-        padding-right: 0px;
-        margin-left: 0px;
-        margin-right: 0px;
-    }
-    .desktop-only {
-        display:block !important;
-    }
-    .tablet-only {
-        display:none !important;
-    }
-    .mobile-only {
-        display:none !important;
-    }
+       padding-right: 0px;
+       margin-left: 0px;
+       margin-right: 0px;
+   }
+   .desktop-only {
+       display:block !important;
+   }
+   .tablet-only {
+       display:none !important;
+   }
+   .mobile-only {
+       display:none !important;
+   }
+
+   whiteboardHeaderElementStyle {
+      font-size: 40px;
+   }
 }
 
 /* Tablets */
 @media (max-width: 991px) and (min-width: 768px) {
-    body {
-        padding-top: 59px;
-    }
-    .rowdiv {
-        border-bottom: 1px black solid;
-    }
-    /* Reduce container padding on tablets */
-    .container {
-       padding-left: 10px;
-       padding-right:10px;
-    }
-    /* Reduce column padding on tablets */
-    .col-xs-12, col-xs-10, col-xs-8, col-xs-6, col-xs-4, col-xs-3, col-xs-2, col-sm-12, col-sm-10, col-sm-8, col-sm-6, col-sm-4, col-sm-3, col-sm-2 {
-       padding-left: 5px;
-       padding-right:10px;
-    }
-    /* remove row indentation - not used for formatting */
-    .row {
-       padding-left: 0px;
-       padding-right:0px;
-       margin-left: 0px;
-       margin-right:0px;
-    }
-    .desktop-only {
-        display:none !important;
-    }
-    .tablet-only {
-        display:block !important;
-    }
-    .mobile-only {
-        display:none !important;
-    }
+   body {
+       padding-top: 59px;
+   }
+   .rowdiv {
+       border-bottom: 1px black solid;
+   }
+   /* Reduce container padding on tablets */
+   .container {
+      padding-left: 10px;
+      padding-right:10px;
+   }
+   /* Reduce column padding on tablets */
+   .col-xs-12, col-xs-10, col-xs-8, col-xs-6, col-xs-4, col-xs-3, col-xs-2, col-sm-12, col-sm-10, col-sm-8, col-sm-6, col-sm-4, col-sm-3, col-sm-2 {
+      padding-left: 5px;
+      padding-right:10px;
+   }
+   /* remove row indentation - not used for formatting */
+   .row {
+      padding-left: 0px;
+      padding-right:0px;
+      margin-left: 0px;
+      margin-right:0px;
+   }
+   .desktop-only {
+       display:none !important;
+   }
+   .tablet-only {
+       display:block !important;
+   }
+   .mobile-only {
+       display:none !important;
+   }
+
+   whiteboardHeaderElementStyle {
+      font-size: 32px;
+   }
 }
 
 /* Landscape phones and down */
 @media (max-width: 767px) {
-    body {
-        padding-top: 55px;
-    }
-    .rowdiv {
-        border-bottom: 1px black solid;
-    }
-
+   body {
+       padding-top: 55px;
+   }
+   .rowdiv {
+       border-bottom: 1px black solid;
+   }
     /* Reduce container padding on mobiles to as low as it can be & still have legible text against the sides */
-    .container {
-       padding-left: 2px;
-       padding-right:2px;
-       margin-left: 0px;
-       margin-right:0px;
-    }
-    /* Reduce column padding on mobiles */
-    .col-xs-12, col-xs-10, col-xs-8, col-xs-6, col-xs-4, col-xs-3, col-xs-2, col-sm-12, col-sm-10, col-sm-8, col-sm-6, col-sm-4, col-sm-3, col-sm-2 {
-       padding-left: 1px;
-       padding-right:2px;
-       margin-left: 0px;
-       margin-right:0px;
-    }
-
+   .container {
+      padding-left: 2px;
+      padding-right:2px;
+      margin-left: 0px;
+      margin-right:0px;
+   }
+   /* Reduce column padding on mobiles */
+   .col-xs-12, col-xs-10, col-xs-8, col-xs-6, col-xs-4, col-xs-3, col-xs-2, col-sm-12, col-sm-10, col-sm-8, col-sm-6, col-sm-4, col-sm-3, col-sm-2 {
+      padding-left: 1px;
+      padding-right:2px;
+      margin-left: 0px;
+      margin-right:0px;
+   }
     /* remove row indentation - not used for formatting */
-    .row {
-       padding-left: 0px;
-       padding-right:0px;
-       margin-left: 0px;
-       margin-right:0px;
-    }
-    .desktop-only {
-        display:none !important;
-    }
-    .tablet-only {
-        display:none !important;
-    }
-    .mobile-only {
-        display:block !important;
-    }
+   .row {
+      padding-left: 0px;
+      padding-right:0px;
+      margin-left: 0px;
+      margin-right:0px;
+   }
+   .desktop-only {
+       display:none !important;
+   }
+   .tablet-only {
+       display:none !important;
+   }
+   .mobile-only {
+       display:block !important;
+   }
+   whiteboardHeaderElementStyle {
+      font-size: 24px;
+   }
 }
 
 a.disabled-link,
@@ -136,32 +146,8 @@ body {
     vertical-align:middle;
 }
 
-p.lead {
-    padding-top: 2.5%;
-    font-size: 18px;
-    line-height: 24px;
-}
-
-.menu a {
-    font-size: 18px;
-    line-height: 24px;
-    text-align: left;
-    color: black;
-    display: inline-block;
-}
-
-.dropdown-menu {
-  min-width: 250px;
-  color: black;
-}
-
 p {
     font-size: 14px;
-}
-
-p.strong {
-    padding-top: 2.5%;
-    line-height: 24px;
 }
 
 .footer {
@@ -173,76 +159,6 @@ p.strong {
 }
 .footer a {
     color: #696969;
-}
-
-/* button-image - style to add when putting an image in a button */
-.button-image {
-   display: inline;
-}
-
-/* input-button - style to add when putting a button in an input field */
-.input-button {
-   width: auto;
-}
-
-input.email-short {
-   width: 256px;
-}
-
-/* input field */
-form-default {
-   font-size: 16px;
-}
-
-/* Fix cases where inline form is nested in horizontal form
-   http://stackoverflow.com/questions/18429121/inline-form-nested-within-horizontal-form-in-bootstrap-3
-*/
-.form-inline .form-group{
-    margin-left: 0;
-    margin-right: 0;
-    display: inline-block;
-}
-
-/* Google chart */
-.chart {
-   width:inherit;
-   height:inherit;
-   min-height: 320px;
-   min-width: 320px;
-}
-
-.table-cell {
-   border-color:lightgray;
-   border-width:1px;
-   border-bottom-style:solid;
-   padding-left:1px;
-   padding-right:1px;
-   padding-top:4px;
-   padding-bottom:4px;
-}
-
-.table-cell-top {
-   border-top-style:solid;
-   border-bottom-width:2px;
-   text-align:center;
-   font-weight:bold;
-}
-
-.table-cell-left {
-   border-left-style:solid;
-}
-
-.table-cell-right {
-   border-right-style:solid;
-}
-
-.table-cell-middle {
-   border-left-style:solid;
-   border-right-style:solid;
-}
-
-.underline {
-   text-decoration: underline;
 }
 
 @font-face {
