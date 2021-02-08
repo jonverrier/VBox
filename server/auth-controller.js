@@ -90,7 +90,7 @@ passport.use(
                new personModel(userData).save();
 
                // Save the link to the facility
-               const facilityMemberData = { facilityId: facilityMeeting.facilityId, personId: generatedId};
+               const facilityMemberData = { facilityId: facilityMeeting.facilityId, personId: generatedId, temporary: true};
                new facilityMemberModel(facilityMemberData).save();
 
                done(err, userData);
