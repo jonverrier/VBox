@@ -21,8 +21,8 @@ describe("CallParticipation", function () {
    var callParticipation1, callParticipation2;
 
    beforeEach(function () {
-      callParticipation1 = new CallParticipation("id", "facility", "person", "123", "xx");
-      callParticipation2 = new CallParticipation("id", "12345", "agag", "123", "yy");
+      callParticipation1 = new CallParticipation("id", "facility", "person", true, "123", "xx");
+      callParticipation2 = new CallParticipation("id", "12345", "agag", false, "123", "yy");
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -36,6 +36,7 @@ describe("CallParticipation", function () {
       expect(callParticipation1._id).to.equal("id");
       expect(callParticipation1.facilityId).to.equal("facility");
       expect(callParticipation1.personId).to.equal("person");
+      expect(callParticipation1.isCandidateLeader).to.equal(true);
       expect(callParticipation1.sessionId).to.equal("123");
       expect(callParticipation1.sessionSubId).to.equal("xx");
    });
@@ -56,8 +57,8 @@ describe("CallOffer", function () {
    var offer1, offer2;
 
    beforeEach(function () {
-      callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
-      callerTo = new CallParticipation("id", "12345", "agag", "123", "yy");
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
       offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
       offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
    });
@@ -92,8 +93,8 @@ describe("CallAnswer", function () {
    var answer1, answer2;
 
    beforeEach(function () {
-      callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
-      callerTo = new CallParticipation("id", "12345", "agag", "123");
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123");
       answer1 = new CallAnswer("id", callerFrom, callerTo, "answer1");
       answer2 = new CallAnswer("id", callerTo, callerFrom, "answer2");
    });
@@ -128,8 +129,8 @@ describe("CallIceCandidate", function () {
    var ice1, ice2, iceNull;
 
    beforeEach(function () {
-      callerFrom = new CallParticipation("id", "facility", "person", "123", "xx");
-      callerTo = new CallParticipation("id", "12345", "agag", "123", "yy");
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
       ice1 = new CallIceCandidate("id", callerFrom, callerTo, "ice1", true);
       ice2 = new CallIceCandidate("id", callerTo, callerFrom, "ice2", false);
       iceNull = new CallIceCandidate("id", callerTo, callerFrom, null, false);
@@ -198,8 +199,6 @@ describe("CallLeaderResolve", function () {
       var output = JSON.stringify(resolve1);
 
       var obj = types.reviveFromJSON(output);
-      console.log(output);
-      console.log(JSON.stringify (obj));
       expect(resolve1.equals(obj)).to.equal(true);
    });
 });

@@ -25,8 +25,6 @@ var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 
 if (false) {} else {
    _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
-   var typesModule = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
-   var TypeRegistry = typesModule.TypeRegistry;
 }
 
 //==============================//
@@ -40,14 +38,16 @@ var CallParticipation = (function invocation() {
     * @param _id - Mongo-DB assigned ID
     * @param facilityId - ID for the facility hosting the call
     * @param personId - iD for the call participant 
+    * @param isCandidateLeader - true of the person is a possible call leader
     * @param sessionId - iD for the call session (in case same person joins > once)
     * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
     */
-   function CallParticipation(_id, facilityId, personId, sessionId, sessionSubId) {
+   function CallParticipation(_id, facilityId, personId, isCandidateLeader, sessionId, sessionSubId) {
 
       this._id = _id;
       this.facilityId = facilityId;
       this.personId = personId;
+      this.isCandidateLeader = isCandidateLeader;
       this.sessionId = sessionId;
       this.sessionSubId = sessionSubId;
       this.glareResolve = Math.random();
@@ -65,6 +65,7 @@ var CallParticipation = (function invocation() {
       return ((this._id === rhs._id) &&
          (this.facilityId === rhs.facilityId) &&
          (this.personId === rhs.personId) &&
+         (this.isCandidateLeader === rhs.isCandidateLeader) &&
          (this.sessionId === rhs.sessionId) && 
          (this.sessionSubId === rhs.sessionSubId) &&
          (this.glareResolve.toPrecision(10) === rhs.glareResolve.toPrecision(10)));
@@ -82,6 +83,7 @@ var CallParticipation = (function invocation() {
             _id: this._id,
             facilityId: this.facilityId,
             personId: this.personId,
+            isCandidateLeader: this.isCandidateLeader,
             sessionId: this.sessionId,
             sessionSubId: this.sessionSubId,
             glareResolve: this.glareResolve
@@ -113,6 +115,7 @@ var CallParticipation = (function invocation() {
       callParticipation._id = data._id;
       callParticipation.facilityId = data.facilityId;
       callParticipation.personId = data.personId;
+      callParticipation.isCandidateLeader = data.isCandidateLeader;
       callParticipation.sessionId = data.sessionId;
       callParticipation.sessionSubId = data.sessionSubId;
       callParticipation.glareResolve = data.glareResolve;
@@ -73076,7 +73079,7 @@ var Rtc = /** @class */ (function () {
         this.linklisteners = new Array();
         this.isEdgeOnly = props.isEdgeOnly;
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
-        this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, props.sessionId, uuid_1.v4());
+        this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid_1.v4());
         // Store data on the Person who is running the app - used in data handshake & exchange
         this.person = new person_js_1.Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
         this.retries = 0;
@@ -73195,7 +73198,8 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.onParticipant = function (remoteParticipation) {
         var _this = this;
         var self = this;
-        if (self.isEdgeOnly)
+        // If we are an edge node, and the caller is nota leader, dont respond.
+        if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
             return;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);

@@ -8,8 +8,6 @@ var _ = require('lodash');
 if (typeof exports == 'undefined') {
 } else {
    _ = require('lodash');
-   var typesModule = require('../common/types.js');
-   var TypeRegistry = typesModule.TypeRegistry;
 }
 
 //==============================//
@@ -23,14 +21,16 @@ var CallParticipation = (function invocation() {
     * @param _id - Mongo-DB assigned ID
     * @param facilityId - ID for the facility hosting the call
     * @param personId - iD for the call participant 
+    * @param isCandidateLeader - true of the person is a possible call leader
     * @param sessionId - iD for the call session (in case same person joins > once)
     * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
     */
-   function CallParticipation(_id, facilityId, personId, sessionId, sessionSubId) {
+   function CallParticipation(_id, facilityId, personId, isCandidateLeader, sessionId, sessionSubId) {
 
       this._id = _id;
       this.facilityId = facilityId;
       this.personId = personId;
+      this.isCandidateLeader = isCandidateLeader;
       this.sessionId = sessionId;
       this.sessionSubId = sessionSubId;
       this.glareResolve = Math.random();
@@ -48,6 +48,7 @@ var CallParticipation = (function invocation() {
       return ((this._id === rhs._id) &&
          (this.facilityId === rhs.facilityId) &&
          (this.personId === rhs.personId) &&
+         (this.isCandidateLeader === rhs.isCandidateLeader) &&
          (this.sessionId === rhs.sessionId) && 
          (this.sessionSubId === rhs.sessionSubId) &&
          (this.glareResolve.toPrecision(10) === rhs.glareResolve.toPrecision(10)));
@@ -65,6 +66,7 @@ var CallParticipation = (function invocation() {
             _id: this._id,
             facilityId: this.facilityId,
             personId: this.personId,
+            isCandidateLeader: this.isCandidateLeader,
             sessionId: this.sessionId,
             sessionSubId: this.sessionSubId,
             glareResolve: this.glareResolve
@@ -96,6 +98,7 @@ var CallParticipation = (function invocation() {
       callParticipation._id = data._id;
       callParticipation.facilityId = data.facilityId;
       callParticipation.personId = data.personId;
+      callParticipation.isCandidateLeader = data.isCandidateLeader;
       callParticipation.sessionId = data.sessionId;
       callParticipation.sessionSubId = data.sessionSubId;
       callParticipation.glareResolve = data.glareResolve;
