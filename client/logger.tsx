@@ -3,6 +3,7 @@
 declare var require: any
 
 import * as React from 'react';
+import axios from 'axios';
 
 var logging = require('loglevel');
 
@@ -21,6 +22,11 @@ export class Logger {
    }
 
    error(fromClass: string, fromMethod: string, info: string, obj: object) {
-      this.logger.error('Error: ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : ""));
+      const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (obj ? JSON.stringify(obj) : "");
+      this.logger.error('Error:' + msg);
+
+      axios.post('/api/error', { params: { message: encodeURIComponent(msg) } })
+         .then((response) => {
+         });
    }
 }

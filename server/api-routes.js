@@ -4,6 +4,7 @@
 var express = require('express');
 var router = express.Router();
 
+
 // Core logic classes
 var TypeRegistry = require('../common/types.js').TypeRegistry;
 var Person = require("../common/person.js").Person;
@@ -17,6 +18,7 @@ var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel
 var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
+var logger = require("./logger.js").logger;
 
 // event source APIs
 var eventFeed = require('./event-source.js').eventFeed;
@@ -114,6 +116,12 @@ function homePageDataFor (req, facilities) {
 router.get('/api/home', function (req, res) {
    if (req.user && req.user.externalId) {
 
+      // Log session starts - later on can trawl this for billing. 
+      logger.log('info', 'Session start.', {
+         userId: req.user.externalId,
+         userName: req.user.name
+      });
+
       var coach = decodeURIComponent(req.query.coach);
 
       if (coach === 'true') {
@@ -184,6 +192,25 @@ router.post ('/api/icecandidate', function (req, res) {
    } else {
       res.send(null);
    }
+})
+
+// API to echo error messages shipped from the client
+router.post('/api/error', function (req, res) {
+
+   var message = decodeURIComponent(req.body.params.message);
+
+   if (req.user) { 
+      logger.log('error', 'Error:', {
+         userId: req.user.externalId,
+         userName: req.user.name,
+         message: message
+      });
+   } else {
+      logger.log('error', 'Error:', {
+         message: message
+      });
+   }
+   res.send(null);
 })
 
 module.exports = router;
