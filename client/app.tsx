@@ -97,6 +97,10 @@ const rpanelStyle: CSS.Properties = {
    minHeight: '575px'
 };
 
+const carouselImageStyle: CSS.Properties = {
+   height: '300px'
+};
+
 interface IMemberPageProps {
 }
 
@@ -539,22 +543,22 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                      </Col>
                      <Col className="align-items-center">
                         <Carousel className="align-items-center"  fade={true}>
-                           <Carousel.Item style={{ 'height': "400px" }} interval={7500}>
-                           <img style={{ 'height': "400px" }}
+                           <Carousel.Item style={carouselImageStyle} interval={7500}>
+                                 <img style={carouselImageStyle}
                                  src={'landing-workout.png'} />
                            <Carousel.Caption>
                               <h3 style={{color: "black"}}>Share the whiteboard.</h3>
                            </Carousel.Caption>
                         </Carousel.Item  >
-                        <Carousel.Item style={{ 'height': "400px" }} interval={7500}>
-                           <img style={{ 'height': "400px" }}
+                              <Carousel.Item style={carouselImageStyle} interval={7500}>
+                                 <img style={carouselImageStyle}
                                  src={'landing-video.png'} />
                            <Carousel.Caption>
                               <h3 style={{color: "black"}}>Manage the video call.</h3>
                            </Carousel.Caption>
                         </Carousel.Item>
-                        <Carousel.Item style={{ 'height': "400px" }} interval={7500}>
-                           <img style={{ 'height': "400px" }}
+                        <Carousel.Item style={carouselImageStyle} interval={7500}>
+                           <img style={carouselImageStyle}
                               src={'landing-music.png'} />
                            <Carousel.Caption>
                               <h3 style={{color: "black"}}>Play licenced music.</h3>
