@@ -18,6 +18,7 @@ import Nav from 'react-bootstrap/Nav';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Form from 'react-bootstrap/Form';
+import Carousel from 'react-bootstrap/Carousel';
 
 // Additional packages
 import { Helmet } from 'react-helmet';
@@ -43,7 +44,6 @@ import { MasterClock, RemoteClock } from './clockpanel';
 import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
 
-
 import * as CSS from 'csstype';
 
 const thinStyle: CSS.Properties = {
@@ -62,20 +62,27 @@ const pageStyle: CSS.Properties = {
    background: 'gray', color: 'white', margin: '0px', padding : '0px', minWidth: '320px', maxWidth: '*', alignItems: 'left'
 };
 
-const placeholderStyle: CSS.Properties = {
-   minHeight: '100%', minWidth: '320px', maxWidth: '*', color: 'white', background: 'white',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
+const rowHorizontalSepStyle: CSS.Properties = {
+   marginTop: '20px',
+   paddingTop: '20px',
+   borderTopWidth: "1px",
+   borderTopColor: "black",
+   borderTopStyle: 'solid'
 };
 
-const loginGroupStyle: CSS.Properties = {
-   borderLeftWidth: "2px",
+const loginGroupStyleLeftBorder: CSS.Properties = {
+   borderLeftWidth: "1px",
    borderLeftColor: "black",
    borderLeftStyle: 'solid'
 };
 
-const fieldYSepStyle: CSS.Properties = {
-   marginBottom: '10px'
+const fieldBSepStyle: CSS.Properties = {
+   marginBottom: '20px'
+};
+
+const fieldTBSepStyle: CSS.Properties = {
+   marginTop: '20px',
+   marginBottom: '20px'
 };
 
 const lpanelStyle: CSS.Properties = {
@@ -430,8 +437,10 @@ interface ILoginPageState {
    isMcReadyToLogin: boolean;
    meetCode: string;
    name: string;
+   email: string;
    isValidMeetCode: boolean;
    isValidName: boolean;
+   isValidEmail: boolean;
    loginFb: LoginFb;
    loginMc: LoginMc;
 }
@@ -450,8 +459,10 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
          isMcReadyToLogin: false,
          meetCode: this.lastUserData.loadMeetingId(),
          name: this.lastUserData.loadName(),
+         email: "",
          isValidMeetCode: false,
          isValidName: false,
+         isValidEmail: false,
          loginFb: new LoginFb({ autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeFb.bind(this) }),
          loginMc: new LoginMc({
             autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
@@ -503,6 +514,10 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
       this.setState({ name: this.state.loginMc.getName() });
    }
 
+   handleEmailChange(ev: any) {
+      this.setState({ email: ev.target.value });
+   }
+
    render() {
          return (
             <div className="loginpage">
@@ -518,32 +533,77 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
             </Navbar>
             <Container fluid style={pageStyle}>
                <Jumbotron style={{ background: 'gray', color: 'white' }}>
-                  <h1>Welcome!</h1>
-                  <p>Welcome to UltraBox. Sign in below to get access to your class.</p>
+                     <h1 style={fieldBSepStyle}>Deliver the experience of your Box to your clients, when they can't be in the Box.</h1>
+                     <Row className="align-items-center">
+                     <Col className="d-none d-md-block">
+                     </Col>
+                     <Col className="align-items-center">
+                        <Carousel className="align-items-center"  fade={true}>
+                           <Carousel.Item style={{ 'height': "400px" }} interval={7500}>
+                           <img style={{ 'height': "400px" }}
+                                 src={'landing-workout.png'} />
+                           <Carousel.Caption>
+                              <h3 style={{color: "black"}}>Share the whiteboard.</h3>
+                           </Carousel.Caption>
+                        </Carousel.Item  >
+                        <Carousel.Item style={{ 'height': "400px" }} interval={7500}>
+                           <img style={{ 'height': "400px" }}
+                                 src={'landing-video.png'} />
+                           <Carousel.Caption>
+                              <h3 style={{color: "black"}}>Manage the video call.</h3>
+                           </Carousel.Caption>
+                        </Carousel.Item>
+                        <Carousel.Item style={{ 'height': "400px" }} interval={7500}>
+                           <img style={{ 'height': "400px" }}
+                              src={'landing-music.png'} />
+                           <Carousel.Caption>
+                              <h3 style={{color: "black"}}>Play licenced music.</h3>
+                           </Carousel.Caption>
+                        </Carousel.Item>
+                        </Carousel>  
+                     </Col>
+                     <Col className="align-items-center">
+                        <Form.Group controlId="signMeUpId">
+                           <Form.Control type="email" placeholder="Enter your email here." maxLength="40" style={fieldTBSepStyle}
+                             onChange={this.handleEmailChange.bind(this)}
+                              isValid={this.state.isValidEmail}
+                                 value={this.state.email} />
+                           <Button variant="secondary" style={fieldBSepStyle}>Tell me more...</Button>
+                        </Form.Group>
+                     </Col>
+                     <Col className="d-none d-md-block">
+                     </Col>
+                  </Row>
+                  <Row className="align-items-center" style={rowHorizontalSepStyle}>
+                     <Col>
+                        <h1 style={fieldBSepStyle}>Already joined?</h1>
+                        <p>Welcome to UltraBox. Sign in below to get access to your class.</p>
+                     </Col>
+                  </Row>
                   <Row className="align-items-center">
                      <Col className="d-none d-md-block">
                      </Col>
                      <Col>
-                        <Button variant="primary" onClick={this.state.loginFb.logIn}>Coaches login with Facebook...</Button>
+                        <Button variant="secondary" onClick={this.state.loginFb.logIn}>Coaches login with Facebook...</Button>
                      </Col>
-                     <Col style={loginGroupStyle}>
+                     <Col style={loginGroupStyleLeftBorder}>
                         <Form.Group controlId="formMeetingCode">
-                              <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldYSepStyle}
+                              <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldBSepStyle}
                                  onChange={this.handleMeetCodeChange.bind(this)}
                                  isValid={this.state.isValidMeetCode}
                                  value={this.state.meetCode} />
                         </Form.Group>
                         <Form.Group controlId="formName">
-                              <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldYSepStyle}
+                              <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldBSepStyle}
                                  onChange={this.handleNameChange.bind(this)}
                                  isValid={this.state.isValidName}
                                  value={this.state.name}/>
                         </Form.Group>
-                        <Button variant="primary" disabled={!this.state.isMcReadyToLogin}
+                        <Button variant="secondary" disabled={!this.state.isMcReadyToLogin}
                            onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
                         </Button>
                      </Col>
-                     <Col className="d-none d-md-block ">
+                     <Col className="d-none d-md-block">
                      </Col>
                   </Row>
                </Jumbotron>
