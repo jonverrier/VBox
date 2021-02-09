@@ -98,8 +98,15 @@ const rpanelStyle: CSS.Properties = {
 };
 
 const carouselImageStyle: CSS.Properties = {
-   height: '300px'
+   width: '370px',
+   opacity: '65%'
 };
+
+const carouselHeadingStyle: CSS.Properties = {
+   color: 'black'
+};
+
+{ color: "black" }
 
 interface IMemberPageProps {
 }
@@ -543,25 +550,25 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                      </Col>
                      <Col className="align-items-center">
                         <Carousel className="align-items-center"  fade={true}>
-                           <Carousel.Item style={carouselImageStyle} interval={7500}>
+                           <Carousel.Item interval={7500}>
                                  <img style={carouselImageStyle}
                                  src={'landing-workout.png'} />
                            <Carousel.Caption>
-                              <h3 style={{color: "black"}}>Share the whiteboard.</h3>
+                              <h3 style={carouselHeadingStyle}>Share the whiteboard.</h3>
                            </Carousel.Caption>
                         </Carousel.Item  >
-                              <Carousel.Item style={carouselImageStyle} interval={7500}>
+                              <Carousel.Item interval={7500}>
                                  <img style={carouselImageStyle}
                                  src={'landing-video.png'} />
                            <Carousel.Caption>
-                              <h3 style={{color: "black"}}>Manage the video call.</h3>
+                              <h3 style={carouselHeadingStyle}>Manage the video call.</h3>
                            </Carousel.Caption>
                         </Carousel.Item>
-                        <Carousel.Item style={carouselImageStyle} interval={7500}>
+                        <Carousel.Item interval={7500}>
                            <img style={carouselImageStyle}
                               src={'landing-music.png'} />
                            <Carousel.Caption>
-                              <h3 style={{color: "black"}}>Play licenced music.</h3>
+                              <h3 style={carouselHeadingStyle}>Play licenced music.</h3>
                            </Carousel.Caption>
                         </Carousel.Item>
                         </Carousel>  
