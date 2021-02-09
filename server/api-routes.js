@@ -4,7 +4,6 @@
 var express = require('express');
 var router = express.Router();
 
-
 // Core logic classes
 var TypeRegistry = require('../common/types.js').TypeRegistry;
 var Person = require("../common/person.js").Person;
@@ -17,6 +16,7 @@ var facilityModel = require("./facility-model.js");
 var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel;
 var facilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
+var leadModel = require("./lead-model.js").leadModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
 var logger = require("./logger.js").logger;
 
@@ -97,7 +97,17 @@ router.get('/api/isvalidmc', function (req, res) {
 router.post('/api/keepalive', function (req, res) {
 
    res.send(true);
-})
+});
+
+// This is a sign-up type request - does not need to be logged in
+router.post('/api/lead', function (req, res) {
+   var email = decodeURIComponent(req.body.params.email);
+   if (email) {
+      new leadModel({ email: email }).save();
+      res.send(true);
+   } else
+      res.send(false);
+});
 
 function homePageDataFor (req, facilities) {
 
@@ -144,15 +154,15 @@ router.get('/api/home', function (req, res) {
    } else {
       res.send(null);
    }
-})
+});
 
 // API when a participant has a new offer
-router.post ('/api/offer', function (req, res) {
+router.post('/api/offer', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallOffer in the query string
       var types = new TypeRegistry();
-      var callOffer = CallOffer.prototype.revive (req.body.params.callOffer);
+      var callOffer = CallOffer.prototype.revive(req.body.params.callOffer);
 
       // This pushes the notice of a new offer over server-sent event channel
       deliverNewOffer(callOffer);
@@ -162,10 +172,10 @@ router.post ('/api/offer', function (req, res) {
    } else {
       res.send(null);
    }
-})
+});
 
 // API when a participant has a new answer
-router.post ('/api/answer', function (req, res) {
+router.post('/api/answer', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallAnswer in the query string
@@ -180,15 +190,15 @@ router.post ('/api/answer', function (req, res) {
    } else {
       res.send(null);
    }
-})
+});
 
 // API when a participant has a new ICE candidate
-router.post ('/api/icecandidate', function (req, res) {
+router.post('/api/icecandidate', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallIceCandidate in the query string
       var types = new TypeRegistry();
-      var callIceCandidate = CallIceCandidate.prototype.revive (req.body.params.callIceCandidate);
+      var callIceCandidate = CallIceCandidate.prototype.revive(req.body.params.callIceCandidate);
 
       // This pushes the notice of a new ICE candidate over server-sent event channel
       deliverNewIceCandidate(callIceCandidate);
@@ -198,14 +208,14 @@ router.post ('/api/icecandidate', function (req, res) {
    } else {
       res.send(null);
    }
-})
+});
 
 // API to echo error messages shipped from the client
 router.post('/api/error', function (req, res) {
 
    var message = decodeURIComponent(req.body.params.message);
 
-   if (req.user) { 
+   if (req.user) {
       logger.log('error', 'Error:', {
          userId: req.user.externalId,
          userName: req.user.name,
@@ -217,6 +227,6 @@ router.post('/api/error', function (req, res) {
       });
    }
    res.send(null);
-})
+});
 
 module.exports = router;
