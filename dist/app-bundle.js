@@ -71831,6 +71831,9 @@ var rpanelStyle = {
     marginRight: '2px', paddingRight: '0px',
     minHeight: '575px'
 };
+var carouselImageStyle = {
+    height: '300px'
+};
 var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
@@ -72123,16 +72126,16 @@ var LoginPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { className: "d-none d-md-block" }),
                         React.createElement(Col_1.default, { className: "align-items-center" },
                             React.createElement(Carousel_1.default, { className: "align-items-center", fade: true },
-                                React.createElement(Carousel_1.default.Item, { style: { 'height': "400px" }, interval: 7500 },
-                                    React.createElement("img", { style: { 'height': "400px" }, src: 'landing-workout.png' }),
+                                React.createElement(Carousel_1.default.Item, { style: carouselImageStyle, interval: 7500 },
+                                    React.createElement("img", { style: carouselImageStyle, src: 'landing-workout.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
                                         React.createElement("h3", { style: { color: "black" } }, "Share the whiteboard."))),
-                                React.createElement(Carousel_1.default.Item, { style: { 'height': "400px" }, interval: 7500 },
-                                    React.createElement("img", { style: { 'height': "400px" }, src: 'landing-video.png' }),
+                                React.createElement(Carousel_1.default.Item, { style: carouselImageStyle, interval: 7500 },
+                                    React.createElement("img", { style: carouselImageStyle, src: 'landing-video.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
                                         React.createElement("h3", { style: { color: "black" } }, "Manage the video call."))),
-                                React.createElement(Carousel_1.default.Item, { style: { 'height': "400px" }, interval: 7500 },
-                                    React.createElement("img", { style: { 'height': "400px" }, src: 'landing-music.png' }),
+                                React.createElement(Carousel_1.default.Item, { style: carouselImageStyle, interval: 7500 },
+                                    React.createElement("img", { style: carouselImageStyle, src: 'landing-music.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
                                         React.createElement("h3", { style: { color: "black" } }, "Play licenced music."))))),
                         React.createElement(Col_1.default, { className: "align-items-center" },
