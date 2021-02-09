@@ -103,7 +103,7 @@ class RtcCaller {
             }
          })
          .catch(e => {
-            // TODO - analyse error paths
+
             logger.error ('RtcCaller',  'handleAnswer', 'error:', e);
          });
    }
