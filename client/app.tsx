@@ -19,12 +19,13 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Form from 'react-bootstrap/Form';
 import Carousel from 'react-bootstrap/Carousel';
+import { TriangleRightIcon } from '@primer/octicons-react'
 
 // Additional packages
 import { Helmet } from 'react-helmet';
 import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom'; 
-
 import axios from 'axios';
+import * as CSS from 'csstype';
 
 // This app
 import { PartyBanner } from './party';
@@ -43,8 +44,17 @@ import { HomePageData } from '../common/homepagedata';
 import { MasterClock, RemoteClock } from './clockpanel';
 import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
+import { Logger } from './logger';
 
-import * as CSS from 'csstype';
+var logger = new Logger();
+
+const jumbotronStyle: CSS.Properties = {
+   paddingLeft: '10px',
+   paddingRight: '10px',
+   marginBottom: '0px',
+   background: 'gray',
+   color: 'white'
+};
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px'
@@ -76,13 +86,17 @@ const loginGroupStyleLeftBorder: CSS.Properties = {
    borderLeftStyle: 'solid'
 };
 
+const fieldTSepStyle: CSS.Properties = {
+   marginTop: '20px'
+};
+
 const fieldBSepStyle: CSS.Properties = {
    marginBottom: '20px'
 };
 
-const fieldTBSepStyle: CSS.Properties = {
-   marginTop: '20px',
-   marginBottom: '20px'
+const emailUnderpinFieldStyle: CSS.Properties = {
+   marginBottom: '20px',
+   color: 'lightgray'
 };
 
 const lpanelStyle: CSS.Properties = {
@@ -98,7 +112,7 @@ const rpanelStyle: CSS.Properties = {
 };
 
 const carouselImageStyle: CSS.Properties = {
-   width: '370px',
+   width: '480px',
    opacity: '65%'
 };
 
@@ -454,6 +468,8 @@ interface ILoginPageState {
    isValidEmail: boolean;
    loginFb: LoginFb;
    loginMc: LoginMc;
+   sentEmail: boolean;
+   playingAudio: boolean;
 }
 
 export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
@@ -480,7 +496,9 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
             onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this),
             name: this.lastUserData.loadName(),
             meetCode: this.lastUserData.loadMeetingId()
-         })
+         }),
+         sentEmail: false,
+         playingAudio: (false)
       };
    }
    
@@ -515,6 +533,14 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
    componentWillUnmount() {
    }
 
+   playAudio() {
+      if (!this.state.playingAudio) {
+         var audioEl: any = document.getElementsByClassName("audio-element")[0];
+         audioEl.play();
+         this.setState({ playingAudio: true });
+      }
+   }
+
    handleMeetCodeChange(ev: any) {
       this.state.loginMc.handleMeetCodeChange(ev);
       this.setState({ meetCode: this.state.loginMc.getMeetCode() });
@@ -525,8 +551,31 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
       this.setState({ name: this.state.loginMc.getName() });
    }
 
+   validateEmail(email : string) {
+      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(String(email).toLowerCase());
+   }
+
    handleEmailChange(ev: any) {
-      this.setState({ email: ev.target.value });
+      // Only allow one email per page refresh. 
+      if (!this.state.sentEmail && this.validateEmail(ev.target.value)) {
+         this.setState({ isValidEmail: true, email: ev.target.value});
+      } else {
+         this.setState({ isValidEmail: false, email: ev.target.value });
+      }
+   }
+
+   sendLead() {
+      if (this.validateEmail(this.state.email)) {
+         axios.post('/api/lead', { params: { email: encodeURIComponent (this.state.email) } })
+            .then((response) => {
+               this.setState({ isValidEmail: false, email: "", sentEmail: true });
+               logger.info('LoginPage', 'sendLead', 'Post Ok, email:', new Object (this.state.email));
+            })
+            .catch((e) => {
+               logger.error('LoginPage', 'sendLead', 'Post error:', e);
+            });
+      }
    }
 
    render() {
@@ -542,82 +591,94 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                   <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                </Navbar.Brand>
             </Navbar>
-            <Container fluid style={pageStyle}>
-               <Jumbotron style={{ background: 'gray', color: 'white' }}>
-                     <h1 style={fieldBSepStyle}>Deliver the experience of your Box to your clients, when they can't be in the Box.</h1>
+               <Container fluid style={pageStyle}>
+                  <audio className="audio-element" loop={true}>
+                     <source src="15-Minute-Timer.mp3"></source>
+                  </audio>
+                  <Jumbotron style={jumbotronStyle}>
+                     <h1 style={fieldBSepStyle}>Deliver the experience of your Box to your clients, when they can't be in your Box.</h1>
                      <Row className="align-items-center">
-                     <Col className="d-none d-md-block">
-                     </Col>
-                     <Col className="align-items-center">
-                        <Carousel className="align-items-center"  fade={true}>
-                           <Carousel.Item interval={7500}>
-                                 <img style={carouselImageStyle}
-                                 src={'landing-workout.png'} />
-                           <Carousel.Caption>
-                              <h3 style={carouselHeadingStyle}>Share the whiteboard.</h3>
-                           </Carousel.Caption>
-                        </Carousel.Item  >
+                        <Col className="d-none d-md-block">
+                        </Col>
+                        <Col className="align-items-center">
+                           <Carousel className="align-items-center"  fade={true}>
+                              <Carousel.Item interval={7500}>
+                                    <img style={carouselImageStyle}
+                                    src={'landing-workout.png'} />
+                              <Carousel.Caption>
+                                 <h3 style={carouselHeadingStyle}>Share the whiteboard.</h3>
+                              </Carousel.Caption>
+                           </Carousel.Item  >
                               <Carousel.Item interval={7500}>
                                  <img style={carouselImageStyle}
                                  src={'landing-video.png'} />
-                           <Carousel.Caption>
-                              <h3 style={carouselHeadingStyle}>Manage the video call.</h3>
-                           </Carousel.Caption>
-                        </Carousel.Item>
-                        <Carousel.Item interval={7500}>
-                           <img style={carouselImageStyle}
-                              src={'landing-music.png'} />
-                           <Carousel.Caption>
-                              <h3 style={carouselHeadingStyle}>Play licenced music.</h3>
-                           </Carousel.Caption>
-                        </Carousel.Item>
-                        </Carousel>  
-                     </Col>
-                     <Col className="align-items-center">
-                        <Form.Group controlId="signMeUpId">
-                           <Form.Control type="email" placeholder="Enter your email here." maxLength="40" style={fieldTBSepStyle}
-                             onChange={this.handleEmailChange.bind(this)}
-                              isValid={this.state.isValidEmail}
+                              <Carousel.Caption>
+                                 <h3 style={carouselHeadingStyle}>Manage the video call.</h3>
+                              </Carousel.Caption>
+                           </Carousel.Item>
+                           <Carousel.Item interval={7500}>
+                              <img style={carouselImageStyle}
+                                 src={'landing-music.png'} />
+                                 <Carousel.Caption>
+                                    <h3 style={carouselHeadingStyle}>Play licenced music&nbsp;
+                                       <a onClick={this.playAudio.bind(this)}><u>(try)</u></a>.
+                                    </h3>
+                              </Carousel.Caption>
+                           </Carousel.Item>
+                           </Carousel>  
+                        </Col>
+                        <Col className="align-items-center">
+                           <Form.Group controlId="signMeUpId">
+                              <Form.Control type="email" placeholder="Enter your email here." maxLength="40" style={fieldTSepStyle}
+                                 onChange={this.handleEmailChange.bind(this)}
+                                 isValid={this.state.isValidEmail}
+                                 disabled={this.state.sentEmail}
                                  value={this.state.email} />
-                           <Button variant="secondary" style={fieldBSepStyle}>Tell me more...</Button>
-                        </Form.Group>
-                     </Col>
-                     <Col className="d-none d-md-block">
-                     </Col>
-                  </Row>
-                  <Row className="align-items-center" style={rowHorizontalSepStyle}>
-                     <Col>
-                        <h1 style={fieldBSepStyle}>Already joined?</h1>
-                        <p>Welcome to UltraBox. Sign in below to get access to your class.</p>
-                     </Col>
-                  </Row>
-                  <Row className="align-items-center">
-                     <Col className="d-none d-md-block">
-                     </Col>
-                     <Col>
-                        <Button variant="secondary" onClick={this.state.loginFb.logIn}>Coaches login with Facebook...</Button>
-                     </Col>
-                     <Col style={loginGroupStyleLeftBorder}>
-                        <Form.Group controlId="formMeetingCode">
+                              <Form.Text style={emailUnderpinFieldStyle}>
+                                 {this.state.sentEmail ? "Thank you, we will be in touch." : "We'll never share your email with anyone else."}
+                              </Form.Text>
+                              <Button variant="secondary" disabled={!this.state.isValidEmail} style={fieldBSepStyle}
+                                 onClick={this.sendLead.bind(this)}>
+                                 Tell me more...
+                              </Button>
+                           </Form.Group>
+                        </Col>
+                        <Col className="d-none d-md-block">
+                        </Col>
+                     </Row>
+                     <Row className="align-items-center" style={rowHorizontalSepStyle}>
+                        <Col>
+                           <h1 style={fieldBSepStyle}>Already joined?</h1>
+                           <p>Welcome to UltraBox. Sign in below to get access to your class.</p>
+                        </Col>
+                     </Row>
+                     <Row className="align-items-center">
+                        <Col className="d-none d-md-block">
+                        </Col>
+                        <Col>
+                           <Button variant="secondary" onClick={this.state.loginFb.logIn}>Coaches login with Facebook...</Button>
+                        </Col>
+                        <Col style={loginGroupStyleLeftBorder}>
+                           <Form.Group controlId="formMeetingCode">
                               <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldBSepStyle}
                                  onChange={this.handleMeetCodeChange.bind(this)}
                                  isValid={this.state.isValidMeetCode}
                                  value={this.state.meetCode} />
-                        </Form.Group>
-                        <Form.Group controlId="formName">
+                           </Form.Group>
+                           <Form.Group controlId="formName">
                               <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldBSepStyle}
                                  onChange={this.handleNameChange.bind(this)}
                                  isValid={this.state.isValidName}
-                                 value={this.state.name}/>
-                        </Form.Group>
-                        <Button variant="secondary" disabled={!this.state.isMcReadyToLogin}
-                           onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
-                        </Button>
-                     </Col>
-                     <Col className="d-none d-md-block">
-                     </Col>
-                  </Row>
-               </Jumbotron>
+                                 value={this.state.name} />
+                           </Form.Group>
+                           <Button variant="secondary" disabled={!this.state.isMcReadyToLogin}
+                              onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
+                           </Button>
+                        </Col>
+                        <Col className="d-none d-md-block">
+                        </Col>
+                     </Row>
+                  </Jumbotron>
             </Container>
             </div>
          );

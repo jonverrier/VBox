@@ -71790,6 +71790,15 @@ var homepagedata_1 = __webpack_require__(/*! ../common/homepagedata */ "./common
 var clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./client/clockpanel.tsx");
 var whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./client/whiteboardpanel.tsx");
 var leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./client/leaderpanel.tsx");
+var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
+var logger = new logger_1.Logger();
+var jumbotronStyle = {
+    paddingLeft: '10px',
+    paddingRight: '10px',
+    marginBottom: '0px',
+    background: 'gray',
+    color: 'white'
+};
 var thinStyle = {
     margin: '0px', padding: '0px'
 };
@@ -71814,12 +71823,15 @@ var loginGroupStyleLeftBorder = {
     borderLeftColor: "black",
     borderLeftStyle: 'solid'
 };
+var fieldTSepStyle = {
+    marginTop: '20px'
+};
 var fieldBSepStyle = {
     marginBottom: '20px'
 };
-var fieldTBSepStyle = {
-    marginTop: '20px',
-    marginBottom: '20px'
+var emailUnderpinFieldStyle = {
+    marginBottom: '20px',
+    color: 'lightgray'
 };
 var lpanelStyle = {
     margin: '0px', padding: '0px'
@@ -71832,7 +71844,7 @@ var rpanelStyle = {
     minHeight: '575px'
 };
 var carouselImageStyle = {
-    width: '370px',
+    width: '480px',
     opacity: '65%'
 };
 var carouselHeadingStyle = {
@@ -72077,7 +72089,9 @@ var LoginPage = /** @class */ (function (_super) {
                 onLoginReadinessChange: _this.onLoginReadinessChangeMc.bind(_this),
                 name: _this.lastUserData.loadName(),
                 meetCode: _this.lastUserData.loadMeetingId()
-            })
+            }),
+            sentEmail: false,
+            playingAudio: (false)
         };
         return _this;
     }
@@ -72106,6 +72120,13 @@ var LoginPage = /** @class */ (function (_super) {
     };
     LoginPage.prototype.componentWillUnmount = function () {
     };
+    LoginPage.prototype.playAudio = function () {
+        if (!this.state.playingAudio) {
+            var audioEl = document.getElementsByClassName("audio-element")[0];
+            audioEl.play();
+            this.setState({ playingAudio: true });
+        }
+    };
     LoginPage.prototype.handleMeetCodeChange = function (ev) {
         this.state.loginMc.handleMeetCodeChange(ev);
         this.setState({ meetCode: this.state.loginMc.getMeetCode() });
@@ -72114,8 +72135,31 @@ var LoginPage = /** @class */ (function (_super) {
         this.state.loginMc.handleNameChange(ev);
         this.setState({ name: this.state.loginMc.getName() });
     };
+    LoginPage.prototype.validateEmail = function (email) {
+        var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    };
     LoginPage.prototype.handleEmailChange = function (ev) {
-        this.setState({ email: ev.target.value });
+        // Only allow one email per page refresh. 
+        if (!this.state.sentEmail && this.validateEmail(ev.target.value)) {
+            this.setState({ isValidEmail: true, email: ev.target.value });
+        }
+        else {
+            this.setState({ isValidEmail: false, email: ev.target.value });
+        }
+    };
+    LoginPage.prototype.sendLead = function () {
+        var _this = this;
+        if (this.validateEmail(this.state.email)) {
+            axios_1.default.post('/api/lead', { params: { email: encodeURIComponent(this.state.email) } })
+                .then(function (response) {
+                _this.setState({ isValidEmail: false, email: "", sentEmail: true });
+                logger.info('LoginPage', 'sendLead', 'Post Ok, email:', new Object(_this.state.email));
+            })
+                .catch(function (e) {
+                logger.error('LoginPage', 'sendLead', 'Post error:', e);
+            });
+        }
     };
     LoginPage.prototype.render = function () {
         return (React.createElement("div", { className: "loginpage" },
@@ -72127,8 +72171,10 @@ var LoginPage = /** @class */ (function (_super) {
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
                     React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
-                React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
-                    React.createElement("h1", { style: fieldBSepStyle }, "Deliver the experience of your Box to your clients, when they can't be in the Box."),
+                React.createElement("audio", { className: "audio-element", loop: true },
+                    React.createElement("source", { src: "15-Minute-Timer.mp3" })),
+                React.createElement(Jumbotron_1.default, { style: jumbotronStyle },
+                    React.createElement("h1", { style: fieldBSepStyle }, "Deliver the experience of your Box to your clients, when they can't be in your Box."),
                     React.createElement(Row_1.default, { className: "align-items-center" },
                         React.createElement(Col_1.default, { className: "d-none d-md-block" }),
                         React.createElement(Col_1.default, { className: "align-items-center" },
@@ -72144,11 +72190,16 @@ var LoginPage = /** @class */ (function (_super) {
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
                                     React.createElement("img", { style: carouselImageStyle, src: 'landing-music.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
-                                        React.createElement("h3", { style: carouselHeadingStyle }, "Play licenced music."))))),
+                                        React.createElement("h3", { style: carouselHeadingStyle },
+                                            "Play licenced music\u00A0",
+                                            React.createElement("a", { onClick: this.playAudio.bind(this) },
+                                                React.createElement("u", null, "(try)")),
+                                            "."))))),
                         React.createElement(Col_1.default, { className: "align-items-center" },
                             React.createElement(Form_1.default.Group, { controlId: "signMeUpId" },
-                                React.createElement(Form_1.default.Control, { type: "email", placeholder: "Enter your email here.", maxLength: "40", style: fieldTBSepStyle, onChange: this.handleEmailChange.bind(this), isValid: this.state.isValidEmail, value: this.state.email }),
-                                React.createElement(Button_1.default, { variant: "secondary", style: fieldBSepStyle }, "Tell me more..."))),
+                                React.createElement(Form_1.default.Control, { type: "email", placeholder: "Enter your email here.", maxLength: "40", style: fieldTSepStyle, onChange: this.handleEmailChange.bind(this), isValid: this.state.isValidEmail, disabled: this.state.sentEmail, value: this.state.email }),
+                                React.createElement(Form_1.default.Text, { style: emailUnderpinFieldStyle }, this.state.sentEmail ? "Thank you, we will be in touch." : "We'll never share your email with anyone else."),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isValidEmail, style: fieldBSepStyle, onClick: this.sendLead.bind(this) }, "Tell me more..."))),
                         React.createElement(Col_1.default, { className: "d-none d-md-block" })),
                     React.createElement(Row_1.default, { className: "align-items-center", style: rowHorizontalSepStyle },
                         React.createElement(Col_1.default, null,
@@ -73533,7 +73584,6 @@ var RtcCaller = /** @class */ (function () {
             }
         })
             .catch(function (e) {
-            // TODO - analyse error paths
             logger.error('RtcCaller', 'handleAnswer', 'error:', e);
         });
     };
