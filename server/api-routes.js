@@ -93,6 +93,12 @@ router.get('/api/isvalidmc', function (req, res) {
    });
 })
 
+// No-op on server
+router.post('/api/keepalive', function (req, res) {
+
+   res.send(true);
+})
+
 function homePageDataFor (req, facilities) {
 
    var current = facilities[0]; // TODO - pick the last facility visited by recording visits. 
