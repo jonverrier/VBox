@@ -10,6 +10,11 @@ var options = {
 };
 
 // Home page route. Client-side does path-based routing. 
+router.get('/privacy', function (req, res) {
+   res.sendFile('public/privacy.html', options);
+})
+
+// Home page route. Client-side does path-based routing. 
 router.get('/login', function (req, res) {
    res.sendFile('public/index.html', options);
 })
