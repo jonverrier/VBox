@@ -9,6 +9,11 @@ const leadSchema = new mongoose.Schema({
       required: true,
       index: true
    },   
+   deletionRequest: {
+      type: Boolean,
+      retuired: false,
+      index: true
+   }
 },
 {  // Enable timestamps for archival 
       timestamps: true
