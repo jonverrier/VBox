@@ -126,7 +126,11 @@ const carouselHeadingStyle: CSS.Properties = {
    color: 'black'
 };
 
-{ color: "black" }
+const footerElementStyle: CSS.Properties = {
+   padding: '10px',
+   fontSize: '14px',
+   color: 'white'
+};
 
 interface IMemberPageProps {
 }
@@ -264,7 +268,8 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                   </Col>
                </Row>
-            </Container>
+               <Footer></Footer>
+            </Container>            
          </div>
       );
    }
@@ -453,6 +458,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                         <RemotePeople rtc={this.state.rtc}> </RemotePeople>
                      </Col>
                   </Row>
+                  <Footer></Footer>
                </Container>
             </div>
          );
@@ -698,7 +704,8 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                         </Col>
                      </Row>
                   </Jumbotron>
-            </Container>
+                  <Footer></Footer>
+               </Container>
             </div>
          );
    }
@@ -724,6 +731,23 @@ export class PageSwitcher extends React.Component {
             </Switch>  
          </BrowserRouter>  
       );
+   }
+}
+
+export class Footer extends React.Component {
+   render() {
+      return (
+         <div>
+            <Container>
+               <Row>
+                  <Col>
+                     <a style={footerElementStyle} href="/">Home</a>
+                     <a style={footerElementStyle} href="privacy">Privacy</a>
+                     <a style={footerElementStyle} href="mailto:ultrabox.servicet@gmail.com">Contact Us</a>
+                  </Col>
+               </Row>
+            </Container>
+         </div>);
    }
 }
 
