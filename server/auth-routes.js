@@ -20,6 +20,34 @@ authRouter.get("/auth/local", passport.authenticate("Local", {
    failureRedirect: "/failmc"
 }));
 
+authRouter.post('/data_deletionfb', (req, res, next) => {
+   console.log(req.body); // {}
+   console.log(req.query); // {}
+
+   // TODO - do we need to do anything more
+   // we don't actually hold any user data 
+
+   res.send({ url: "https://ultrabox.herokuapp.com/deleted", confirmation_code: 'UB100'});
+});
+
+authRouter.get('/data_deletionfb', (req, res, next) => {
+   console.log(req.body); // {}
+   console.log(req.query); // {}
+
+   // TODO - do we need to do anything more
+   // we don't actually hold any user data 
+
+   res.send({ url: "https://ultrabox.herokuapp.com/datadeleted", confirmation_code: 'UB100' });
+});
+
+
+authRouter.get('/datadeleted', function (req, res) {
+   var options = {
+      root: path.join(__dirname, "..")
+   };
+   res.sendFile('public/datadeleted.html', options);
+});
+
 var options = {
    root: path.join(__dirname, "..")
 };
