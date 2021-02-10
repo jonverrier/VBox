@@ -72030,7 +72030,7 @@ var CoachPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "primary", onClick: this.state.login.logIn }, "Coaches login with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.login.logIn }, "Coaches login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "coachpage" },

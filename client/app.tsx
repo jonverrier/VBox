@@ -389,7 +389,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to UltraBox. Sign in below to get access to your class.
                      </p>
-                     <Button variant="primary" onClick={this.state.login.logIn}>Coaches login with Facebook...</Button>
+                     <Button variant="secondary" onClick={this.state.login.logIn}>Coaches login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
