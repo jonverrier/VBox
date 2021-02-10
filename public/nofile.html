@@ -23,32 +23,24 @@
 
    <!-- App-specific CSS -->
    <link href="vbox-styles.css" rel="stylesheet" type="text/css" />
-</head>  
+</head>
+
 <body>
+
    <div class="container-fluid">
-      <div class="row fluid">
-         <div class="mobile-only">
-            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
-            </div>
-            <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
-               <img src="weightlifter-b-128x128.png" class="img-responsive" alt="UltraBox" style="margin: 0 auto;">
-            </div>
-            <div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
-            </div>
+      <div class="row-fluid">
+         <div class=" col-xs-2 col-sm-2 col-md-2 col-lg-2">
          </div>
-         <div class="desktop-only">
-            <div class=" col-xs-3 col-sm-3 col-md-3 col-lg-3">
-            </div>
-            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-               <img src="weightlifter-b-128x128.png" class="img-responsive" alt="UltraBox" style="margin: 0 auto;">
-            </div>
-            <div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
-            </div>
+         <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8 mx-auto text-center">
+            <img src="weightlifter-b-128x128.png" class="img-responsive" alt="UltraBox" style="margin: 0 auto;" height="128">
+         </div>
+         <div class=" col-xs-2 col-sm-2 col-md-2 col-lg-2">
          </div>
       </div>
+
       <div class="row">
          <div class="col-xs-12 col-sm-12 col-md-12">
-            <br/>
+            <br />
             <p>Sorry, we can't find that link. Click <a href="/">here</a> to go to the home page.</p>
             <br />
             <br />
@@ -59,24 +51,11 @@
       </div>
    </div>
 
-   <!-- Placed at the end of the document so the pages load faster --> 
+   <!-- Placed at the end of the document so the pages load faster -->
    <!-- Bootstrap
    ================================================== -->
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
    <script src="//netdna.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-
-   <!-- App-specific JavaScript -->
-   <script>
-   // Windows Phone 8 and Internet Explorer 10 fix
-   if (navigator.userAgent.match(/IEMobile\/10\.0/)) {
-      var msViewportStyle = document.createElement("style")
-      msViewportStyle.appendChild(
-         document.createTextNode(
-            "@-ms-viewport{width:auto!important}"))
-      document.getElementsByTagName("head")[0].appendChild(msViewportStyle)
-   }
-   </script>
-         
 </body>
 </html>
+

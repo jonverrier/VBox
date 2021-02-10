@@ -111,6 +111,15 @@ app.get('/', function (req, res) {
    return res.redirect('/login');
 });
 
+//The 404 Route (ALWAYS Keep this as the last route)
+app.get('*', function (req, res) {
+   var options = {
+      root: path.join(__dirname, "..")
+   };
+   res.sendFile('public/nofile.html', options);
+});
+
+
 // Fix depracation warning. This one is not  abreaking change. 
 mongoose.set('useFindAndModify', false);
 
