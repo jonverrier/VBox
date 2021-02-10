@@ -45,6 +45,7 @@ import { MasterClock, RemoteClock } from './clockpanel';
 import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
 import { Logger } from './logger';
+import { Media } from './media';
 
 var logger = new Logger();
 
@@ -109,6 +110,11 @@ const rpanelStyle: CSS.Properties = {
    marginLeft: '10px', paddingLeft: '0px',
    marginRight: '2px', paddingRight: '0px',
    minHeight: '575px'
+};
+
+const carouselMobileImageStyle: CSS.Properties = {
+   width: '340px',
+   opacity: '65%'
 };
 
 const carouselImageStyle: CSS.Properties = {
@@ -470,12 +476,14 @@ interface ILoginPageState {
    loginMc: LoginMc;
    sentEmail: boolean;
    playingAudio: boolean;
+   isMobileFormFactor: boolean;
 }
 
 export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
    //member variables
    isLoggedIn: boolean;
    lastUserData: MeetingScreenState;
+   media: Media;
 
    constructor(props: ILoginPageProps) {
       super(props);
@@ -498,8 +506,13 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
             meetCode: this.lastUserData.loadMeetingId()
          }),
          sentEmail: false,
-         playingAudio: (false)
+         playingAudio: (false),
+         isMobileFormFactor: true // Assume mobile first !
       };
+
+      // Can have a single media object across all instances
+      this.media = new Media();
+      this.media.addMobileFormFactorChangeListener(this.onMobileFormFactorChange.bind(this));
    }
    
    onLoginStatusChangeMc(isLoggedIn) {
@@ -528,9 +541,15 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
 
       // Initialise meeting code API
       this.state.loginMc.loadAPI();
+
+      this.setState({ isMobileFormFactor: this.media.isSmallFormFactor() });
    }
 
    componentWillUnmount() {
+   }
+
+   onMobileFormFactorChange(isMobile: boolean) {
+      this.setState({ isMobileFormFactor: isMobile });
    }
 
    playAudio() {
@@ -603,21 +622,21 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                         <Col className="align-items-center">
                            <Carousel className="align-items-center"  fade={true}>
                               <Carousel.Item interval={7500}>
-                                    <img style={carouselImageStyle}
+                                 <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                     src={'landing-workout.png'} />
                               <Carousel.Caption>
                                  <h3 style={carouselHeadingStyle}>Share the whiteboard.</h3>
                               </Carousel.Caption>
                            </Carousel.Item  >
                               <Carousel.Item interval={7500}>
-                                 <img style={carouselImageStyle}
+                                 <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-video.png'} />
                               <Carousel.Caption>
                                  <h3 style={carouselHeadingStyle}>Manage the video call.</h3>
                               </Carousel.Caption>
                            </Carousel.Item>
                            <Carousel.Item interval={7500}>
-                              <img style={carouselImageStyle}
+                                 <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-music.png'} />
                                  <Carousel.Caption>
                                     <h3 style={carouselHeadingStyle}>Play licenced music&nbsp;
