@@ -71755,7 +71755,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PageSwitcher = exports.LoginPage = exports.CoachPage = exports.MemberPage = void 0;
+exports.Footer = exports.PageSwitcher = exports.LoginPage = exports.CoachPage = exports.MemberPage = void 0;
 var ReactDOM = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
 // Core React
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
@@ -71855,9 +71855,11 @@ var carouselImageStyle = {
 var carouselHeadingStyle = {
     color: 'black'
 };
-{
-    color: "black";
-}
+var footerElementStyle = {
+    padding: '10px',
+    fontSize: '14px',
+    color: 'white'
+};
 var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
@@ -71943,7 +71945,8 @@ var MemberPage = /** @class */ (function (_super) {
                     React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                         React.createElement(clockpanel_1.RemoteClock, { rtc: this.state.rtc }),
                         React.createElement("br", null),
-                        React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
+                        React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))),
+                React.createElement(Footer, null))));
     };
     return MemberPage;
 }(React.Component));
@@ -72068,7 +72071,8 @@ var CoachPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))))));
+                            React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))),
+                    React.createElement(Footer, null))));
         }
     };
     return CoachPage;
@@ -72228,7 +72232,8 @@ var LoginPage = /** @class */ (function (_super) {
                             React.createElement(Form_1.default.Group, { controlId: "formName" },
                                 React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: "30", style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.isValidName, value: this.state.name })),
                             React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isMcReadyToLogin, onClick: this.state.loginMc.logIn.bind(this.state.loginMc) }, "Join with a meeting code...")),
-                        React.createElement(Col_1.default, { className: "d-none d-md-block" }))))));
+                        React.createElement(Col_1.default, { className: "d-none d-md-block" }))),
+                React.createElement(Footer, null))));
     };
     return LoginPage;
 }(React.Component));
@@ -72253,6 +72258,23 @@ var PageSwitcher = /** @class */ (function (_super) {
     return PageSwitcher;
 }(React.Component));
 exports.PageSwitcher = PageSwitcher;
+var Footer = /** @class */ (function (_super) {
+    __extends(Footer, _super);
+    function Footer() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Footer.prototype.render = function () {
+        return (React.createElement("div", null,
+            React.createElement(Container_1.default, null,
+                React.createElement(Row_1.default, null,
+                    React.createElement(Col_1.default, null,
+                        React.createElement("a", { style: footerElementStyle, href: "/" }, "Home"),
+                        React.createElement("a", { style: footerElementStyle, href: "privacy" }, "Privacy"),
+                        React.createElement("a", { style: footerElementStyle, href: "mailto:ultrabox.servicet@gmail.com" }, "Contact Us"))))));
+    };
+    return Footer;
+}(React.Component));
+exports.Footer = Footer;
 ReactDOM.render(React.createElement(PageSwitcher, null), document.getElementById('root'));
 
 
