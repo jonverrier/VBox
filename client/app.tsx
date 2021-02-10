@@ -113,8 +113,8 @@ const rpanelStyle: CSS.Properties = {
 };
 
 const carouselMobileImageStyle: CSS.Properties = {
-   width: '340px',
-   opacity: '65%'
+   width: '320px',
+   opacity: '50%'
 };
 
 const carouselImageStyle: CSS.Properties = {

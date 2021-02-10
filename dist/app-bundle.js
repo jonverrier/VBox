@@ -71845,8 +71845,8 @@ var rpanelStyle = {
     minHeight: '575px'
 };
 var carouselMobileImageStyle = {
-    width: '340px',
-    opacity: '65%'
+    width: '320px',
+    opacity: '50%'
 };
 var carouselImageStyle = {
     width: '480px',
