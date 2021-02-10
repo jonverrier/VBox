@@ -71791,6 +71791,7 @@ var clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./client/clockpanel.
 var whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./client/whiteboardpanel.tsx");
 var leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./client/leaderpanel.tsx");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
+var media_1 = __webpack_require__(/*! ./media */ "./client/media.tsx");
 var logger = new logger_1.Logger();
 var jumbotronStyle = {
     paddingLeft: '10px',
@@ -71842,6 +71843,10 @@ var rpanelStyle = {
     marginLeft: '10px', paddingLeft: '0px',
     marginRight: '2px', paddingRight: '0px',
     minHeight: '575px'
+};
+var carouselMobileImageStyle = {
+    width: '340px',
+    opacity: '65%'
 };
 var carouselImageStyle = {
     width: '480px',
@@ -72091,8 +72096,12 @@ var LoginPage = /** @class */ (function (_super) {
                 meetCode: _this.lastUserData.loadMeetingId()
             }),
             sentEmail: false,
-            playingAudio: (false)
+            playingAudio: (false),
+            isMobileFormFactor: true // Assume mobile first !
         };
+        // Can have a single media object across all instances
+        _this.media = new media_1.Media();
+        _this.media.addMobileFormFactorChangeListener(_this.onMobileFormFactorChange.bind(_this));
         return _this;
     }
     LoginPage.prototype.onLoginStatusChangeMc = function (isLoggedIn) {
@@ -72117,8 +72126,12 @@ var LoginPage = /** @class */ (function (_super) {
         this.state.loginFb.loadAPI();
         // Initialise meeting code API
         this.state.loginMc.loadAPI();
+        this.setState({ isMobileFormFactor: this.media.isSmallFormFactor() });
     };
     LoginPage.prototype.componentWillUnmount = function () {
+    };
+    LoginPage.prototype.onMobileFormFactorChange = function (isMobile) {
+        this.setState({ isMobileFormFactor: isMobile });
     };
     LoginPage.prototype.playAudio = function () {
         if (!this.state.playingAudio) {
@@ -72180,15 +72193,15 @@ var LoginPage = /** @class */ (function (_super) {
                         React.createElement(Col_1.default, { className: "align-items-center" },
                             React.createElement(Carousel_1.default, { className: "align-items-center", fade: true },
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
-                                    React.createElement("img", { style: carouselImageStyle, src: 'landing-workout.png' }),
+                                    React.createElement("img", { style: this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle, src: 'landing-workout.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
                                         React.createElement("h3", { style: carouselHeadingStyle }, "Share the whiteboard."))),
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
-                                    React.createElement("img", { style: carouselImageStyle, src: 'landing-video.png' }),
+                                    React.createElement("img", { style: this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle, src: 'landing-video.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
                                         React.createElement("h3", { style: carouselHeadingStyle }, "Manage the video call."))),
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
-                                    React.createElement("img", { style: carouselImageStyle, src: 'landing-music.png' }),
+                                    React.createElement("img", { style: this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle, src: 'landing-music.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
                                         React.createElement("h3", { style: carouselHeadingStyle },
                                             "Play licenced music\u00A0",
@@ -73294,6 +73307,81 @@ var LoginMc = /** @class */ (function () {
     return LoginMc;
 }());
 exports.LoginMc = LoginMc;
+
+
+/***/ }),
+
+/***/ "./client/media.tsx":
+/*!**************************!*\
+  !*** ./client/media.tsx ***!
+  \**************************/
+/*! flagged exports */
+/*! export Media [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export __esModule [provided] [no usage info] [missing usage info prevents renaming] */
+/*! other exports [not provided] [no usage info] */
+/*! runtime requirements: __webpack_exports__ */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global exports*/
+/*global $*/
+/*! Copyright TXPCo, 2015 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Media = void 0;
+//==============================//
+// Library of JavaScript classes - Media queries 
+// TypeRegistry
+//==============================//
+//==============================//
+// Media class
+//==============================//
+var Media = /** @class */ (function () {
+    /**
+     * Initialises repository
+     */
+    function Media() {
+        this.listeners = new Array();
+        this.isMobileFormFactorQuery = window.matchMedia("(max-width: 767px)");
+        this.isMobileFormFactorQuery.addListener(this.onMobileFormFactorChange.bind(this));
+    }
+    /**
+     *
+     * isSmallFormFactor - provides a one-time response
+     * if the display is at or below mobile form factor boundary.
+     */
+    Media.prototype.isSmallFormFactor = function () {
+        if (this.isMobileFormFactorQuery.matches) { // If media query matches
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
+    /**
+      *
+      * onSmallFormFactorChange - local hook on mobile form factor changes.
+      */
+    Media.prototype.onMobileFormFactorChange = function () {
+        var matches = false;
+        if (this.isMobileFormFactorQuery.matches) { // If media query matches
+            matches = true;
+        }
+        for (var i = 0; i < this.listeners.length; i++) {
+            this.listeners[i](matches);
+        }
+    };
+    /**
+      *
+      * addMobileFormFactorChangeListener - hook on external listeners to be fired if the display transitions across mobile form factor boundary.
+      */
+    Media.prototype.addMobileFormFactorChangeListener = function (fn) {
+        this.listeners.push(fn);
+    };
+    return Media;
+}());
+exports.Media = Media;
 
 
 /***/ }),
