@@ -5,8 +5,28 @@
 
 var Enum = require('./enum.js').Enum;
 
-const gymClockType = new Enum('Wall', 'CountUp', 'CountDown', 'Interval');
-const gymClockBeepType = new Enum('ThreeBeepStart', 'LongBeepStop');
+const gymClockDurationEnum = new Enum('Ten', 'Fifteen', 'Twenty');
+const gymClockMusicEnum = new Enum('Uptempo', 'Midtempo', 'None');
+const gymClockStateEnum = new Enum('Stopped', 'CountingDown', 'Running', 'Paused');
+const gymClockActionEnum = new Enum('Start', 'Stop', 'Pause');
+
+const countDownSeconds = new Number(15);
+
+// Keep this function need declation in case an extra Enum is added above & this needs to change
+function calculateCountToSeconds (durationEnum) {
+   switch (durationEnum) {
+      default:
+      case gymClockDurationEnum.Ten:
+         return (countDownSeconds + 10 * 60);
+
+      case gymClockDurationEnum.Fifteen:
+         return (countDownSeconds + 15 * 60);
+
+      case gymClockDurationEnum.Twenty:
+         return (countDownSeconds + 20 * 60);
+
+   }
+};
 
 //==============================//
 // GymClockSpec class
@@ -16,18 +36,24 @@ var GymClockSpec = (function invocation() {
 
   /**
    * Create a GymClockSpec object
+   * @param durationEnum - one of the enumeration objects (10, 15, 20, ...)
+   * @param musicEnum - one of the enumeration objects (Uptempo, Midtempo, none, ...)
+   * @param musicUrl - string URL to the music file. Can be null.
    */
-   function GymClockSpec(clockEnum, countTo, intervals, period1, period2) {
+   function GymClockSpec(durationEnum, musicEnum, musicUrl) {
 
-      if (!clockEnum) {
-         this.clockEnum = gymClockType.Wall;
+      if (!durationEnum) {
+         this.durationEnum = gymClockDurationEnum.Ten;
       } else {
-         this.clockEnum = clockEnum;
-         this.countTo = countTo;
-         this.intervals = intervals;
-         this.period1 = period1;
-         this.period2 = period2;
+         this.durationEnum = durationEnum;
       }
+
+      if (!musicEnum) {
+         this.musicEnum = gymClockMusicEnum.None;
+      } else {
+         this.musicEnum = musicEnum;
+      }
+      this.musicUrl = musicUrl;
    }
    
    GymClockSpec.prototype.__type = "GymClockSpec";
@@ -39,57 +65,9 @@ var GymClockSpec = (function invocation() {
    */
    GymClockSpec.prototype.equals = function (rhs) {
 
-      return (this.clockEnum.name === rhs.clockEnum.name
-         && this.countTo === rhs.countTo
-         && this.intervals === rhs.intervals
-         && this.period1 === rhs.period1
-         && this.period2 === rhs.period2); 
-   };
-
-   GymClockSpec.prototype.isValidWallSpec = function () {
-
-      return (true); 
-   };
-
-   GymClockSpec.prototype.isValidCountUpSpec = function (countTo) {
-
-      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
-   };
-
-   GymClockSpec.prototype.isValidCountDownSpec = function (countTo) {
-
-      return (countTo <= 60 && countTo > 0); // Say its valid if positive & up to 60 mins
-   };
-
-   GymClockSpec.prototype.isValidIntervalSpec = function (intervals, period1, period2) {
-
-      // Say its valid if intervals is positive, period1 is positive
-      return (intervals > 0 && intervals <= 60 && period1 > 0 && period1 <= 60 && period2 >= 0 && period2 <= 60); 
-   };
-
-   GymClockSpec.prototype.setWall = function () {
-
-      this.clockEnum = gymClockType.Wall;
-   };
-
-   GymClockSpec.prototype.setCountUp = function (countTo) {
-
-      this.clockEnum = gymClockType.CountUp;
-      this.countTo = countTo;
-   };
-
-   GymClockSpec.prototype.setCountDown = function (countTo) {
-
-      this.clockEnum = gymClockType.CountDown;
-      this.countTo = countTo;
-   };
-
-   GymClockSpec.prototype.setInterval = function (intervals, period1, period2) {
-
-      this.clockEnum = gymClockType.Interval;
-      this.intervals = intervals;
-      this.period1 = period1;
-      this.period2 = period2;
+      return (this.durationEnum.name === rhs.durationEnum.name
+         && this.musicEnum.name === rhs.musicEnum.name
+         && this.musicUrl === rhs.musicUrl);
    };
 
    /**
@@ -101,11 +79,9 @@ var GymClockSpec = (function invocation() {
          __type: GymClockSpec.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            clockEnum: this.clockEnum,
-            countTo: this.countTo,
-            intervals: this.intervals,
-            period1: this.period1,
-            period2: this.period2
+            durationEnum: this.durationEnum,
+            musicEnum: this.musicEnum,
+            musicUrl: this.musicUrl
          }
       };
    };
@@ -131,21 +107,9 @@ var GymClockSpec = (function invocation() {
 
       var spec = new GymClockSpec();
 
-      // TODO - find a maintainable way to do this
-      if (data.clockEnum.name === gymClockType.Wall.name)
-         spec.clockEnum = gymClockType.Wall;
-      if (data.clockEnum.name === gymClockType.CountUp.name)
-         spec.clockEnum = gymClockType.CountUp;
-      if (data.clockEnum.name === gymClockType.CountDown.name)
-         spec.clockEnum = gymClockType.CountDown;
-      if (data.clockEnum.name === gymClockType.Interval.name)
-         spec.clockEnum = gymClockType.Interval;
-
-      spec.clockEnum = data.clockEnum;
-      spec.countTo = data.countTo;
-      spec.intervals = data.intervals;
-      spec.period1 = data.period1;
-      spec.period2 = data.period2;
+      spec.durationEnum = data.durationEnum;
+      spec.musicEnum = data.musicEnum;
+      spec.musicUrl = data.musicUrl;
 
       return spec;
    };
@@ -166,7 +130,17 @@ var GymClock = (function invocation() {
       this.clockSpec = clockSpec;
       this.mm = 0;
       this.ss = 0;
-      this.running = false;
+      this.clockStateEnum = gymClockStateEnum.Stopped;
+      this.secondsCounted = 0;
+      this.startReference = new Date();
+      this.countToSeconds = 0;
+
+      if (this.clockSpec.musicUrl) {
+         this.audio = new Audio();
+         this.audio.src = this.clockSpec.musicUrl;
+         this.audio.loop = true;
+      } else
+         this.audio = null;
    }
 
    GymClock.prototype.__type = "GymClock";
@@ -180,143 +154,137 @@ var GymClock = (function invocation() {
 
       return (this.clockSpec.equals(rhs.clockSpec)
          && this.mm === rhs.hh
-         && this.ss === rhs.mm);
+         && this.ss === rhs.mm
+         && this.clockStateEnum.name == rhs.clockStateEnum.name
+         && this.secondsCounted === rhs.secondsCounted
+         && this.startReference.getTime() === rhs.startReference.getTime()
+         && this.countToSeconds === rhs.countToTicks);
    };
 
-   GymClock.prototype.start = function (onTick) {
-      this.startedAt = new Date();
-      this.ticker = setInterval(this.ontick.bind(this), 1000); 
-      this.onTick = onTick;
-      this.running = true;
+   GymClock.prototype.start = function (onTick, secondsPlayed) {
 
-      // call first tick to start the clock
-      this.ontick();
+      if (!secondsPlayed)
+         secondsPlayed = new Number(0);
+
+      if (this.clockStateEnum === gymClockStateEnum.Stopped) {
+         this.startReference = new Date();
+         this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
+         this.clockStateEnum = gymClockStateEnum.CountingDown;
+         this.secondsCounted = secondsPlayed;
+         this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
+      } else 
+      if (this.clockStateEnum === gymClockStateEnum.Paused) {
+         // Set a new effective start time by working out the duration of ticks already counted
+         this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
+         this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
+         if (this.secondsCounted >= countDownSeconds)
+            this.clockStateEnum = gymClockStateEnum.Running;
+         else
+            this.clockStateEnum = gymClockStateEnum.CountingDown;
+      }
+
+      this.onTick = onTick;
+
+      if (this.audio)
+         this.audio.play();
+
+      // call first tick to start the visible clock
+      this.onClockInterval();
    };
 
    GymClock.prototype.stop = function () {
-      if (this.ticker) {
-         clearInterval(this.ticker);
-         this.ticker = null;
+      if (this.tickerFn) {
+         clearInterval(this.tickerFn);
+         this.tickerFn = null;
       }
-      this.onTick = null;
-      this.running = false;
+      this.clockStateEnum = gymClockStateEnum.Stopped;
+      this.secondsCounted = 0;
+      this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
+
+      if (this.audio)
+         this.audio.stop();
    };
 
-   GymClock.prototype.startTime = function () {
-      return this.startedAt;
+   GymClock.prototype.pause = function () {
+      if (this.tickerFn) {
+         clearInterval(this.tickerFn);
+         this.tickerFn = null;
+      }
+      if (this.audio)
+         this.audio.pause();
+
+      this.clockStateEnum = gymClockStateEnum.Paused;
    };
 
-   GymClock.prototype.ontick = function () {
+   GymClock.prototype.onClockInterval = function () {
+
       var now, mm, ss, seconds;
 
-      switch (this.clockSpec.clockEnum) {
-         default:
-         case gymClockType.Wall:
-            now = new Date();
-            mm = Math.floor(now.getMinutes());
-            ss = Math.floor(now.getSeconds());
-            break;
+      now = new Date();
+      seconds = (now.getTime() - this.startReference.getTime()) / 1000;
+      this.secondsCounted = seconds;
 
-         case gymClockType.CountUp:
-            now = new Date();
-            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(seconds / 60);
-            ss = Math.floor(seconds - Math.floor(mm * 60));
-            if (mm >= this.clockSpec.countTo) {
-               mm = this.clockSpec.countTo;
-               ss = 0;
-               if (this.onTick)
-                  this.onTick(mm, ss);
-               this.stop();
-            }
-            break;
+      if (this.clockStateEnum === gymClockStateEnum.CountingDown && seconds < countDownSeconds) {
 
-         case gymClockType.CountDown:
-            now = new Date();
-            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(this.clockSpec.countTo - (Math.floor(seconds / 60)) - 1);
-            ss = Math.floor(((this.clockSpec.countTo - mm) * 60) - seconds);
-            if (mm <= 0 && ss <= 0) {
-               mm = 0;
-               ss = 0;
-               if (this.onTick)
-                  this.onTick(mm, ss);
-               this.stop();
-            }
-            break;
+         mm = Math.floor((countDownSeconds - seconds) / 60);
+         ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
+      } else {
+         if (this.clockStateEnum = gymClockStateEnum.CountingDown) {
+            this.clockStateEnum = gymClockStateEnum.Running;
+         } 
 
-         case gymClockType.Interval:
-            // An interval clock is very similar to a countUp, but repeatedly rounded down by the interval split times.
-            now = new Date();
-            seconds = (now.getTime() - this.startedAt.getTime()) / 1000;
-            mm = Math.floor(seconds / 60);
-            ss = Math.floor(seconds - Math.floor(mm * 60));
-
-            for (var i = 0; i < this.clockSpec.intervals; i++) {
-               if (mm > this.clockSpec.period1)
-                  mm -= this.clockSpec.period1;
-               if (mm > this.clockSpec.period2)
-                  mm -= this.clockSpec.period2;
-            }
-            if (seconds >= (this.clockSpec.intervals * (this.clockSpec.period1 + this.clockSpec.period2) * 60)) {
-               mm = Math.floor (this.clockSpec.intervals * (this.clockSpec.period1 + this.clockSpec.period2));
-               ss = 0;
-               if (this.onTick)
-                  this.onTick(mm, ss);
-               this.stop();
-            }
-            break;
+         mm = Math.floor((seconds - countDownSeconds) / 60);
+         ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60)); // Switch from floor to Ceil Compensate for passing zero in common across two counters
+         if (seconds >= this.countToSeconds) {
+            mm = (this.countToSeconds - countDownSeconds) / 60;
+            ss = 0;
+            this.stop();
+         }
       }
-
-      this.mm = mm;
-      this.ss = ss;
       if (this.onTick)
-         this.onTick(this.mm, this.ss);
+         this.onTick(mm, ss);
    };
 
    return GymClock;
 }());
 
 //==============================//
-// GymClockTick class harry is the best
+// GymClockAction class 
 //==============================//
-var GymClockTick = (function invocation() {
+var GymClockAction = (function invocation() {
    "use strict";
 
    /**
-    * Create a GymClockTick object
+    * Create a GymClockAction object
     */
-   function GymClockTick(mm, ss) {
+   function GymClockAction(actionEnum) {
 
-      this.mm = mm;
-      this.ss = ss;
+      this.actionEnum = actionEnum;
    }
 
-   GymClockTick.prototype.__type = "GymClockTick";
+   GymClockAction.prototype.__type = "GymClockAction";
 
    /**
     * test for equality - checks all fields are the same. 
     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
     * @param rhs - the object to compare this one to.  
     */
-   GymClockTick.prototype.equals = function (rhs) {
+   GymClockAction.prototype.equals = function (rhs) {
 
-      return (this.mm === rhs.mm
-         && this.ss === rhs.ss);
+      return (this.actionEnum.name === rhs.actionEnum.name);
    };
 
 
    /**
     * Method that serializes to JSON 
     */
-   GymClockTick.prototype.toJSON = function () {
+   GymClockAction.prototype.toJSON = function () {
 
       return {
-         __type: GymClockTick.prototype.__type,
+         __type: GymClockAction.prototype.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            mm: this.mm,
-            ss: this.ss
+            actionEnum: this.actionEnum
          }
       };
    };
@@ -325,110 +293,40 @@ var GymClockTick = (function invocation() {
     * Method that can deserialize JSON into an instance 
     * @param data - the JSON data to revive from 
     */
-   GymClockTick.prototype.revive = function (data) {
+   GymClockAction.prototype.revive = function (data) {
 
       // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
       if (data.attributes)
-         return GymClockTick.prototype.reviveDb(data.attributes);
+         return GymClockAction.prototype.reviveDb(data.attributes);
 
-      return GymClockTick.prototype.reviveDb(data);
+      return GymClockAction.prototype.reviveDb(data);
    };
 
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revive from 
    */
-   GymClockTick.prototype.reviveDb = function (data) {
+   GymClockAction.prototype.reviveDb = function (data) {
 
-      var tick = new GymClockTick();
+      var actions = new GymClockAction();
 
-      tick.mm = data.mm;
-      tick.ss = data.ss;
+      actions.actionEnum = data.actionEnum;
 
-      return tick;
+      return actions;
    };
 
-   return GymClockTick;
-}());
-
-//==============================//
-// GymClockBeep class
-//==============================//
-var GymClockBeep = (function invocation() {
-   "use strict";
-
-   /**
-    * Create a GymClockBeep object
-    */
-   function GymClockBeep(beepType) {
-
-      this.beepType = beepType;
-   }
-
-   GymClockBeep.prototype.__type = "GymClockBeep";
-
-   /**
-    * test for equality - checks all fields are the same. 
-    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-    * @param rhs - the object to compare this one to.  
-    */
-   GymClockBeep.prototype.equals = function (rhs) {
-
-      return (this.beepType.name === rhs.beepType.name);
-   };
-
-
-   /**
-    * Method that serializes to JSON 
-    */
-   GymClockBeep.prototype.toJSON = function () {
-
-      return {
-         __type: GymClockBeep.prototype.__type,
-         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-         attributes: {
-            beepType: this.beepType
-         }
-      };
-   };
-
-   /**
-    * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revive from 
-    */
-   GymClockBeep.prototype.revive = function (data) {
-
-      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      if (data.attributes)
-         return GymClockBeep.prototype.reviveDb(data.attributes);
-
-      return GymClockBeep.prototype.reviveDb(data);
-   };
-
-   /**
-   * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revive from 
-   */
-   GymClockBeep.prototype.reviveDb = function (data) {
-
-      var beep = new GymClockBeep();
-
-      beep.beepType = data.beepType;
-
-      return beep;
-   };
-
-   return GymClockBeep;
+   return GymClockAction;
 }());
 
 
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
 } else { 
-   exports.gymClockType = gymClockType;
-   exports.gymClockBeepType = gymClockBeepType;
+   exports.gymClockDurationEnum = gymClockDurationEnum;
+   exports.gymClockMusicEnum = gymClockMusicEnum;
+   exports.gymClockStateEnum = gymClockStateEnum;
+   exports.gymClockActionEnum = gymClockActionEnum;
    exports.GymClockSpec = GymClockSpec;
    exports.GymClock = GymClock;
-   exports.GymClockTick = GymClockTick;
-   exports.GymClockBeep = GymClockBeep;
+   exports.GymClockAction = GymClockAction;
 }
