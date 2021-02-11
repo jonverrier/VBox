@@ -107,7 +107,7 @@ app.use('/', authRouter);
 app.use('/', apiRouter);
 
 // Need this for facebook data deletion.
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 
 //redirect root to Login
 app.get('/', function (req, res) {

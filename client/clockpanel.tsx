@@ -9,18 +9,22 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
-import { TriangleDownIcon } from '@primer/octicons-react'
+import { TriangleDownIcon, PlayIcon, StopIcon } from '@primer/octicons-react'
 
 import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
 import { IConnectionProps } from './callpanel';
-import { gymClockType, GymClockSpec, GymClock, GymClockTick } from '../common/gymclock.js';
+import { gymClockDurationEnum, gymClockMusicEnum, gymClockStateEnum, gymClockActionEnum, GymClockSpec, GymClock, GymClockAction } from '../common/gymclock.js';
 import { MeetingWorkoutState } from './localstore';
 import { TypeRegistry } from '../common/types.js'
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
+};
+
+const thinAutoStyle: CSS.Properties = {
+   margin: 'auto', padding: '0px',
 };
 
 const clockStyle: CSS.Properties = {
@@ -38,6 +42,11 @@ const fieldYSepStyleAuto: CSS.Properties = {
 
 const popdownBtnStyle: CSS.Properties = {
    margin: '0px', padding: '4px',
+   fontSize: '14px'
+};
+
+const clockBtnStyle: CSS.Properties = {
+   margin: '0px', padding: '0px',
    fontSize: '14px'
 };
 
@@ -77,7 +86,7 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
    }
 
    onremotedata(ev: any, link: RtcLink) {
-      if (Object.getPrototypeOf(ev).__type === GymClockTick.prototype.__type) {
+      if (Object.getPrototypeOf(ev).__type === GymClockAction.prototype.__type) {
          this.setState({ mm: ev.mm, ss: ev.ss });
       }
    }
@@ -99,6 +108,7 @@ interface IMasterClockState {
    isMounted: boolean;
    enableOk: boolean;
    enableCancel: boolean;
+   clockStateEnum: any;
    clockSpec: GymClockSpec;
    clock: GymClock;
    mm: number;
@@ -116,20 +126,18 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       this.storedWorkoutState = new MeetingWorkoutState();
 
       // Use cached copy of the workout if there is one
-      var storedClockSpec = this.storedWorkoutState.loadClock();
+      var storedClockSpec; // = this.storedWorkoutState.loadClock();
       var clockSpec;
 
-      if (storedClockSpec.length > 0) {
+      if (storedClockSpec && storedClockSpec.length > 0) {
          var types = new TypeRegistry()
          var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
-         clockSpec = new GymClockSpec(loadedClockSpec.clockEnum,
-            new Number(loadedClockSpec.countTo),
-            new Number(loadedClockSpec.intervals), new Number(loadedClockSpec.period1), new Number(loadedClockSpec.period2));
-
-         // Just makes more sense to set the clock to a Wall clock on first load, not to start counting up or down etc
-         clockSpec.setWall();
+         clockSpec = new GymClockSpec(loadedClockSpec.durationEnum,
+                                      loadedClockSpec.musicEnum);
       } else
-         clockSpec = new GymClockSpec(gymClockType.Wall, new Date(), 20, 3, 5, 2);
+         clockSpec = new GymClockSpec(gymClockDurationEnum.Ten, gymClockMusicEnum.None, null); 
+
+      let clock = new GymClock(clockSpec);
 
       this.state = {
          inEditMode: false,
@@ -137,21 +145,20 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          enableOk: false,
          enableCancel: false,
          clockSpec: clockSpec,
-         clock: new GymClock(clockSpec),
+         clockStateEnum: clock.clockStateEnum,
+         clock: clock,
          mm: 0,
          ss: 0
       };
-
-      this.state.clock.start(this.onTick.bind(this), null);
    }
 
    onTick(mm, ss) {
       if (this.state.isMounted) {
          this.setState({ mm: mm, ss: ss });
 
-         // distribute the tick to all clients
-         let tick = new GymClockTick(mm, ss);
-         this.props.rtc.broadcast(tick);
+         this.setState({ clockStateEnum: this.state.clock.clockStateEnum });
+         //let tick = new GymClockAction(mm, ss);
+         //this.props.rtc.broadcast(tick);
       }
    }
 
@@ -175,87 +182,53 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
 
       // Need to get the latest values for cross-field validation
       self.forceUpdate(() => {
-         self.setState({ enableOk: false });
-
-         // test for valid wall clock selection
-         if (self.state.clockSpec.clockEnum === gymClockType.Wall &&
-            self.state.clockSpec.isValidWallSpec(new Date())) {
-            self.setState({ enableOk : true});
-         }
-
-         // test for valid countUp selection
-         if (self.state.clockSpec.clockEnum === gymClockType.CountUp &&
-            self.state.clockSpec.isValidCountUpSpec(new Number(self.state.clockSpec.countTo))) {
-            self.setState({ enableOk: true });
-         }
-
-         // test for valid countDown selection
-         if (self.state.clockSpec.clockEnum === gymClockType.CountDown &&
-            self.state.clockSpec.isValidCountDownSpec(new Number(self.state.clockSpec.countTo))) {
-            self.setState({ enableOk: true });
-         }
-
-         // test for valid interval selection
-         if (self.state.clockSpec.clockEnum === gymClockType.Interval &&
-            self.state.clockSpec.isValidIntervalSpec(new Number(self.state.clockSpec.intervals),
-                                                     new Number(self.state.clockSpec.period1), 
-                                                     new Number(self.state.clockSpec.period2))) {
-            self.setState({ enableOk: true });
-         }
+         // Since the user is just slecting from radio buttons, they cannt make any invalid choices
+         self.setState({ enableOk: true });
       });
    }
 
    processSave() {
-      var spec: GymClockSpec = new GymClockSpec(this.state.clockSpec.clockEnum, 
-         this.state.clockSpec.countTo,
-         this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2);
-      var clock : GymClock;
+      var spec: GymClockSpec = new GymClockSpec(this.state.clockSpec.durationEnum,
+         this.state.clockSpec.musicEnum); 
 
-      // test for valid wall clock selection
-      if (this.state.clockSpec.clockEnum === gymClockType.Wall && spec.isValidWallSpec(new Date())) {
-         this.state.clock.stop();
-         spec.setWall(new Date());
-         clock = new GymClock(spec);
-         this.setState({ clock: clock});
-      }
+      this.state.clock.stop();
+      var clock = new GymClock(spec);
 
-      // test for valid countUp selection
-      if (this.state.clockSpec.clockEnum === gymClockType.CountUp && spec.isValidCountUpSpec(this.state.clockSpec.countTo)) {
-         this.state.clock.stop();
-         spec.setCountUp(new Number(this.state.clockSpec.countTo));
-         clock = new GymClock(spec);
-         this.setState({ clock: clock});
-      }
+      this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
 
-      // test for valid countDown selection
-      if (this.state.clockSpec.clockEnum === gymClockType.CountDown && spec.isValidCountDownSpec(this.state.clockSpec.countTo)) {
-         this.state.clock.stop();
-         spec.setCountDown(new Number(this.state.clockSpec.countTo));
-         clock = new GymClock(spec);
-         this.setState({ clock: clock});
-      }
-
-      // test for valid interval selection
-      if (this.state.clockSpec.clockEnum === gymClockType.Interval && spec.isValidIntervalSpec(this.state.clockSpec.intervals,
-                                                                                     this.state.clockSpec.period1,
-                                                                                     this.state.clockSpec.period2)) {
-         this.state.clock.stop();
-         spec.setInterval(new Number(this.state.clockSpec.intervals),
-                          new Number(this.state.clockSpec.period1), 
-                          new Number(this.state.clockSpec.period2));
-         clock = new GymClock(spec);
-         this.setState({ clock: clock });
-      }
-
-      this.setState({ enableOk: false, enableCancel: false, inEditMode: false});
-      clock.start(this.onTick.bind(this), null);
+      // TODO - move to a 'play' button.
+      clock.start(this.onTick.bind(this), 0);
 
       // Cache the clock as JSON
       this.storedWorkoutState.saveClock(JSON.stringify(this.state.clockSpec));
    }
 
    processCancel() {
-      this.setState({ inEditMode: false});
+      this.setState({ inEditMode: false });
+   }
+
+   canPauseOrStop() {
+      return (this.state.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.state.clockStateEnum.name == gymClockStateEnum.Running.name)
+   }
+
+   canPlay() {
+      return (this.state.clockStateEnum.name == gymClockStateEnum.Paused.name) || (this.state.clockStateEnum.name == gymClockStateEnum.Stopped.name);
+   }
+
+   processPlay() {
+      this.state.clock.start(this.onTick.bind(this), 0);
+      this.setState({ clockStateEnum: gymClockStateEnum.CountingDown });
+   }
+
+   processPause() {
+      this.state.clock.pause();
+      this.setState({ clockStateEnum: gymClockStateEnum.Paused });
+   }
+
+   processStop() {
+      this.state.clock.stop();
+      this.setState({ clockStateEnum: gymClockStateEnum.Stopped });
    }
 
    render() {
@@ -264,6 +237,29 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
             <Container style={thinStyle}>
                <Row style={thinStyle}>
                   <Col style={thinStyle}><p style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</p></Col>
+                  <Col style={thinAutoStyle}>
+                     <Row style={thinStyle}>
+                        <Button variant="secondary" size="sm" style={clockBtnStyle}
+                           enabled={this.canPlay()}
+                           onClick={this.processPlay.bind(this) }>
+                        <i className="fa fa-play"></i>
+                        </Button>
+                     </Row>
+                     <Row style={thinStyle}>
+                        <Button variant="secondary" size="sm" style={clockBtnStyle}
+                           enabled={this.canPauseOrStop()}
+                           onClick={this.processPause.bind(this)}> 
+                        <i className="fa fa-pause"></i>
+                        </Button>
+                     </Row>
+                     <Row style={thinStyle}>
+                        <Button variant="secondary" size="sm" style={clockBtnStyle}
+                           enabled={this.canPauseOrStop()}
+                           onClick={this.processStop.bind(this)}>
+                        <i className="fa fa-stop"></i>
+                        </Button>
+                     </Row>
+                  </Col>
                   <Col style={thinStyle}>
                      <Button variant="secondary" size="sm" style={popdownBtnStyle}
                         onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
@@ -277,17 +273,17 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                   <Form>
                      <Form.Row>
                         <Form.Group>
-                           <Form.Check inline label="Wall clock" type="radio" id={'wall-clock-select'}
+                           <Form.Check inline label="10 mins:" type="radio" id={'wall-clock-select'}
                               // TODO - do not understand why we have to use'name'.
                               // The GymClockSpec class explicitly checks for a match on restore from JSON 
                               // and should be using the actual local symbon, not a copy.
                               // TODO marker                          HERE                       HERE
-                              checked={this.state.clockSpec.clockEnum.name === gymClockType.Wall.name}
+                              checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Ten.name}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(gymClockType.Wall, 
-                                          this.state.clockSpec.countTo, this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2),
+                                       clockSpec: new GymClockSpec(gymClockDurationEnum.Ten, 
+                                          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl),
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
@@ -296,97 +292,32 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                      </Form.Row>
                      <Form.Row>
                         <Form.Group>
-                           <Form.Check inline label="Count up to:" type="radio" id={'count-up-select'}
-                              checked={this.state.clockSpec.clockEnum.name === gymClockType.CountUp.name}
+                           <Form.Check inline label="15 mins:" type="radio" id={'count-up-select'}
+                              checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Fifteen.name}
                               onChange={(ev) => {
                                  if (ev.target.checked)
                                  {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(gymClockType.CountUp,
-                                          this.state.clockSpec.countTo, this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2),
+                                       clockSpec: new GymClockSpec(gymClockDurationEnum.Fifteen,
+                                          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl),
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
-                              }} />
-                           <Form.Control type="number" placeholder="Mins" min='1' max='60' step='1' style={fieldYSepStyleAuto}
-                              disabled={!(this.state.clockSpec.clockEnum.name === gymClockType.CountUp.name)} id={'count-up-value'}
-                              value={this.state.clockSpec.countTo}
-                              onChange={(ev) => {
-                                 this.setState({
-                                    clockSpec: new GymClockSpec(gymClockType.CountUp, 
-                                       new Number(ev.target.value), this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2),
-                                    enableCancel: true
-                                 }); this.testEnableSave();
                               }} />
                         </Form.Group>
                      </Form.Row>
                      <Form.Row>
                         <Form.Group>
-                           <Form.Check inline label="Count down from:" type="radio" id={'count-down-select'}
-                              checked={this.state.clockSpec.clockEnum.name === gymClockType.CountDown.name}
+                           <Form.Check inline label="20 mins:" type="radio" id={'count-down-select'}
+                              checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Twenty.name}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(gymClockType.CountDown,
-                                          this.state.clockSpec.countTo, this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2),
+                                       clockSpec: new GymClockSpec(gymClockDurationEnum.Twenty,
+                                          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl),
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
-                              }} />
-                           <Form.Control type="number" placeholder="Mins" min='1' max='60' step='1' style={fieldYSepStyleAuto} id={'count-down-value'}
-                              disabled={!(this.state.clockSpec.clockEnum.name === gymClockType.CountDown.name)}
-                              value={this.state.clockSpec.countTo}
-                              onChange={(ev) => {
-                                 this.setState({
-                                    clockSpec: new GymClockSpec(gymClockType.CountDown, 
-                                       new Number(ev.target.value), this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2),
-                                    enableCancel: true
-                                 }); this.testEnableSave();
-                              }} />
-                        </Form.Group>
-                     </Form.Row>
-                     <Form.Row>
-                        <Form.Group>
-                           <Form.Check inline label="Intervals of:" type="radio" id={'interval-select'}
-                              checked={this.state.clockSpec.clockEnum.name === gymClockType.Interval.name}
-                              onChange={(ev) => {
-                                 if (ev.target.checked) {
-                                    this.setState({
-                                       clockSpec: new GymClockSpec(gymClockType.Interval,
-                                          this.state.clockSpec.countTo, this.state.clockSpec.intervals, this.state.clockSpec.period1, this.state.clockSpec.period2),
-                                       enableCancel: true
-                                    }); this.testEnableSave();
-                                 }
-                              }} />
-                           <Form.Control type="number" placeholder="Intervals" min='1' max='60' step='1' style={fieldYSepStyle} id={'interval-value'}
-                              disabled={!(this.state.clockSpec.clockEnum.name === gymClockType.Interval.name)}
-                              value={this.state.clockSpec.intervals}
-                              onChange={(ev) => {
-                                 this.setState({
-                                    clockSpec: new GymClockSpec(gymClockType.Interval, 
-                                       this.state.clockSpec.countTo, new Number(ev.target.value), this.state.clockSpec.period1, this.state.clockSpec.period2),
-                                    enableCancel: true
-                                 }); this.testEnableSave();
-                              }} />
-                           <Form.Control type="number" placeholder="Work" min='0' max='60' step='1' style={fieldYSepStyle} id={'period1-value'}
-                              disabled={!(this.state.clockSpec.clockEnum.name === gymClockType.Interval.name)} 
-                              value={this.state.clockSpec.period1}
-                              onChange={(ev) => {
-                                 this.setState({
-                                    clockSpec: new GymClockSpec(gymClockType.Interval, 
-                                       this.state.clockSpec.countTo, this.state.clockSpec.intervals, new Number(ev.target.value), this.state.clockSpec.period2),
-                                    enableCancel: true
-                                 }); this.testEnableSave();
-                              }} />
-                           <Form.Control type="number" placeholder="Rest" min='0' max='60' step='1' style={fieldYSepStyle} id={'period2-value'}
-                              disabled={!(this.state.clockSpec.clockEnum.name === gymClockType.Interval.name)}
-                              value={this.state.clockSpec.period2}
-                              onChange={(ev) => {
-                                 this.setState({
-                                    clockSpec: new GymClockSpec(gymClockType.Interval, 
-                                       this.state.clockSpec.countTo, this.state.clockSpec.intervals, this.state.clockSpec.period1, new Number(ev.target.value)),
-                                    enableCancel: true
-                                 }); this.testEnableSave();
                               }} />
                         </Form.Group>
                      </Form.Row>

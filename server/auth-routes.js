@@ -42,7 +42,7 @@ authRouter.get('/data_deletionfb', (req, res, next) => {
 
 
 authRouter.get('/datadeleted', function (req, res) {
-   var options = ata{
+   var options = {
       root: path.join(__dirname, "..")
    };
    res.sendFile('public/datadeleted.html', options);
