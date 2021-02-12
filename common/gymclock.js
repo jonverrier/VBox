@@ -128,8 +128,6 @@ var GymClock = (function invocation() {
     */
    function GymClock(clockSpec) {
       this.clockSpec = clockSpec;
-      this.mm = 0;
-      this.ss = 0;
       this.clockStateEnum = gymClockStateEnum.Stopped;
       this.secondsCounted = 0;
       this.startReference = new Date();
@@ -153,8 +151,6 @@ var GymClock = (function invocation() {
    GymClock.prototype.equals = function (rhs) {
 
       return (this.clockSpec.equals(rhs.clockSpec)
-         && this.mm === rhs.hh
-         && this.ss === rhs.mm
          && this.clockStateEnum.name == rhs.clockStateEnum.name
          && this.secondsCounted === rhs.secondsCounted
          && this.startReference.getTime() === rhs.startReference.getTime()
@@ -203,6 +199,9 @@ var GymClock = (function invocation() {
 
       if (this.audio)
          this.audio.stop();
+
+      if (this.onTick)
+         this.onTick(0, 0);
    };
 
    GymClock.prototype.pause = function () {

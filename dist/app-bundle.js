@@ -1020,8 +1020,6 @@ var GymClock = (function invocation() {
     */
    function GymClock(clockSpec) {
       this.clockSpec = clockSpec;
-      this.mm = 0;
-      this.ss = 0;
       this.clockStateEnum = gymClockStateEnum.Stopped;
       this.secondsCounted = 0;
       this.startReference = new Date();
@@ -1045,8 +1043,6 @@ var GymClock = (function invocation() {
    GymClock.prototype.equals = function (rhs) {
 
       return (this.clockSpec.equals(rhs.clockSpec)
-         && this.mm === rhs.hh
-         && this.ss === rhs.mm
          && this.clockStateEnum.name == rhs.clockStateEnum.name
          && this.secondsCounted === rhs.secondsCounted
          && this.startReference.getTime() === rhs.startReference.getTime()
@@ -1095,6 +1091,9 @@ var GymClock = (function invocation() {
 
       if (this.audio)
          this.audio.stop();
+
+      if (this.onTick)
+         this.onTick(0, 0);
    };
 
    GymClock.prototype.pause = function () {
@@ -72421,6 +72420,7 @@ var octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./node
 var gymclock_js_1 = __webpack_require__(/*! ../common/gymclock.js */ "./common/gymclock.js");
 var localstore_1 = __webpack_require__(/*! ./localstore */ "./client/localstore.tsx");
 var types_js_1 = __webpack_require__(/*! ../common/types.js */ "./common/types.js");
+var person_js_1 = __webpack_require__(/*! ../common/person.js */ "./common/person.js");
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -72459,19 +72459,49 @@ var RemoteClock = /** @class */ (function (_super) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
         _this.state = {
+            isMounted: false,
             mm: 0,
-            ss: 0
+            ss: 0,
+            clock: null
         };
         return _this;
     }
+    RemoteClock.prototype.componentDidMount = function () {
+        // Allow data display from master
+        this.setState({ isMounted: true });
+    };
+    RemoteClock.prototype.componentWillUnmount = function () {
+        // Stop data display from master
+        this.setState({ isMounted: false });
+    };
     RemoteClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
             nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
         }
     };
     RemoteClock.prototype.onremotedata = function (ev, link) {
-        if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockAction.prototype.__type) {
-            this.setState({ mm: ev.mm, ss: ev.ss });
+        if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockSpec.prototype.__type) {
+            var spec = new gymclock_js_1.GymClockSpec(ev.durationEnum, ev.musicEnum, ev.musicUrl);
+            var clock = new gymclock_js_1.GymClock(spec);
+            this.setState({ clock: clock });
+        }
+        else if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockAction.prototype.__type) {
+            switch (ev.actionEnum.name) {
+                case gymclock_js_1.gymClockActionEnum.Start.name:
+                    this.state.clock.start(this.onTick.bind(this), 0);
+                    break;
+                case gymclock_js_1.gymClockActionEnum.Stop.name:
+                    this.state.clock.stop();
+                    break;
+                case gymclock_js_1.gymClockActionEnum.Pause.name:
+                    this.state.clock.pause();
+                    break;
+            }
+        }
+    };
+    RemoteClock.prototype.onTick = function (mm, ss) {
+        if (this.state.isMounted) {
+            this.setState({ mm: mm, ss: ss });
         }
     };
     RemoteClock.prototype.render = function () {
@@ -72489,7 +72519,7 @@ var MasterClock = /** @class */ (function (_super) {
         var _this = _super.call(this, props) || this;
         _this.storedWorkoutState = new localstore_1.MeetingWorkoutState();
         // Use cached copy of the workout if there is one
-        var storedClockSpec; // = this.storedWorkoutState.loadClock();
+        var storedClockSpec = _this.storedWorkoutState.loadClock();
         var clockSpec;
         if (storedClockSpec && storedClockSpec.length > 0) {
             var types = new types_js_1.TypeRegistry();
@@ -72510,14 +72540,29 @@ var MasterClock = /** @class */ (function (_super) {
             mm: 0,
             ss: 0
         };
+        if (props.rtc) {
+            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
+        }
         return _this;
     }
+    MasterClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+        }
+    };
+    MasterClock.prototype.onremotedata = function (ev, link) {
+        // By convention, new joiners broadcast a 'Person' object
+        if (Object.getPrototypeOf(ev).__type === person_js_1.Person.prototype.__type) {
+            // Send them the clock
+            this.props.rtc.broadcast(this.state.clockSpec);
+            // |TODO - if the clock is running, send a start along with the offset. 
+        }
+    };
     MasterClock.prototype.onTick = function (mm, ss) {
         if (this.state.isMounted) {
             this.setState({ mm: mm, ss: ss });
+            // this is tracked in case the clock rolls over from countdown to running, running to stopped. 
             this.setState({ clockStateEnum: this.state.clock.clockStateEnum });
-            //let tick = new GymClockAction(mm, ss);
-            //this.props.rtc.broadcast(tick);
         }
     };
     MasterClock.prototype.componentDidMount = function () {
@@ -72529,26 +72574,18 @@ var MasterClock = /** @class */ (function (_super) {
         this.setState({ isMounted: false });
     };
     MasterClock.prototype.testEnableSave = function () {
-        var self = this;
-        if (!this.props.allowEdit) {
-            self.setState({ enableOk: false });
-            return;
-        }
-        // Need to get the latest values for cross-field validation
-        self.forceUpdate(function () {
-            // Since the user is just slecting from radio buttons, they cannt make any invalid choices
-            self.setState({ enableOk: true });
-        });
+        // Since the user is just slecting from radio buttons, they cannt make any invalid choices
+        this.setState({ enableOk: true });
     };
     MasterClock.prototype.processSave = function () {
         var spec = new gymclock_js_1.GymClockSpec(this.state.clockSpec.durationEnum, this.state.clockSpec.musicEnum);
         this.state.clock.stop();
         var clock = new gymclock_js_1.GymClock(spec);
         this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
-        // TODO - move to a 'play' button.
-        clock.start(this.onTick.bind(this), 0);
-        // Cache the clock as JSON
+        // Cache the clock spec as JSON
         this.storedWorkoutState.saveClock(JSON.stringify(this.state.clockSpec));
+        // broadcast the clock spec to remotes
+        this.props.rtc.broadcast(spec);
     };
     MasterClock.prototype.processCancel = function () {
         this.setState({ inEditMode: false });
@@ -72563,14 +72600,22 @@ var MasterClock = /** @class */ (function (_super) {
     MasterClock.prototype.processPlay = function () {
         this.state.clock.start(this.onTick.bind(this), 0);
         this.setState({ clockStateEnum: gymclock_js_1.gymClockStateEnum.CountingDown });
+        var tick = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Start);
+        // broadcast the clock spec to remotes
+        this.props.rtc.broadcast(this.state.clock.clockSpec);
+        this.props.rtc.broadcast(tick);
     };
     MasterClock.prototype.processPause = function () {
         this.state.clock.pause();
         this.setState({ clockStateEnum: gymclock_js_1.gymClockStateEnum.Paused });
+        var tick = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Pause);
+        this.props.rtc.broadcast(tick);
     };
     MasterClock.prototype.processStop = function () {
         this.state.clock.stop();
         this.setState({ clockStateEnum: gymclock_js_1.gymClockStateEnum.Stopped });
+        var tick = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Stop);
+        this.props.rtc.broadcast(tick);
     };
     MasterClock.prototype.render = function () {
         var _this = this;
