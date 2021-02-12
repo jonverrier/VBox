@@ -72612,7 +72612,7 @@ var RemoteClock = /** @class */ (function (_super) {
         if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockSpec.prototype.__type) {
             // we are sent a clock spec as soon as we connect
             // Stop current clock if it is going
-            if (this.state.clock.isRunning())
+            if (this.state.clock && this.state.clock.isRunning())
                 this.state.clock.stop();
             // replace with a new one matching the spec
             var spec = new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.getSymbol(ev.durationEnum.name), ev.musicEnum, ev.musicUrl);
