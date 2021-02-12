@@ -110,8 +110,8 @@ var GymClockSpec = (function invocation() {
 
       var spec = new GymClockSpec();
 
-      spec.durationEnum = data.durationEnum;
-      spec.musicEnum = data.musicEnum;
+      spec.durationEnum = gymClockDurationEnum.getSymbol (data.durationEnum.name);
+      spec.musicEnum = gymClockMusicEnum.getSymbol(data.musicEnum.name);
       spec.musicUrl = data.musicUrl;
 
       return spec;
@@ -162,30 +162,26 @@ var GymClock = (function invocation() {
 
    GymClock.prototype.start = function (onTick, secondsPlayed) {
 
-      if (!secondsPlayed)
-         secondsPlayed = new Number(0);
-
-      if (this.clockStateEnum === gymClockStateEnum.Stopped) {
-         this.startReference = new Date();
-         this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
-         this.clockStateEnum = gymClockStateEnum.CountingDown;
+      if (secondsPlayed)
          this.secondsCounted = secondsPlayed;
-         this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-      } else 
-      if (this.clockStateEnum === gymClockStateEnum.Paused) {
-         // Set a new effective start time by working out the duration of ticks already counted
-         this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
-         this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
-         if (this.secondsCounted >= countDownSeconds)
-            this.clockStateEnum = gymClockStateEnum.Running;
-         else
-            this.clockStateEnum = gymClockStateEnum.CountingDown;
-      }
+      
+      this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
+      this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
+
+      // Set effective start time by working out the duration of any ticks already counted
+      this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
+
+      if (this.secondsCounted >= countDownSeconds)
+         this.clockStateEnum = gymClockStateEnum.Running;
+      else
+         this.clockStateEnum = gymClockStateEnum.CountingDown;
 
       this.onTick = onTick;
 
-      if (this.audio)
+      if (this.audio) {
+         this.audio.currentTime = this.secondsCounted;
          this.audio.play();
+      }
 
       // call first tick to start the visible clock
       this.onClockInterval();
@@ -245,6 +241,49 @@ var GymClock = (function invocation() {
       }
       if (this.onTick)
          this.onTick(mm, ss);
+   };
+
+   GymClock.prototype.canPause = function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Running.name);
+   };
+
+   GymClock.prototype.canStop= function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.Paused.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Running.name);
+   };
+
+   GymClock.prototype.canStart = function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.Paused.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Stopped.name);
+   };
+
+   GymClock.prototype.saveToState = function () {
+
+      return new GymClockState(this.clockStateEnum, this.secondsCounted);
+   };
+
+   GymClock.prototype.loadFromState = function (state, tickerFn) {
+
+      switch (state.stateEnum.name) {
+         case 'Stopped':
+            if (this.canStop())
+               this.stop();
+            break;
+         case 'CountingDown':
+         case 'Running':
+            if (this.canStart())
+               this.start(tickerFn, state.secondsIn);
+            break;
+         case 'Paused':
+            if (this.canPause())
+               this.pause();
+            break;
+      }
    };
 
    return GymClock;
@@ -312,7 +351,7 @@ var GymClockAction = (function invocation() {
 
       var action = new GymClockAction();
 
-      action.actionEnum = data.actionEnum;
+      action.actionEnum = gymClockActionEnum.getSymbol(data.actionEnum.name);
 
       return action;
    };
@@ -385,7 +424,7 @@ var GymClockState = (function invocation() {
 
       var state = new GymClockState();
 
-      state.stateEnum = data.stateEnum;
+      state.stateEnum = gymClockStateEnum.getSymbol(data.stateEnum.name);
       state.secondsIn = data.secondsIn;
 
       return state;
