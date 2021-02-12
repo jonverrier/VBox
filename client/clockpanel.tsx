@@ -15,7 +15,7 @@ import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
 import { IConnectionProps } from './callpanel';
-import { gymClockDurationEnum, gymClockMusicEnum, gymClockStateEnum, gymClockActionEnum, GymClockSpec, GymClock, GymClockAction } from '../common/gymclock.js';
+import { gymClockDurationEnum, gymClockMusicEnum, gymClockStateEnum, gymClockActionEnum, GymClockSpec, GymClock, GymClockState, GymClockAction } from '../common/gymclock.js';
 import { MeetingWorkoutState } from './localstore';
 import { TypeRegistry } from '../common/types.js'
 import { Person } from '../common/person.js'
@@ -103,16 +103,23 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
    onremotedata(ev: any, link: RtcLink) {
 
       if (Object.getPrototypeOf(ev).__type === GymClockSpec.prototype.__type) {
-
-         let spec = new GymClockSpec(ev.durationEnum, ev.musicEnum, ev.musicUrl);
+         // we are sent a clock spec as soon as we connect
+         let spec = new GymClockSpec(gymClockDurationEnum.getSymbol(ev.durationEnum.name), ev.musicEnum, ev.musicUrl);
          let clock = new GymClock (spec);
          this.setState({clock: clock});
       }
       else
-      if (Object.getPrototypeOf(ev).__type === GymClockAction.prototype.__type) {
+      if (Object.getPrototypeOf(ev).__type === GymClockState.prototype.__type) {
+         // Then we are sent the state of the clock (running/paused/stopped etc)
+         let state = new GymClockState(gymClockStateEnum.getSymbol(ev.stateEnum.name), ev.secondsIn);
+         this.state.clock.loadFromState(state, this.onTick.bind(this));
+      }
+      else
+         if (Object.getPrototypeOf(ev).__type === GymClockAction.prototype.__type) {
+         // Finally we are sent play/pause/stop etc when the coach selects an action
          switch (ev.actionEnum.name) {
             case gymClockActionEnum.Start.name:
-               this.state.clock.start(this.onTick.bind(this), 0);
+               this.state.clock.start(this.onTick.bind(this));
                break;
             case gymClockActionEnum.Stop.name:
                this.state.clock.stop();
@@ -164,9 +171,9 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
 
       this.storedWorkoutState = new MeetingWorkoutState();
 
-      // Use cached copy of the workout if there is one
-      var storedClockSpec = this.storedWorkoutState.loadClock();
-      var clockSpec;
+      // Use cached copy of the workout clock if there is one
+      var storedClockSpec = this.storedWorkoutState.loadClockSpec();
+      var clockSpec : GymClockSpec;
 
       if (storedClockSpec && storedClockSpec.length > 0) {
          var types = new TypeRegistry()
@@ -177,6 +184,18 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          clockSpec = new GymClockSpec(gymClockDurationEnum.Ten, gymClockMusicEnum.None, null); 
 
       let clock = new GymClock(clockSpec);
+
+      // Use cached copy of the workout clock state if there is one
+      var storedClockState = this.storedWorkoutState.loadClockState();
+      var clockState : GymClockState;
+
+      if (storedClockState && storedClockState.length > 0) {
+         var types = new TypeRegistry()
+         var loadedClockState = types.reviveFromJSON(storedClockState);
+         clockState = new GymClockState(loadedClockState.stateEnum,
+                                        loadedClockState.secondsIn);
+      } else
+         clockState = new GymClockState(gymClockStateEnum.Stopped, 0); 
 
       this.state = {
          inEditMode: false,
@@ -193,6 +212,10 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       if (props.rtc) {
          props.rtc.addremotedatalistener(this.onremotedata.bind(this));
       }
+
+
+      // Scynch our clock up to the state we load
+      clock.loadFromState(clockState, this.onTick.bind(this));
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
@@ -208,16 +231,22 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          // Send them the clock
          this.props.rtc.broadcast(this.state.clockSpec);
 
-         // TODO - if the clock is running, send state including the offset. 
+         // Send clock state including the offset. 
+         this.props.rtc.broadcast(this.state.clock.saveToState());
       }
    }
 
    onTick(mm, ss) {
       if (this.state.isMounted) {
-         this.setState({ mm: mm, ss: ss });
+         // slight optimisation in case clock is ticking faster than 1 second
+         if (this.state.mm != mm || this.state.ss != ss)
+            this.setState({ mm: mm, ss: ss });
 
          // this is tracked in case the clock rolls over from countdown to running, running to stopped. 
          this.setState({ clockStateEnum: this.state.clock.clockStateEnum });
+
+         // Save state to local store - for recovery purposes
+         this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
       }
    }
 
@@ -247,7 +276,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
 
       // Cache the clock spec as JSON
-      this.storedWorkoutState.saveClock(JSON.stringify(this.state.clockSpec));
+      this.storedWorkoutState.saveClockSpec(JSON.stringify(this.state.clockSpec));
 
       // broadcast the clock spec to remotes
       this.props.rtc.broadcast(spec);
@@ -257,39 +286,52 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       this.setState({ inEditMode: false });
    }
 
-   canPauseOrStop() {
-      return (this.state.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
-         || (this.state.clockStateEnum.name == gymClockStateEnum.Running.name)
+   canStop() {
+      return this.state.clock.canStop();
+   }
+
+   canPause() {
+      return this.state.clock.canPause();
    }
 
    canPlay() {
-      return (this.state.clockStateEnum.name == gymClockStateEnum.Paused.name) || (this.state.clockStateEnum.name == gymClockStateEnum.Stopped.name);
+      return this.state.clock.canStart();
    }
 
    processPlay() {
-      this.state.clock.start(this.onTick.bind(this), 0);
+      this.state.clock.start(this.onTick.bind(this));
       this.setState({ clockStateEnum: gymClockStateEnum.CountingDown });
 
+      // broadcast the clock change to remotes
+      let action = new GymClockAction(gymClockActionEnum.Start);
+      this.props.rtc.broadcast(action);
 
-      let tick = new GymClockAction(gymClockActionEnum.Start);
-
-      // broadcast the clock spec to remotes
-      this.props.rtc.broadcast(this.state.clock.clockSpec);
-      this.props.rtc.broadcast(tick);
+      // Save state to local store - for recovery purposes
+      this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
    }
 
    processPause() {
       this.state.clock.pause();
       this.setState({ clockStateEnum: gymClockStateEnum.Paused });
-      let tick = new GymClockAction(gymClockActionEnum.Pause);
-      this.props.rtc.broadcast(tick);
+
+      // broadcast the clock change to remotes
+      let action = new GymClockAction(gymClockActionEnum.Pause);
+      this.props.rtc.broadcast(action);
+
+      // Save state to local store - for recovery purposes
+      this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
    }
 
    processStop() {
       this.state.clock.stop();
       this.setState({ clockStateEnum: gymClockStateEnum.Stopped });
-      let tick = new GymClockAction(gymClockActionEnum.Stop);
-      this.props.rtc.broadcast(tick);
+
+      // broadcast the clock change to remotes
+      let action = new GymClockAction(gymClockActionEnum.Stop);
+      this.props.rtc.broadcast(action);
+
+      // Save state to local store - for recovery purposes
+      this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
    }
 
    render() {
@@ -301,21 +343,21 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                   <Col style={thinAutoStyle}>
                      <Row style={thinStyle}>
                         <Button variant="secondary" size="sm" style={clockBtnStyle}
-                           enabled={this.canPlay()}
+                           disabled={!this.canPlay()}
                            onClick={this.processPlay.bind(this) }>
                         <i className="fa fa-play"></i>
                         </Button>
                      </Row>
                      <Row style={thinStyle}>
                         <Button variant="secondary" size="sm" style={clockBtnStyle}
-                           enabled={this.canPauseOrStop()}
+                           disabled={!this.canPause()}
                            onClick={this.processPause.bind(this)}> 
                         <i className="fa fa-pause"></i>
                         </Button>
                      </Row>
                      <Row style={thinStyle}>
                         <Button variant="secondary" size="sm" style={clockBtnStyle}
-                           enabled={this.canPauseOrStop()}
+                           disabled={!this.canStop()}
                            onClick={this.processStop.bind(this)}>
                         <i className="fa fa-stop"></i>
                         </Button>
@@ -335,10 +377,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                      <Form.Row>
                         <Form.Group>
                            <Form.Check inline label="10 mins:" type="radio" id={'wall-clock-select'}
-                              // TODO - do not understand why we have to use'name'.
-                              // The GymClockSpec class explicitly checks for a match on restore from JSON 
-                              // and should be using the actual local symbon, not a copy.
-                              // TODO marker                          HERE                       HERE
+                              // TODO - should be able to remove 'name' from all these 
                               checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Ten.name}
                               onChange={(ev) => {
                                  if (ev.target.checked) {

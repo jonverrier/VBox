@@ -882,6 +882,7 @@ if (false) {} else {
 /*! export GymClock [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export GymClockAction [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export GymClockSpec [provided] [no usage info] [missing usage info prevents renaming] */
+/*! export GymClockState [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export gymClockActionEnum [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export gymClockDurationEnum [provided] [no usage info] [missing usage info prevents renaming] */
 /*! export gymClockMusicEnum [provided] [no usage info] [missing usage info prevents renaming] */
@@ -891,9 +892,12 @@ if (false) {} else {
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
-/*global Enum*/
 /*global exports*/
 /*! Copyright TXPCo, 2020 */
+// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music. 
+// GymClock is a running clock - created from a spec, then can start, stop, pause etc. 
+// GymClockAction is a way to send the start, pause, stop list via Rpc
+// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
 
 var Enum = __webpack_require__(/*! ./enum.js */ "./common/enum.js").Enum;
 
@@ -999,8 +1003,8 @@ var GymClockSpec = (function invocation() {
 
       var spec = new GymClockSpec();
 
-      spec.durationEnum = data.durationEnum;
-      spec.musicEnum = data.musicEnum;
+      spec.durationEnum = gymClockDurationEnum.getSymbol (data.durationEnum.name);
+      spec.musicEnum = gymClockMusicEnum.getSymbol(data.musicEnum.name);
       spec.musicUrl = data.musicUrl;
 
       return spec;
@@ -1051,30 +1055,26 @@ var GymClock = (function invocation() {
 
    GymClock.prototype.start = function (onTick, secondsPlayed) {
 
-      if (!secondsPlayed)
-         secondsPlayed = new Number(0);
-
-      if (this.clockStateEnum === gymClockStateEnum.Stopped) {
-         this.startReference = new Date();
-         this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
-         this.clockStateEnum = gymClockStateEnum.CountingDown;
+      if (secondsPlayed)
          this.secondsCounted = secondsPlayed;
-         this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-      } else 
-      if (this.clockStateEnum === gymClockStateEnum.Paused) {
-         // Set a new effective start time by working out the duration of ticks already counted
-         this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
-         this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
-         if (this.secondsCounted >= countDownSeconds)
-            this.clockStateEnum = gymClockStateEnum.Running;
-         else
-            this.clockStateEnum = gymClockStateEnum.CountingDown;
-      }
+      
+      this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
+      this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
+
+      // Set effective start time by working out the duration of any ticks already counted
+      this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
+
+      if (this.secondsCounted >= countDownSeconds)
+         this.clockStateEnum = gymClockStateEnum.Running;
+      else
+         this.clockStateEnum = gymClockStateEnum.CountingDown;
 
       this.onTick = onTick;
 
-      if (this.audio)
+      if (this.audio) {
+         this.audio.currentTime = this.secondsCounted;
          this.audio.play();
+      }
 
       // call first tick to start the visible clock
       this.onClockInterval();
@@ -1134,6 +1134,49 @@ var GymClock = (function invocation() {
       }
       if (this.onTick)
          this.onTick(mm, ss);
+   };
+
+   GymClock.prototype.canPause = function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Running.name);
+   };
+
+   GymClock.prototype.canStop= function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.Paused.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Running.name);
+   };
+
+   GymClock.prototype.canStart = function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.Paused.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Stopped.name);
+   };
+
+   GymClock.prototype.saveToState = function () {
+
+      return new GymClockState(this.clockStateEnum, this.secondsCounted);
+   };
+
+   GymClock.prototype.loadFromState = function (state, tickerFn) {
+
+      switch (state.stateEnum.name) {
+         case 'Stopped':
+            if (this.canStop())
+               this.stop();
+            break;
+         case 'CountingDown':
+         case 'Running':
+            if (this.canStart())
+               this.start(tickerFn, state.secondsIn);
+            break;
+         case 'Paused':
+            if (this.canPause())
+               this.pause();
+            break;
+      }
    };
 
    return GymClock;
@@ -1199,16 +1242,89 @@ var GymClockAction = (function invocation() {
    */
    GymClockAction.prototype.reviveDb = function (data) {
 
-      var actions = new GymClockAction();
+      var action = new GymClockAction();
 
-      actions.actionEnum = data.actionEnum;
+      action.actionEnum = gymClockActionEnum.getSymbol(data.actionEnum.name);
 
-      return actions;
+      return action;
    };
 
    return GymClockAction;
 }());
 
+//==============================//
+// GymClockState class 
+//==============================//
+var GymClockState = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a GymClockState object
+    */
+   function GymClockState(stateEnum, secondsIn) {
+
+      this.stateEnum = stateEnum;
+      this.secondsIn = secondsIn;
+   }
+
+   GymClockState.prototype.__type = "GymClockState";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   GymClockState.prototype.equals = function (rhs) {
+
+      return (this.stateEnum.name === rhs.stateEnum.name &&
+         this.secondsIn === rhs.secondsIn);
+   };
+
+
+   /**
+    * Method that serializes to JSON 
+    */
+   GymClockState.prototype.toJSON = function () {
+
+      return {
+         __type: GymClockState.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            stateEnum: this.stateEnum,
+            secondsIn: this.secondsIn
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   GymClockState.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return GymClockState.prototype.reviveDb(data.attributes);
+
+      return GymClockState.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   GymClockState.prototype.reviveDb = function (data) {
+
+      var state = new GymClockState();
+
+      state.stateEnum = gymClockStateEnum.getSymbol(data.stateEnum.name);
+      state.secondsIn = data.secondsIn;
+
+      return state;
+   };
+
+   return GymClockState;
+}());
 
 if (false) {} else { 
    exports.gymClockDurationEnum = gymClockDurationEnum;
@@ -1218,6 +1334,7 @@ if (false) {} else {
    exports.GymClockSpec = GymClockSpec;
    exports.GymClock = GymClock;
    exports.GymClockAction = GymClockAction;
+   exports.GymClockState = GymClockState;
 }
 
 
@@ -1766,6 +1883,7 @@ var TypeRegistry = (function invocation() {
          this.types.SignalMessage = SignalMessage;
          this.types.GymClockSpec = GymClockSpec;
          this.types.GymClockAction = GymClockAction;
+         this.types.GymClockState = GymClockState;
          this.types.GymClockBeep = GymClockBeep;
          this.types.Whiteboard = Whiteboard;
          this.types.WhiteboardElement = WhiteboardElement;
@@ -1783,6 +1901,7 @@ var TypeRegistry = (function invocation() {
          this.types.SignalMessage = signalModule.SignalMessage;
          this.types.GymClockSpec = clockModule.GymClockSpec;
          this.types.GymClockAction = clockModule.GymClockAction;
+         this.types.GymClockState = clockModule.GymClockState;
          this.types.GymClockBeep = clockModule.GymClockBeep;
          this.types.Whiteboard = whiteboardModule.Whiteboard;
          this.types.WhiteboardElement = whiteboardModule.WhiteboardElement;
@@ -72481,14 +72600,21 @@ var RemoteClock = /** @class */ (function (_super) {
     };
     RemoteClock.prototype.onremotedata = function (ev, link) {
         if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockSpec.prototype.__type) {
-            var spec = new gymclock_js_1.GymClockSpec(ev.durationEnum, ev.musicEnum, ev.musicUrl);
+            // we are sent a clock spec as soon as we connect
+            var spec = new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.getSymbol(ev.durationEnum.name), ev.musicEnum, ev.musicUrl);
             var clock = new gymclock_js_1.GymClock(spec);
             this.setState({ clock: clock });
         }
+        else if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockState.prototype.__type) {
+            // Then we are sent the state of the clock (running/paused/stopped etc)
+            var state = new gymclock_js_1.GymClockState(gymclock_js_1.gymClockStateEnum.getSymbol(ev.stateEnum.name), ev.secondsIn);
+            this.state.clock.loadFromState(state, this.onTick.bind(this));
+        }
         else if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockAction.prototype.__type) {
+            // Finally we are sent play/pause/stop etc when the coach selects an action
             switch (ev.actionEnum.name) {
                 case gymclock_js_1.gymClockActionEnum.Start.name:
-                    this.state.clock.start(this.onTick.bind(this), 0);
+                    this.state.clock.start(this.onTick.bind(this));
                     break;
                 case gymclock_js_1.gymClockActionEnum.Stop.name:
                     this.state.clock.stop();
@@ -72518,8 +72644,8 @@ var MasterClock = /** @class */ (function (_super) {
     function MasterClock(props) {
         var _this = _super.call(this, props) || this;
         _this.storedWorkoutState = new localstore_1.MeetingWorkoutState();
-        // Use cached copy of the workout if there is one
-        var storedClockSpec = _this.storedWorkoutState.loadClock();
+        // Use cached copy of the workout clock if there is one
+        var storedClockSpec = _this.storedWorkoutState.loadClockSpec();
         var clockSpec;
         if (storedClockSpec && storedClockSpec.length > 0) {
             var types = new types_js_1.TypeRegistry();
@@ -72529,6 +72655,16 @@ var MasterClock = /** @class */ (function (_super) {
         else
             clockSpec = new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Ten, gymclock_js_1.gymClockMusicEnum.None, null);
         var clock = new gymclock_js_1.GymClock(clockSpec);
+        // Use cached copy of the workout clock state if there is one
+        var storedClockState = _this.storedWorkoutState.loadClockState();
+        var clockState;
+        if (storedClockState && storedClockState.length > 0) {
+            var types = new types_js_1.TypeRegistry();
+            var loadedClockState = types.reviveFromJSON(storedClockState);
+            clockState = new gymclock_js_1.GymClockState(loadedClockState.stateEnum, loadedClockState.secondsIn);
+        }
+        else
+            clockState = new gymclock_js_1.GymClockState(gymclock_js_1.gymClockStateEnum.Stopped, 0);
         _this.state = {
             inEditMode: false,
             isMounted: false,
@@ -72543,6 +72679,8 @@ var MasterClock = /** @class */ (function (_super) {
         if (props.rtc) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
+        // Scynch our clock up to the state we load
+        clock.loadFromState(clockState, _this.onTick.bind(_this));
         return _this;
     }
     MasterClock.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
@@ -72555,14 +72693,19 @@ var MasterClock = /** @class */ (function (_super) {
         if (Object.getPrototypeOf(ev).__type === person_js_1.Person.prototype.__type) {
             // Send them the clock
             this.props.rtc.broadcast(this.state.clockSpec);
-            // |TODO - if the clock is running, send a start along with the offset. 
+            // Send clock state including the offset. 
+            this.props.rtc.broadcast(this.state.clock.saveToState());
         }
     };
     MasterClock.prototype.onTick = function (mm, ss) {
         if (this.state.isMounted) {
-            this.setState({ mm: mm, ss: ss });
+            // slight optimisation in case clock is ticking faster than 1 second
+            if (this.state.mm != mm || this.state.ss != ss)
+                this.setState({ mm: mm, ss: ss });
             // this is tracked in case the clock rolls over from countdown to running, running to stopped. 
             this.setState({ clockStateEnum: this.state.clock.clockStateEnum });
+            // Save state to local store - for recovery purposes
+            this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
         }
     };
     MasterClock.prototype.componentDidMount = function () {
@@ -72583,39 +72726,48 @@ var MasterClock = /** @class */ (function (_super) {
         var clock = new gymclock_js_1.GymClock(spec);
         this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
         // Cache the clock spec as JSON
-        this.storedWorkoutState.saveClock(JSON.stringify(this.state.clockSpec));
+        this.storedWorkoutState.saveClockSpec(JSON.stringify(this.state.clockSpec));
         // broadcast the clock spec to remotes
         this.props.rtc.broadcast(spec);
     };
     MasterClock.prototype.processCancel = function () {
         this.setState({ inEditMode: false });
     };
-    MasterClock.prototype.canPauseOrStop = function () {
-        return (this.state.clockStateEnum.name == gymclock_js_1.gymClockStateEnum.CountingDown.name)
-            || (this.state.clockStateEnum.name == gymclock_js_1.gymClockStateEnum.Running.name);
+    MasterClock.prototype.canStop = function () {
+        return this.state.clock.canStop();
+    };
+    MasterClock.prototype.canPause = function () {
+        return this.state.clock.canPause();
     };
     MasterClock.prototype.canPlay = function () {
-        return (this.state.clockStateEnum.name == gymclock_js_1.gymClockStateEnum.Paused.name) || (this.state.clockStateEnum.name == gymclock_js_1.gymClockStateEnum.Stopped.name);
+        return this.state.clock.canStart();
     };
     MasterClock.prototype.processPlay = function () {
-        this.state.clock.start(this.onTick.bind(this), 0);
+        this.state.clock.start(this.onTick.bind(this));
         this.setState({ clockStateEnum: gymclock_js_1.gymClockStateEnum.CountingDown });
-        var tick = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Start);
-        // broadcast the clock spec to remotes
-        this.props.rtc.broadcast(this.state.clock.clockSpec);
-        this.props.rtc.broadcast(tick);
+        // broadcast the clock change to remotes
+        var action = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Start);
+        this.props.rtc.broadcast(action);
+        // Save state to local store - for recovery purposes
+        this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
     };
     MasterClock.prototype.processPause = function () {
         this.state.clock.pause();
         this.setState({ clockStateEnum: gymclock_js_1.gymClockStateEnum.Paused });
-        var tick = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Pause);
-        this.props.rtc.broadcast(tick);
+        // broadcast the clock change to remotes
+        var action = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Pause);
+        this.props.rtc.broadcast(action);
+        // Save state to local store - for recovery purposes
+        this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
     };
     MasterClock.prototype.processStop = function () {
         this.state.clock.stop();
         this.setState({ clockStateEnum: gymclock_js_1.gymClockStateEnum.Stopped });
-        var tick = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Stop);
-        this.props.rtc.broadcast(tick);
+        // broadcast the clock change to remotes
+        var action = new gymclock_js_1.GymClockAction(gymclock_js_1.gymClockActionEnum.Stop);
+        this.props.rtc.broadcast(action);
+        // Save state to local store - for recovery purposes
+        this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
     };
     MasterClock.prototype.render = function () {
         var _this = this;
@@ -72629,13 +72781,13 @@ var MasterClock = /** @class */ (function (_super) {
                             ("00" + this.state.ss).slice(-2))),
                     React.createElement(Col_1.default, { style: thinAutoStyle },
                         React.createElement(Row_1.default, { style: thinStyle },
-                            React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: clockBtnStyle, enabled: this.canPlay(), onClick: this.processPlay.bind(this) },
+                            React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: clockBtnStyle, disabled: !this.canPlay(), onClick: this.processPlay.bind(this) },
                                 React.createElement("i", { className: "fa fa-play" }))),
                         React.createElement(Row_1.default, { style: thinStyle },
-                            React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: clockBtnStyle, enabled: this.canPauseOrStop(), onClick: this.processPause.bind(this) },
+                            React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: clockBtnStyle, disabled: !this.canPause(), onClick: this.processPause.bind(this) },
                                 React.createElement("i", { className: "fa fa-pause" }))),
                         React.createElement(Row_1.default, { style: thinStyle },
-                            React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: clockBtnStyle, enabled: this.canPauseOrStop(), onClick: this.processStop.bind(this) },
+                            React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: clockBtnStyle, disabled: !this.canStop(), onClick: this.processStop.bind(this) },
                                 React.createElement("i", { className: "fa fa-stop" })))),
                     React.createElement(Col_1.default, { style: thinStyle },
                         React.createElement(Button_1.default, { variant: "secondary", size: "sm", style: popdownBtnStyle, onClick: function () { return _this.setState({ inEditMode: !_this.state.inEditMode }); } },
@@ -72646,10 +72798,7 @@ var MasterClock = /** @class */ (function (_super) {
                         React.createElement(Form_1.default.Row, null,
                             React.createElement(Form_1.default.Group, null,
                                 React.createElement(Form_1.default.Check, { inline: true, label: "10 mins:", type: "radio", id: 'wall-clock-select', 
-                                    // TODO - do not understand why we have to use'name'.
-                                    // The GymClockSpec class explicitly checks for a match on restore from JSON 
-                                    // and should be using the actual local symbon, not a copy.
-                                    // TODO marker                          HERE                       HERE
+                                    // TODO - should be able to remove 'name' from all these 
                                     checked: this.state.clockSpec.durationEnum.name === gymclock_js_1.gymClockDurationEnum.Ten.name, onChange: function (ev) {
                                         if (ev.target.checked) {
                                             _this.setState({
@@ -72863,6 +73012,7 @@ var lastMeetingId = "lastMeetingId";
 var lastNameId = "lastName";
 var lastWorkoutId = "lastWorkout";
 var lastClockId = "lastClock";
+var lastClockStateId = "lastClockState";
 //==============================//
 // MeetingScreenState class
 //==============================//
@@ -72942,19 +73092,39 @@ var MeetingWorkoutState = /** @class */ (function () {
     ;
     /**
      *
-     * saveClock
+     * saveClockSpec
      * @param clock - value to save
      */
-    MeetingWorkoutState.prototype.saveClock = function (clock) {
+    MeetingWorkoutState.prototype.saveClockSpec = function (clock) {
         this.store.saveValue(lastClockId, clock);
     };
     ;
     /**
      *
-     * loadWorkout
+     * loadClockSpec
      */
-    MeetingWorkoutState.prototype.loadClock = function () {
+    MeetingWorkoutState.prototype.loadClockSpec = function () {
         var ret = this.store.loadValue(lastClockId);
+        if (!ret)
+            ret = "";
+        return ret;
+    };
+    ;
+    /**
+     *
+     * saveClockState
+     * @param clock - value to save
+     */
+    MeetingWorkoutState.prototype.saveClockState = function (clock) {
+        this.store.saveValue(lastClockStateId, clock);
+    };
+    ;
+    /**
+     *
+     * loadClockState
+     */
+    MeetingWorkoutState.prototype.loadClockState = function () {
+        var ret = this.store.loadValue(lastClockStateId);
         if (!ret)
             ret = "";
         return ret;
