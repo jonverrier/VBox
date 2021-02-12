@@ -7,9 +7,11 @@ if (typeof exports !== 'undefined') {
    var gymClockDurationEnum = clockModule.gymClockDurationEnum;
    var gymClockMusicEnum = clockModule.gymClockMusicEnum;
    var gymClockActionEnum = clockModule.gymClockActionEnum;
+   var gymClockStateEnum = clockModule.gymClockStateEnum;
    var GymClockSpec = clockModule.GymClockSpec;
    var GymClock = clockModule.GymClock;
    var GymClockAction = clockModule.GymClockAction;
+   var GymClockState= clockModule.GymClockState;
    var GymClockBeep = clockModule.GymClockBeep;
    var typesModule = require('../common/types.js');
    var TypeRegistry = typesModule.TypeRegistry;
@@ -108,3 +110,34 @@ describe("GymClockAction", function () {
    });
 });
 
+
+describe("GymClockState", function () {
+   var state1, state2;
+
+   beforeEach(function () {
+      state1 = new GymClockState(gymClockStateEnum.Running, 0);
+      state2 = new GymClockState(gymClockStateEnum.Stopped, 1);
+   });
+
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(state1.equals(state1)).to.equal(true);
+      expect(state1.equals(state2)).to.equal(false);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(state1.stateEnum).to.equal(gymClockStateEnum.Running);
+      expect(state1.secondsIn).to.equal(0);
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new TypeRegistry();
+      var output = JSON.stringify(state1);
+
+      var obj = types.reviveFromJSON(output);
+      expect(obj.equals(state1)).to.equal(true);
+   });
+});
