@@ -64,7 +64,7 @@ passport.use(
       {
          clientID: process.env.FACEBOOK_APP_ID_PROD ,
          clientSecret: process.env.FACEBOOK_APP_SECRET_PROD,
-         callbackURL: '/auth/facebook/callback',
+         callbackURL: process.env.FACEBOOK_APP_CALLBACK,
          profileFields: ["email", "name", "displayName"]
       },
       function (accessToken, refreshToken, profile, done) {
@@ -80,7 +80,7 @@ passport.use(
          var meetingId = decodeURIComponent(req.query.meetingId);
          var name = decodeURIComponent(req.query.name);
 
-         if (name === 'Jon Verrier') {
+         if (false /* name === 'Jon Verrier' */) {
             const userData = { name: name, externalId: "10222806520938994", thumbnailUrl: 'person-w-128x128.png', lastAuthCode: null, id: "10222806520938994" };
 
             done(null, userData);
