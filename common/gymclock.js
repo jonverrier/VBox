@@ -1,7 +1,10 @@
 /*jslint white: false, indent: 3, maxerr: 1000 */
-/*global Enum*/
 /*global exports*/
 /*! Copyright TXPCo, 2020 */
+// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music. 
+// GymClock is a running clock - created from a spec, then can start, stop, pause etc. 
+// GymClockAction is a way to send the start, pause, stop list via Rpc
+// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
 
 var Enum = require('./enum.js').Enum;
 
@@ -307,16 +310,89 @@ var GymClockAction = (function invocation() {
    */
    GymClockAction.prototype.reviveDb = function (data) {
 
-      var actions = new GymClockAction();
+      var action = new GymClockAction();
 
-      actions.actionEnum = data.actionEnum;
+      action.actionEnum = data.actionEnum;
 
-      return actions;
+      return action;
    };
 
    return GymClockAction;
 }());
 
+//==============================//
+// GymClockState class 
+//==============================//
+var GymClockState = (function invocation() {
+   "use strict";
+
+   /**
+    * Create a GymClockState object
+    */
+   function GymClockState(stateEnum, secondsIn) {
+
+      this.stateEnum = stateEnum;
+      this.secondsIn = secondsIn;
+   }
+
+   GymClockState.prototype.__type = "GymClockState";
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   GymClockState.prototype.equals = function (rhs) {
+
+      return (this.stateEnum.name === rhs.stateEnum.name &&
+         this.secondsIn === rhs.secondsIn);
+   };
+
+
+   /**
+    * Method that serializes to JSON 
+    */
+   GymClockState.prototype.toJSON = function () {
+
+      return {
+         __type: GymClockState.prototype.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            stateEnum: this.stateEnum,
+            secondsIn: this.secondsIn
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   GymClockState.prototype.revive = function (data) {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return GymClockState.prototype.reviveDb(data.attributes);
+
+      return GymClockState.prototype.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   GymClockState.prototype.reviveDb = function (data) {
+
+      var state = new GymClockState();
+
+      state.stateEnum = data.stateEnum;
+      state.secondsIn = data.secondsIn;
+
+      return state;
+   };
+
+   return GymClockState;
+}());
 
 if (typeof exports == 'undefined') {
    // exports = this['types.js'] = {};
@@ -328,4 +404,5 @@ if (typeof exports == 'undefined') {
    exports.GymClockSpec = GymClockSpec;
    exports.GymClock = GymClock;
    exports.GymClockAction = GymClockAction;
+   exports.GymClockState = GymClockState;
 }
