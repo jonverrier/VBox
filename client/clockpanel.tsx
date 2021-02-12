@@ -104,6 +104,12 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
 
       if (Object.getPrototypeOf(ev).__type === GymClockSpec.prototype.__type) {
          // we are sent a clock spec as soon as we connect
+
+         // Stop current clock if it is going
+         if (this.state.clock.isRunning())
+            this.state.clock.stop();
+
+         // replace with a new one matching the spec
          let spec = new GymClockSpec(gymClockDurationEnum.getSymbol(ev.durationEnum.name), ev.musicEnum, ev.musicUrl);
          let clock = new GymClock (spec);
          this.setState({clock: clock});
