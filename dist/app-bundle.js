@@ -1053,13 +1053,17 @@ var GymClock = (function invocation() {
          && this.countToSeconds === rhs.countToTicks);
    };
 
-   GymClock.prototype.start = function (onTick, secondsPlayed) {
+   GymClock.prototype.start = function (callbackFn, secondsPlayed) {
 
       if (secondsPlayed)
          this.secondsCounted = secondsPlayed;
       
       this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-      this.tickerFn = setInterval(this.onClockInterval.bind(this), 200);
+      if (this.intervalFn) {
+         clearInterval(this.intervalFn);
+         this.intervalFn = null;
+      }
+      this.intervalFn = setInterval(this.onClockInterval.bind(this), 200);
 
       // Set effective start time by working out the duration of any ticks already counted
       this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
@@ -1069,7 +1073,7 @@ var GymClock = (function invocation() {
       else
          this.clockStateEnum = gymClockStateEnum.CountingDown;
 
-      this.onTick = onTick;
+      this.callbackFn = callbackFn;
 
       if (this.audio) {
          this.audio.currentTime = this.secondsCounted;
@@ -1081,9 +1085,9 @@ var GymClock = (function invocation() {
    };
 
    GymClock.prototype.stop = function () {
-      if (this.tickerFn) {
-         clearInterval(this.tickerFn);
-         this.tickerFn = null;
+      if (this.intervalFn) {
+         clearInterval(this.intervalFn);
+         this.intervalFn = null;
       }
       this.clockStateEnum = gymClockStateEnum.Stopped;
       this.secondsCounted = 0;
@@ -1092,14 +1096,14 @@ var GymClock = (function invocation() {
       if (this.audio)
          this.audio.stop();
 
-      if (this.onTick)
-         this.onTick(0, 0);
+      if (this.callbackFn)
+         this.callbackFn(0, 0);
    };
 
    GymClock.prototype.pause = function () {
-      if (this.tickerFn) {
-         clearInterval(this.tickerFn);
-         this.tickerFn = null;
+      if (this.intervalFn) {
+         clearInterval(this.intervalFn);
+         this.intervalFn = null;
       }
       if (this.audio)
          this.audio.pause();
@@ -1132,8 +1136,8 @@ var GymClock = (function invocation() {
             this.stop();
          }
       }
-      if (this.onTick)
-         this.onTick(mm, ss);
+      if (this.callbackFn)
+         this.callbackFn(mm, ss);
    };
 
    GymClock.prototype.canPause = function () {
@@ -1160,7 +1164,7 @@ var GymClock = (function invocation() {
       return new GymClockState(this.clockStateEnum, this.secondsCounted);
    };
 
-   GymClock.prototype.loadFromState = function (state, tickerFn) {
+   GymClock.prototype.loadFromState = function (state, callbackFn) {
 
       switch (state.stateEnum.name) {
          case 'Stopped':
@@ -1170,7 +1174,7 @@ var GymClock = (function invocation() {
          case 'CountingDown':
          case 'Running':
             if (this.canStart())
-               this.start(tickerFn, state.secondsIn);
+               this.start(callbackFn, state.secondsIn);
             break;
          case 'Paused':
             if (this.canPause())
