@@ -247,6 +247,12 @@ var GymClock = (function invocation() {
          this.callbackFn(mm, ss);
    };
 
+   GymClock.prototype.isRunning = function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Running.name);
+   };
+
    GymClock.prototype.canPause = function () {
 
       return (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
