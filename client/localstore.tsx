@@ -61,6 +61,7 @@ const lastMeetingId = "lastMeetingId";
 const lastNameId = "lastName";
 const lastWorkoutId = "lastWorkout";
 const lastClockId = "lastClock";
+const lastClockStateId = "lastClockState";
 
 //==============================//
 // MeetingScreenState class
@@ -147,19 +148,39 @@ export class MeetingWorkoutState {
 
    /**
     *
-    * saveClock
+    * saveClockSpec
     * @param clock - value to save
     */
-   saveClock(clock: string) {
+   saveClockSpec(clock: string) {
       this.store.saveValue(lastClockId, clock);
    };
 
    /**
     *
-    * loadWorkout
+    * loadClockSpec
     */
-   loadClock(): string {
+   loadClockSpec(): string {
       var ret = this.store.loadValue(lastClockId);
+      if (!ret)
+         ret = "";
+      return ret;
+   };
+
+   /**
+    *
+    * saveClockState
+    * @param clock - value to save
+    */
+   saveClockState(clock: string) {
+      this.store.saveValue(lastClockStateId, clock);
+   };
+
+   /**
+    *
+    * loadClockState
+    */
+   loadClockState(): string {
+      var ret = this.store.loadValue(lastClockStateId);
       if (!ret)
          ret = "";
       return ret;
