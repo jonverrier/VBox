@@ -106,7 +106,7 @@ export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockS
          // we are sent a clock spec as soon as we connect
 
          // Stop current clock if it is going
-         if (this.state.clock.isRunning())
+         if (this.state.clock && this.state.clock.isRunning())
             this.state.clock.stop();
 
          // replace with a new one matching the spec
