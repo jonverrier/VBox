@@ -1140,6 +1140,12 @@ var GymClock = (function invocation() {
          this.callbackFn(mm, ss);
    };
 
+   GymClock.prototype.isRunning = function () {
+
+      return (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
+         || (this.clockStateEnum.name == gymClockStateEnum.Running.name);
+   };
+
    GymClock.prototype.canPause = function () {
 
       return (this.clockStateEnum.name == gymClockStateEnum.CountingDown.name)
@@ -72605,6 +72611,10 @@ var RemoteClock = /** @class */ (function (_super) {
     RemoteClock.prototype.onremotedata = function (ev, link) {
         if (Object.getPrototypeOf(ev).__type === gymclock_js_1.GymClockSpec.prototype.__type) {
             // we are sent a clock spec as soon as we connect
+            // Stop current clock if it is going
+            if (this.state.clock.isRunning())
+                this.state.clock.stop();
+            // replace with a new one matching the spec
             var spec = new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.getSymbol(ev.durationEnum.name), ev.musicEnum, ev.musicUrl);
             var clock = new gymclock_js_1.GymClock(spec);
             this.setState({ clock: clock });
