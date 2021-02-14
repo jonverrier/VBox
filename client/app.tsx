@@ -139,27 +139,49 @@ interface IMemberPageState {
    isLoggedIn: boolean;
    pageData: HomePageData;
    rtc: Rtc;
+   meetCode: string;
+   name: string;
+   isValidMeetCode: boolean;
+   isValidName: boolean;
+   isReadyToLogInWithMeetCode: boolean;
+   loginMc: LoginMc;
 }
 
 export class MemberPage extends React.Component<IMemberPageProps, IMemberPageState> {
 
    //member variables
-   isLoggedIn: boolean;
    pageData: HomePageData;
    defaultPageData: HomePageData;
+   lastUserData: MeetingScreenState;
 
-   constructor(props: ICoachPageProps) {
+   constructor(props: IMemberPageProps) {
       super(props);
+
+      this.lastUserData = new MeetingScreenState();
 
       this.defaultPageData = new HomePageData(null,
          new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
          new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'),
          null);
 
-      this.isLoggedIn = false;
       this.pageData = this.defaultPageData;
 
-      this.state = {isLoggedIn: this.isLoggedIn, pageData: this.pageData, rtc: null};
+      this.state = {
+         isLoggedIn: false,
+         pageData: this.pageData,
+         rtc: null,
+         isReadyToLogInWithMeetCode: false,
+         meetCode: this.lastUserData.loadMeetingId(),
+         name: this.lastUserData.loadName(),
+         isValidMeetCode: false,
+         isValidName: false,
+         loginMc: new LoginMc({
+            autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
+            onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this),
+            name: this.lastUserData.loadName(),
+            meetCode: this.lastUserData.loadMeetingId()
+         }),
+      };
    }
 
    componentDidMount() {
@@ -170,6 +192,9 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
       imgA.src = "./circle-black-yellow-128x128.png";
 
       var self = this;
+
+      // Initialise meeting code API
+      this.state.loginMc.loadAPI();
 
       // Make a request for user data to populate the home page 
       axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
@@ -202,76 +227,144 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
    componentWillUnmount() {
    }
 
+   handleMeetCodeChange(ev: any) {
+      this.state.loginMc.handleMeetCodeChange(ev);
+      this.setState({ meetCode: this.state.loginMc.getMeetCode() });
+   }
+
+   handleNameChange(ev: any) {
+      this.state.loginMc.handleNameChange(ev);
+      this.setState({ name: this.state.loginMc.getName() });
+   }
+
+   onLoginStatusChangeMc(isLoggedIn) {
+      this.setState({ isLoggedIn: isLoggedIn });
+   }
+
+   onLoginReadinessChangeMc(isReady) {
+      this.setState({
+         isReadyToLogInWithMeetCode: isReady,
+         isValidMeetCode: this.state.loginMc.isValidMeetCode(),
+         isValidName: this.state.loginMc.isValidName()
+      });
+      if (isReady) {
+         this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
+         this.lastUserData.saveName(this.state.loginMc.getName());
+      }
+   }
+
    render() {
-      var loggedIn = false;
       if (!this.state.isLoggedIn) {
+         return (
+            <div className="loginpage">
+               <Helmet>
+                  <title>UltraBox</title>
+                  <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
+                  <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
+               </Helmet>
+               <Navbar style={facilityNavStyle}>
+                  <Navbar.Brand href="/" style={navbarBrandStyle}>
+                     <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
+                  </Navbar.Brand>
+               </Navbar>
+               <Container fluid style={pageStyle}>
+                  <Jumbotron style={{ background: 'gray', color: 'white' }}>
+                     <h1>Welcome!</h1>
+                     <p>
+                        Welcome to UltraBox. Sign in below to get access to your class.
+                     </p>
+                     <Row className="align-items-center">
+                        <Col className="d-none d-md-block">
+                        </Col>
+                        <Col>
+                           <Form.Group controlId="formMeetingCode">
+                              <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldBSepStyle}
+                                 onChange={this.handleMeetCodeChange.bind(this)}
+                                 isValid={this.state.isValidMeetCode}
+                                 value={this.state.meetCode} />
+                           </Form.Group>
+                           <Form.Group controlId="formName">
+                              <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldBSepStyle}
+                                 onChange={this.handleNameChange.bind(this)}
+                                 isValid={this.state.isValidName}
+                                 value={this.state.name} />
+                           </Form.Group>
+                           <Button variant="secondary" disabled={!this.state.isReadyToLogInWithMeetCode}
+                              onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
+                           </Button>
+                        </Col>
+                        <Col className="d-none d-md-block">
+                        </Col>
+                     </Row>
+                  </Jumbotron>
+               </Container>
+            </div>
+         );
       }
       else {
-         loggedIn = true;
+         return (
+            <div className="memberpage">
+               <Helmet>
+                  <title>{this.state.pageData.currentFacility.name}</title>
+                  <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+                  <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+               </Helmet>
+
+               <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
+                  <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+                  <Navbar.Collapse id="responsive-navbar-nav">
+                     <Nav className="mr-auto">
+                        <Dropdown as={ButtonGroup} id="collasible-nav-facility">
+                           <Button split="true" variant="secondary" style={thinStyle}>
+                              <PartySmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
+                           </Button>
+                           <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
+                           </Dropdown.Toggle>
+                           <Dropdown.Menu align="left">
+                              <Dropdown.Item href={this.state.pageData.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
+                           </Dropdown.Menu>
+                        </Dropdown>
+                     </Nav>
+                     <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
+                     <Nav className="ml-auto">
+                        <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
+                           <Button split="true" variant="secondary" style={thinStyle}>
+                              <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
+                           </Button>
+                           <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
+                           </Dropdown.Toggle>
+                           <LinkConnectionStatus rtc={this.state.rtc}> </LinkConnectionStatus>
+                        </Dropdown>
+                        <Dropdown as={ButtonGroup} id="collasible-nav-person">
+                           <Button split="true" variant="secondary" style={thinStyle}>
+                              <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
+                           </Button>
+                           <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
+                           </Dropdown.Toggle>
+                           <Dropdown.Menu align="right">
+                              <Dropdown.Item>Sign Out...</Dropdown.Item>
+                           </Dropdown.Menu>
+                        </Dropdown>
+                     </Nav>
+                  </Navbar.Collapse>
+               </Navbar>
+
+               <Container fluid style={pageStyle}>
+                  <Row style={thinStyle}>
+                     <Col style={lpanelStyle}>
+                        <RemoteWhiteboard rtc={this.state.rtc}> </RemoteWhiteboard>
+                     </Col>
+                     <Col md='auto' style={rpanelStyle}>
+                        <RemoteClock rtc={this.state.rtc}/>
+                        <br />
+                        <RemotePeople rtc={this.state.rtc}> </RemotePeople>
+                     </Col>
+                  </Row>
+                  <Footer></Footer>
+               </Container>
+            </div>
+         );
       }
-
-      return (
-         <div className="memberpage">
-            <Helmet>
-               <title>{this.state.pageData.currentFacility.name}</title>
-               <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
-               <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
-            </Helmet>
-
-            <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
-               <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-               <Navbar.Collapse id="responsive-navbar-nav">
-                  <Nav className="mr-auto">
-                     <Dropdown as={ButtonGroup} id="collasible-nav-facility">
-                        <Button split="true" variant="secondary" style={thinStyle}>
-                           <PartySmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
-                        </Button>
-                        <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="left">
-                           <Dropdown.Item href={this.state.pageData.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
-                        </Dropdown.Menu>
-                     </Dropdown>
-                  </Nav>
-                  <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
-                  <Nav className="ml-auto">
-                     <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
-                        <Button split="true" variant="secondary" style={thinStyle}>
-                           <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
-                        </Button>
-                        <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
-                        </Dropdown.Toggle>
-                        <LinkConnectionStatus rtc={this.state.rtc}> </LinkConnectionStatus>
-                     </Dropdown>
-                     <Dropdown as={ButtonGroup} id="collasible-nav-person">
-                        <Button split="true" variant="secondary" style={thinStyle}>
-                           <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
-                        </Button>
-                        <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="right">
-                           <Dropdown.Item>Sign Out...</Dropdown.Item>
-                        </Dropdown.Menu>
-                     </Dropdown>
-                  </Nav>
-               </Navbar.Collapse>
-            </Navbar>
-
-            <Container fluid style={pageStyle}>
-               <Row style={thinStyle}>
-                  <Col style={lpanelStyle}>
-                     <RemoteWhiteboard rtc={this.state.rtc}> </RemoteWhiteboard>  
-                  </Col>
-                  <Col md='auto' style={rpanelStyle}>
-                     <RemoteClock rtc={this.state.rtc} />
-                     <br />
-                     <RemotePeople rtc={this.state.rtc}> </RemotePeople>
-                  </Col>
-               </Row>
-               <Footer></Footer>
-            </Container>            
-         </div>
-      );
    }
 }
 
@@ -281,6 +374,7 @@ interface ICoachPageProps {
 interface ICoachPageState {
    isLoggedIn: boolean;
    isLeader: boolean;
+   haveAccess: boolean;
    pageData: HomePageData
    rtc: Rtc;
    login: LoginFb;
@@ -306,6 +400,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       this.state = {
          isLoggedIn: false,
          isLeader: true, // we are leader until someone beats us in 'glareResolve' exchange
+         haveAccess: false, //  Canny access mic or speaker until users does something. 
          pageData: this.pageData,
          rtc: null,
          login: new LoginFb({
@@ -329,7 +424,12 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    componentWillUnmount() {
    }
 
-   onleaderchange (isLeader) {
+   onAccessChange(haveAccess) {
+      var self = this;
+      this.setState({ haveAccess: haveAccess });
+   }
+
+   onLeaderChange (isLeader) {
       var self = this;
       this.setState({isLeader: isLeader});
    }
@@ -445,7 +545,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={thinStyle}>
-                        <LeaderResolve onleaderchange={this.onleaderchange.bind(this)} rtc={this.state.rtc}> </LeaderResolve>
+                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} rtc={this.state.rtc}> </LeaderResolve>
                      </Col>
                   </Row>
                   <Row style={thinStyle}>
@@ -466,51 +566,28 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    }
 }
 
-interface ILoginPageProps {
+interface ILandingPageProps {
 }
 
 interface ILoginPageState {
-   isLoggedIn: boolean;
-   isMcReadyToLogin: boolean;
-   meetCode: string;
-   name: string;
+
    email: string;
-   isValidMeetCode: boolean;
-   isValidName: boolean;
    isValidEmail: boolean;
-   loginFb: LoginFb;
-   loginMc: LoginMc;
    sentEmail: boolean;
    playingAudio: boolean;
    isMobileFormFactor: boolean;
 }
 
-export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState> {
-   //member variables
-   isLoggedIn: boolean;
-   lastUserData: MeetingScreenState;
+export class LandingPage extends React.Component<ILandingPageProps, ILoginPageState> {
+   //member variables - shared across instances, although for this class we have only one anyway
    media: Media;
 
-   constructor(props: ILoginPageProps) {
+   constructor(props: ILandingPageProps) {
       super(props);
-      this.lastUserData = new MeetingScreenState();
 
       this.state = {
-         isLoggedIn: false,
-         isMcReadyToLogin: false,
-         meetCode: this.lastUserData.loadMeetingId(),
-         name: this.lastUserData.loadName(),
          email: "",
-         isValidMeetCode: false,
-         isValidName: false,
          isValidEmail: false,
-         loginFb: new LoginFb({ autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeFb.bind(this) }),
-         loginMc: new LoginMc({
-            autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
-            onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this),
-            name: this.lastUserData.loadName(),
-            meetCode: this.lastUserData.loadMeetingId()
-         }),
          sentEmail: false,
          playingAudio: (false),
          isMobileFormFactor: true // Assume mobile first !
@@ -521,32 +598,7 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
       this.media.addMobileFormFactorChangeListener(this.onMobileFormFactorChange.bind(this));
    }
    
-   onLoginStatusChangeMc(isLoggedIn) {
-      this.setState ({ isLoggedIn: isLoggedIn});
-   }
-
-   onLoginReadinessChangeMc(isReady) {
-      this.setState({
-         isMcReadyToLogin: isReady,
-         isValidMeetCode: this.state.loginMc.isValidMeetCode(),
-         isValidName: this.state.loginMc.isValidName()
-      });
-      if (isReady) {
-         this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
-         this.lastUserData.saveName(this.state.loginMc.getName());
-      }
-   }
-
-   onLoginStatusChangeFb(isLoggedIn) {
-      this.setState({ isLoggedIn: isLoggedIn });
-   }
-
    componentDidMount() {
-      // Initialise facebook API
-      this.state.loginFb.loadAPI();
-
-      // Initialise meeting code API
-      this.state.loginMc.loadAPI();
 
       this.setState({ isMobileFormFactor: this.media.isSmallFormFactor() });
    }
@@ -564,16 +616,6 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
          audioEl.play();
          this.setState({ playingAudio: true });
       }
-   }
-
-   handleMeetCodeChange(ev: any) {
-      this.state.loginMc.handleMeetCodeChange(ev);
-      this.setState({ meetCode: this.state.loginMc.getMeetCode() });
-   }
-
-   handleNameChange(ev: any) {
-      this.state.loginMc.handleNameChange(ev);
-      this.setState({ name: this.state.loginMc.getName() });
    }
 
    validateEmail(email : string) {
@@ -601,6 +643,14 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                logger.error('LoginPage', 'sendLead', 'Post error:', e);
             });
       }
+   }
+
+   goMember() {
+      window.location.href = "/member";
+   }
+
+   goCoach() {
+      window.location.href = "/coach";
    }
 
    render() {
@@ -681,23 +731,13 @@ export class LoginPage extends React.Component<ILoginPageProps, ILoginPageState>
                         <Col className="d-none d-md-block">
                         </Col>
                         <Col>
-                           <Button variant="secondary" onClick={this.state.loginFb.logIn}>Coaches login with Facebook...</Button>
+                           <Button variant="secondary"
+                              onClick={this.goCoach.bind(this)}>Coaches
+                           </Button>
                         </Col>
                         <Col style={loginGroupStyleLeftBorder}>
-                           <Form.Group controlId="formMeetingCode">
-                              <Form.Control type="text" placeholder="Enter meeting code." maxLength="10" style={fieldBSepStyle}
-                                 onChange={this.handleMeetCodeChange.bind(this)}
-                                 isValid={this.state.isValidMeetCode}
-                                 value={this.state.meetCode} />
-                           </Form.Group>
-                           <Form.Group controlId="formName">
-                              <Form.Control type="text" placeholder="Enter your display name." maxLength="30" style={fieldBSepStyle}
-                                 onChange={this.handleNameChange.bind(this)}
-                                 isValid={this.state.isValidName}
-                                 value={this.state.name} />
-                           </Form.Group>
-                           <Button variant="secondary" disabled={!this.state.isMcReadyToLogin}
-                              onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
+                           <Button variant="secondary" 
+                              onClick={this.goMember.bind(this)}>Members
                            </Button>
                         </Col>
                         <Col className="d-none d-md-block">
@@ -717,10 +757,10 @@ export class PageSwitcher extends React.Component {
          <BrowserRouter>   
             <Switch>
                <Route exact path="/">  
-                  <Redirect to="/login" />  
+                  <Redirect to="/landing" />  
                </Route> 
-               <Route path="/login">
-                  <LoginPage />
+               <Route path="/landing">
+                  <LandingPage />
                </Route>
                <Route path="/member">
                   <MemberPage />
