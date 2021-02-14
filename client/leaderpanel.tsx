@@ -18,9 +18,13 @@ const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
 };
 
+const alertStyle: CSS.Properties = {
+   margin: '0px'
+};
+
 export interface ILeaderConnectionProps {
    rtc: Rtc;
-   onleaderchange: Function;
+   onLeaderChange: Function;
 }
 
 interface ILeaderResolveState {
@@ -67,8 +71,8 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
       if (Object.getPrototypeOf(ev).__type === CallLeaderResolve.prototype.__type) {
          if (! this.state.myLeaderResolve.isWinnerVs(ev)) {
             this.setState({ isLeader: false });
-            if (this.props.onleaderchange)
-               this.props.onleaderchange(false);
+            if (this.props.onLeaderChange)
+               this.props.onLeaderChange(false);
          }
       }
    }
@@ -81,7 +85,7 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
       } else {
          return (
             <div style={thinStyle}>
-               <Alert key={'notLeaderId'} variant={'secondary'}>  
+               <Alert style={alertStyle} key={'notLeaderId'} variant={'secondary'}>  
                   It looks like another coach is leading this session. Please click below to go back to the login page.
                   <Nav.Item>
                      <Nav.Link href="/login" eventKey="reJoinId">Rejoin</Nav.Link> 

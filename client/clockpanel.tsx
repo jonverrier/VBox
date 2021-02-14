@@ -91,6 +91,10 @@ function selectMusic(durationEnum, musicEnum) {
    }
 };
 
+export interface IRemoteClockProps {
+   rtc: Rtc;
+}
+
 export interface IRemoteClockState {
    isMounted: boolean;
    mm: number;
@@ -98,10 +102,10 @@ export interface IRemoteClockState {
    clock: GymClock;
 }
 
-export class RemoteClock extends React.Component<IConnectionProps, IRemoteClockState> {
+export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClockState> {
    state: IRemoteClockState;
 
-   constructor(props: IConnectionProps) {
+   constructor(props: IRemoteClockProps) {
       super(props);
 
       if (props.rtc) {

@@ -49,8 +49,9 @@ export class LoginFb {
 
          // If enabled, and the user is logged in already, 
          // this will automatically redirect the page to the users home page.
-         if (self.props.autoLogin)
-            self.processFBLoginResponse(true);
+         //if (self.props.autoLogin)
+         //   self.processFBLoginResponse(true);
+         // Disabled - we want the user to click something, so we get access to play sounds etc. 
       };
 
       // Load the SDK asynchronously
