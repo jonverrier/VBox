@@ -8,16 +8,19 @@
 
 var Enum = require('./enum.js').Enum;
 
-const gymClockDurationEnum = new Enum('Ten', 'Fifteen', 'Twenty');
+const gymClockDurationEnum = new Enum('Five', 'Ten', 'Fifteen', 'Twenty');
 const gymClockMusicEnum = new Enum('Uptempo', 'Midtempo', 'None');
 const gymClockStateEnum = new Enum('Stopped', 'CountingDown', 'Running', 'Paused');
 const gymClockActionEnum = new Enum('Start', 'Stop', 'Pause');
 
-const countDownSeconds = new Number(15);
+const countDownSeconds = new Number(16);
 
 // Keep this function need declation in case an extra Enum is added above & this needs to change
 function calculateCountToSeconds (durationEnum) {
    switch (durationEnum) {
+      case gymClockDurationEnum.Five:
+         return (countDownSeconds + 5 * 60);
+
       default:
       case gymClockDurationEnum.Ten:
          return (countDownSeconds + 10 * 60);
@@ -201,7 +204,7 @@ var GymClock = (function invocation() {
       this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
 
       if (this.audio)
-         this.audio.stop();
+         this.audio.pause();
 
       if (this.callbackFn)
          this.callbackFn(0, 0);

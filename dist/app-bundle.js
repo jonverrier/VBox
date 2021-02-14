@@ -901,16 +901,19 @@ if (false) {} else {
 
 var Enum = __webpack_require__(/*! ./enum.js */ "./common/enum.js").Enum;
 
-const gymClockDurationEnum = new Enum('Ten', 'Fifteen', 'Twenty');
+const gymClockDurationEnum = new Enum('Five', 'Ten', 'Fifteen', 'Twenty');
 const gymClockMusicEnum = new Enum('Uptempo', 'Midtempo', 'None');
 const gymClockStateEnum = new Enum('Stopped', 'CountingDown', 'Running', 'Paused');
 const gymClockActionEnum = new Enum('Start', 'Stop', 'Pause');
 
-const countDownSeconds = new Number(15);
+const countDownSeconds = new Number(16);
 
 // Keep this function need declation in case an extra Enum is added above & this needs to change
 function calculateCountToSeconds (durationEnum) {
    switch (durationEnum) {
+      case gymClockDurationEnum.Five:
+         return (countDownSeconds + 5 * 60);
+
       default:
       case gymClockDurationEnum.Ten:
          return (countDownSeconds + 10 * 60);
@@ -1094,7 +1097,7 @@ var GymClock = (function invocation() {
       this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
 
       if (this.audio)
-         this.audio.stop();
+         this.audio.pause();
 
       if (this.callbackFn)
          this.callbackFn(0, 0);
@@ -72559,13 +72562,6 @@ var thinAutoStyle = {
 var clockStyle = {
     color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
-var fieldYSepStyle = {
-    marginBottom: '10px'
-};
-var fieldYSepStyleAuto = {
-    marginBottom: '10px',
-    width: "auto"
-};
 var popdownBtnStyle = {
     margin: '0px', padding: '4px',
     fontSize: '14px'
@@ -72579,7 +72575,40 @@ var blockCharStyle = {
     paddingLeft: '8px', paddingRight: '8px',
     paddingTop: '0px', paddingBottom: '0px',
 };
-var first = true;
+// Keep this function need declation in case an extra Enum is added above & this needs to change
+function selectMusic(durationEnum, musicEnum) {
+    var url;
+    if (musicEnum == gymclock_js_1.gymClockMusicEnum.None) {
+        return null;
+    }
+    else if (musicEnum == gymclock_js_1.gymClockMusicEnum.Uptempo) {
+        switch (durationEnum) {
+            case gymclock_js_1.gymClockDurationEnum.Five:
+                return null;
+            default:
+            case gymclock_js_1.gymClockDurationEnum.Ten:
+                return null;
+            case gymclock_js_1.gymClockDurationEnum.Fifteen:
+                return '15-Minute-Timer.mp3';
+            case gymclock_js_1.gymClockDurationEnum.Twenty:
+                return null;
+        }
+    }
+    else if (musicEnum == gymclock_js_1.gymClockMusicEnum.Midtempo) {
+        switch (durationEnum) {
+            case gymclock_js_1.gymClockDurationEnum.Five:
+                return null;
+            default:
+            case gymclock_js_1.gymClockDurationEnum.Ten:
+                return null;
+            case gymclock_js_1.gymClockDurationEnum.Fifteen:
+                return null;
+            case gymclock_js_1.gymClockDurationEnum.Twenty:
+                return null;
+        }
+    }
+}
+;
 var RemoteClock = /** @class */ (function (_super) {
     __extends(RemoteClock, _super);
     function RemoteClock(props) {
@@ -72664,7 +72693,7 @@ var MasterClock = /** @class */ (function (_super) {
         if (storedClockSpec && storedClockSpec.length > 0) {
             var types = new types_js_1.TypeRegistry();
             var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
-            clockSpec = new gymclock_js_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum);
+            clockSpec = new gymclock_js_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum, selectMusic(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum));
         }
         else
             clockSpec = new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Ten, gymclock_js_1.gymClockMusicEnum.None, null);
@@ -72735,7 +72764,7 @@ var MasterClock = /** @class */ (function (_super) {
         this.setState({ enableOk: true });
     };
     MasterClock.prototype.processSave = function () {
-        var spec = new gymclock_js_1.GymClockSpec(this.state.clockSpec.durationEnum, this.state.clockSpec.musicEnum);
+        var spec = new gymclock_js_1.GymClockSpec(this.state.clockSpec.durationEnum, this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl);
         this.state.clock.stop();
         var clock = new gymclock_js_1.GymClock(spec);
         this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
@@ -72808,37 +72837,73 @@ var MasterClock = /** @class */ (function (_super) {
                             React.createElement(octicons_react_1.TriangleDownIcon, null))))),
             React.createElement(Collapse_1.default, { in: this.state.inEditMode },
                 React.createElement("div", null,
-                    React.createElement(Form_1.default, null,
-                        React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "10 mins:", type: "radio", id: 'wall-clock-select', 
+                    React.createElement(Form_1.default, { style: { textAlign: 'left' } },
+                        React.createElement(Form_1.default.Row, { style: { textAlign: 'left' } },
+                            React.createElement(Form_1.default.Group, { controlId: "durationGroupId" },
+                                React.createElement(Form_1.default.Label, null, "Run timer for:"),
+                                React.createElement(Form_1.default.Check, { label: "5m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === gymclock_js_1.gymClockDurationEnum.Five, onChange: function (ev) {
+                                        if (ev.target.checked) {
+                                            _this.setState({
+                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Five, _this.state.clockSpec.musicEnum, selectMusic(gymclock_js_1.gymClockDurationEnum.Five, _this.state.clockSpec.musicEnum)),
+                                                enableCancel: true
+                                            });
+                                            _this.testEnableSave();
+                                        }
+                                    } }),
+                                React.createElement(Form_1.default.Check, { label: "10m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === gymclock_js_1.gymClockDurationEnum.Ten, onChange: function (ev) {
+                                        if (ev.target.checked) {
+                                            _this.setState({
+                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Ten, _this.state.clockSpec.musicEnum, selectMusic(gymclock_js_1.gymClockDurationEnum.Ten, _this.state.clockSpec.musicEnum)),
+                                                enableCancel: true
+                                            });
+                                            _this.testEnableSave();
+                                        }
+                                    } }),
+                                React.createElement(Form_1.default.Check, { label: "15m", type: "radio", id: '15m-select', checked: this.state.clockSpec.durationEnum === gymclock_js_1.gymClockDurationEnum.Fifteen, onChange: function (ev) {
+                                        if (ev.target.checked) {
+                                            _this.setState({
+                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Fifteen, _this.state.clockSpec.musicEnum, selectMusic(gymclock_js_1.gymClockDurationEnum.Fifteen, _this.state.clockSpec.musicEnum)),
+                                                enableCancel: true
+                                            });
+                                            _this.testEnableSave();
+                                        }
+                                    } }),
+                                React.createElement(Form_1.default.Check, { label: "20m", type: "radio", id: '20m-select', checked: this.state.clockSpec.durationEnum === gymclock_js_1.gymClockDurationEnum.Twenty, onChange: function (ev) {
+                                        if (ev.target.checked) {
+                                            _this.setState({
+                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Twenty, _this.state.clockSpec.musicEnum, selectMusic(gymclock_js_1.gymClockDurationEnum.Twenty, _this.state.clockSpec.musicEnum)),
+                                                enableCancel: true
+                                            });
+                                            _this.testEnableSave();
+                                        }
+                                    } }))),
+                        React.createElement(Form_1.default.Row, { style: { textAlign: 'left' } },
+                            React.createElement(Form_1.default.Group, { controlId: "musicId" },
+                                React.createElement(Form_1.default.Label, null, "Music:"),
+                                React.createElement(Form_1.default.Check, { label: "Up tempo", type: "radio", id: 'upTempo-select', 
                                     // TODO - should be able to remove 'name' from all these 
-                                    checked: this.state.clockSpec.durationEnum.name === gymclock_js_1.gymClockDurationEnum.Ten.name, onChange: function (ev) {
+                                    checked: this.state.clockSpec.musicEnum === gymclock_js_1.gymClockMusicEnum.Uptempo, onChange: function (ev) {
                                         if (ev.target.checked) {
                                             _this.setState({
-                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Ten, _this.state.clockSpec.musicEnum, _this.state.clockSpec.musicUrl),
+                                                clockSpec: new gymclock_js_1.GymClockSpec(_this.state.clockSpec.durationEnum, gymclock_js_1.gymClockMusicEnum.Uptempo, selectMusic(_this.state.clockSpec.durationEnum, gymclock_js_1.gymClockMusicEnum.Uptempo)),
                                                 enableCancel: true
                                             });
                                             _this.testEnableSave();
                                         }
-                                    } }))),
-                        React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "15 mins:", type: "radio", id: 'count-up-select', checked: this.state.clockSpec.durationEnum.name === gymclock_js_1.gymClockDurationEnum.Fifteen.name, onChange: function (ev) {
+                                    } }),
+                                React.createElement(Form_1.default.Check, { label: "Mid tempo", type: "radio", id: 'midTempo-select', checked: this.state.clockSpec.musicEnum === gymclock_js_1.gymClockMusicEnum.Midtempo, onChange: function (ev) {
                                         if (ev.target.checked) {
                                             _this.setState({
-                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Fifteen, _this.state.clockSpec.musicEnum, _this.state.clockSpec.musicUrl),
+                                                clockSpec: new gymclock_js_1.GymClockSpec(_this.state.clockSpec.durationEnum, gymclock_js_1.gymClockMusicEnum.Midtempo, selectMusic(_this.state.clockSpec.durationEnum, gymclock_js_1.gymClockMusicEnum.Midtempo)),
                                                 enableCancel: true
                                             });
                                             _this.testEnableSave();
                                         }
-                                    } }))),
-                        React.createElement(Form_1.default.Row, null,
-                            React.createElement(Form_1.default.Group, null,
-                                React.createElement(Form_1.default.Check, { inline: true, label: "20 mins:", type: "radio", id: 'count-down-select', checked: this.state.clockSpec.durationEnum.name === gymclock_js_1.gymClockDurationEnum.Twenty.name, onChange: function (ev) {
+                                    } }),
+                                React.createElement(Form_1.default.Check, { label: "None", type: "radio", id: 'noMusic-select', checked: this.state.clockSpec.musicEnum === gymclock_js_1.gymClockMusicEnum.None, onChange: function (ev) {
                                         if (ev.target.checked) {
                                             _this.setState({
-                                                clockSpec: new gymclock_js_1.GymClockSpec(gymclock_js_1.gymClockDurationEnum.Twenty, _this.state.clockSpec.musicEnum, _this.state.clockSpec.musicUrl),
+                                                clockSpec: new gymclock_js_1.GymClockSpec(_this.state.clockSpec.durationEnum, gymclock_js_1.gymClockMusicEnum.None, selectMusic(_this.state.clockSpec.durationEnum, gymclock_js_1.gymClockMusicEnum.None)),
                                                 enableCancel: true
                                             });
                                             _this.testEnableSave();
