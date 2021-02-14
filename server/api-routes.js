@@ -52,7 +52,12 @@ async function facilityIdListForCoach(personId) {
 async function facilityIdListForMember(personId) {
 
    // Find facilities where the member is 'personId'
-   const facilityMembers = await facilityMemberModel.find().where('personId').eq(personId).exec();
+   const facilityMembers1 = await facilityMemberModel.find().where('personId').eq(personId).exec();
+
+   // they might be a coach - retrieve those links
+   const facilityMembers2 = await facilityCoachModel.find().where('personId').eq(personId).exec();
+
+   const facilityMembers = facilityMembers1.concat(facilityMembers2);
 
    var facilityIds = new Array();
 

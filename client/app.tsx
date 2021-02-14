@@ -195,33 +195,6 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
       // Initialise meeting code API
       this.state.loginMc.loadAPI();
-
-      // Make a request for user data to populate the home page 
-      axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
-         .then(function (response) {
-
-            // Success, set state to data for logged in user 
-            self.pageData = self.pageData.revive(response.data);
-
-            // Initialise WebRTC and connect
-            var rtc = new Rtc({
-               isEdgeOnly: true, // Member nodes are edge only, coaches are full hubs
-               sessionId: self.pageData.sessionId,
-               facilityId: self.pageData.currentFacility.externalId,
-               personId: self.pageData.person.externalId,
-               personName: self.pageData.person.name,
-               personThumbnailUrl: self.pageData.person.thumbnailUrl
-            });
-            rtc.connectFirst();
-
-            self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
-            self.forceUpdate();
-         })
-         .catch(function (error) {
-            // handle error by setting state back to no user logged in
-            self.pageData = self.defaultPageData;
-            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
-         });
    }
 
    componentWillUnmount() {
@@ -238,7 +211,37 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
    }
 
    onLoginStatusChangeMc(isLoggedIn) {
-      this.setState({ isLoggedIn: isLoggedIn });
+
+      var self = this;
+
+      if (isLoggedIn) {
+         // Make a request for user data to populate the home page 
+         axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
+            .then(function (response) {
+
+               // Success, set state to data for logged in user 
+               self.pageData = self.pageData.revive(response.data);
+
+               // Initialise WebRTC and connect
+               var rtc = new Rtc({
+                  isEdgeOnly: true, // Member nodes are edge only, coaches are full hubs
+                  sessionId: self.pageData.sessionId,
+                  facilityId: self.pageData.currentFacility.externalId,
+                  personId: self.pageData.person.externalId,
+                  personName: self.pageData.person.name,
+                  personThumbnailUrl: self.pageData.person.thumbnailUrl
+               });
+               rtc.connectFirst();
+
+               self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+               self.forceUpdate();
+            })
+            .catch(function (error) {
+               // handle error by setting state back to no user logged in
+               self.pageData = self.defaultPageData;
+               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+            });
+      }
    }
 
    onLoginReadinessChangeMc(isReady) {

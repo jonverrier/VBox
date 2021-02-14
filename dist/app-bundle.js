@@ -71924,29 +71924,6 @@ var MemberPage = /** @class */ (function (_super) {
         var self = this;
         // Initialise meeting code API
         this.state.loginMc.loadAPI();
-        // Make a request for user data to populate the home page 
-        axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(false) } })
-            .then(function (response) {
-            // Success, set state to data for logged in user 
-            self.pageData = self.pageData.revive(response.data);
-            // Initialise WebRTC and connect
-            var rtc = new rtc_1.Rtc({
-                isEdgeOnly: true,
-                sessionId: self.pageData.sessionId,
-                facilityId: self.pageData.currentFacility.externalId,
-                personId: self.pageData.person.externalId,
-                personName: self.pageData.person.name,
-                personThumbnailUrl: self.pageData.person.thumbnailUrl
-            });
-            rtc.connectFirst();
-            self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
-            self.forceUpdate();
-        })
-            .catch(function (error) {
-            // handle error by setting state back to no user logged in
-            self.pageData = self.defaultPageData;
-            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
-        });
     };
     MemberPage.prototype.componentWillUnmount = function () {
     };
@@ -71959,7 +71936,32 @@ var MemberPage = /** @class */ (function (_super) {
         this.setState({ name: this.state.loginMc.getName() });
     };
     MemberPage.prototype.onLoginStatusChangeMc = function (isLoggedIn) {
-        this.setState({ isLoggedIn: isLoggedIn });
+        var self = this;
+        if (isLoggedIn) {
+            // Make a request for user data to populate the home page 
+            axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(false) } })
+                .then(function (response) {
+                // Success, set state to data for logged in user 
+                self.pageData = self.pageData.revive(response.data);
+                // Initialise WebRTC and connect
+                var rtc = new rtc_1.Rtc({
+                    isEdgeOnly: true,
+                    sessionId: self.pageData.sessionId,
+                    facilityId: self.pageData.currentFacility.externalId,
+                    personId: self.pageData.person.externalId,
+                    personName: self.pageData.person.name,
+                    personThumbnailUrl: self.pageData.person.thumbnailUrl
+                });
+                rtc.connectFirst();
+                self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+                self.forceUpdate();
+            })
+                .catch(function (error) {
+                // handle error by setting state back to no user logged in
+                self.pageData = self.defaultPageData;
+                self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+            });
+        }
     };
     MemberPage.prototype.onLoginReadinessChangeMc = function (isReady) {
         this.setState({
