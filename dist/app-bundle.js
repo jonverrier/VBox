@@ -71785,7 +71785,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Footer = exports.PageSwitcher = exports.LoginPage = exports.CoachPage = exports.MemberPage = void 0;
+exports.Footer = exports.PageSwitcher = exports.LandingPage = exports.CoachPage = exports.MemberPage = void 0;
 var ReactDOM = __webpack_require__(/*! react-dom */ "./node_modules/react-dom/index.js");
 // Core React
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
@@ -71894,10 +71894,25 @@ var MemberPage = /** @class */ (function (_super) {
     __extends(MemberPage, _super);
     function MemberPage(props) {
         var _this = _super.call(this, props) || this;
+        _this.lastUserData = new localstore_1.MeetingScreenState();
         _this.defaultPageData = new homepagedata_1.HomePageData(null, new person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png'), null);
-        _this.isLoggedIn = false;
         _this.pageData = _this.defaultPageData;
-        _this.state = { isLoggedIn: _this.isLoggedIn, pageData: _this.pageData, rtc: null };
+        _this.state = {
+            isLoggedIn: false,
+            pageData: _this.pageData,
+            rtc: null,
+            isReadyToLogInWithMeetCode: false,
+            meetCode: _this.lastUserData.loadMeetingId(),
+            name: _this.lastUserData.loadName(),
+            isValidMeetCode: false,
+            isValidName: false,
+            loginMc: new loginmc_1.LoginMc({
+                autoLogin: false, onLoginStatusChange: _this.onLoginStatusChangeMc.bind(_this),
+                onLoginReadinessChange: _this.onLoginReadinessChangeMc.bind(_this),
+                name: _this.lastUserData.loadName(),
+                meetCode: _this.lastUserData.loadMeetingId()
+            }),
+        };
         return _this;
     }
     MemberPage.prototype.componentDidMount = function () {
@@ -71907,6 +71922,8 @@ var MemberPage = /** @class */ (function (_super) {
         var imgA = new Image();
         imgA.src = "./circle-black-yellow-128x128.png";
         var self = this;
+        // Initialise meeting code API
+        this.state.loginMc.loadAPI();
         // Make a request for user data to populate the home page 
         axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(false) } })
             .then(function (response) {
@@ -71933,50 +71950,91 @@ var MemberPage = /** @class */ (function (_super) {
     };
     MemberPage.prototype.componentWillUnmount = function () {
     };
+    MemberPage.prototype.handleMeetCodeChange = function (ev) {
+        this.state.loginMc.handleMeetCodeChange(ev);
+        this.setState({ meetCode: this.state.loginMc.getMeetCode() });
+    };
+    MemberPage.prototype.handleNameChange = function (ev) {
+        this.state.loginMc.handleNameChange(ev);
+        this.setState({ name: this.state.loginMc.getName() });
+    };
+    MemberPage.prototype.onLoginStatusChangeMc = function (isLoggedIn) {
+        this.setState({ isLoggedIn: isLoggedIn });
+    };
+    MemberPage.prototype.onLoginReadinessChangeMc = function (isReady) {
+        this.setState({
+            isReadyToLogInWithMeetCode: isReady,
+            isValidMeetCode: this.state.loginMc.isValidMeetCode(),
+            isValidName: this.state.loginMc.isValidName()
+        });
+        if (isReady) {
+            this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
+            this.lastUserData.saveName(this.state.loginMc.getName());
+        }
+    };
     MemberPage.prototype.render = function () {
-        var loggedIn = false;
         if (!this.state.isLoggedIn) {
+            return (React.createElement("div", { className: "loginpage" },
+                React.createElement(react_helmet_1.Helmet, null,
+                    React.createElement("title", null, "UltraBox"),
+                    React.createElement("link", { rel: "icon", href: "weightlifter-b-128x128.png", type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
+                React.createElement(Navbar_1.default, { style: facilityNavStyle },
+                    React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
+                        React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                    React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
+                        React.createElement("h1", null, "Welcome!"),
+                        React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
+                        React.createElement(Row_1.default, { className: "align-items-center" },
+                            React.createElement(Col_1.default, { className: "d-none d-md-block" }),
+                            React.createElement(Col_1.default, null,
+                                React.createElement(Form_1.default.Group, { controlId: "formMeetingCode" },
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: "10", style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.isValidMeetCode, value: this.state.meetCode })),
+                                React.createElement(Form_1.default.Group, { controlId: "formName" },
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: "30", style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.isValidName, value: this.state.name })),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isReadyToLogInWithMeetCode, onClick: this.state.loginMc.logIn.bind(this.state.loginMc) }, "Join with a meeting code...")),
+                            React.createElement(Col_1.default, { className: "d-none d-md-block" }))))));
         }
         else {
-            loggedIn = true;
+            return (React.createElement("div", { className: "memberpage" },
+                React.createElement(react_helmet_1.Helmet, null,
+                    React.createElement("title", null, this.state.pageData.currentFacility.name),
+                    React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
+                React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
+                    React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
+                    React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
+                        React.createElement(Nav_1.default, { className: "mr-auto" },
+                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
+                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
+                                React.createElement(Dropdown_1.default.Menu, { align: "left" },
+                                    React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
+                        React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
+                        React.createElement(Nav_1.default, { className: "ml-auto" },
+                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                    React.createElement(callpanel_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
+                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+                                React.createElement(callpanel_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
+                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
+                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
+                                React.createElement(Dropdown_1.default.Menu, { align: "right" },
+                                    React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
+                React.createElement(Container_1.default, { fluid: true, style: pageStyle },
+                    React.createElement(Row_1.default, { style: thinStyle },
+                        React.createElement(Col_1.default, { style: lpanelStyle },
+                            React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.rtc }, " ")),
+                        React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
+                            React.createElement(clockpanel_1.RemoteClock, { rtc: this.state.rtc }),
+                            React.createElement("br", null),
+                            React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))),
+                    React.createElement(Footer, null))));
         }
-        return (React.createElement("div", { className: "memberpage" },
-            React.createElement(react_helmet_1.Helmet, null,
-                React.createElement("title", null, this.state.pageData.currentFacility.name),
-                React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
-                React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
-            React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
-                React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
-                React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
-                    React.createElement(Nav_1.default, { className: "mr-auto" },
-                        React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
-                            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_2.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
-                            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
-                            React.createElement(Dropdown_1.default.Menu, { align: "left" },
-                                React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
-                    React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
-                    React.createElement(Nav_1.default, { className: "ml-auto" },
-                        React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-                            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(callpanel_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
-                            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                            React.createElement(callpanel_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
-                        React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
-                            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
-                            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
-                            React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
-            React.createElement(Container_1.default, { fluid: true, style: pageStyle },
-                React.createElement(Row_1.default, { style: thinStyle },
-                    React.createElement(Col_1.default, { style: lpanelStyle },
-                        React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.rtc }, " ")),
-                    React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                        React.createElement(clockpanel_1.RemoteClock, { rtc: this.state.rtc }),
-                        React.createElement("br", null),
-                        React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))),
-                React.createElement(Footer, null))));
     };
     return MemberPage;
 }(React.Component));
@@ -71990,6 +72048,7 @@ var CoachPage = /** @class */ (function (_super) {
         _this.state = {
             isLoggedIn: false,
             isLeader: true,
+            haveAccess: false,
             pageData: _this.pageData,
             rtc: null,
             login: new loginfb_1.LoginFb({
@@ -72010,7 +72069,11 @@ var CoachPage = /** @class */ (function (_super) {
     };
     CoachPage.prototype.componentWillUnmount = function () {
     };
-    CoachPage.prototype.onleaderchange = function (isLeader) {
+    CoachPage.prototype.onAccessChange = function (haveAccess) {
+        var self = this;
+        this.setState({ haveAccess: haveAccess });
+    };
+    CoachPage.prototype.onLeaderChange = function (isLeader) {
         var self = this;
         this.setState({ isLeader: isLeader });
     };
@@ -72094,7 +72157,7 @@ var CoachPage = /** @class */ (function (_super) {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: thinStyle },
-                            React.createElement(leaderpanel_1.LeaderResolve, { onleaderchange: this.onleaderchange.bind(this), rtc: this.state.rtc }, " "))),
+                            React.createElement(leaderpanel_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), rtc: this.state.rtc }, " "))),
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, rtc: this.state.rtc }, " ")),
@@ -72108,27 +72171,13 @@ var CoachPage = /** @class */ (function (_super) {
     return CoachPage;
 }(React.Component));
 exports.CoachPage = CoachPage;
-var LoginPage = /** @class */ (function (_super) {
-    __extends(LoginPage, _super);
-    function LoginPage(props) {
+var LandingPage = /** @class */ (function (_super) {
+    __extends(LandingPage, _super);
+    function LandingPage(props) {
         var _this = _super.call(this, props) || this;
-        _this.lastUserData = new localstore_1.MeetingScreenState();
         _this.state = {
-            isLoggedIn: false,
-            isMcReadyToLogin: false,
-            meetCode: _this.lastUserData.loadMeetingId(),
-            name: _this.lastUserData.loadName(),
             email: "",
-            isValidMeetCode: false,
-            isValidName: false,
             isValidEmail: false,
-            loginFb: new loginfb_1.LoginFb({ autoLogin: false, onLoginStatusChange: _this.onLoginStatusChangeFb.bind(_this) }),
-            loginMc: new loginmc_1.LoginMc({
-                autoLogin: false, onLoginStatusChange: _this.onLoginStatusChangeMc.bind(_this),
-                onLoginReadinessChange: _this.onLoginReadinessChangeMc.bind(_this),
-                name: _this.lastUserData.loadName(),
-                meetCode: _this.lastUserData.loadMeetingId()
-            }),
             sentEmail: false,
             playingAudio: (false),
             isMobileFormFactor: true // Assume mobile first !
@@ -72138,55 +72187,26 @@ var LoginPage = /** @class */ (function (_super) {
         _this.media.addMobileFormFactorChangeListener(_this.onMobileFormFactorChange.bind(_this));
         return _this;
     }
-    LoginPage.prototype.onLoginStatusChangeMc = function (isLoggedIn) {
-        this.setState({ isLoggedIn: isLoggedIn });
-    };
-    LoginPage.prototype.onLoginReadinessChangeMc = function (isReady) {
-        this.setState({
-            isMcReadyToLogin: isReady,
-            isValidMeetCode: this.state.loginMc.isValidMeetCode(),
-            isValidName: this.state.loginMc.isValidName()
-        });
-        if (isReady) {
-            this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
-            this.lastUserData.saveName(this.state.loginMc.getName());
-        }
-    };
-    LoginPage.prototype.onLoginStatusChangeFb = function (isLoggedIn) {
-        this.setState({ isLoggedIn: isLoggedIn });
-    };
-    LoginPage.prototype.componentDidMount = function () {
-        // Initialise facebook API
-        this.state.loginFb.loadAPI();
-        // Initialise meeting code API
-        this.state.loginMc.loadAPI();
+    LandingPage.prototype.componentDidMount = function () {
         this.setState({ isMobileFormFactor: this.media.isSmallFormFactor() });
     };
-    LoginPage.prototype.componentWillUnmount = function () {
+    LandingPage.prototype.componentWillUnmount = function () {
     };
-    LoginPage.prototype.onMobileFormFactorChange = function (isMobile) {
+    LandingPage.prototype.onMobileFormFactorChange = function (isMobile) {
         this.setState({ isMobileFormFactor: isMobile });
     };
-    LoginPage.prototype.playAudio = function () {
+    LandingPage.prototype.playAudio = function () {
         if (!this.state.playingAudio) {
             var audioEl = document.getElementsByClassName("audio-element")[0];
             audioEl.play();
             this.setState({ playingAudio: true });
         }
     };
-    LoginPage.prototype.handleMeetCodeChange = function (ev) {
-        this.state.loginMc.handleMeetCodeChange(ev);
-        this.setState({ meetCode: this.state.loginMc.getMeetCode() });
-    };
-    LoginPage.prototype.handleNameChange = function (ev) {
-        this.state.loginMc.handleNameChange(ev);
-        this.setState({ name: this.state.loginMc.getName() });
-    };
-    LoginPage.prototype.validateEmail = function (email) {
+    LandingPage.prototype.validateEmail = function (email) {
         var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(String(email).toLowerCase());
     };
-    LoginPage.prototype.handleEmailChange = function (ev) {
+    LandingPage.prototype.handleEmailChange = function (ev) {
         // Only allow one email per page refresh. 
         if (!this.state.sentEmail && this.validateEmail(ev.target.value)) {
             this.setState({ isValidEmail: true, email: ev.target.value });
@@ -72195,7 +72215,7 @@ var LoginPage = /** @class */ (function (_super) {
             this.setState({ isValidEmail: false, email: ev.target.value });
         }
     };
-    LoginPage.prototype.sendLead = function () {
+    LandingPage.prototype.sendLead = function () {
         var _this = this;
         if (this.validateEmail(this.state.email)) {
             axios_1.default.post('/api/lead', { params: { email: encodeURIComponent(this.state.email) } })
@@ -72208,7 +72228,13 @@ var LoginPage = /** @class */ (function (_super) {
             });
         }
     };
-    LoginPage.prototype.render = function () {
+    LandingPage.prototype.goMember = function () {
+        window.location.href = "/member";
+    };
+    LandingPage.prototype.goCoach = function () {
+        window.location.href = "/coach";
+    };
+    LandingPage.prototype.render = function () {
         return (React.createElement("div", { className: "loginpage" },
             React.createElement(react_helmet_1.Helmet, null,
                 React.createElement("title", null, "UltraBox"),
@@ -72255,19 +72281,15 @@ var LoginPage = /** @class */ (function (_super) {
                     React.createElement(Row_1.default, { className: "align-items-center" },
                         React.createElement(Col_1.default, { className: "d-none d-md-block" }),
                         React.createElement(Col_1.default, null,
-                            React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.loginFb.logIn }, "Coaches login with Facebook...")),
+                            React.createElement(Button_1.default, { variant: "secondary", onClick: this.goCoach.bind(this) }, "Coaches")),
                         React.createElement(Col_1.default, { style: loginGroupStyleLeftBorder },
-                            React.createElement(Form_1.default.Group, { controlId: "formMeetingCode" },
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: "10", style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.isValidMeetCode, value: this.state.meetCode })),
-                            React.createElement(Form_1.default.Group, { controlId: "formName" },
-                                React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: "30", style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.isValidName, value: this.state.name })),
-                            React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isMcReadyToLogin, onClick: this.state.loginMc.logIn.bind(this.state.loginMc) }, "Join with a meeting code...")),
+                            React.createElement(Button_1.default, { variant: "secondary", onClick: this.goMember.bind(this) }, "Members")),
                         React.createElement(Col_1.default, { className: "d-none d-md-block" }))),
                 React.createElement(Footer, null))));
     };
-    return LoginPage;
+    return LandingPage;
 }(React.Component));
-exports.LoginPage = LoginPage;
+exports.LandingPage = LandingPage;
 var PageSwitcher = /** @class */ (function (_super) {
     __extends(PageSwitcher, _super);
     function PageSwitcher() {
@@ -72277,9 +72299,9 @@ var PageSwitcher = /** @class */ (function (_super) {
         return (React.createElement(react_router_dom_1.BrowserRouter, null,
             React.createElement(react_router_dom_1.Switch, null,
                 React.createElement(react_router_dom_1.Route, { exact: true, path: "/" },
-                    React.createElement(react_router_dom_1.Redirect, { to: "/login" })),
-                React.createElement(react_router_dom_1.Route, { path: "/login" },
-                    React.createElement(LoginPage, null)),
+                    React.createElement(react_router_dom_1.Redirect, { to: "/landing" })),
+                React.createElement(react_router_dom_1.Route, { path: "/landing" },
+                    React.createElement(LandingPage, null)),
                 React.createElement(react_router_dom_1.Route, { path: "/member" },
                     React.createElement(MemberPage, null)),
                 React.createElement(react_router_dom_1.Route, { path: "/coach" },
@@ -72957,6 +72979,9 @@ var call_js_1 = __webpack_require__(/*! ../common/call.js */ "./common/call.js")
 var thinStyle = {
     margin: '0px', padding: '0px',
 };
+var alertStyle = {
+    margin: '0px'
+};
 var LeaderResolve = /** @class */ (function (_super) {
     __extends(LeaderResolve, _super);
     //member variables
@@ -72993,8 +73018,8 @@ var LeaderResolve = /** @class */ (function (_super) {
         if (Object.getPrototypeOf(ev).__type === call_js_1.CallLeaderResolve.prototype.__type) {
             if (!this.state.myLeaderResolve.isWinnerVs(ev)) {
                 this.setState({ isLeader: false });
-                if (this.props.onleaderchange)
-                    this.props.onleaderchange(false);
+                if (this.props.onLeaderChange)
+                    this.props.onLeaderChange(false);
             }
         }
     };
@@ -73004,7 +73029,7 @@ var LeaderResolve = /** @class */ (function (_super) {
         }
         else {
             return (React.createElement("div", { style: thinStyle },
-                React.createElement(Alert_1.default, { key: 'notLeaderId', variant: 'secondary' },
+                React.createElement(Alert_1.default, { style: alertStyle, key: 'notLeaderId', variant: 'secondary' },
                     "It looks like another coach is leading this session. Please click below to go back to the login page.",
                     React.createElement(Nav_1.default.Item, null,
                         React.createElement(Nav_1.default.Link, { href: "/login", eventKey: "reJoinId" }, "Rejoin")))));
@@ -73294,8 +73319,9 @@ var LoginFb = /** @class */ (function () {
             });
             // If enabled, and the user is logged in already, 
             // this will automatically redirect the page to the users home page.
-            if (self.props.autoLogin)
-                self.processFBLoginResponse(true);
+            //if (self.props.autoLogin)
+            //   self.processFBLoginResponse(true);
+            // Disabled - we want the user to click something, so we get access to play sounds etc. 
         };
         // Load the SDK asynchronously
         (function (d, s, id) {
@@ -73800,9 +73826,6 @@ var RtcCaller = /** @class */ (function () {
                 },
                 {
                     "urls": "stun:stun1.l.google.com:19302"
-                },
-                {
-                    "urls": "stun:global.stun.twilio.com:3478?transport=udp"
                 }]
         };
         this.sendConnection = new RTCPeerConnection(configuration);
@@ -74021,9 +74044,6 @@ var RtcReciever = /** @class */ (function () {
                 },
                 {
                     "urls": "stun:stun1.l.google.com:19302"
-                },
-                {
-                    "urls": "stun:global.stun.twilio.com:3478?transport=udp"
                 }]
         };
         this.recieveConnection = new RTCPeerConnection(configuration);

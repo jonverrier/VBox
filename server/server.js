@@ -111,7 +111,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //redirect root to Login
 app.get('/', function (req, res) {
-   return res.redirect('/login');
+   return res.redirect('/landing');
 });
 
 //The 404 Route (ALWAYS Keep this as the last route)
@@ -123,7 +123,7 @@ app.get('*', function (req, res) {
 });
 
 
-// Fix depracation warning. This one is not  abreaking change. 
+// Fix deprecation warning. This one is not a breaking change. 
 mongoose.set('useFindAndModify', false);
 
 const connect = async () => {
