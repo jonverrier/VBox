@@ -32,15 +32,6 @@ const clockStyle: CSS.Properties = {
    color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 
-const fieldYSepStyle: CSS.Properties = {
-   marginBottom: '10px'
-};
-
-const fieldYSepStyleAuto: CSS.Properties = {
-   marginBottom: '10px',
-   width: "auto"
-};
-
 const popdownBtnStyle: CSS.Properties = {
    margin: '0px', padding: '4px',
    fontSize: '14px'
@@ -57,7 +48,48 @@ const blockCharStyle: CSS.Properties = {
    paddingTop: '0px', paddingBottom: '0px',
 };
 
-var first = true;
+// Keep this function need declation in case an extra Enum is added above & this needs to change
+function selectMusic(durationEnum, musicEnum) {
+   var url: string;
+
+   if (musicEnum == gymClockMusicEnum.None) {
+      return null;
+   }
+   else
+   if (musicEnum == gymClockMusicEnum.Uptempo) {
+      switch (durationEnum) {
+         case gymClockDurationEnum.Five:
+            return null;
+
+         default:
+         case gymClockDurationEnum.Ten:
+            return null;
+
+         case gymClockDurationEnum.Fifteen:
+            return '15-Minute-Timer.mp3';
+
+         case gymClockDurationEnum.Twenty:
+            return null;
+      }
+   }
+   else
+   if (musicEnum == gymClockMusicEnum.Midtempo) {
+      switch (durationEnum) {
+         case gymClockDurationEnum.Five:
+            return null;
+
+         default:
+         case gymClockDurationEnum.Ten:
+            return null;
+
+         case gymClockDurationEnum.Fifteen:
+            return null;
+
+         case gymClockDurationEnum.Twenty:
+            return null;
+      }
+   }
+};
 
 export interface IRemoteClockState {
    isMounted: boolean;
@@ -185,7 +217,10 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          var types = new TypeRegistry()
          var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
          clockSpec = new GymClockSpec(loadedClockSpec.durationEnum,
-                                      loadedClockSpec.musicEnum);
+                                      loadedClockSpec.musicEnum,
+                                      selectMusic(loadedClockSpec.durationEnum,
+                                                  loadedClockSpec.musicEnum)
+                                      );
       } else
          clockSpec = new GymClockSpec(gymClockDurationEnum.Ten, gymClockMusicEnum.None, null); 
 
@@ -274,7 +309,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
 
    processSave() {
       var spec: GymClockSpec = new GymClockSpec(this.state.clockSpec.durationEnum,
-         this.state.clockSpec.musicEnum); 
+         this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl); 
 
       this.state.clock.stop();
       var clock = new GymClock(spec);
@@ -379,48 +414,89 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
             </Container>
             <Collapse in={this.state.inEditMode}>
                <div>
-                  <Form>
-                     <Form.Row>
-                        <Form.Group>
-                           <Form.Check inline label="10 mins:" type="radio" id={'wall-clock-select'}
-                              // TODO - should be able to remove 'name' from all these 
-                              checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Ten.name}
+                  <Form style={{ textAlign: 'left' }}>
+                     <Form.Row style={{ textAlign: 'left'}}>
+                        <Form.Group controlId="durationGroupId">
+                           <Form.Label>Run timer for:</Form.Label>
+                           <Form.Check label="5m" type="radio" id={'10m-select'}
+                              checked={this.state.clockSpec.durationEnum === gymClockDurationEnum.Five}
+                              onChange={(ev) => {
+                                 if (ev.target.checked) {
+                                    this.setState({
+                                       clockSpec: new GymClockSpec(gymClockDurationEnum.Five,
+                                          this.state.clockSpec.musicEnum, selectMusic(gymClockDurationEnum.Five, this.state.clockSpec.musicEnum)),
+                                       enableCancel: true
+                                    }); this.testEnableSave();
+                                 }
+                              }} />
+                           <Form.Check label="10m" type="radio" id={'10m-select'}
+                              checked={this.state.clockSpec.durationEnum === gymClockDurationEnum.Ten}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
                                        clockSpec: new GymClockSpec(gymClockDurationEnum.Ten, 
-                                          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl),
+                                          this.state.clockSpec.musicEnum, selectMusic(gymClockDurationEnum.Ten, this.state.clockSpec.musicEnum)),
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
-                        </Form.Group>
-                     </Form.Row>
-                     <Form.Row>
-                        <Form.Group>
-                           <Form.Check inline label="15 mins:" type="radio" id={'count-up-select'}
-                              checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Fifteen.name}
+                           <Form.Check label="15m" type="radio" id={'15m-select'}
+                              checked={this.state.clockSpec.durationEnum === gymClockDurationEnum.Fifteen}
                               onChange={(ev) => {
-                                 if (ev.target.checked)
-                                 {
+                                 if (ev.target.checked) {
                                     this.setState({
                                        clockSpec: new GymClockSpec(gymClockDurationEnum.Fifteen,
-                                          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl),
+                                          this.state.clockSpec.musicEnum, selectMusic(gymClockDurationEnum.Fifteen, this.state.clockSpec.musicEnum)),
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
-                        </Form.Group>
-                     </Form.Row>
-                     <Form.Row>
-                        <Form.Group>
-                           <Form.Check inline label="20 mins:" type="radio" id={'count-down-select'}
-                              checked={this.state.clockSpec.durationEnum.name === gymClockDurationEnum.Twenty.name}
+                           <Form.Check label="20m" type="radio" id={'20m-select'}
+                              checked={this.state.clockSpec.durationEnum === gymClockDurationEnum.Twenty}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
                                        clockSpec: new GymClockSpec(gymClockDurationEnum.Twenty,
-                                          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl),
+                                          this.state.clockSpec.musicEnum, selectMusic(gymClockDurationEnum.Twenty, this.state.clockSpec.musicEnum)),
+                                       enableCancel: true
+                                    }); this.testEnableSave();
+                                 }
+                              }} />
+                        </Form.Group>
+                     </Form.Row>
+                     <Form.Row style={{ textAlign: 'left' }}>
+                        <Form.Group controlId="musicId">
+                           <Form.Label>Music:</Form.Label>
+                           <Form.Check label="Up tempo" type="radio" id={'upTempo-select'}
+                              // TODO - should be able to remove 'name' from all these 
+                              checked={this.state.clockSpec.musicEnum === gymClockMusicEnum.Uptempo}
+                              onChange={(ev) => {
+                                 if (ev.target.checked) {
+                                    this.setState({
+                                       clockSpec: new GymClockSpec(this.state.clockSpec.durationEnum,
+                                          gymClockMusicEnum.Uptempo, selectMusic(this.state.clockSpec.durationEnum, gymClockMusicEnum.Uptempo)),
+                                       enableCancel: true
+                                    }); this.testEnableSave();
+                                 }
+                              }} />
+                           <Form.Check label="Mid tempo" type="radio" id={'midTempo-select'}
+                              checked={this.state.clockSpec.musicEnum === gymClockMusicEnum.Midtempo}
+                              onChange={(ev) => {
+                                 if (ev.target.checked) {
+                                    this.setState({
+                                       clockSpec: new GymClockSpec(this.state.clockSpec.durationEnum,
+                                          gymClockMusicEnum.Midtempo, selectMusic(this.state.clockSpec.durationEnum, gymClockMusicEnum.Midtempo)),
+                                       enableCancel: true
+                                    }); this.testEnableSave();
+                                 }
+                              }} />
+                           <Form.Check label="None" type="radio" id={'noMusic-select'}
+                              checked={this.state.clockSpec.musicEnum === gymClockMusicEnum.None}
+                              onChange={(ev) => {
+                                 if (ev.target.checked) {
+                                    this.setState({
+                                       clockSpec: new GymClockSpec(this.state.clockSpec.durationEnum,
+                                          gymClockMusicEnum.None, selectMusic(this.state.clockSpec.durationEnum, gymClockMusicEnum.None)),
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
