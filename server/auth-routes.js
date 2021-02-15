@@ -74,6 +74,7 @@ authRouter.get("/failfb", (req, res) => {
 
 authRouter.get("/successfb", (req, res) => {
    facilityCoachModel.findOne().where('personId').eq(req.user.externalId).exec(function (err, facilityCoach) {
+
       if (facilityCoach)
          res.redirect("coach");
       else

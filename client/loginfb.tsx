@@ -3,8 +3,10 @@
 declare var require: any
 
 import * as React from 'react';
+import axios from 'axios';
 
 import { Logger } from './logger'
+
 
 var logger = new Logger();
 
@@ -67,6 +69,20 @@ export class LoginFb {
          js.src = "//connect.facebook.net/en_US/sdk.js";
          fjs.parentNode.insertBefore(js, fjs);
       }(document, 'script', 'facebook-jssdk'));
+
+      this.testSession();
+   }
+
+   testSession() {
+      axios.post('/api/sessiontest', { params: {} })
+         .then((response) => {
+            if (response.data && !response.data.session) {
+               window.location.href = "auth/facebook";
+            }
+         })
+         .catch((e) => {
+            logger.error('LoginFb', 'testSession', 'Error:', e);
+         });
    }
 
    getUserData(redirect, accessToken) {
@@ -110,7 +126,7 @@ export class LoginFb {
             self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
             self.processUserData(false, self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
          } else {
-            if (redirect)
+            if (redirect) 
                window.location.href = "auth/facebook";
          }
       }

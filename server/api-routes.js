@@ -132,6 +132,14 @@ function homePageDataFor (req, facilities) {
    return JSON.stringify(myHomePageData);
 }
 
+// API to test if the client app has a valid session
+router.post('/api/sessiontest', function (req, res) {
+   if (req.user && req.user.externalId) {
+      res.send({session: true});
+   } else {
+      res.send({ session: false });
+   }
+});
 
 // API to get data for the home page 
 router.get('/api/home', function (req, res) {

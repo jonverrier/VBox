@@ -73310,6 +73310,7 @@ exports.Logger = Logger;
 /*! Copyright TXPCo, 2020 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginFb = void 0;
+var axios_1 = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
 /* https://blog.cloudboost.io/waiting-till-facebook-sdk-or-any-other-async-sdk-has-loaded-6682839b9538 */
@@ -73351,6 +73352,18 @@ var LoginFb = /** @class */ (function () {
             js.src = "//connect.facebook.net/en_US/sdk.js";
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
+        this.testSession();
+    };
+    LoginFb.prototype.testSession = function () {
+        axios_1.default.post('/api/sessiontest', { params: {} })
+            .then(function (response) {
+            if (response.data && !response.data.session) {
+                window.location.href = "auth/facebook";
+            }
+        })
+            .catch(function (e) {
+            logger.error('LoginFb', 'testSession', 'Error:', e);
+        });
     };
     LoginFb.prototype.getUserData = function (redirect, accessToken) {
         var self = this;
