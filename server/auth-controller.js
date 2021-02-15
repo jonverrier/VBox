@@ -94,7 +94,7 @@ passport.use(
          var name = decodeURIComponent(req.query.name);
 
          // TODO
-         if (false && name === 'Jon Verrier' ) {
+         if (inDevelopment && name === 'Jon Verrier' ) {
             const userData = { name: name, externalId: "10222806520938994", thumbnailUrl: 'person-w-128x128.png', lastAuthCode: null, id: "10222806520938994" };
 
             done(null, userData);

@@ -97,7 +97,11 @@ var HomePageData = (function invocation() {
       pageData.sessionId = data.sessionId;
       pageData.person = Person.prototype.revive(data.person);
 
-      pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 
+      if (data.currentFacility) {
+         pageData.currentFacility = Facility.prototype.revive(data.currentFacility);
+      } else {
+         pageData.currentFacility = new Facility(null, null, 'Unknown', 'building-black128x128.png', null);
+      }
 
       if (data.facilities) {
          pageData.facilities = new Array(data.facilities.length);

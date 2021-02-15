@@ -82,9 +82,9 @@ app.use(                    // Use Mongo session store
    session({
       store: new connectMongo ({
          url: process.env.MONGODB_URI,
-         ttl: 7200000 // = 2 hours 
+         ttl: 86400000 // = 24 hours 
       }),
-      cookie: { maxAge: 7200000 },
+      cookie: { maxAge: 86400000 },
       secret: process.env.NODE_SESSION_SECRET,
       saveUninitialized: true,
       resave: true,
