@@ -1461,7 +1461,11 @@ var HomePageData = (function invocation() {
       pageData.sessionId = data.sessionId;
       pageData.person = Person.prototype.revive(data.person);
 
-      pageData.currentFacility = Facility.prototype.revive(data.currentFacility); 
+      if (data.currentFacility) {
+         pageData.currentFacility = Facility.prototype.revive(data.currentFacility);
+      } else {
+         pageData.currentFacility = new Facility(null, null, 'Unknown', 'building-black128x128.png', null);
+      }
 
       if (data.facilities) {
          pageData.facilities = new Array(data.facilities.length);
@@ -72101,7 +72105,9 @@ var CoachPage = /** @class */ (function (_super) {
                     self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
                 }
                 else {
-                    self.state.loginFb.logInFromClick();
+                    // handle error by setting state back to no user logged in
+                    self.pageData = self.defaultPageData;
+                    self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
                 }
             })
                 .catch(function (error) {

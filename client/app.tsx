@@ -462,7 +462,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
                   self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
                } else {
-                  self.state.loginFb.logInFromClick();
+                  // handle error by setting state back to no user logged in
+                  self.pageData = self.defaultPageData;
+                  self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
                }
             })
             .catch(function (error) {
