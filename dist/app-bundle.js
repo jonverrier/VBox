@@ -72619,27 +72619,27 @@ function selectMusic(durationEnum, musicEnum) {
     else if (musicEnum == gymclock_js_1.gymClockMusicEnum.Uptempo) {
         switch (durationEnum) {
             case gymclock_js_1.gymClockDurationEnum.Five:
-                return null;
+                return '130-bpm-workout-V2.mp3';
             default:
             case gymclock_js_1.gymClockDurationEnum.Ten:
-                return null;
+                return '10-Minute-Timer.mp3';
             case gymclock_js_1.gymClockDurationEnum.Fifteen:
                 return '15-Minute-Timer.mp3';
             case gymclock_js_1.gymClockDurationEnum.Twenty:
-                return null;
+                return '20-Minute-Timer.mp3';
         }
     }
     else if (musicEnum == gymclock_js_1.gymClockMusicEnum.Midtempo) {
         switch (durationEnum) {
             case gymclock_js_1.gymClockDurationEnum.Five:
-                return null;
+                return '130-bpm-workout-V2.mp3';
             default:
             case gymclock_js_1.gymClockDurationEnum.Ten:
-                return null;
+                return '130-bpm-workout-V2.mp3';
             case gymclock_js_1.gymClockDurationEnum.Fifteen:
-                return null;
+                return '130-bpm-workout-V2.mp3';
             case gymclock_js_1.gymClockDurationEnum.Twenty:
-                return null;
+                return '130-bpm-workout-V2.mp3';
         }
     }
 }

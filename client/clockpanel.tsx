@@ -59,34 +59,34 @@ function selectMusic(durationEnum, musicEnum) {
    if (musicEnum == gymClockMusicEnum.Uptempo) {
       switch (durationEnum) {
          case gymClockDurationEnum.Five:
-            return null;
+            return '130-bpm-workout-V2.mp3';
 
          default:
          case gymClockDurationEnum.Ten:
-            return null;
+            return '10-Minute-Timer.mp3';
 
          case gymClockDurationEnum.Fifteen:
             return '15-Minute-Timer.mp3';
 
          case gymClockDurationEnum.Twenty:
-            return null;
+            return '20-Minute-Timer.mp3';
       }
    }
    else
    if (musicEnum == gymClockMusicEnum.Midtempo) {
       switch (durationEnum) {
          case gymClockDurationEnum.Five:
-            return null;
+            return '130-bpm-workout-V2.mp3';
 
          default:
          case gymClockDurationEnum.Ten:
-            return null;
+            return '130-bpm-workout-V2.mp3';
 
          case gymClockDurationEnum.Fifteen:
-            return null;
+            return '130-bpm-workout-V2.mp3';
 
          case gymClockDurationEnum.Twenty:
-            return null;
+            return '130-bpm-workout-V2.mp3';
       }
    }
 };
