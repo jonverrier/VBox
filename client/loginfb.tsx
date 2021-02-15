@@ -73,9 +73,14 @@ export class LoginFb {
       var self = this;
 
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
-         var name = response.name;
-         var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         self.processUserData(redirect, name, thumbnailUrl, accessToken);
+         if (response && response.name) {
+            var name = response.name;
+
+            var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
+            self.processUserData(redirect, name, thumbnailUrl, accessToken);
+         } else {
+            self.processUserData(redirect, 'Unknown', 'person-w-128x128.png', null);
+         }
       });
    }
 
