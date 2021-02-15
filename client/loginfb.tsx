@@ -105,8 +105,8 @@ export class LoginFb {
             self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
             self.processUserData(false, self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
          } else {
-         if (redirect)
-            window.location.href = "auth/facebook";
+            if (redirect)
+               window.location.href = "auth/facebook";
          }
       }
    }
