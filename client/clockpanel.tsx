@@ -104,6 +104,7 @@ export interface IRemoteClockState {
 
 export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClockState> {
    state: IRemoteClockState;
+   storedWorkoutState: MeetingWorkoutState;
 
    constructor(props: IRemoteClockProps) {
       super(props);
@@ -162,6 +163,7 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
          switch (ev.actionEnum.name) {
             case gymClockActionEnum.Start.name:
                this.state.clock.start(this.onTick.bind(this));
+
                break;
             case gymClockActionEnum.Stop.name:
                this.state.clock.stop();

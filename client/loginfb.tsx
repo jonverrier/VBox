@@ -20,17 +20,22 @@ interface ILoginFbState {
    userAccessToken: string;
 }
 
+/* https://blog.cloudboost.io/waiting-till-facebook-sdk-or-any-other-async-sdk-has-loaded-6682839b9538 */
+function Deferred() {
+   var self = this;
+   this.promise = new Promise(function (resolve, reject) {
+      self.reject = reject
+      self.resolve = resolve
+   })
+}
+(window as any).fbLoaded = (new Deferred());
+
 export class LoginFb {
    //member variables
    props: ILoginFbProps;
    state: ILoginFbState;
 
-   constructor(props: ILoginFbProps) {
-
-      this.logIn = this.logIn.bind(this); 
-      this.logOut = this.logOut.bind(this); 
-      this.processFBLoginResponse = this.processFBLoginResponse.bind(this); 
-      this.processFBLoginData = this.processFBLoginData.bind(this);       
+   constructor(props: ILoginFbProps) {       
 
       this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
       this.props = props;
@@ -43,15 +48,15 @@ export class LoginFb {
          (window as any).FB.init({
             appId: '1420468678202442',
             cookie: true,  // enable cookies to allow the server to access the session
+            status: true,  // Check login status
             xfbml: false,  // do not parse social plugins on this page
             version: 'v9.0' // use version 9
          });
 
          // If enabled, and the user is logged in already, 
          // this will automatically redirect the page to the users home page.
-         //if (self.props.autoLogin)
-         //   self.processFBLoginResponse(true);
-         // Disabled - we want the user to click something, so we get access to play sounds etc. 
+         if (self.props.autoLogin)
+            self.logIn (false);
       };
 
       // Load the SDK asynchronously
@@ -64,33 +69,28 @@ export class LoginFb {
       }(document, 'script', 'facebook-jssdk'));
    }
 
-   getUserData(accessToken) {
+   getUserData(redirect, accessToken) {
       var self = this;
 
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
          var name = response.name;
          var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-         self.processUserData(name, thumbnailUrl, accessToken);
+         self.processUserData(redirect, name, thumbnailUrl, accessToken);
       });
    }
 
-   processUserData(name, url, token) {
+   processUserData(redirect, name, url, token) {
       var self = this;
 
       self.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
-
-      // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
-      if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
-         window.location.href = "auth/facebook";
-      }
       self.props.onLoginStatusChange(true);
    }
 
-   processFBLoginData(response) {
+   processFBLoginData(redirect, response) {
       var self = this;
 
       if (response.status === 'connected') {
-         self.getUserData(response.authResponse.accessToken);
+         self.getUserData(false, response.authResponse.accessToken);
       }
       else if (response.status === 'not_authorized') {
          self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
@@ -103,24 +103,29 @@ export class LoginFb {
          if (location.hostname.includes('localhost')) {
             logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
             self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
-            self.processUserData(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
+            self.processUserData(false, self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
          } else {
-            self.props.onLoginStatusChange(false);
+         if (redirect)
+            window.location.href = "auth/facebook";
          }
       }
    }
 
-   processFBLoginResponse(force) {
+   processFBLoginResponse(redirect) {
       var self = this;
 
       (window as any).FB.getLoginStatus(function (response) {
-         self.processFBLoginData(response);
-      }, force);
+         self.processFBLoginData(redirect, response);
+      }, redirect);
    }
 
-   logIn() {
+   logInFromClick() {
+      this.logIn(true); 
+   }
+
+   logIn(redirect) {
       var self = this;
-      (window as any).FB.login(self.processFBLoginResponse (true), { scope: 'public_profile' });
+      (window as any).FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
    }
 
    logOut() {
