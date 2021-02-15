@@ -72085,19 +72085,24 @@ var CoachPage = /** @class */ (function (_super) {
         if (isLoggedIn) {
             axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(true) } })
                 .then(function (response) {
-                // Success, set state to data for logged in user 
-                self.pageData = self.pageData.revive(response.data);
-                // Initialise WebRTC and connect
-                var rtc = new rtc_1.Rtc({
-                    isEdgeOnly: false,
-                    sessionId: self.pageData.sessionId,
-                    facilityId: self.pageData.currentFacility.externalId,
-                    personId: self.pageData.person.externalId,
-                    personName: self.pageData.person.name,
-                    personThumbnailUrl: self.pageData.person.thumbnailUrl
-                });
-                rtc.connectFirst();
-                self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+                if (response.data) {
+                    // Success, set state to data for logged in user 
+                    self.pageData = self.pageData.revive(response.data);
+                    // Initialise WebRTC and connect
+                    var rtc = new rtc_1.Rtc({
+                        isEdgeOnly: false,
+                        sessionId: self.pageData.sessionId,
+                        facilityId: self.pageData.currentFacility.externalId,
+                        personId: self.pageData.person.externalId,
+                        personName: self.pageData.person.name,
+                        personThumbnailUrl: self.pageData.person.thumbnailUrl
+                    });
+                    rtc.connectFirst();
+                    self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+                }
+                else {
+                    self.state.loginFb.logInFromClick();
+                }
             })
                 .catch(function (error) {
                 // handle error by setting state back to no user logged in
