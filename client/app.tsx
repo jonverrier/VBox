@@ -444,21 +444,26 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       if (isLoggedIn) {
          axios.get('/api/home', { params: { coach: encodeURIComponent(true)} })
             .then(function (response) {
-               // Success, set state to data for logged in user 
-               self.pageData = self.pageData.revive(response.data);
 
-               // Initialise WebRTC and connect
-               var rtc = new Rtc({
-                  isEdgeOnly: false, // Member nodes are edge only, coaches are full hubs
-                  sessionId: self.pageData.sessionId,
-                  facilityId: self.pageData.currentFacility.externalId,
-                  personId: self.pageData.person.externalId,
-                  personName: self.pageData.person.name,
-                  personThumbnailUrl: self.pageData.person.thumbnailUrl
-               });
-               rtc.connectFirst();
+               if (response.data) {
+                  // Success, set state to data for logged in user 
+                  self.pageData = self.pageData.revive(response.data);
 
-               self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc});
+                  // Initialise WebRTC and connect
+                  var rtc = new Rtc({
+                     isEdgeOnly: false, // Member nodes are edge only, coaches are full hubs
+                     sessionId: self.pageData.sessionId,
+                     facilityId: self.pageData.currentFacility.externalId,
+                     personId: self.pageData.person.externalId,
+                     personName: self.pageData.person.name,
+                     personThumbnailUrl: self.pageData.person.thumbnailUrl
+                  });
+                  rtc.connectFirst();
+
+                  self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+               } else {
+                  self.state.loginFb.logInFromClick();
+               }
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
