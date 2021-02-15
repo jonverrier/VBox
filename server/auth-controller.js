@@ -5,6 +5,7 @@ var passport = require("passport");
 var passportFacebook = require("passport-facebook");
 var passportLocal = require("passport-custom");
 var { nanoid } = require("nanoid");
+var logger = require("./logger.js").logger;
 
 // Used to look up valid meeting IDs for unauthenticated users
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
@@ -14,6 +15,18 @@ var facilityMemberModel = require("./facilityperson-model.js").facilityMemberMod
 const FacebookStrategy = passportFacebook.Strategy;
 const LocalStrategy = passportLocal.Strategy;
 
+// Control variables for development / production
+var inDevelopment = false;
+if (process.env.NODE_ENV === 'development') {
+   inDevelopment = true;
+   logger.log('info', 'Info:', {
+      message: 'Passport using development options.'
+   });
+} else {
+   logger.log('info', 'Info:', {
+      message: 'Passport using production options.'
+   });
+}
 
 function save(user, accessToken) {
    const email = user.email;
@@ -62,9 +75,9 @@ passport.deserializeUser(function (id, done) {
 passport.use(
    'Facebook', new FacebookStrategy(
       {
-         clientID: process.env.FACEBOOK_APP_ID_PROD ,
-         clientSecret: process.env.FACEBOOK_APP_SECRET_PROD,
-         callbackURL: process.env.FACEBOOK_APP_CALLBACK,
+         clientID: inDevelopment ? process.env.FACEBOOK_APP_ID_DEV : process.env.FACEBOOK_APP_ID_PROD ,
+         clientSecret: inDevelopment ? process.env.FACEBOOK_APP_SECRET_DEV : process.env.FACEBOOK_APP_SECRET_PROD,
+         callbackURL: inDevelopment ? process.env.FACEBOOK_APP_CALLBACK : process.env.FACEBOOK_APP_CALLBACK,
          profileFields: ["email", "name", "displayName"]
       },
       function (accessToken, refreshToken, profile, done) {
@@ -80,7 +93,8 @@ passport.use(
          var meetingId = decodeURIComponent(req.query.meetingId);
          var name = decodeURIComponent(req.query.name);
 
-         if (name === 'Jon Verrier' ) {
+         // TODO
+         if (false && name === 'Jon Verrier' ) {
             const userData = { name: name, externalId: "10222806520938994", thumbnailUrl: 'person-w-128x128.png', lastAuthCode: null, id: "10222806520938994" };
 
             done(null, userData);

@@ -72053,7 +72053,7 @@ var CoachPage = /** @class */ (function (_super) {
             haveAccess: false,
             pageData: _this.pageData,
             rtc: null,
-            login: new loginfb_1.LoginFb({
+            loginFb: new loginfb_1.LoginFb({
                 autoLogin: true, onLoginStatusChange: _this.onLoginStatusChange.bind(_this)
             }),
             openClockSpec: false
@@ -72067,7 +72067,7 @@ var CoachPage = /** @class */ (function (_super) {
         var imgA = new Image();
         imgA.src = "./circle-black-yellow-128x128.png";
         // Initialise the facebook API for this page
-        this.state.login.loadAPI();
+        this.state.loginFb.loadAPI();
     };
     CoachPage.prototype.componentWillUnmount = function () {
     };
@@ -72125,7 +72125,7 @@ var CoachPage = /** @class */ (function (_super) {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.login.logIn }, "Coaches login with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.loginFb.logInFromClick.bind(this.state.loginFb) }, "Coaches login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "coachpage" },
@@ -72155,7 +72155,7 @@ var CoachPage = /** @class */ (function (_super) {
                                     React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.login.logOut }, "Sign Out...")))))),
+                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginFb.logOut }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: thinStyle },
@@ -73301,12 +73301,17 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginFb = void 0;
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
+/* https://blog.cloudboost.io/waiting-till-facebook-sdk-or-any-other-async-sdk-has-loaded-6682839b9538 */
+function Deferred() {
+    var self = this;
+    this.promise = new Promise(function (resolve, reject) {
+        self.reject = reject;
+        self.resolve = resolve;
+    });
+}
+window.fbLoaded = (new Deferred());
 var LoginFb = /** @class */ (function () {
     function LoginFb(props) {
-        this.logIn = this.logIn.bind(this);
-        this.logOut = this.logOut.bind(this);
-        this.processFBLoginResponse = this.processFBLoginResponse.bind(this);
-        this.processFBLoginData = this.processFBLoginData.bind(this);
         this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
         this.props = props;
     }
@@ -73316,14 +73321,14 @@ var LoginFb = /** @class */ (function () {
             window.FB.init({
                 appId: '1420468678202442',
                 cookie: true,
+                status: true,
                 xfbml: false,
                 version: 'v9.0' // use version 9
             });
             // If enabled, and the user is logged in already, 
             // this will automatically redirect the page to the users home page.
-            //if (self.props.autoLogin)
-            //   self.processFBLoginResponse(true);
-            // Disabled - we want the user to click something, so we get access to play sounds etc. 
+            if (self.props.autoLogin)
+                self.logIn(false);
         };
         // Load the SDK asynchronously
         (function (d, s, id) {
@@ -73336,27 +73341,23 @@ var LoginFb = /** @class */ (function () {
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
     };
-    LoginFb.prototype.getUserData = function (accessToken) {
+    LoginFb.prototype.getUserData = function (redirect, accessToken) {
         var self = this;
         window.FB.api('/me', { fields: 'id, name' }, function (response) {
             var name = response.name;
             var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-            self.processUserData(name, thumbnailUrl, accessToken);
+            self.processUserData(redirect, name, thumbnailUrl, accessToken);
         });
     };
-    LoginFb.prototype.processUserData = function (name, url, token) {
+    LoginFb.prototype.processUserData = function (redirect, name, url, token) {
         var self = this;
         self.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
-        // if we are not already on a validated path, redirect to the server login page that will look up roles and then redirect the client
-        if (!(location.pathname.includes('coach') || location.pathname.includes('member'))) {
-            window.location.href = "auth/facebook";
-        }
         self.props.onLoginStatusChange(true);
     };
-    LoginFb.prototype.processFBLoginData = function (response) {
+    LoginFb.prototype.processFBLoginData = function (redirect, response) {
         var self = this;
         if (response.status === 'connected') {
-            self.getUserData(response.authResponse.accessToken);
+            self.getUserData(false, response.authResponse.accessToken);
         }
         else if (response.status === 'not_authorized') {
             self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
@@ -73368,22 +73369,26 @@ var LoginFb = /** @class */ (function () {
             if (location.hostname.includes('localhost')) {
                 logger.info('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
                 self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
-                self.processUserData(self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
+                self.processUserData(false, self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
             }
             else {
-                self.props.onLoginStatusChange(false);
+                if (redirect)
+                    window.location.href = "auth/facebook";
             }
         }
     };
-    LoginFb.prototype.processFBLoginResponse = function (force) {
+    LoginFb.prototype.processFBLoginResponse = function (redirect) {
         var self = this;
         window.FB.getLoginStatus(function (response) {
-            self.processFBLoginData(response);
-        }, force);
+            self.processFBLoginData(redirect, response);
+        }, redirect);
     };
-    LoginFb.prototype.logIn = function () {
+    LoginFb.prototype.logInFromClick = function () {
+        this.logIn(true);
+    };
+    LoginFb.prototype.logIn = function (redirect) {
         var self = this;
-        window.FB.login(self.processFBLoginResponse(true), { scope: 'public_profile' });
+        window.FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
     };
     LoginFb.prototype.logOut = function () {
         var self = this;

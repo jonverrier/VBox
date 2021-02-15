@@ -380,7 +380,7 @@ interface ICoachPageState {
    haveAccess: boolean;
    pageData: HomePageData
    rtc: Rtc;
-   login: LoginFb;
+   loginFb: LoginFb;
    openClockSpec: boolean;
 }
 
@@ -406,7 +406,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          haveAccess: false, //  Canny access mic or speaker until users does something. 
          pageData: this.pageData,
          rtc: null,
-         login: new LoginFb({
+         loginFb: new LoginFb({
             autoLogin: true, onLoginStatusChange: this.onLoginStatusChange.bind(this)
          }),
          openClockSpec: false
@@ -421,7 +421,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       imgA.src = "./circle-black-yellow-128x128.png";
 
       // Initialise the facebook API for this page
-      this.state.login.loadAPI();
+      this.state.loginFb.loadAPI();
    }
 
    componentWillUnmount() {
@@ -492,7 +492,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to UltraBox. Sign in below to get access to your class.
                      </p>
-                     <Button variant="secondary" onClick={this.state.login.logIn}>Coaches login with Facebook...</Button>
+                     <Button variant="secondary" onClick={this.state.loginFb.logInFromClick.bind(this.state.loginFb)}>Coaches login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
@@ -538,7 +538,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="right">
-                              <Dropdown.Item onClick={this.state.login.logOut}>Sign Out...</Dropdown.Item>
+                              <Dropdown.Item onClick={this.state.loginFb.logOut}>Sign Out...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
