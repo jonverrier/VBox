@@ -345,7 +345,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="right">
-                              <Dropdown.Item>Sign Out...</Dropdown.Item>
+                              <Dropdown.Item onClick={this.state.loginMc.logOut}>Sign Out...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>

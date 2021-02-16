@@ -72030,7 +72030,7 @@ var MemberPage = /** @class */ (function (_super) {
                                     React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                    React.createElement(Dropdown_1.default.Item, null, "Sign Out...")))))),
+                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginMc.logOut }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
@@ -73420,13 +73420,21 @@ var LoginFb = /** @class */ (function () {
         window.FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
     };
     LoginFb.prototype.logOut = function () {
-        var self = this;
-        window.FB.logout(function () {
-            self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-            self.props.onLoginStatusChange(false);
-            // Go back to front page.
+        axios_1.default.post('/api/logout', { params: {} })
+            .then(function (response) {
+            window.location.href = "/";
+        })
+            .catch(function (e) {
+            logger.error('LoginFb', 'logOut', 'Error:', e);
             window.location.href = "/";
         });
+        /* var self = this;
+        (window as any).FB.logout(function () {
+           self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
+           self.props.onLoginStatusChange(false);
+           // Go back to front page.
+           window.location.href = "/";
+        }); */
     };
     return LoginFb;
 }());
@@ -73524,6 +73532,14 @@ var LoginMc = /** @class */ (function () {
         });
     };
     LoginMc.prototype.logOut = function () {
+        axios_1.default.post('/api/logout', { params: {} })
+            .then(function (response) {
+            window.location.href = "/";
+        })
+            .catch(function (e) {
+            logger.error('LoginMc', 'logOut', 'Error:', e);
+            window.location.href = "/";
+        });
     };
     return LoginMc;
 }());

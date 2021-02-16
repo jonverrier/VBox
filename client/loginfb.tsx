@@ -150,12 +150,20 @@ export class LoginFb {
    }
 
    logOut() {
-      var self = this;
+      axios.post('/api/logout', { params: {} })
+         .then((response) => {
+            window.location.href = "/";
+         })
+         .catch((e) => {
+            logger.error('LoginFb', 'logOut', 'Error:', e);
+            window.location.href = "/";
+         });
+      /* var self = this;
       (window as any).FB.logout(function () {
          self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
          self.props.onLoginStatusChange(false);
          // Go back to front page.
          window.location.href = "/";
-      });
+      }); */
    }
 }

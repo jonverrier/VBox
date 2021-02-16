@@ -115,6 +115,14 @@ export class LoginMc {
    }
 
    logOut() {
+      axios.post('/api/logout', { params: {} })
+         .then((response) => {
+            window.location.href = "/";
+         })
+         .catch((e) => {
+            logger.error('LoginMc', 'logOut', 'Error:', e);
+            window.location.href = "/";
+         });
    }
 }
 
