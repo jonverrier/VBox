@@ -30,7 +30,7 @@ import * as CSS from 'csstype';
 // This app
 import { PartyBanner } from './party';
 import { PartySmall } from './party';
-import { RemoteConnectionStatus, ServerConnectionStatus, LinkConnectionStatus } from './callpanel';
+import { RemoteConnectionStatus, MasterConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
 import { LoginMc } from './loginmc';
@@ -523,14 +523,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
-                           <Button split="true" variant="secondary" style={thinStyle}>                             
-                              <ServerConnectionStatus rtc={this.state.rtc}> </ServerConnectionStatus>
-                           </Button>
-                           <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
-                           </Dropdown.Toggle>
-                           <LinkConnectionStatus rtc={this.state.rtc}> </LinkConnectionStatus>
-                        </Dropdown>
+                        <MasterConnectionStatus rtc={this.state.rtc} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button split="true" variant="secondary" style={thinStyle}>
                               <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />

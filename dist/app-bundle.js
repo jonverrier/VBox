@@ -72152,11 +72152,7 @@ var CoachPage = /** @class */ (function (_super) {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(callpanel_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
-                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                                React.createElement(callpanel_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                            React.createElement(callpanel_1.MasterConnectionStatus, { rtc: this.state.rtc }),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                     React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -72371,7 +72367,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LinkConnectionStatus = exports.PartyMap = exports.ServerConnectionStatus = exports.RemoteConnectionStatus = void 0;
+exports.PartyMap = exports.MasterConnectionStatus = exports.RemoteConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var ButtonGroup_1 = __webpack_require__(/*! react-bootstrap/ButtonGroup */ "./node_modules/react-bootstrap/esm/ButtonGroup.js");
@@ -72386,6 +72382,54 @@ var thinStyle = {
 var thinishStyle = {
     padding: '2px'
 };
+function overallStatusFromTwo(one, two) {
+    var overallStatus = null;
+    if (one === enum_js_1.FourStateRagEnum.Red || two === enum_js_1.FourStateRagEnum.Red) {
+        // Red if either one is red
+        overallStatus = enum_js_1.FourStateRagEnum.Red;
+    }
+    else if (one === enum_js_1.FourStateRagEnum.Amber || two === enum_js_1.FourStateRagEnum.Amber) {
+        // Amber if either one is amber
+        overallStatus = enum_js_1.FourStateRagEnum.Amber;
+    }
+    else if (one === enum_js_1.FourStateRagEnum.Green && two === enum_js_1.FourStateRagEnum.Green) {
+        // Green if both are green 
+        overallStatus = enum_js_1.FourStateRagEnum.Green;
+    }
+    else {
+        // else indeterminate
+        overallStatus = enum_js_1.FourStateRagEnum.Indeterminate;
+    }
+    return overallStatus;
+}
+function partyItem(status, name, okText, issueText, small) {
+    if (small) {
+        switch (status) {
+            case enum_js_1.FourStateRagEnum.Green:
+                return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-green-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Amber:
+                return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Red:
+                return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-red-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Indeterminate:
+            default:
+                return React.createElement(party_1.PartySmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+        }
+    }
+    else {
+        switch (status) {
+            case enum_js_1.FourStateRagEnum.Green:
+                return React.createElement(party_1.PartyCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Amber:
+                return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Red:
+                return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+            case enum_js_1.FourStateRagEnum.Indeterminate:
+            default:
+                return React.createElement(party_1.PartyCaption, { name: name, caption: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+        }
+    }
+}
 var RemoteConnectionStatus = /** @class */ (function (_super) {
     __extends(RemoteConnectionStatus, _super);
     function RemoteConnectionStatus(props) {
@@ -72410,23 +72454,7 @@ var RemoteConnectionStatus = /** @class */ (function (_super) {
     RemoteConnectionStatus.prototype.onInterval = function () {
         var serverStatus = this.props.rtc.serverLinkStatus;
         var coachStatus = this.props.rtc.coachLinkStatus();
-        var overallStatus = null;
-        if (serverStatus === enum_js_1.FourStateRagEnum.Red || coachStatus === enum_js_1.FourStateRagEnum.Red) {
-            // Red if either one is red
-            overallStatus = enum_js_1.FourStateRagEnum.Red;
-        }
-        else if (serverStatus === enum_js_1.FourStateRagEnum.Amber || coachStatus === enum_js_1.FourStateRagEnum.Amber) {
-            // Amber if either one is amber
-            overallStatus = enum_js_1.FourStateRagEnum.Amber;
-        }
-        else if (serverStatus === enum_js_1.FourStateRagEnum.Green && coachStatus === enum_js_1.FourStateRagEnum.Green) {
-            // Green if both are green 
-            overallStatus = enum_js_1.FourStateRagEnum.Green;
-        }
-        else {
-            // else indeterminate
-            overallStatus = enum_js_1.FourStateRagEnum.Indeterminate;
-        }
+        var overallStatus = overallStatusFromTwo(serverStatus, coachStatus);
         this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
     };
     RemoteConnectionStatus.prototype.render = function () {
@@ -72449,84 +72477,127 @@ var RemoteConnectionStatus = /** @class */ (function (_super) {
             issueString = 'Not connected to web.';
         else
             issueString = 'Not connected to web coach.';
-        return this.partyItem(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
+        return partyItem(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
     };
     RemoteConnectionStatus.prototype.menu = function () {
         return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, this.partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, this.partyItem(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false))));
-    };
-    RemoteConnectionStatus.prototype.partyItem = function (status, name, okText, issueText, small) {
-        if (small) {
-            switch (status) {
-                case enum_js_1.FourStateRagEnum.Green:
-                    return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-green-128x128.png' });
-                case enum_js_1.FourStateRagEnum.Amber:
-                    return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-yellow-128x128.png' });
-                case enum_js_1.FourStateRagEnum.Red:
-                    return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-red-128x128.png' });
-                case enum_js_1.FourStateRagEnum.Indeterminate:
-                default:
-                    return React.createElement(party_1.PartySmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
-            }
-        }
-        else {
-            switch (status) {
-                case enum_js_1.FourStateRagEnum.Green:
-                    return React.createElement(party_1.PartyCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-                case enum_js_1.FourStateRagEnum.Amber:
-                    return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
-                case enum_js_1.FourStateRagEnum.Red:
-                    return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
-                case enum_js_1.FourStateRagEnum.Indeterminate:
-                default:
-                    return React.createElement(party_1.PartyCaption, { name: name, caption: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
-            }
-        }
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, partyItem(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false))));
     };
     return RemoteConnectionStatus;
 }(React.Component));
 exports.RemoteConnectionStatus = RemoteConnectionStatus;
-var ServerConnectionStatus = /** @class */ (function (_super) {
-    __extends(ServerConnectionStatus, _super);
-    function ServerConnectionStatus(props) {
+var MasterConnectionStatus = /** @class */ (function (_super) {
+    __extends(MasterConnectionStatus, _super);
+    function MasterConnectionStatus(props) {
         var _this = _super.call(this, props) || this;
+        if (props.rtc)
+            props.rtc.addremotedatalistener(_this.onData.bind(_this));
+        var members = new Array();
+        var memberStatuses = new Array();
         _this.state = {
             overallStatus: enum_js_1.FourStateRagEnum.Indeterminate,
             serverStatus: enum_js_1.FourStateRagEnum.Indeterminate,
-            coachStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            overallLinkStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            members: members,
+            memberStatuses: memberStatuses,
             intervalId: null
         };
         return _this;
     }
-    ServerConnectionStatus.prototype.componentDidMount = function () {
+    MasterConnectionStatus.prototype.componentDidMount = function () {
         var interval = setInterval(this.onInterval.bind(this), 200);
     };
-    ServerConnectionStatus.prototype.componentWillUnmount = function () {
+    MasterConnectionStatus.prototype.componentWillUnmount = function () {
         if (this.state.intervalId) {
             clearInterval(this.state.intervalId);
             this.setState({ intervalId: null });
         }
     };
-    ServerConnectionStatus.prototype.onInterval = function () {
-        this.setState({ overallStatus: this.props.rtc.serverLinkStatus });
-    };
-    ServerConnectionStatus.prototype.render = function () {
-        switch (this.state.overallStatus) {
-            case enum_js_1.FourStateRagEnum.Green:
-                return React.createElement(party_1.PartySmall, { name: 'Connected to server.', thumbnailUrl: 'circle-black-green-128x128.png' });
-            case enum_js_1.FourStateRagEnum.Amber:
-                return React.createElement(party_1.PartySmall, { name: 'Trying to re-connect to the server ...', thumbnailUrl: 'circle-black-yellow-128x128.png' });
-            case enum_js_1.FourStateRagEnum.Red:
-                return React.createElement(party_1.PartySmall, { name: 'Sorry, experiencing issues connecting to the server.', thumbnailUrl: 'circle-black-red-128x128.png' });
-            case enum_js_1.FourStateRagEnum.Indeterminate:
-            default:
-                return React.createElement(party_1.PartySmall, { name: 'Connecting to server ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+    MasterConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+            nextProps.rtc.addremotedatalistener(this.onData.bind(this));
         }
     };
-    return ServerConnectionStatus;
+    MasterConnectionStatus.prototype.onData = function (ev) {
+        if (Object.getPrototypeOf(ev).__type === person_1.Person.prototype.__type) {
+            var members = this.state.members;
+            members.push(ev);
+            var memberStatuses = this.state.memberStatuses;
+            var memberStatus = this.props.rtc.memberLinkStatus(ev.name);
+            memberStatuses.push(memberStatus);
+            this.setState({ members: members, memberStatuses: memberStatuses });
+        }
+    };
+    MasterConnectionStatus.prototype.onInterval = function () {
+        // First build up the overall status & get the status for the server link
+        var serverStatus = this.props.rtc.serverLinkStatus;
+        var worstLinkStatus = enum_js_1.FourStateRagEnum.Green;
+        for (var i = 0; i < this.state.members.length && worstLinkStatus === enum_js_1.FourStateRagEnum.Green; i++) {
+            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === enum_js_1.FourStateRagEnum.Red) {
+                worstLinkStatus = enum_js_1.FourStateRagEnum.Red;
+            }
+            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === enum_js_1.FourStateRagEnum.Amber) {
+                // Amber if any one link is Amber
+                worstLinkStatus = enum_js_1.FourStateRagEnum.Amber;
+            }
+            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === enum_js_1.FourStateRagEnum.Indeterminate) {
+                // Indeterminate if any one link is Indeterminate
+                worstLinkStatus = enum_js_1.FourStateRagEnum.Indeterminate;
+            }
+        }
+        // Then in a second pass, get all the link statuses
+        // Could do all in one pass but not likely to be a relevant gain
+        var memberStatuses = this.state.memberStatuses;
+        for (var i = 0; i < this.state.members.length; i++) {
+            memberStatuses[i] = this.props.rtc.memberLinkStatus(this.state.members[i].name);
+        }
+        this.setState({
+            overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
+            serverStatus: serverStatus,
+            overallLinkStatus: worstLinkStatus,
+            memberStatuses: memberStatuses
+        });
+    };
+    MasterConnectionStatus.prototype.render = function () {
+        return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle }, this.topButton()),
+            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+            this.menu()));
+    };
+    MasterConnectionStatus.prototype.topButton = function () {
+        var isMember = false;
+        var isServer = false;
+        var issueString = null;
+        if (this.state.serverStatus != enum_js_1.FourStateRagEnum.Green)
+            isServer = true;
+        if (this.state.overallLinkStatus != enum_js_1.FourStateRagEnum.Green)
+            isMember = true;
+        if (isServer && isMember)
+            issueString = 'Not connected to web or to a member.';
+        else if (isServer)
+            issueString = 'Not connected to web.';
+        else
+            issueString = 'Not connected to a meember.';
+        return partyItem(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
+    };
+    MasterConnectionStatus.prototype.menu = function () {
+        var items = new Array();
+        for (var i = 0; i < this.state.members.length; i++) {
+            var item = { key: i, name: this.state.members[i].name, status: this.state.memberStatuses[i] };
+            items.push(item);
+        }
+        return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
+            React.createElement(Dropdown_1.default.Divider, null),
+            items.map(function (item) { return React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle },
+                " ",
+                partyItem(item.status, item.name, 'Connection OK', 'Not connected to Member', false),
+                " "); })));
+    };
+    return MasterConnectionStatus;
 }(React.Component));
-exports.ServerConnectionStatus = ServerConnectionStatus;
+exports.MasterConnectionStatus = MasterConnectionStatus;
 var PartyMap = /** @class */ (function () {
     function PartyMap() {
         this.map = new Map();
@@ -72556,107 +72627,6 @@ var PartyMap = /** @class */ (function () {
 }());
 exports.PartyMap = PartyMap;
 ;
-var LinkConnectionStatus = /** @class */ (function (_super) {
-    __extends(LinkConnectionStatus, _super);
-    function LinkConnectionStatus(props) {
-        var _this = _super.call(this, props) || this;
-        if (props.rtc) {
-            props.rtc.addlinklistener(_this.onlinkstatuschange.bind(_this));
-            props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
-        }
-        var partyMap = new PartyMap();
-        _this.state = { partyMap: partyMap };
-        return _this;
-    }
-    LinkConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addlinklistener(this.onlinkstatuschange.bind(this));
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
-        }
-    };
-    LinkConnectionStatus.prototype.onlinkstatuschange = function (ev, link) {
-        var partyData;
-        // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-        if (!this.state.partyMap.hasParty(link.to.personId)) {
-            partyData = { name: null, statusMap: new Map() };
-            this.state.partyMap.addPartyData(link.to.personId, partyData);
-        }
-        partyData = this.state.partyMap.getPartyData(link.to.personId);
-        // The person map then stores a staus map, indexed by sessionSubId, that stores link status
-        partyData.statusMap.set(link.to.sessionSubId, link.linkStatus);
-        // Finally, if event is null, its a removal
-        if (ev == null && partyData.statusMap.has(link.to.sessionSubId)) {
-            partyData.statusMap.delete(link.to.sessionSubId);
-            // Remove the person entry if there are no sub keys
-            var iter = partyData.statusMap.keys();
-            if (iter.next().done)
-                this.state.partyMap.deletePartyData(link.to.personId);
-        }
-        this.setState({ partyMap: this.state.partyMap });
-    };
-    LinkConnectionStatus.prototype.onremotedata = function (ev, link) {
-        if (Object.getPrototypeOf(ev).__type === person_1.Person.prototype.__type) {
-            var partyData;
-            // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-            if (!this.state.partyMap.hasParty(link.to.personId)) {
-                partyData = { name: null, statusMap: new Map() };
-                this.state.partyMap.addPartyData(link.to.personId, partyData);
-            }
-            // Store the new name back in state
-            partyData = this.state.partyMap.getPartyData(link.to.personId);
-            partyData.name = ev.name;
-            partyData.statusMap.set(link.to.sessionSubId, enum_js_1.FourStateRagEnum.Green); // Irrespective of previous link status, 
-            // set it green as we have data flow.
-            this.state.partyMap.addPartyData(link.to.personId, partyData);
-            this.setState({ partyMap: this.state.partyMap });
-        }
-    };
-    LinkConnectionStatus.prototype.render = function () {
-        var items = new Array();
-        var self = this;
-        this.state.partyMap.forEach(function (value, key, map) {
-            var allGreen = true, allRed = true, count = 0, name = value.name;
-            value.statusMap.forEach(function (valueInner, keyInner, mapInner) {
-                if (valueInner === enum_js_1.FourStateRagEnum.Green) {
-                    allRed = false;
-                }
-                else if (valueInner === enum_js_1.FourStateRagEnum.Red) {
-                    allGreen = false;
-                }
-                else
-                    allGreen = allRed = false;
-                count++;
-            });
-            var newItem = { key: null, name: null, caption: null, thumbnailUrl: null };
-            newItem.key = key;
-            if (name) {
-                newItem.name = name;
-                newItem.caption = name + " connected " + count + " times.";
-            }
-            else {
-                newItem.name = 'Unknown';
-                newItem.caption = "User " + key + " connected " + count + " times.";
-            }
-            if (allGreen)
-                newItem.thumbnailUrl = 'circle-black-green-128x128.png';
-            else if (allRed)
-                newItem.thumbnailUrl = 'circle-black-red-128x128.png';
-            else
-                newItem.thumbnailUrl = 'circle-black-yellow-128x128.png';
-            items.push(Object.assign({}, newItem));
-        });
-        if (items.length === 0) {
-            return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                React.createElement(Dropdown_1.default.ItemText, null, "No-one else is connected.")));
-        }
-        else {
-            return (React.createElement(Dropdown_1.default.Menu, { align: "right" }, items.map(function (item) { return React.createElement(Dropdown_1.default.ItemText, { key: item.key },
-                React.createElement(party_1.PartyCaption, { name: item.name, caption: item.caption, thumbnailUrl: item.thumbnailUrl })); })));
-        }
-    };
-    return LinkConnectionStatus;
-}(React.Component));
-exports.LinkConnectionStatus = LinkConnectionStatus;
 
 
 /***/ }),
@@ -74445,9 +74415,6 @@ var RtcLink = /** @class */ (function () {
             caller.onremoteconnection = this.onremotesenderconnection.bind(this);
         }
     }
-    RtcLink.prototype.statusOfLinkToServer = function () {
-        return this.linkStatus;
-    };
     RtcLink.prototype.toName = function () {
     };
     RtcLink.prototype.onremoterecieverclose = function (ev) {
@@ -74495,7 +74462,6 @@ var Rtc = /** @class */ (function () {
         this.links = new Array();
         this.lastSequenceNo = 0;
         this.datalisteners = new Array();
-        this.linklisteners = new Array();
         this.isEdgeOnly = props.isEdgeOnly;
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid_1.v4());
@@ -74503,17 +74469,11 @@ var Rtc = /** @class */ (function () {
         this.person = new person_js_1.Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
         this.retries = 0;
         this.serverLinkStatus = enum_js_1.FourStateRagEnum.Indeterminate;
-        if (this.onserverconnectionstatechange)
-            this.onserverconnectionstatechange(this.serverLinkStatus);
         // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
         logger.info("Rtc", 'constructor', 'Browser:', webrtc_adapter_1.default.browserDetails);
     }
     Rtc.prototype.addremotedatalistener = function (fn) {
         this.datalisteners.push(fn);
-    };
-    ;
-    Rtc.prototype.addlinklistener = function (fn) {
-        this.linklisteners.push(fn);
     };
     ;
     Rtc.prototype.connectFirst = function () {
@@ -74561,6 +74521,25 @@ var Rtc = /** @class */ (function () {
         }
         return enum_js_1.FourStateRagEnum.Indeterminate;
     };
+    Rtc.prototype.memberLinkStatus = function (name) {
+        for (var i = 0; i < this.links.length; i++) {
+            if (this.links[i].reciever && this.links[i].reciever.remotePerson
+                && this.links[i].reciever.remotePerson.name === name) {
+                if (this.links[i].reciever.isChannelConnected)
+                    return enum_js_1.FourStateRagEnum.Green;
+                else
+                    return enum_js_1.FourStateRagEnum.Red;
+            }
+            if (this.links[i].caller && this.links[i].caller.remotePerson
+                && this.links[i].caller.remotePerson.name === name) {
+                if (this.links[i].caller.isChannelConnected)
+                    return enum_js_1.FourStateRagEnum.Green;
+                else
+                    return enum_js_1.FourStateRagEnum.Red;
+            }
+        }
+        return enum_js_1.FourStateRagEnum.Indeterminate;
+    };
     Rtc.prototype.broadcast = function (obj) {
         var self = this;
         for (var i = 0; i < self.links.length; i++) {
@@ -74572,8 +74551,6 @@ var Rtc = /** @class */ (function () {
         // RAG status checking and notification
         if (this.serverLinkStatus !== enum_js_1.FourStateRagEnum.Green) {
             this.serverLinkStatus = enum_js_1.FourStateRagEnum.Green;
-            if (this.onserverconnectionstatechange)
-                this.onserverconnectionstatechange(this.serverLinkStatus);
         }
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(ev.data);
@@ -74613,16 +74590,12 @@ var Rtc = /** @class */ (function () {
             // RAG status checking and notification
             if (this.serverLinkStatus !== enum_js_1.FourStateRagEnum.Red) {
                 this.serverLinkStatus = enum_js_1.FourStateRagEnum.Red;
-                if (this.onserverconnectionstatechange)
-                    this.onserverconnectionstatechange(this.serverLinkStatus);
             }
         }
         else {
             // RAG status checking and notification
             if (this.serverLinkStatus !== enum_js_1.FourStateRagEnum.Amber) {
                 this.serverLinkStatus = enum_js_1.FourStateRagEnum.Amber;
-                if (this.onserverconnectionstatechange)
-                    this.onserverconnectionstatechange(this.serverLinkStatus);
             }
         }
     };
@@ -74634,14 +74607,6 @@ var Rtc = /** @class */ (function () {
             return;
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
         var link = new RtcLink(remoteParticipation, true, sender, null);
-        // Hook to pass up link status changes. 
-        link.onlinkstatechange = function (ev) {
-            if (_this.linklisteners) {
-                for (var i = 0; i < _this.linklisteners.length; i++) {
-                    _this.linklisteners[i](link.linkStatus, link);
-                }
-            }
-        };
         // Hooks to pass up data
         sender.onremotedata = function (ev) {
             if (_this.datalisteners) {
@@ -74650,15 +74615,7 @@ var Rtc = /** @class */ (function () {
                 }
             }
         };
-        // Hook so if remote closes, we update links this side
-        sender.onremoteclose = function (ev) { self.onRemoteClose(ev, sender, self); };
         self.links.push(link);
-        // Notify parent of link status change
-        if (this.linklisteners) {
-            for (var i = 0; i < this.linklisteners.length; i++) {
-                this.linklisteners[i](link.linkStatus, link);
-            }
-        }
         // place the call after setting up 'links' to avoid a race condition
         sender.placeCall();
     };
@@ -74667,14 +74624,6 @@ var Rtc = /** @class */ (function () {
         var self = this;
         var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person);
         var link = new RtcLink(remoteParticipant, false, null, reciever);
-        // Hook to pass up link status changes. 
-        link.onlinkstatechange = function (ev) {
-            if (_this.linklisteners) {
-                for (var i = 0; i < _this.linklisteners.length; i++) {
-                    _this.linklisteners[i](link.linkStatus, link);
-                }
-            }
-        };
         // Hooks to pass up data
         reciever.onremotedata = function (ev) {
             if (_this.datalisteners) {
@@ -74683,15 +74632,7 @@ var Rtc = /** @class */ (function () {
                 }
             }
         };
-        // Hook so if remote closes, we close down links this side
-        reciever.onremoteclose = function (ev) { self.onRemoteClose(ev, reciever, self); };
         self.links.push(link);
-        // Notify parent of link status change
-        if (this.linklisteners) {
-            for (var i = 0; i < this.linklisteners.length; i++) {
-                this.linklisteners[i](link.linkStatus, link);
-            }
-        }
         return reciever;
     };
     Rtc.prototype.onOffer = function (remoteOffer) {
@@ -74720,12 +74661,6 @@ var Rtc = /** @class */ (function () {
             if (self.links[i].to.equals(remoteAnswer.from)) {
                 self.links[i].caller.handleAnswer(remoteAnswer.answer);
                 found = true;
-                // Notify parent of link status change
-                if (self.linklisteners) {
-                    for (var j = 0; j < this.linklisteners.length; j++) {
-                        this.linklisteners[j](self.links[i].linkStatus, self.links[i]);
-                    }
-                }
                 break;
             }
         }
@@ -74766,21 +74701,6 @@ var Rtc = /** @class */ (function () {
         if (!found) {
             logger.error('Rtc', 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
             logger.error('Rtc', 'onRemoteIceCandidate', "Links:", self.links);
-        }
-    };
-    Rtc.prototype.onRemoteClose = function (ev, rtclink, self) {
-        var found = false;
-        for (var i = 0; i < self.links.length && !found; i++) {
-            if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
-                // Notify parent of link status change
-                if (self.linklisteners) {
-                    for (var j = 0; j < self.linklisteners.length; j++) {
-                        self.linklisteners[j](null, self.links[i]);
-                    }
-                }
-                found = true;
-                break;
-            }
         }
     };
     return Rtc;

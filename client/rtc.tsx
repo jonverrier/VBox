@@ -591,10 +591,6 @@ export class RtcLink {
    // Override these for notifications  - TODO - see top of file
    onlinkstatechange: ((this: RtcLink, ev: Event) => any) | null;
 
-   statusOfLinkToServer() {
-      return this.linkStatus;
-   }
-
    toName() {
    }
 
@@ -662,7 +658,6 @@ export class Rtc {
    serverLinkStatus: FourStateRagEnum;
    retries: number;
    datalisteners: Array<Function>;
-   linklisteners: Array<Function>;
    isEdgeOnly: boolean; 
 
    constructor(props: IRtcProps) {
@@ -670,7 +665,6 @@ export class Rtc {
       this.links = new Array();
       this.lastSequenceNo = 0;
       this.datalisteners = new Array();
-      this.linklisteners = new Array();
       this.isEdgeOnly = props.isEdgeOnly;
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
@@ -682,22 +676,12 @@ export class Rtc {
       this.retries = 0;
       this.serverLinkStatus = FourStateRagEnum.Indeterminate;
 
-      if (this.onserverconnectionstatechange)
-         this.onserverconnectionstatechange(this.serverLinkStatus);
-
       // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
       logger.info("Rtc", 'constructor', 'Browser:', adapter.browserDetails);
    }
 
-   // Override these for notifications  - TODO - see top of file
-   onserverconnectionstatechange: ((this: Rtc, ev: Event) => any) | null;
-
    addremotedatalistener(fn) {
       this.datalisteners.push(fn);
-   };
-
-   addlinklistener(fn) {
-      this.linklisteners.push(fn);
    };
 
    connectFirst() {
@@ -744,6 +728,27 @@ export class Rtc {
       return FourStateRagEnum.Indeterminate;
    }
 
+   memberLinkStatus(name: string) {
+
+      for (var i = 0; i < this.links.length; i++) {
+         if (this.links[i].reciever && this.links[i].reciever.remotePerson
+            && this.links[i].reciever.remotePerson.name === name) {
+            if (this.links[i].reciever.isChannelConnected)
+               return FourStateRagEnum.Green;
+            else
+               return FourStateRagEnum.Red;
+         }
+         if (this.links[i].caller && this.links[i].caller.remotePerson
+            && this.links[i].caller.remotePerson.name === name) {
+            if (this.links[i].caller.isChannelConnected)
+               return FourStateRagEnum.Green;
+            else
+               return FourStateRagEnum.Red;
+         }
+      }
+      return FourStateRagEnum.Indeterminate;
+   }
+
    broadcast (obj) {
       var self = this;
 
@@ -759,8 +764,6 @@ export class Rtc {
       // RAG status checking and notification
       if (this.serverLinkStatus !== FourStateRagEnum.Green) {
          this.serverLinkStatus = FourStateRagEnum.Green;
-         if (this.onserverconnectionstatechange)
-            this.onserverconnectionstatechange(this.serverLinkStatus);
       }
 
       var types = new TypeRegistry();
@@ -806,15 +809,11 @@ export class Rtc {
          // RAG status checking and notification
          if (this.serverLinkStatus !== FourStateRagEnum.Red) {
             this.serverLinkStatus = FourStateRagEnum.Red;
-            if (this.onserverconnectionstatechange)
-               this.onserverconnectionstatechange(this.serverLinkStatus);
          }
       } else {
          // RAG status checking and notification
          if (this.serverLinkStatus !== FourStateRagEnum.Amber) {
             this.serverLinkStatus = FourStateRagEnum.Amber;
-            if (this.onserverconnectionstatechange)
-               this.onserverconnectionstatechange(this.serverLinkStatus);
          }
       }
    }
@@ -830,15 +829,6 @@ export class Rtc {
       var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
-      // Hook to pass up link status changes. 
-      link.onlinkstatechange = (ev) => {
-         if (this.linklisteners) {
-            for (var i = 0; i < this.linklisteners.length; i++) {
-               this.linklisteners[i](link.linkStatus, link);
-            }
-         }
-      };
-
       // Hooks to pass up data
       sender.onremotedata = (ev) => {
          if (this.datalisteners) {
@@ -848,17 +838,7 @@ export class Rtc {
          }
       };
 
-      // Hook so if remote closes, we update links this side
-      sender.onremoteclose = (ev) => { self.onRemoteClose(ev, sender, self); };
-
       self.links.push(link);
-
-      // Notify parent of link status change
-      if (this.linklisteners) {
-         for (var i = 0; i < this.linklisteners.length; i++) {
-            this.linklisteners[i](link.linkStatus, link);
-         }
-      }
 
       // place the call after setting up 'links' to avoid a race condition
       sender.placeCall();
@@ -870,15 +850,6 @@ export class Rtc {
       var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person);
       var link = new RtcLink(remoteParticipant, false, null, reciever);
 
-      // Hook to pass up link status changes. 
-      link.onlinkstatechange = (ev) => {
-         if (this.linklisteners) {
-            for (var i = 0; i < this.linklisteners.length; i++) {
-               this.linklisteners[i](link.linkStatus, link);
-            }
-         }
-      };
-
       // Hooks to pass up data
       reciever.onremotedata = (ev) => {
          if (this.datalisteners) {
@@ -888,16 +859,7 @@ export class Rtc {
          }
       };
 
-      // Hook so if remote closes, we close down links this side
-      reciever.onremoteclose = (ev) => { self.onRemoteClose(ev, reciever, self); };
       self.links.push(link);
-
-      // Notify parent of link status change
-      if (this.linklisteners) {
-         for (var i = 0; i < this.linklisteners.length; i++) {
-            this.linklisteners[i](link.linkStatus, link);
-         }
-      }
 
       return reciever;
    }
@@ -931,13 +893,6 @@ export class Rtc {
          if (self.links[i].to.equals(remoteAnswer.from)) {
             self.links[i].caller.handleAnswer(remoteAnswer.answer);
             found = true;
-
-            // Notify parent of link status change
-            if (self.linklisteners) {
-               for (var j = 0; j < this.linklisteners.length; j++) {
-                  this.linklisteners[j](self.links[i].linkStatus, self.links[i]);
-               }
-            }
             break;
          }
       }
@@ -982,23 +937,6 @@ export class Rtc {
       if (!found) {
          logger.error('Rtc', 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
          logger.error('Rtc', 'onRemoteIceCandidate', "Links:", self.links);
-      }
-   }
-
-   onRemoteClose(ev, rtclink, self) {
-      var found = false;
-
-      for (var i = 0; i < self.links.length && !found; i++) {
-         if (self.links[i].to.equals(rtclink.remoteCallParticipation)) {
-            // Notify parent of link status change
-            if (self.linklisteners) {
-               for (var j = 0; j < self.linklisteners.length; j++) {
-                  self.linklisteners[j](null, self.links[i]);
-               }
-            }
-            found = true;
-            break;
-         }
       }
    }
 }
