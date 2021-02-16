@@ -86,9 +86,9 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
          return (
             <div style={thinStyle}>
                <Alert style={alertStyle} key={'notLeaderId'} variant={'secondary'}>  
-                  It looks like another coach is leading this session. Please click below to go back to the login page.
+                  It looks like another coach is leading this session. Please click below to go back to the home page.
                   <Nav.Item>
-                     <Nav.Link href="/login" eventKey="reJoinId">Rejoin</Nav.Link> 
+                     <Nav.Link href="/" eventKey="reJoinId">Rejoin</Nav.Link> 
                   </Nav.Item>                  
                </Alert>
             </div>);

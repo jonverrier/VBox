@@ -73125,9 +73125,9 @@ var LeaderResolve = /** @class */ (function (_super) {
         else {
             return (React.createElement("div", { style: thinStyle },
                 React.createElement(Alert_1.default, { style: alertStyle, key: 'notLeaderId', variant: 'secondary' },
-                    "It looks like another coach is leading this session. Please click below to go back to the login page.",
+                    "It looks like another coach is leading this session. Please click below to go back to the home page.",
                     React.createElement(Nav_1.default.Item, null,
-                        React.createElement(Nav_1.default.Link, { href: "/login", eventKey: "reJoinId" }, "Rejoin")))));
+                        React.createElement(Nav_1.default.Link, { href: "/", eventKey: "reJoinId" }, "Rejoin")))));
         }
     };
     return LeaderResolve;
