@@ -72020,11 +72020,7 @@ var MemberPage = /** @class */ (function (_super) {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-                                React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
-                                    React.createElement(callpanel_1.ServerConnectionStatus, { rtc: this.state.rtc }, " ")),
-                                React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-                                React.createElement(callpanel_1.LinkConnectionStatus, { rtc: this.state.rtc }, " ")),
+                            React.createElement(callpanel_1.RemoteConnectionStatus, { rtc: this.state.rtc }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle },
                                     React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -72375,32 +72371,148 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LinkConnectionStatus = exports.PartyMap = exports.ServerConnectionStatus = void 0;
+exports.LinkConnectionStatus = exports.PartyMap = exports.ServerConnectionStatus = exports.RemoteConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
+var ButtonGroup_1 = __webpack_require__(/*! react-bootstrap/ButtonGroup */ "./node_modules/react-bootstrap/esm/ButtonGroup.js");
 var Dropdown_1 = __webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js");
 // This app
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
 var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js");
+var thinStyle = {
+    margin: '0px', padding: '0px'
+};
+var thinishStyle = {
+    padding: '2px'
+};
+var RemoteConnectionStatus = /** @class */ (function (_super) {
+    __extends(RemoteConnectionStatus, _super);
+    function RemoteConnectionStatus(props) {
+        var _this = _super.call(this, props) || this;
+        _this.state = {
+            overallStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            serverStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            coachStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            intervalId: null
+        };
+        return _this;
+    }
+    RemoteConnectionStatus.prototype.componentDidMount = function () {
+        var interval = setInterval(this.onInterval.bind(this), 200);
+    };
+    RemoteConnectionStatus.prototype.componentWillUnmount = function () {
+        if (this.state.intervalId) {
+            clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
+        }
+    };
+    RemoteConnectionStatus.prototype.onInterval = function () {
+        var serverStatus = this.props.rtc.serverLinkStatus;
+        var coachStatus = this.props.rtc.coachLinkStatus();
+        var overallStatus = null;
+        if (serverStatus === enum_js_1.FourStateRagEnum.Red || coachStatus === enum_js_1.FourStateRagEnum.Red) {
+            // Red if either one is red
+            overallStatus = enum_js_1.FourStateRagEnum.Red;
+        }
+        else if (serverStatus === enum_js_1.FourStateRagEnum.Amber || coachStatus === enum_js_1.FourStateRagEnum.Amber) {
+            // Amber if either one is amber
+            overallStatus = enum_js_1.FourStateRagEnum.Amber;
+        }
+        else if (serverStatus === enum_js_1.FourStateRagEnum.Green && coachStatus === enum_js_1.FourStateRagEnum.Green) {
+            // Green if both are green 
+            overallStatus = enum_js_1.FourStateRagEnum.Green;
+        }
+        else {
+            // else indeterminate
+            overallStatus = enum_js_1.FourStateRagEnum.Indeterminate;
+        }
+        this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
+    };
+    RemoteConnectionStatus.prototype.render = function () {
+        return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+            React.createElement(Button_1.default, { split: "true", variant: "secondary", style: thinStyle }, this.topButton()),
+            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+            this.menu()));
+    };
+    RemoteConnectionStatus.prototype.topButton = function () {
+        var isCoach = false;
+        var isServer = false;
+        var issueString = null;
+        if (this.state.serverStatus != enum_js_1.FourStateRagEnum.Green)
+            isServer = true;
+        if (this.state.coachStatus != enum_js_1.FourStateRagEnum.Green)
+            isCoach = true;
+        if (isServer && isCoach)
+            issueString = 'Not connected to web or to coach.';
+        else if (isServer)
+            issueString = 'Not connected to web.';
+        else
+            issueString = 'Not connected to web coach.';
+        return this.partyItem(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
+    };
+    RemoteConnectionStatus.prototype.menu = function () {
+        return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, this.partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, this.partyItem(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false))));
+    };
+    RemoteConnectionStatus.prototype.partyItem = function (status, name, okText, issueText, small) {
+        if (small) {
+            switch (status) {
+                case enum_js_1.FourStateRagEnum.Green:
+                    return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-green-128x128.png' });
+                case enum_js_1.FourStateRagEnum.Amber:
+                    return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+                case enum_js_1.FourStateRagEnum.Red:
+                    return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-red-128x128.png' });
+                case enum_js_1.FourStateRagEnum.Indeterminate:
+                default:
+                    return React.createElement(party_1.PartySmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+            }
+        }
+        else {
+            switch (status) {
+                case enum_js_1.FourStateRagEnum.Green:
+                    return React.createElement(party_1.PartyCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+                case enum_js_1.FourStateRagEnum.Amber:
+                    return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+                case enum_js_1.FourStateRagEnum.Red:
+                    return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+                case enum_js_1.FourStateRagEnum.Indeterminate:
+                default:
+                    return React.createElement(party_1.PartyCaption, { name: name, caption: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+            }
+        }
+    };
+    return RemoteConnectionStatus;
+}(React.Component));
+exports.RemoteConnectionStatus = RemoteConnectionStatus;
 var ServerConnectionStatus = /** @class */ (function (_super) {
     __extends(ServerConnectionStatus, _super);
     function ServerConnectionStatus(props) {
         var _this = _super.call(this, props) || this;
-        if (props.rtc)
-            props.rtc.onserverconnectionstatechange = _this.onServerConnectionStateChange.bind(_this);
-        _this.state = { status: enum_js_1.FourStateRagEnum.Indeterminate };
+        _this.state = {
+            overallStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            serverStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            coachStatus: enum_js_1.FourStateRagEnum.Indeterminate,
+            intervalId: null
+        };
         return _this;
     }
-    ServerConnectionStatus.prototype.onServerConnectionStateChange = function (status) {
-        this.setState({ status: status });
+    ServerConnectionStatus.prototype.componentDidMount = function () {
+        var interval = setInterval(this.onInterval.bind(this), 200);
     };
-    ServerConnectionStatus.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.onserverconnectionstatechange = this.onServerConnectionStateChange.bind(this);
+    ServerConnectionStatus.prototype.componentWillUnmount = function () {
+        if (this.state.intervalId) {
+            clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
         }
     };
+    ServerConnectionStatus.prototype.onInterval = function () {
+        this.setState({ overallStatus: this.props.rtc.serverLinkStatus });
+    };
     ServerConnectionStatus.prototype.render = function () {
-        switch (this.state.status) {
+        switch (this.state.overallStatus) {
             case enum_js_1.FourStateRagEnum.Green:
                 return React.createElement(party_1.PartySmall, { name: 'Connected to server.', thumbnailUrl: 'circle-black-green-128x128.png' });
             case enum_js_1.FourStateRagEnum.Amber:
@@ -73646,24 +73758,42 @@ var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /*! Copyright TXPCo, 2020 */
 var Container_1 = __webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js");
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
+var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
 var Image_1 = __webpack_require__(/*! react-bootstrap/Image */ "./node_modules/react-bootstrap/esm/Image.js");
 var bannerRowStyle = {
     lineHeight: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
 };
 var partyImageStyle = {
-    marginLeft: '0px', marginRight: '0px', paddingLeft: '4px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '8px', marginBottom: '8px'
+    marginLeft: '0px', marginRight: '0px',
+    paddingLeft: '4px', paddingRight: '2px',
+    paddingTop: '0px', paddingBottom: '0px',
+    marginTop: '8px', marginBottom: '8px',
+    display: 'inline-block'
 };
 var partySmallImageStyle = {
     marginLeft: '0px', marginRight: '0px', paddingLeft: '2px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '2px', marginBottom: '2px'
 };
 var partyNameStyle = {
-    fontSize: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', wordBreak: 'break-all'
+    fontSize: '14px',
+    margin: '0px', paddingLeft: '4px',
+    paddingRight: '4px', paddingTop: '0px',
+    paddingBottom: '0px', wordBreak: 'break-all',
+    display: 'inline-block'
 };
 var partyBannerNameStyle = {
-    fontSize: '32px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '0px', paddingBottom: '0px', alignItems: 'center'
+    fontSize: '32px',
+    margin: '0px', paddingLeft: '4px',
+    paddingRight: '4px', paddingTop: '0px',
+    paddingBottom: '0px', alignItems: 'center',
+    display: 'inline-block'
 };
 var partyRowStyle = {
-    lineHeight: '14px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
+    lineHeight: '14px',
+    margin: '0px',
+    paddingLeft: '4px',
+    paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px',
+    alignItems: 'left',
+    display: 'inline-block'
 };
 var thinStyle = {
     margin: '0px', padding: '0px'
@@ -73676,17 +73806,20 @@ exports.PartyBanner = function (props) { return (React.createElement("div", null
 exports.Party = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
-            React.createElement("p", { style: partyNameStyle }, props.name))))); };
+            React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
+                React.createElement("p", { style: partyNameStyle }, props.name)))))); };
 exports.PartyNoImage = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement("p", { style: partyNameStyle }, props.name))))); };
+            React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement("p", { style: partyNameStyle }, props.name)))))); };
 exports.PartyCaption = function (props) { return (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.caption, title: props.caption, height: '32px' }),
-            React.createElement("p", { style: partyNameStyle }, props.name))))); };
+            React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.caption, title: props.caption, height: '32px' }),
+                React.createElement("p", { style: partyNameStyle }, props.name)))))); };
 exports.PartySmall = function (props) { return (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' })); };
 
 
@@ -73860,12 +73993,13 @@ var RtcCaller = /** @class */ (function () {
     function RtcCaller(localCallParticipation, remoteCallParticipation, person) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteCallParticipation;
-        this.person = person;
+        this.localPerson = person;
+        this.remotePerson = null;
         this.sendConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
-        this.channelConnected = false;
-        this.iceConnected = false;
+        this.isChannelConnected = false;
+        this.isIceConnected = false;
         this.iceQueue = new queue_js_1.Queue();
         this.sendQueue = new queue_js_1.Queue();
     }
@@ -73919,7 +74053,7 @@ var RtcCaller = /** @class */ (function () {
             return;
         }
         if (ice) {
-            if (!this.iceConnected) { // dont add another candidate if we are connected
+            if (!this.isIceConnected) { // dont add another candidate if we are connected
                 this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
                     .catch(function (e) {
                     // TODO - analyse error paths
@@ -73980,10 +74114,10 @@ var RtcCaller = /** @class */ (function () {
         var state = pc.iceConnectionState;
         logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
         if (state === "connected") {
-            this.iceConnected = true;
+            this.isIceConnected = true;
         }
         if (state === "failed") {
-            this.iceConnected = false;
+            this.isIceConnected = false;
             if (pc.restartIce) {
                 pc.restartIce();
             }
@@ -74025,9 +74159,9 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
-        this.channelConnected = true;
+        this.isChannelConnected = true;
         try {
-            dc.send(JSON.stringify(this.person));
+            dc.send(JSON.stringify(this.localPerson));
         }
         catch (e) {
             logger.error('RtcCaller', 'onsendchannelopen', "error:", e);
@@ -74050,6 +74184,10 @@ var RtcCaller = /** @class */ (function () {
         // logger.info('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
+        // Store the person we are talking to - allows tracking in the UI later
+        if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
+            this.remotePerson = remoteCallData;
+        }
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
         }
@@ -74078,12 +74216,14 @@ var RtcReciever = /** @class */ (function () {
     function RtcReciever(localCallParticipation, remoteCallParticipation, person) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteCallParticipation;
-        this.person = person;
+        this.localPerson = person;
+        this.remotePerson = null;
+        ;
         this.recieveConnection = null;
         this.sendChannel = null;
         this.recieveChannel = null;
-        this.channelConnected = false;
-        this.iceConnected = false;
+        this.isChannelConnected = false;
+        this.isIceConnected = false;
         this.iceQueue = new queue_js_1.Queue();
         this.sendQueue = new queue_js_1.Queue();
     }
@@ -74143,7 +74283,7 @@ var RtcReciever = /** @class */ (function () {
             return;
         }
         if (ice) {
-            if (!this.iceConnected) { // dont add another candidate if we are connected
+            if (!this.isIceConnected) { // dont add another candidate if we are connected
                 this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
                     .catch(function (e) {
                     // TODO - analyse error paths
@@ -74189,10 +74329,10 @@ var RtcReciever = /** @class */ (function () {
         var state = pc.iceConnectionState;
         logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
         if (state === "connected") {
-            this.iceConnected = true;
+            this.isIceConnected = true;
         }
         else if (state === "failed") {
-            this.iceConnected = false;
+            this.isIceConnected = false;
             if (pc.restartIce) {
                 pc.restartIce();
             }
@@ -74233,10 +74373,10 @@ var RtcReciever = /** @class */ (function () {
     };
     RtcReciever.prototype.onsendchannelopen = function (ev, dc, localCallParticipation) {
         logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
-        this.channelConnected = true;
+        this.isChannelConnected = true;
         try {
             // By convention, new joiners broadcast a 'Person' object
-            dc.send(JSON.stringify(this.person));
+            dc.send(JSON.stringify(this.localPerson));
         }
         catch (e) {
             logger.error('RtcReciever', 'onsendchannelopen', "error:", e);
@@ -74259,6 +74399,10 @@ var RtcReciever = /** @class */ (function () {
         // logger.info('RtcReciever', 'onrecievechannelmessage', "message:", msg.data);
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(msg.data);
+        // Store the person we are talking to - allows tracking in the UI later
+        if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
+            this.remotePerson = remoteCallData;
+        }
         if (this.onremotedata) {
             this.onremotedata(remoteCallData);
         }
@@ -74301,7 +74445,7 @@ var RtcLink = /** @class */ (function () {
             caller.onremoteconnection = this.onremotesenderconnection.bind(this);
         }
     }
-    RtcLink.prototype.status = function () {
+    RtcLink.prototype.statusOfLinkToServer = function () {
         return this.linkStatus;
     };
     RtcLink.prototype.toName = function () {
@@ -74358,9 +74502,9 @@ var Rtc = /** @class */ (function () {
         // Store data on the Person who is running the app - used in data handshake & exchange
         this.person = new person_js_1.Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
         this.retries = 0;
-        this.serverStatus = enum_js_1.FourStateRagEnum.Indeterminate;
+        this.serverLinkStatus = enum_js_1.FourStateRagEnum.Indeterminate;
         if (this.onserverconnectionstatechange)
-            this.onserverconnectionstatechange(this.serverStatus);
+            this.onserverconnectionstatechange(this.serverLinkStatus);
         // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
         logger.info("Rtc", 'constructor', 'Browser:', webrtc_adapter_1.default.browserDetails);
     }
@@ -74402,8 +74546,20 @@ var Rtc = /** @class */ (function () {
             });
         });
     };
-    Rtc.prototype.status = function () {
-        return this.serverStatus;
+    Rtc.prototype.coachLinkStatus = function () {
+        for (var i = 0; i < this.links.length; i++) {
+            if (this.links[i].reciever && this.links[i].reciever.remotePerson
+                && this.links[i].reciever.remoteCallParticipation.isCandidateLeader
+                && this.links[i].reciever.isChannelConnected) {
+                return enum_js_1.FourStateRagEnum.Green;
+            }
+            if (this.links[i].caller && this.links[i].caller.remotePerson
+                && this.links[i].caller.remoteCallParticipation.isCandidateLeader
+                && this.links[i].caller.isChannelConnected) {
+                return enum_js_1.FourStateRagEnum.Green;
+            }
+        }
+        return enum_js_1.FourStateRagEnum.Indeterminate;
     };
     Rtc.prototype.broadcast = function (obj) {
         var self = this;
@@ -74414,10 +74570,10 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.onServerEvent = function (ev) {
         this.retries = 0;
         // RAG status checking and notification
-        if (this.serverStatus !== enum_js_1.FourStateRagEnum.Green) {
-            this.serverStatus = enum_js_1.FourStateRagEnum.Green;
+        if (this.serverLinkStatus !== enum_js_1.FourStateRagEnum.Green) {
+            this.serverLinkStatus = enum_js_1.FourStateRagEnum.Green;
             if (this.onserverconnectionstatechange)
-                this.onserverconnectionstatechange(this.serverStatus);
+                this.onserverconnectionstatechange(this.serverLinkStatus);
         }
         var types = new types_js_1.TypeRegistry();
         var remoteCallData = types.reviveFromJSON(ev.data);
@@ -74455,18 +74611,18 @@ var Rtc = /** @class */ (function () {
         self.retries++;
         if (self.retries > 3) {
             // RAG status checking and notification
-            if (this.serverStatus !== enum_js_1.FourStateRagEnum.Red) {
-                this.serverStatus = enum_js_1.FourStateRagEnum.Red;
+            if (this.serverLinkStatus !== enum_js_1.FourStateRagEnum.Red) {
+                this.serverLinkStatus = enum_js_1.FourStateRagEnum.Red;
                 if (this.onserverconnectionstatechange)
-                    this.onserverconnectionstatechange(this.serverStatus);
+                    this.onserverconnectionstatechange(this.serverLinkStatus);
             }
         }
         else {
             // RAG status checking and notification
-            if (this.serverStatus !== enum_js_1.FourStateRagEnum.Amber) {
-                this.serverStatus = enum_js_1.FourStateRagEnum.Amber;
+            if (this.serverLinkStatus !== enum_js_1.FourStateRagEnum.Amber) {
+                this.serverLinkStatus = enum_js_1.FourStateRagEnum.Amber;
                 if (this.onserverconnectionstatechange)
-                    this.onserverconnectionstatechange(this.serverStatus);
+                    this.onserverconnectionstatechange(this.serverLinkStatus);
             }
         }
     };

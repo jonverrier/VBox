@@ -77,6 +77,9 @@ function eventFeed(req, res, next) {
          });
    }
 
+   // send a keep alive back to the joiner so they see the channel is working
+   broadcastKeepAlive(callParticipation.facilityId);
+
    // This pushes the notice of the new participant over server-sent event channel
    broadcastNewParticipation(callParticipation);
 

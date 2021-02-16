@@ -29,24 +29,26 @@ class RtcCaller {
    // member variables
    localCallParticipation: CallParticipation;
    remoteCallParticipation: CallParticipation;
-   person: Person;
+   localPerson: Person;
+   remotePerson: Person;
    sendConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
-   channelConnected: boolean;
-   iceConnected: boolean;
+   isChannelConnected: boolean;
+   isIceConnected: boolean;
    iceQueue: Queue;
    sendQueue: Queue;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteCallParticipation;
-      this.person = person;
+      this.localPerson = person;
+      this.remotePerson = null;
       this.sendConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
-      this.channelConnected = false;
-      this.iceConnected = false;
+      this.isChannelConnected = false;
+      this.isIceConnected = false;
       this.iceQueue = new Queue();
       this.sendQueue = new Queue();
    }
@@ -117,7 +119,7 @@ class RtcCaller {
       }
 
       if (ice) {
-         if (!this.iceConnected) { // dont add another candidate if we are connected
+         if (!this.isIceConnected) { // dont add another candidate if we are connected
             this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
                .catch(e => {
                   // TODO - analyse error paths
@@ -186,10 +188,10 @@ class RtcCaller {
       logger.info('RtcCaller', 'oniceconnectionstatechange', "state:", state);
 
       if (state === "connected") {
-         this.iceConnected = true;
+         this.isIceConnected = true;
       }
       if (state === "failed") {
-         this.iceConnected = false;
+         this.isIceConnected = false;
          if (pc.restartIce) {
             pc.restartIce();
          }
@@ -234,10 +236,10 @@ class RtcCaller {
    onsendchannelopen(ev, dc, localCallParticipation: CallParticipation) {
       logger.info('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
 
-      this.channelConnected = true;
+      this.isChannelConnected = true;
 
       try {
-         dc.send(JSON.stringify (this.person));
+         dc.send(JSON.stringify (this.localPerson));
       }
       catch (e) {
          logger.error('RtcCaller', 'onsendchannelopen', "error:", e);
@@ -266,6 +268,11 @@ class RtcCaller {
 
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(msg.data);
+
+      // Store the person we are talking to - allows tracking in the UI later
+      if (remoteCallData.__type === Person.prototype.__type) {
+         this.remotePerson = remoteCallData;
+      }
 
       if (this.onremotedata) {
          this.onremotedata(remoteCallData);
@@ -297,24 +304,26 @@ class RtcReciever {
    // member variables
    localCallParticipation: CallParticipation;
    remoteCallParticipation: CallParticipation;
-   person: Person;
+   localPerson: Person;
+   remotePerson: Person;
    recieveConnection: RTCPeerConnection;
    sendChannel: RTCDataChannel;
    recieveChannel: RTCDataChannel;
-   channelConnected: boolean;
-   iceConnected: boolean;
+   isChannelConnected: boolean;
+   isIceConnected: boolean;
    iceQueue: Queue;
    sendQueue: Queue;
 
    constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteCallParticipation;
-      this.person = person;
+      this.localPerson = person;
+      this.remotePerson = null;;
       this.recieveConnection = null;
       this.sendChannel = null;
       this.recieveChannel = null;
-      this.channelConnected = false;
-      this.iceConnected = false;
+      this.isChannelConnected = false;
+      this.isIceConnected = false;
       this.iceQueue = new Queue();
       this.sendQueue = new Queue();
    }
@@ -388,7 +397,7 @@ class RtcReciever {
       }
 
       if (ice) {
-         if (!this.iceConnected) { // dont add another candidate if we are connected
+         if (!this.isIceConnected) { // dont add another candidate if we are connected
             this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
                .catch(e => {
                   // TODO - analyse error paths
@@ -440,11 +449,11 @@ class RtcReciever {
       logger.info('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
 
       if (state === "connected") {
-         this.iceConnected = true;
+         this.isIceConnected = true;
       }
       else
       if (state === "failed") {
-         this.iceConnected = false;
+         this.isIceConnected = false;
          if (pc.restartIce) {
             pc.restartIce();
          }
@@ -488,10 +497,10 @@ class RtcReciever {
    onsendchannelopen(ev, dc, localCallParticipation: CallParticipation) {
       logger.info('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
 
-      this.channelConnected = true;
+      this.isChannelConnected = true;
       try {
          // By convention, new joiners broadcast a 'Person' object
-         dc.send(JSON.stringify(this.person));
+         dc.send(JSON.stringify(this.localPerson));
       }
       catch (e) {
          logger.error('RtcReciever', 'onsendchannelopen', "error:", e);
@@ -520,6 +529,11 @@ class RtcReciever {
 
       var types = new TypeRegistry();
       var remoteCallData = types.reviveFromJSON(msg.data);
+
+      // Store the person we are talking to - allows tracking in the UI later
+      if (remoteCallData.__type === Person.prototype.__type) {
+         this.remotePerson = remoteCallData;
+      }
 
       if (this.onremotedata) {
          this.onremotedata(remoteCallData);
@@ -577,7 +591,7 @@ export class RtcLink {
    // Override these for notifications  - TODO - see top of file
    onlinkstatechange: ((this: RtcLink, ev: Event) => any) | null;
 
-   status() {
+   statusOfLinkToServer() {
       return this.linkStatus;
    }
 
@@ -645,7 +659,7 @@ export class Rtc {
    events: EventSource;
    links: RtcLink[];
    lastSequenceNo: number;
-   serverStatus: FourStateRagEnum;
+   serverLinkStatus: FourStateRagEnum;
    retries: number;
    datalisteners: Array<Function>;
    linklisteners: Array<Function>;
@@ -666,10 +680,10 @@ export class Rtc {
       this.person = new Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
 
       this.retries = 0;
-      this.serverStatus = FourStateRagEnum.Indeterminate;
+      this.serverLinkStatus = FourStateRagEnum.Indeterminate;
 
       if (this.onserverconnectionstatechange)
-         this.onserverconnectionstatechange(this.serverStatus);
+         this.onserverconnectionstatechange(this.serverLinkStatus);
 
       // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
       logger.info("Rtc", 'constructor', 'Browser:', adapter.browserDetails);
@@ -713,8 +727,21 @@ export class Rtc {
       this.connect();
    }
 
-   status () {
-      return this.serverStatus;
+   coachLinkStatus() {
+
+      for (var i = 0; i < this.links.length; i++) {
+         if (this.links[i].reciever && this.links[i].reciever.remotePerson
+            && this.links[i].reciever.remoteCallParticipation.isCandidateLeader
+            && this.links[i].reciever.isChannelConnected) {
+            return FourStateRagEnum.Green;
+         }
+         if (this.links[i].caller && this.links[i].caller.remotePerson
+            && this.links[i].caller.remoteCallParticipation.isCandidateLeader
+            && this.links[i].caller.isChannelConnected) {
+            return FourStateRagEnum.Green;
+         }
+      }
+      return FourStateRagEnum.Indeterminate;
    }
 
    broadcast (obj) {
@@ -730,10 +757,10 @@ export class Rtc {
       this.retries = 0;
 
       // RAG status checking and notification
-      if (this.serverStatus !== FourStateRagEnum.Green) {
-         this.serverStatus = FourStateRagEnum.Green;
+      if (this.serverLinkStatus !== FourStateRagEnum.Green) {
+         this.serverLinkStatus = FourStateRagEnum.Green;
          if (this.onserverconnectionstatechange)
-            this.onserverconnectionstatechange(this.serverStatus);
+            this.onserverconnectionstatechange(this.serverLinkStatus);
       }
 
       var types = new TypeRegistry();
@@ -777,17 +804,17 @@ export class Rtc {
 
       if (self.retries > 3) {
          // RAG status checking and notification
-         if (this.serverStatus !== FourStateRagEnum.Red) {
-            this.serverStatus = FourStateRagEnum.Red;
+         if (this.serverLinkStatus !== FourStateRagEnum.Red) {
+            this.serverLinkStatus = FourStateRagEnum.Red;
             if (this.onserverconnectionstatechange)
-               this.onserverconnectionstatechange(this.serverStatus);
+               this.onserverconnectionstatechange(this.serverLinkStatus);
          }
       } else {
          // RAG status checking and notification
-         if (this.serverStatus !== FourStateRagEnum.Amber) {
-            this.serverStatus = FourStateRagEnum.Amber;
+         if (this.serverLinkStatus !== FourStateRagEnum.Amber) {
+            this.serverLinkStatus = FourStateRagEnum.Amber;
             if (this.onserverconnectionstatechange)
-               this.onserverconnectionstatechange(this.serverStatus);
+               this.onserverconnectionstatechange(this.serverLinkStatus);
          }
       }
    }
