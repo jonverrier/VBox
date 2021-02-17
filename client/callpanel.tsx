@@ -29,7 +29,7 @@ const thinishStyle: CSS.Properties = {
    padding: '2px'
 };
 
-export interface IConnectionProps {
+export interface IRemoteConnectionProps {
    rtc: Rtc;
 }
 
@@ -66,15 +66,15 @@ function overallStatusFromTwo(one : any, two : any) : any {
    return overallStatus;
 }
 
-function partyItem(status: any, name: string, okText: string, issueText: string, small: boolean): JSX.Element {
+function participant(status: any, name: string, okText: string, issueText: string, small: boolean): JSX.Element {
    if (small) {
       switch (status) {
          case FourStateRagEnum.Green:
-            return <PartySmall name={name} thumbnailUrl={'circle-black-green-128x128.png'} />;
+            return <PartySmall name={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
          case FourStateRagEnum.Amber:
-            return <PartySmall name={name} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
+            return <PartySmall name={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
          case FourStateRagEnum.Red:
-            return <PartySmall name={name} thumbnailUrl={'circle-black-red-128x128.png'} />;
+            return <PartySmall name={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
          case FourStateRagEnum.Indeterminate:
          default:
             return <PartySmall name={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
@@ -94,9 +94,9 @@ function partyItem(status: any, name: string, okText: string, issueText: string,
    }
 }
 
-export class RemoteConnectionStatus extends React.Component<IConnectionProps, IRemoteConnectionStatusState> {
+export class RemoteConnectionStatus extends React.Component<IRemoteConnectionProps, IRemoteConnectionStatusState> {
 
-   constructor(props: IConnectionProps) {
+   constructor(props: IRemoteConnectionProps) {
       super(props);
 
       this.state = {
@@ -156,21 +156,25 @@ export class RemoteConnectionStatus extends React.Component<IConnectionProps, IR
       else
          issueString = 'Not connected to web coach.'
 
-      return partyItem(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
+      return participant(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
    }
 
    menu() {
       return (
          <Dropdown.Menu align="right">
             <Dropdown.ItemText style={thinishStyle}>
-               {partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)}
+               {participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)}
             </Dropdown.ItemText>
             <Dropdown.ItemText style={thinishStyle}>
-               {partyItem(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false)}
+               {participant(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false)}
             </Dropdown.ItemText>
          </Dropdown.Menu >
       );
    }
+}
+
+export interface IMasterConnectionProps {
+   rtc: Rtc;
 }
 
 interface IMasterConnectionStatusState {
@@ -182,9 +186,9 @@ interface IMasterConnectionStatusState {
    intervalId: number;
 }
 
-export class MasterConnectionStatus extends React.Component<IConnectionProps, IMasterConnectionStatusState> {
+export class MasterConnectionStatus extends React.Component<IMasterConnectionProps, IMasterConnectionStatusState> {
 
-   constructor(props: IConnectionProps) {
+   constructor(props: IMasterConnectionProps) {
       super(props);
 
       if (props.rtc)
@@ -300,7 +304,7 @@ export class MasterConnectionStatus extends React.Component<IConnectionProps, IM
       else
          issueString = 'Not connected to a meember.'
 
-      return partyItem(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
+      return participant(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
    }
 
    menu() {
@@ -314,49 +318,14 @@ export class MasterConnectionStatus extends React.Component<IConnectionProps, IM
       return (
          <Dropdown.Menu align="right">
             <Dropdown.ItemText style={thinishStyle}>
-               {partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)}
+               {participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)}
             </Dropdown.ItemText>
             <Dropdown.Divider />
-            {items.map((item) => <Dropdown.ItemText key={item.key} style={thinishStyle}> {partyItem(item.status, item.name, 'Connection OK', 'Not connected to Member', false) } </Dropdown.ItemText>)
+               {items.map((item) => <Dropdown.ItemText key={item.key} style={thinishStyle}>
+                  {participant(item.status, item.name, 'Connection OK', 'Not connected to Member', false)}
+            </Dropdown.ItemText>)
             }
          </Dropdown.Menu >
       );
    }
 }
-
-export class PartyMap {
-   map: Map<string, any>;
-   count: number;
-
-   constructor() {
-      this.map = new Map<string, any>();
-      this.count = 0;
-   }
-
-   hasParty(key: string) : boolean {
-      return this.map.has(key);
-   }
-
-   getPartyData(key: string): any {      
-      return this.map.get(key);
-   }
-
-   addPartyData(key: string, data: any): any {
-      if (! this.map.get(key))
-         this.count++;
-      this.map.set(key, data);
-
-      return this.map.get(key);
-   }
-
-   deletePartyData(key: string) {
-      if (this.map.get(key))
-         this.count--;
-      this.map.delete(key);
-   }
-
-   forEach(fn) {
-      this.map.forEach(fn);
-   }
-};
-

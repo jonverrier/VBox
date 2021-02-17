@@ -9,7 +9,6 @@ import Nav from 'react-bootstrap/Nav';
 import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
-import { IConnectionProps } from './callpanel';
 import { TypeRegistry } from '../common/types.js'
 import { Person } from '../common/person.js';
 import { CallLeaderResolve } from '../common/call.js';

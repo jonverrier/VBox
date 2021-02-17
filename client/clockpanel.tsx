@@ -14,7 +14,6 @@ import { TriangleDownIcon, PlayIcon, StopIcon } from '@primer/octicons-react'
 import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
-import { IConnectionProps } from './callpanel';
 import { gymClockDurationEnum, gymClockMusicEnum, gymClockStateEnum, gymClockActionEnum, GymClockSpec, GymClock, GymClockState, GymClockAction } from '../common/gymclock.js';
 import { MeetingWorkoutState } from './localstore';
 import { TypeRegistry } from '../common/types.js'

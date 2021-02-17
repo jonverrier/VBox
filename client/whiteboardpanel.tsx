@@ -14,7 +14,6 @@ import { TriangleDownIcon } from '@primer/octicons-react'
 import * as CSS from 'csstype';
 
 import { Rtc, RtcLink } from './rtc';
-import { IConnectionProps } from './callpanel';
 import { DateUtility } from '../common/dates';
 import { Person } from '../common/person';
 import { Whiteboard, WhiteboardElement } from '../common/whiteboard';
@@ -117,19 +116,19 @@ interface IMasterWhiteboardElementProps {
    rtc: Rtc;
    allowEdit: boolean;
    caption: string;
-   placeholder: string;
    initialRows: number;
-   displayValue: string;
+   placeholder: string;
+   value: string;
+   valueAsOf: Date;
    onchange: Function;
 }
 
 interface IMasterWhiteboardElementState {
    inEditMode: boolean;
-   enableOk,
-   enableCancel,
-   caption: string;
-   placeholder: string;
-   editValue: string;
+   enableOk : boolean,
+   enableCancel : boolean,
+   value: string;
+   valueAsOf: Date;
 }
 
 export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IMasterWhiteboardState> {
@@ -236,14 +235,14 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
                   <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.rtc}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
                      initialRows={10}
-                     displayValue={this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText}
+                     value={this.state.workout.text} valueAsOf={new Date()}
                      onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
                   <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.rtc}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
-                     initialRows={10}
-                     displayValue={this.state.haveRealResults? this.state.results.text : defaultMasterResultsText}
+                     initialRows={10} 
+                     value={this.state.results.text} valueAsOf={new Date()}
                      onchange={this.onresultschange.bind(this)}></MasterWhiteboardElement>
                </Col>
             </Row>
@@ -263,15 +262,13 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          inEditMode: false,
          enableOk: false,
          enableCancel: false,
-         caption: props.caption,
-         placeholder: props.placeholder,
-         editValue: props.displayValue
+         value: props.value,
+         valueAsOf: new Date()
       };
 
    }
 
    componentDidMount() {
-
    }
 
    componentWillUnmount() {
@@ -282,11 +279,11 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       var enableCancel: boolean;
 
       if (value.length > 0) {
-         this.state.editValue = value;
+         this.state.value = value;
          enableOk = true;
          enableCancel = true;
       } else {
-         this.state.editValue = "";
+         this.state.value = "";
          enableOk = false;
          enableCancel = false;
       }
@@ -294,12 +291,12 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       if (!this.props.allowEdit) {
          enableOk = false;
       }
-      this.setState({ enableOk: enableOk, enableCancel: enableCancel });
+      this.setState({ enableOk: enableOk, enableCancel: enableCancel, valueAsOf: new Date() });
    }
 
    processSave() {
       this.state.enableCancel = this.state.enableOk = false;
-      this.props.onchange(new WhiteboardElement(this.props.initialRows, this.state.editValue));
+      this.props.onchange(new WhiteboardElement(this.props.initialRows, this.state.value));
       this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
    }
 
@@ -307,11 +304,19 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       this.setState({ inEditMode: false });
    }
 
+   latestValue() {
+      // if latest value was saved from local edit, use it, else the property has been updated, so should be used. 
+      if (this.state.valueAsOf.getTime() > this.props.valueAsOf.getTime())
+         return this.state.value;
+      else
+         return this.props.value;
+   }
+
    render() {
       return (
          <div>
             <Row style={thinCentredStyle}>
-               <p style={whiteboardElementHeaderStyle}>{this.state.caption}</p><p style={blockCharStyle}></p>
+               <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p><p style={blockCharStyle}></p>
                <Button style={popdownBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
                   <TriangleDownIcon />
                </Button>
@@ -322,8 +327,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                   <Form>
                      <Form.Group controlId="elementFormId">
                         <Form.Control as="textarea" style={fieldXSepStyle}
-                           placeholder={this.state.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023} minLength={0}
-                           value={this.state.editValue}
+                              placeholder={this.props.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023} minLength={0}
+                              value={this.latestValue()}
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
                      <Form.Row style={{ textAlign: 'centre' }}>
@@ -339,11 +344,15 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                </Collapse>
             </Row>
             <Row style={thinStyle}>
-               <p style={whiteboardElementBodyStyle}>{this.props.displayValue}</p>
+               <p style={whiteboardElementBodyStyle}>{this.props.value}</p>
             </Row>
          </div>
       );
    }
+}
+
+export interface IRemoteWhiteboardProps {
+   rtc: Rtc;
 }
 
 interface IRemoteWhiteboardState {
@@ -351,22 +360,22 @@ interface IRemoteWhiteboardState {
    resultsValue: WhiteboardElement;
 }
 
-export interface IRemoteWhiteboardElementProps {
+interface IRemoteWhiteboardElementProps {
    rtc: Rtc;
    caption: string;
    initialRows: number;
    value: WhiteboardElement;
 }
 
-export interface IRemoteWhiteboardElementState {
+interface IRemoteWhiteboardElementState {
    caption: string;
 }
 
-export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteWhiteboardState> {
+export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IRemoteWhiteboardState> {
    //member variables
    state: IRemoteWhiteboardState;
 
-   constructor(props: IConnectionProps) {
+   constructor(props: IRemoteWhiteboardProps) {
       super(props);
 
       if (props.rtc) {
@@ -428,7 +437,7 @@ export class RemoteWhiteboard extends React.Component<IConnectionProps, IRemoteW
    }
 }
 
-export class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementProps, IRemoteWhiteboardElementState> {
+class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementProps, IRemoteWhiteboardElementState> {
    state: IRemoteWhiteboardElementState;
 
    constructor(props: IRemoteWhiteboardElementProps) {

@@ -72367,7 +72367,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PartyMap = exports.MasterConnectionStatus = exports.RemoteConnectionStatus = void 0;
+exports.MasterConnectionStatus = exports.RemoteConnectionStatus = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Button_1 = __webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js");
 var ButtonGroup_1 = __webpack_require__(/*! react-bootstrap/ButtonGroup */ "./node_modules/react-bootstrap/esm/ButtonGroup.js");
@@ -72402,15 +72402,15 @@ function overallStatusFromTwo(one, two) {
     }
     return overallStatus;
 }
-function partyItem(status, name, okText, issueText, small) {
+function participant(status, name, okText, issueText, small) {
     if (small) {
         switch (status) {
             case enum_js_1.FourStateRagEnum.Green:
-                return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-green-128x128.png' });
+                return React.createElement(party_1.PartySmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
             case enum_js_1.FourStateRagEnum.Amber:
-                return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+                return React.createElement(party_1.PartySmall, { name: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
             case enum_js_1.FourStateRagEnum.Red:
-                return React.createElement(party_1.PartySmall, { name: name, thumbnailUrl: 'circle-black-red-128x128.png' });
+                return React.createElement(party_1.PartySmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
             case enum_js_1.FourStateRagEnum.Indeterminate:
             default:
                 return React.createElement(party_1.PartySmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
@@ -72477,12 +72477,12 @@ var RemoteConnectionStatus = /** @class */ (function (_super) {
             issueString = 'Not connected to web.';
         else
             issueString = 'Not connected to web coach.';
-        return partyItem(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
+        return participant(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
     };
     RemoteConnectionStatus.prototype.menu = function () {
         return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, partyItem(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false))));
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false))));
     };
     return RemoteConnectionStatus;
 }(React.Component));
@@ -72579,7 +72579,7 @@ var MasterConnectionStatus = /** @class */ (function (_super) {
             issueString = 'Not connected to web.';
         else
             issueString = 'Not connected to a meember.';
-        return partyItem(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
+        return participant(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
     };
     MasterConnectionStatus.prototype.menu = function () {
         var items = new Array();
@@ -72588,45 +72588,13 @@ var MasterConnectionStatus = /** @class */ (function (_super) {
             items.push(item);
         }
         return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, partyItem(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
             React.createElement(Dropdown_1.default.Divider, null),
-            items.map(function (item) { return React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle },
-                " ",
-                partyItem(item.status, item.name, 'Connection OK', 'Not connected to Member', false),
-                " "); })));
+            items.map(function (item) { return React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle }, participant(item.status, item.name, 'Connection OK', 'Not connected to Member', false)); })));
     };
     return MasterConnectionStatus;
 }(React.Component));
 exports.MasterConnectionStatus = MasterConnectionStatus;
-var PartyMap = /** @class */ (function () {
-    function PartyMap() {
-        this.map = new Map();
-        this.count = 0;
-    }
-    PartyMap.prototype.hasParty = function (key) {
-        return this.map.has(key);
-    };
-    PartyMap.prototype.getPartyData = function (key) {
-        return this.map.get(key);
-    };
-    PartyMap.prototype.addPartyData = function (key, data) {
-        if (!this.map.get(key))
-            this.count++;
-        this.map.set(key, data);
-        return this.map.get(key);
-    };
-    PartyMap.prototype.deletePartyData = function (key) {
-        if (this.map.get(key))
-            this.count--;
-        this.map.delete(key);
-    };
-    PartyMap.prototype.forEach = function (fn) {
-        this.map.forEach(fn);
-    };
-    return PartyMap;
-}());
-exports.PartyMap = PartyMap;
-;
 
 
 /***/ }),
@@ -73831,7 +73799,6 @@ var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react
 // This app
 var person_1 = __webpack_require__(/*! ../common/person */ "./common/person.js");
 var party_1 = __webpack_require__(/*! ./party */ "./client/party.tsx");
-var callpanel_1 = __webpack_require__(/*! ./callpanel */ "./client/callpanel.tsx");
 var RemotePeople = /** @class */ (function (_super) {
     __extends(RemotePeople, _super);
     function RemotePeople(props) {
@@ -73839,8 +73806,8 @@ var RemotePeople = /** @class */ (function (_super) {
         if (props.rtc) {
             props.rtc.addremotedatalistener(_this.onremotedata.bind(_this));
         }
-        var partyMap = new callpanel_1.PartyMap();
-        _this.state = { partyMap: partyMap };
+        var people = new Array();
+        _this.state = { people: people };
         return _this;
     }
     RemotePeople.prototype.UNSAFE_componentWillReceiveProps = function (nextProps) {
@@ -73850,27 +73817,20 @@ var RemotePeople = /** @class */ (function (_super) {
     };
     RemotePeople.prototype.onremotedata = function (ev, link) {
         if (Object.getPrototypeOf(ev).__type === person_1.Person.prototype.__type) {
-            var partyData;
-            // we store a map, indexed by person Id, name is initially null until we get it sent by the remote connection
-            if (!this.state.partyMap.hasParty(link.to.personId)) {
-                partyData = { name: 'Unknown' };
-                this.state.partyMap.addPartyData(link.to.personId, partyData);
-            }
-            // Store the new name back in state
-            partyData = this.state.partyMap.getPartyData(link.to.personId);
-            partyData.name = ev.name;
-            this.state.partyMap.addPartyData(link.to.personId, partyData);
-            this.setState({ partyMap: this.state.partyMap });
+            var person = ev;
+            var people = this.state.people;
+            people.push(person);
+            this.setState({ people: people });
         }
     };
     RemotePeople.prototype.render = function () {
         var items = new Array();
         var self = this;
-        this.state.partyMap.forEach(function (value, key, map) {
-            var newItem = { key: key, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
+        this.state.people.forEach(function (value, index, arr) {
+            var newItem = { key: index, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
             items.push(newItem);
         });
-        if (this.state.partyMap.count === 0) {
+        if (this.state.people.length === 0) {
             return (React.createElement(Row_1.default, null,
                 React.createElement(party_1.PartyNoImage, { name: 'No-one else is connected.' })));
         }
@@ -74765,7 +74725,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RemoteWhiteboardElement = exports.RemoteWhiteboard = exports.MasterWhiteboard = void 0;
+exports.RemoteWhiteboard = exports.MasterWhiteboard = void 0;
 var React = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 var Row_1 = __webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js");
 var Col_1 = __webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js");
@@ -74924,9 +74884,9 @@ var MasterWhiteboard = /** @class */ (function (_super) {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new dates_1.DateUtility(null).getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, displayValue: this.state.haveRealWorkout ? this.state.workout.text : defaultMasterWorkoutText, onchange: this.onworkoutchange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, value: this.state.workout.text, valueAsOf: new Date(), onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, displayValue: this.state.haveRealResults ? this.state.results.text : defaultMasterResultsText, onchange: this.onresultschange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, value: this.state.results.text, valueAsOf: new Date(), onchange: this.onresultschange.bind(this) })))));
     };
     return MasterWhiteboard;
 }(React.Component));
@@ -74939,9 +74899,8 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
             inEditMode: false,
             enableOk: false,
             enableCancel: false,
-            caption: props.caption,
-            placeholder: props.placeholder,
-            editValue: props.displayValue
+            value: props.value,
+            valueAsOf: new Date()
         };
         return _this;
     }
@@ -74953,33 +74912,40 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
         var enableOk;
         var enableCancel;
         if (value.length > 0) {
-            this.state.editValue = value;
+            this.state.value = value;
             enableOk = true;
             enableCancel = true;
         }
         else {
-            this.state.editValue = "";
+            this.state.value = "";
             enableOk = false;
             enableCancel = false;
         }
         if (!this.props.allowEdit) {
             enableOk = false;
         }
-        this.setState({ enableOk: enableOk, enableCancel: enableCancel });
+        this.setState({ enableOk: enableOk, enableCancel: enableCancel, valueAsOf: new Date() });
     };
     MasterWhiteboardElement.prototype.processSave = function () {
         this.state.enableCancel = this.state.enableOk = false;
-        this.props.onchange(new whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.editValue));
+        this.props.onchange(new whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.value));
         this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
     };
     MasterWhiteboardElement.prototype.processCancel = function () {
         this.setState({ inEditMode: false });
     };
+    MasterWhiteboardElement.prototype.latestValue = function () {
+        // if latest value was saved from local edit, use it, else the property has been updated, so should be used. 
+        if (this.state.valueAsOf.getTime() > this.props.valueAsOf.getTime())
+            return this.state.value;
+        else
+            return this.props.value;
+    };
     MasterWhiteboardElement.prototype.render = function () {
         var _this = this;
         return (React.createElement("div", null,
             React.createElement(Row_1.default, { style: thinCentredStyle },
-                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
+                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.props.caption),
                 React.createElement("p", { style: blockCharStyle }),
                 React.createElement(Button_1.default, { style: popdownBtnStyle, variant: "secondary", size: "sm", onClick: function () { return _this.setState({ inEditMode: !_this.state.inEditMode }); } },
                     React.createElement(octicons_react_1.TriangleDownIcon, null))),
@@ -74988,14 +74954,14 @@ var MasterWhiteboardElement = /** @class */ (function (_super) {
                     React.createElement("div", null,
                         React.createElement(Form_1.default, null,
                             React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
-                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.state.placeholder, rows: this.props.initialRows, cols: 60, maxLength: 1023, minLength: 0, value: this.state.editValue, onChange: function (ev) { _this.processChange(ev.target.value); } })),
+                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.props.placeholder, rows: this.props.initialRows, cols: 60, maxLength: 1023, minLength: 0, value: this.latestValue(), onChange: function (ev) { _this.processChange(ev.target.value); } })),
                             React.createElement(Form_1.default.Row, { style: { textAlign: 'centre' } },
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.displayValue))));
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
     };
     return MasterWhiteboardElement;
 }(React.Component));
@@ -75065,7 +75031,6 @@ var RemoteWhiteboardElement = /** @class */ (function (_super) {
     };
     return RemoteWhiteboardElement;
 }(React.Component));
-exports.RemoteWhiteboardElement = RemoteWhiteboardElement;
 
 
 /***/ }),
