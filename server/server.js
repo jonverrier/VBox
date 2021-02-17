@@ -133,7 +133,7 @@ const connect = async () => {
       await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
       // This initialises the sequence number for the event source
-      initialiseEvents();
+      await initialiseEvents();
 
       console.log('Listening on ' + process.env.PORT + ' ...');
 

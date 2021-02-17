@@ -14,12 +14,14 @@ var facilityMap = new Map();
 // Used to support message replay if client misses messages & needs to rejoin
 var sequence = 0;
 
-function initialise() {
+async function initialise() {
    // read the highest sequence number used so far
-   SignalMessageModel.find({}).sort({ sequenceNo: -1 }).limit(1).then(function (messages) {
-      if (messages.length > 0)
-         sequence = messages[0].sequenceNo + 1;
-   });
+   // Use 'await so we can be sure this completes before signal messages start to arrive
+   // which is a race condition
+   const messages = await SignalMessageModel.find({}).sort({ sequenceNo: -1 }).limit(1).exec();
+
+   if (messages.length > 0)
+      sequence = messages[0].sequenceNo + 1;
 }
 
 // Middleware for GET events endpoint
