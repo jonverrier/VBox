@@ -73959,8 +73959,32 @@ var enum_js_1 = __webpack_require__(/*! ../common/enum.js */ "./common/enum.js")
 var queue_js_1 = __webpack_require__(/*! ../common/queue.js */ "./common/queue.js");
 var logger_1 = __webpack_require__(/*! ./logger */ "./client/logger.tsx");
 var logger = new logger_1.Logger();
+// Helper class - take a name like 'Jon' and if the name is not unique for the session,
+// tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
+// This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
+var RtcNameCache = /** @class */ (function () {
+    function RtcNameCache() {
+        this.nameMap = new Map();
+    }
+    RtcNameCache.prototype.addReturnUnique = function (name) {
+        if (!this.nameMap.has(name)) {
+            this.nameMap.set(name, true);
+            return name;
+        }
+        var index = 1;
+        while (true) {
+            var newName = name + ':' + index.toString();
+            if (!this.nameMap.has(newName)) {
+                this.nameMap.set(newName, true);
+                return newName;
+            }
+            index++;
+        }
+    };
+    return RtcNameCache;
+}());
 var RtcCaller = /** @class */ (function () {
-    function RtcCaller(localCallParticipation, remoteCallParticipation, person) {
+    function RtcCaller(localCallParticipation, remoteCallParticipation, person, nameCache) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteCallParticipation;
         this.localPerson = person;
@@ -73972,6 +73996,7 @@ var RtcCaller = /** @class */ (function () {
         this.isIceConnected = false;
         this.iceQueue = new queue_js_1.Queue();
         this.sendQueue = new queue_js_1.Queue();
+        this.nameCache = nameCache;
     }
     RtcCaller.prototype.placeCall = function () {
         var _this = this;
@@ -74107,13 +74132,13 @@ var RtcCaller = /** @class */ (function () {
                 break;
             case "failed":
                 // The connection has been closed or failed
-                self.channelConnected = false;
+                self.isChannelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
             case "closed":
                 // The connection has been closed or failed
-                self.channelConnected = false;
+                self.isChannelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
@@ -74156,6 +74181,8 @@ var RtcCaller = /** @class */ (function () {
         var remoteCallData = types.reviveFromJSON(msg.data);
         // Store the person we are talking to - allows tracking in the UI later
         if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
+            // Store a unique derivation of nam in case they join multiple times
+            remoteCallData.name = this.nameCache.addReturnUnique(remoteCallData.name);
             this.remotePerson = remoteCallData;
         }
         if (this.onremotedata) {
@@ -74183,7 +74210,7 @@ var RtcCaller = /** @class */ (function () {
     return RtcCaller;
 }());
 var RtcReciever = /** @class */ (function () {
-    function RtcReciever(localCallParticipation, remoteCallParticipation, person) {
+    function RtcReciever(localCallParticipation, remoteCallParticipation, person, nameCache) {
         this.localCallParticipation = localCallParticipation;
         this.remoteCallParticipation = remoteCallParticipation;
         this.localPerson = person;
@@ -74196,6 +74223,7 @@ var RtcReciever = /** @class */ (function () {
         this.isIceConnected = false;
         this.iceQueue = new queue_js_1.Queue();
         this.sendQueue = new queue_js_1.Queue();
+        this.nameCache = nameCache;
     }
     RtcReciever.prototype.answerCall = function (remoteOffer) {
         var _this = this;
@@ -74322,12 +74350,12 @@ var RtcReciever = /** @class */ (function () {
                 break;
             case "failed":
                 // The connection has been closed or failed
-                self.channelConnected = false;
+                self.isChannelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
             case "closed":
                 // The connection has been closed or failed
-                self.channelConnected = false;
+                self.isChannelConnected = false;
                 if (self.onremoteclose)
                     self.onremoteclose(ev);
                 break;
@@ -74371,6 +74399,8 @@ var RtcReciever = /** @class */ (function () {
         var remoteCallData = types.reviveFromJSON(msg.data);
         // Store the person we are talking to - allows tracking in the UI later
         if (remoteCallData.__type === person_js_1.Person.prototype.__type) {
+            // Store a unique derivation of nam in case they join multiple times
+            remoteCallData.name = this.nameCache.addReturnUnique(remoteCallData.name);
             this.remotePerson = remoteCallData;
         }
         if (this.onremotedata) {
@@ -74415,8 +74445,6 @@ var RtcLink = /** @class */ (function () {
             caller.onremoteconnection = this.onremotesenderconnection.bind(this);
         }
     }
-    RtcLink.prototype.toName = function () {
-    };
     RtcLink.prototype.onremoterecieverclose = function (ev) {
         this.linkStatus = enum_js_1.FourStateRagEnum.Red;
         if (this.onlinkstatechange)
@@ -74463,6 +74491,7 @@ var Rtc = /** @class */ (function () {
         this.lastSequenceNo = 0;
         this.datalisteners = new Array();
         this.isEdgeOnly = props.isEdgeOnly;
+        this.nameCache = new RtcNameCache();
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new call_js_1.CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid_1.v4());
         // Store data on the Person who is running the app - used in data handshake & exchange
@@ -74605,7 +74634,7 @@ var Rtc = /** @class */ (function () {
         // If we are an edge node, and the caller is nota leader, dont respond.
         if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
             return;
-        var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person);
+        var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache);
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hooks to pass up data
         sender.onremotedata = function (ev) {
@@ -74622,7 +74651,7 @@ var Rtc = /** @class */ (function () {
     Rtc.prototype.setupRecieverLink = function (remoteParticipant) {
         var _this = this;
         var self = this;
-        var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person);
+        var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache);
         var link = new RtcLink(remoteParticipant, false, null, reciever);
         // Hooks to pass up data
         reciever.onremotedata = function (ev) {

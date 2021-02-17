@@ -25,6 +25,35 @@ import { Logger } from './logger';
 
 var logger = new Logger();
 
+// Helper class - take a name like 'Jon' and if the name is not unique for the session,
+// tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
+// This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
+class RtcNameCache {
+   // member variables
+   nameMap: Map<string, boolean>;
+
+   constructor() {
+      this.nameMap = new Map<string, boolean> ();
+   }
+
+   addReturnUnique(name: string) : string {
+      if (!this.nameMap.has(name)) {
+         this.nameMap.set(name, true);
+         return name;
+      }
+
+      var index: number = 1;
+      while (true) {
+         var newName = name + ':' + index.toString();
+         if (!this.nameMap.has(newName)) {
+            this.nameMap.set(newName, true);
+            return newName;
+         }
+         index++;
+      }
+   }
+}
+
 class RtcCaller {
    // member variables
    localCallParticipation: CallParticipation;
@@ -38,8 +67,12 @@ class RtcCaller {
    isIceConnected: boolean;
    iceQueue: Queue;
    sendQueue: Queue;
+   nameCache: RtcNameCache;
 
-   constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
+   constructor(localCallParticipation: CallParticipation,
+      remoteCallParticipation: CallParticipation,
+      person: Person,
+      nameCache: RtcNameCache) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteCallParticipation;
       this.localPerson = person;
@@ -51,6 +84,7 @@ class RtcCaller {
       this.isIceConnected = false;
       this.iceQueue = new Queue();
       this.sendQueue = new Queue();
+      this.nameCache = nameCache;
    }
 
    // Override these for notifications - TODO - see top of file
@@ -212,13 +246,13 @@ class RtcCaller {
             break;
          case "failed":
             // The connection has been closed or failed
-            self.channelConnected = false;
+            self.isChannelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
          case "closed":
             // The connection has been closed or failed
-            self.channelConnected = false;
+            self.isChannelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
@@ -271,6 +305,8 @@ class RtcCaller {
 
       // Store the person we are talking to - allows tracking in the UI later
       if (remoteCallData.__type === Person.prototype.__type) {
+         // Store a unique derivation of nam in case they join multiple times
+         remoteCallData.name = this.nameCache.addReturnUnique(remoteCallData.name);
          this.remotePerson = remoteCallData;
       }
 
@@ -313,8 +349,12 @@ class RtcReciever {
    isIceConnected: boolean;
    iceQueue: Queue;
    sendQueue: Queue;
+   nameCache: RtcNameCache;
 
-   constructor(localCallParticipation: CallParticipation, remoteCallParticipation: CallParticipation, person: Person) {
+   constructor(localCallParticipation: CallParticipation,
+      remoteCallParticipation: CallParticipation,
+      person: Person,
+      nameCache: RtcNameCache) {
       this.localCallParticipation = localCallParticipation;
       this.remoteCallParticipation = remoteCallParticipation;
       this.localPerson = person;
@@ -326,6 +366,7 @@ class RtcReciever {
       this.isIceConnected = false;
       this.iceQueue = new Queue();
       this.sendQueue = new Queue();
+      this.nameCache = nameCache;
    }
 
    // Override these for notifications  - TODO - see top of file
@@ -474,12 +515,12 @@ class RtcReciever {
             break;
          case "failed":
             // The connection has been closed or failed
-            self.channelConnected = false;
+            self.isChannelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
          case "closed":
             // The connection has been closed or failed
-            self.channelConnected = false;
+            self.isChannelConnected = false;
             if (self.onremoteclose)
                self.onremoteclose(ev);
             break;
@@ -532,6 +573,8 @@ class RtcReciever {
 
       // Store the person we are talking to - allows tracking in the UI later
       if (remoteCallData.__type === Person.prototype.__type) {
+         // Store a unique derivation of nam in case they join multiple times
+         remoteCallData.name = this.nameCache.addReturnUnique(remoteCallData.name);
          this.remotePerson = remoteCallData;
       }
 
@@ -569,7 +612,10 @@ export class RtcLink {
    reciever: RtcReciever;
    linkStatus: FourStateRagEnum;
 
-   constructor(to: CallParticipation, outbound: boolean, caller: RtcCaller, reciever: RtcReciever) {
+   constructor(to: CallParticipation,
+      outbound: boolean,
+      caller: RtcCaller,
+      reciever: RtcReciever) {
       this.to = to;
       this.outbound = outbound;
       this.caller = caller;
@@ -590,9 +636,6 @@ export class RtcLink {
 
    // Override these for notifications  - TODO - see top of file
    onlinkstatechange: ((this: RtcLink, ev: Event) => any) | null;
-
-   toName() {
-   }
 
    onremoterecieverclose(ev) {
       this.linkStatus = FourStateRagEnum.Red;
@@ -658,7 +701,8 @@ export class Rtc {
    serverLinkStatus: FourStateRagEnum;
    retries: number;
    datalisteners: Array<Function>;
-   isEdgeOnly: boolean; 
+   isEdgeOnly: boolean;
+   nameCache: RtcNameCache;
 
    constructor(props: IRtcProps) {
       this.localCallParticipation = null;
@@ -666,6 +710,7 @@ export class Rtc {
       this.lastSequenceNo = 0;
       this.datalisteners = new Array();
       this.isEdgeOnly = props.isEdgeOnly;
+      this.nameCache = new RtcNameCache();
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
       this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuidv4());
@@ -826,7 +871,7 @@ export class Rtc {
       if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
          return;
 
-      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person); 
+      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache); 
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
       // Hooks to pass up data
@@ -847,7 +892,7 @@ export class Rtc {
    setupRecieverLink(remoteParticipant: CallParticipation): RtcReciever {
       var self = this;
 
-      var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person);
+      var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache);
       var link = new RtcLink(remoteParticipant, false, null, reciever);
 
       // Hooks to pass up data
