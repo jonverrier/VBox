@@ -99,10 +99,10 @@ class RtcCaller {
 
       let configuration = {
          iceServers: [{
-            "urls": "stun:stun.l.google.com:19302"
+            "urls": "stun:stun.l.google.com:19302?transport=tcp"
          },
          {
-            "urls": "stun:stun1.l.google.com:19302"
+            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
          }]
       };
 
@@ -382,10 +382,10 @@ class RtcReciever {
 
       let configuration = {
          iceServers: [{
-            "urls": "stun:stun.l.google.com:19302"
+            "urls": "stun:stun.l.google.com:19302?transport=tcp"
          },
          {
-            "urls": "stun:stun1.l.google.com:19302"
+            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
          }]
       };
 

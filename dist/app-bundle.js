@@ -73963,10 +73963,10 @@ var RtcCaller = /** @class */ (function () {
         var self = this;
         var configuration = {
             iceServers: [{
-                    "urls": "stun:stun.l.google.com:19302"
+                    "urls": "stun:stun.l.google.com:19302?transport=tcp"
                 },
                 {
-                    "urls": "stun:stun1.l.google.com:19302"
+                    "urls": "stun:stun1.l.google.com:19302?transport=tcp"
                 }]
         };
         this.sendConnection = new RTCPeerConnection(configuration);
@@ -74190,10 +74190,10 @@ var RtcReciever = /** @class */ (function () {
         var self = this;
         var configuration = {
             iceServers: [{
-                    "urls": "stun:stun.l.google.com:19302"
+                    "urls": "stun:stun.l.google.com:19302?transport=tcp"
                 },
                 {
-                    "urls": "stun:stun1.l.google.com:19302"
+                    "urls": "stun:stun1.l.google.com:19302?transport=tcp"
                 }]
         };
         this.recieveConnection = new RTCPeerConnection(configuration);
