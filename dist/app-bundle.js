@@ -74015,14 +74015,14 @@ var RtcCaller = /** @class */ (function () {
                     logger.error('RtcCaller', 'handleIceCandidate', "error:", e);
                 });
             }
-        }
+        } /* Debugging ICE - does setting a null candidate from the remote interfere with the local??
         else {
-            this.sendConnection.addIceCandidate(null)
-                .catch(function (e) {
-                // TODO - analyse error paths
-                logger.error('RtcCaller', 'handleIceCandidate', "error on null ICE candidate:", e);
-            });
-        }
+           this.sendConnection.addIceCandidate(null)
+              .catch(e => {
+                 // TODO - analyse error paths
+                 logger.error('RtcCaller', 'handleIceCandidate', "error on null ICE candidate:", e);
+              });
+        } */
     };
     RtcCaller.prototype.onicecandidate = function (candidate, to) {
         var self = this;
@@ -74248,14 +74248,14 @@ var RtcReciever = /** @class */ (function () {
                     logger.error('RtcReciever', 'handleIceCandidate', "error:", e);
                 });
             }
-        }
-        else {
-            this.recieveConnection.addIceCandidate(null)
-                .catch(function (e) {
-                // TODO - analyse error paths
-                logger.error('RtcReciever', 'handleIceCandidate', "error on null ICE candidate:", e);
-            });
-        }
+        } /* Debugging ICE - does setting a null candidate from the remote interfere with the local??
+         * else {
+           this.recieveConnection.addIceCandidate(null)
+              .catch(e => {
+                 // TODO - analyse error paths
+                 logger.error('RtcReciever', 'handleIceCandidate', "error on null ICE candidate:", e);
+              });
+        } */
     };
     RtcReciever.prototype.onicecandidate = function (candidate, to) {
         var self = this;
