@@ -145,6 +145,7 @@ interface IMemberPageState {
    isValidName: boolean;
    isReadyToLogInWithMeetCode: boolean;
    loginMc: LoginMc;
+   intervalId: NodeJS.Timeout;
 }
 
 export class MemberPage extends React.Component<IMemberPageProps, IMemberPageState> {
@@ -181,6 +182,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
             name: this.lastUserData.loadName(),
             meetCode: this.lastUserData.loadMeetingId()
          }),
+         intervalId : null
       };
    }
 
@@ -195,9 +197,27 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
       // Initialise meeting code API
       this.state.loginMc.loadAPI();
+
+      // Keep alive to server every 25 seconds
+      var intervalId: NodeJS.Timeout = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
+      this.setState({ intervalId: intervalId });
    }
 
    componentWillUnmount() {
+      if (this.state.intervalId) {
+         clearInterval(this.state.intervalId);
+         this.setState({ intervalId: null });
+      }
+   }
+
+   onClockInterval() {
+      axios.post('/api/keepalive', { params: {} })
+         .then((response) => {
+            logger.error('MemberPage', 'onClockInterval', 'Ok', null);
+         })
+         .catch((e) => {
+            logger.error('MemberPage', 'onClockInterval', 'Error:', e);
+         });
    }
 
    handleMeetCodeChange(ev: any) {
@@ -375,6 +395,7 @@ interface ICoachPageState {
    rtc: Rtc;
    loginFb: LoginFb;
    openClockSpec: boolean;
+   intervalId: NodeJS.Timeout;
 }
 
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
@@ -402,7 +423,8 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          loginFb: new LoginFb({
             autoLogin: true, onLoginStatusChange: this.onLoginStatusChange.bind(this)
          }),
-         openClockSpec: false
+         openClockSpec: false,
+         intervalId: null
       };
    }
 
@@ -415,9 +437,27 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
       // Initialise the facebook API for this page
       this.state.loginFb.loadAPI();
+
+      // Keep alive to server every 25 seconds
+      var intervalId: NodeJS.Timeout = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
+      this.setState({ intervalId: intervalId });
    }
 
    componentWillUnmount() {
+      if (this.state.intervalId) {
+         clearInterval(this.state.intervalId);
+         this.setState({ intervalId: null });
+      }
+   }
+
+   onClockInterval() {
+      axios.post('/api/keepalive', { params: {} })
+         .then((response) => {
+            logger.error('CoachPage', 'onClockInterval', 'Ok', null);
+         })
+         .catch((e) => {
+            logger.error('CoachPage', 'onClockInterval', 'Error:', e);
+         });
    }
 
    onAccessChange(haveAccess) {

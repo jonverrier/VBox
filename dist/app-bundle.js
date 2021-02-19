@@ -1062,11 +1062,11 @@ var GymClock = (function invocation() {
          this.secondsCounted = secondsPlayed;
       
       this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-      if (this.intervalFn) {
-         clearInterval(this.intervalFn);
-         this.intervalFn = null;
+      if (this.intervalId) {
+         clearInterval(this.intervalId);
+         this.intervalId = null;
       }
-      this.intervalFn = setInterval(this.onClockInterval.bind(this), 200);
+      this.intervalId = setInterval(this.onClockInterval.bind(this), 200);
 
       // Set effective start time by working out the duration of any ticks already counted
       this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
@@ -1088,9 +1088,9 @@ var GymClock = (function invocation() {
    };
 
    GymClock.prototype.stop = function () {
-      if (this.intervalFn) {
-         clearInterval(this.intervalFn);
-         this.intervalFn = null;
+      if (this.intervalId) {
+         clearInterval(this.intervalId);
+         this.intervalId = null;
       }
       this.clockStateEnum = gymClockStateEnum.Stopped;
       this.secondsCounted = 0;
@@ -1104,9 +1104,9 @@ var GymClock = (function invocation() {
    };
 
    GymClock.prototype.pause = function () {
-      if (this.intervalFn) {
-         clearInterval(this.intervalFn);
-         this.intervalFn = null;
+      if (this.intervalId) {
+         clearInterval(this.intervalId);
+         this.intervalId = null;
       }
       if (this.audio)
          this.audio.pause();
@@ -71916,6 +71916,7 @@ var MemberPage = /** @class */ (function (_super) {
                 name: _this.lastUserData.loadName(),
                 meetCode: _this.lastUserData.loadMeetingId()
             }),
+            intervalId: null
         };
         return _this;
     }
@@ -71928,8 +71929,24 @@ var MemberPage = /** @class */ (function (_super) {
         var self = this;
         // Initialise meeting code API
         this.state.loginMc.loadAPI();
+        // Keep alive to server every 25 seconds
+        var intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
+        this.setState({ intervalId: intervalId });
     };
     MemberPage.prototype.componentWillUnmount = function () {
+        if (this.state.intervalId) {
+            clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
+        }
+    };
+    MemberPage.prototype.onClockInterval = function () {
+        axios_1.default.post('/api/keepalive', { params: {} })
+            .then(function (response) {
+            logger.error('MemberPage', 'onClockInterval', 'Ok', null);
+        })
+            .catch(function (e) {
+            logger.error('MemberPage', 'onClockInterval', 'Error:', e);
+        });
     };
     MemberPage.prototype.handleMeetCodeChange = function (ev) {
         this.state.loginMc.handleMeetCodeChange(ev);
@@ -72056,7 +72073,8 @@ var CoachPage = /** @class */ (function (_super) {
             loginFb: new loginfb_1.LoginFb({
                 autoLogin: true, onLoginStatusChange: _this.onLoginStatusChange.bind(_this)
             }),
-            openClockSpec: false
+            openClockSpec: false,
+            intervalId: null
         };
         return _this;
     }
@@ -72068,8 +72086,24 @@ var CoachPage = /** @class */ (function (_super) {
         imgA.src = "./circle-black-yellow-128x128.png";
         // Initialise the facebook API for this page
         this.state.loginFb.loadAPI();
+        // Keep alive to server every 25 seconds
+        var intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
+        this.setState({ intervalId: intervalId });
     };
     CoachPage.prototype.componentWillUnmount = function () {
+        if (this.state.intervalId) {
+            clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
+        }
+    };
+    CoachPage.prototype.onClockInterval = function () {
+        axios_1.default.post('/api/keepalive', { params: {} })
+            .then(function (response) {
+            logger.error('CoachPage', 'onClockInterval', 'Ok', null);
+        })
+            .catch(function (e) {
+            logger.error('CoachPage', 'onClockInterval', 'Error:', e);
+        });
     };
     CoachPage.prototype.onAccessChange = function (haveAccess) {
         var self = this;
