@@ -99,6 +99,9 @@ class RtcCaller {
 
       let configuration = {
          iceServers: [{
+            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+         },
+         {
             "urls": "stun:stun.l.google.com:19302?transport=tcp"
          },
          {
@@ -126,19 +129,21 @@ class RtcCaller {
    handleAnswer(answer: CallAnswer) {
       var self = this;
 
-      this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
-         .then(() => {
-            logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
+      if (!this.isIceConnected) {
+         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
+            .then(() => {
+               logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
 
-            // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
-            while (!self.iceQueue.isEmpty()) {
-               self.handleIceCandidate.bind(self) (self.iceQueue.dequeue());
-            }
-         })
-         .catch(e => {
+               // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+               while (!self.iceQueue.isEmpty()) {
+                  self.handleIceCandidate.bind(self)(self.iceQueue.dequeue());
+               }
+            })
+            .catch(e => {
 
-            logger.error ('RtcCaller',  'handleAnswer', 'error:', e);
-         });
+               logger.error('RtcCaller', 'handleAnswer', 'error:', e);
+            });
+      }
    }
 
    handleIceCandidate(ice) {
@@ -382,6 +387,9 @@ class RtcReciever {
 
       let configuration = {
          iceServers: [{
+            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+         },
+         {
             "urls": "stun:stun.l.google.com:19302?transport=tcp"
          },
          {

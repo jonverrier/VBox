@@ -73963,6 +73963,9 @@ var RtcCaller = /** @class */ (function () {
         var self = this;
         var configuration = {
             iceServers: [{
+                    "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+                },
+                {
                     "urls": "stun:stun.l.google.com:19302?transport=tcp"
                 },
                 {
@@ -73986,17 +73989,19 @@ var RtcCaller = /** @class */ (function () {
     };
     RtcCaller.prototype.handleAnswer = function (answer) {
         var self = this;
-        this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
-            .then(function () {
-            logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
-            // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
-            while (!self.iceQueue.isEmpty()) {
-                self.handleIceCandidate.bind(self)(self.iceQueue.dequeue());
-            }
-        })
-            .catch(function (e) {
-            logger.error('RtcCaller', 'handleAnswer', 'error:', e);
-        });
+        if (!this.isIceConnected) {
+            this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer))
+                .then(function () {
+                logger.info('RtcCaller', 'handleAnswer', 'succeeded', null);
+                // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+                while (!self.iceQueue.isEmpty()) {
+                    self.handleIceCandidate.bind(self)(self.iceQueue.dequeue());
+                }
+            })
+                .catch(function (e) {
+                logger.error('RtcCaller', 'handleAnswer', 'error:', e);
+            });
+        }
     };
     RtcCaller.prototype.handleIceCandidate = function (ice) {
         // ICE candidates can arrive before call offer/answer
@@ -74190,6 +74195,9 @@ var RtcReciever = /** @class */ (function () {
         var self = this;
         var configuration = {
             iceServers: [{
+                    "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+                },
+                {
                     "urls": "stun:stun.l.google.com:19302?transport=tcp"
                 },
                 {
