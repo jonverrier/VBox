@@ -213,7 +213,6 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
    onClockInterval() {
       axios.post('/api/keepalive', { params: {} })
          .then((response) => {
-            logger.error('MemberPage', 'onClockInterval', 'Ok', null);
          })
          .catch((e) => {
             logger.error('MemberPage', 'onClockInterval', 'Error:', e);
@@ -453,7 +452,6 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    onClockInterval() {
       axios.post('/api/keepalive', { params: {} })
          .then((response) => {
-            logger.error('CoachPage', 'onClockInterval', 'Ok', null);
          })
          .catch((e) => {
             logger.error('CoachPage', 'onClockInterval', 'Error:', e);

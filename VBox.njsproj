@@ -95,7 +95,6 @@
     <Content Include="server\facilityperson-model.js" />
     <Content Include="server\housekeeping.js" />
     <Content Include="server\person-model.js" />
-    <Content Include="server\logger.js" />
     <Content Include="server\page-routes.js" />
     <Content Include="server\lead-model.js" />
     <Content Include="server\server.js" />
@@ -110,9 +109,6 @@
       <TestFramework>mocha</TestFramework>
     </Content>
     <Content Include="test\test-homepagedata.js">
-      <TestFramework>mocha</TestFramework>
-    </Content>
-    <Content Include="test\test-person.js">
       <TestFramework>mocha</TestFramework>
     </Content>
     <Content Include="test\test-signal.js">

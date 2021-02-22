@@ -5,7 +5,11 @@ var passport = require("passport");
 var passportFacebook = require("passport-facebook");
 var passportLocal = require("passport-custom");
 var { nanoid } = require("nanoid");
-var logger = require("./logger.js").logger;
+
+var pkg = require('../Core/dist/cmn-bundle.js');
+var EntryPoints = pkg.default;
+
+var logger = new EntryPoints.LoggerFactory().logger(EntryPoints.LoggerType.Server);
 
 // Used to look up valid meeting IDs for unauthenticated users
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
@@ -19,13 +23,9 @@ const LocalStrategy = passportLocal.Strategy;
 var inDevelopment = false;
 if (process.env.NODE_ENV === 'development') {
    inDevelopment = true;
-   logger.log('info', 'Info:', {
-      message: 'Passport using development options.'
-   });
+   logger.logInfo('Auth-Controller', 'Main:', 'Passport using development options.', null);
 } else {
-   logger.log('info', 'Info:', {
-      message: 'Passport using production options.'
-   });
+   logger.logInfo('Auth-Controller', 'Main:', 'Passport using production options.', null);
 }
 
 function save(user, accessToken) {

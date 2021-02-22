@@ -18,7 +18,10 @@ var facilityMemberModel = require("./facilityperson-model.js").facilityMemberMod
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;
 var leadModel = require("./lead-model.js").leadModel;
 var HomePageData = require("../common/homepagedata.js").HomePageData;
-var logger = require("./logger.js").logger;
+
+var pkg = require('../Core/dist/cmn-bundle.js');
+var EntryPoints = pkg.default;
+var logger = new EntryPoints.LoggerFactory().logger(EntryPoints.LoggerType.Server);
 
 // event source APIs
 var eventFeed = require('./event-source.js').eventFeed;
@@ -165,7 +168,7 @@ router.get('/api/home', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Log session starts - later on can trawl this for billing. 
-      logger.log('info', 'Session start.', {
+      logger.logInfo ('Api-Routes', '/api/home', 'Session start.', {
          userId: req.user.externalId,
          userName: req.user.name
       });
@@ -248,13 +251,13 @@ router.post('/api/error', function (req, res) {
    var message = decodeURIComponent(req.body.params.message);
 
    if (req.user) {
-      logger.log('error', 'Error:', {
+      logger.logError('Api-Routes', '/api/error', 'Error:', {
          userId: req.user.externalId,
          userName: req.user.name,
          message: message
       });
    } else {
-      logger.log('error', 'Error:', {
+      logger.logError('Api-Routes', '/api/error', 'Error:', {
          message: message
       });
    }
