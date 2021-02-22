@@ -1,12 +1,18 @@
 {
    "compileOnSave": false,
    "compilerOptions": {
+      "lib": [ "es2020" ],
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "./dist",
       "noImplicitAny": false,
       "module": "CommonJS",
       "noEmitOnError": true,
       "removeComments": false,
       "sourceMap": true,
-      "target": "ES6",
+      "target": "es2020",
       "jsx": "react"
    },
    "exclude": [

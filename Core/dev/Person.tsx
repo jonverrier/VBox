@@ -22,7 +22,7 @@ export class Person {
  * @param thumbnailUrl - URL to thumbnail image
  * @param lastAuthCode - provided by underlying identity system when user logs in
  */
-   constructor(_id, externalId, name, email, thumbnailUrl, lastAuthCode) {
+   constructor(_id: string, externalId: string, name: string, email: string, thumbnailUrl: string, lastAuthCode:string) {
       this._id = _id;
       this._externalId = externalId;
       this._name = name;

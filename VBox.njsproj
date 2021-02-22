@@ -121,11 +121,9 @@
     <Content Include="test\test-whiteboard.js">
       <TestFramework>mocha</TestFramework>
     </Content>
-    <Content Include="tsconfig-common.json" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="webpack-cmn-config.js" />
     <Content Include="webpack-config.js">
       <SubType>Code</SubType>
     </Content>

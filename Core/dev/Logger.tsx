@@ -16,13 +16,13 @@ interface ILogger {
       method: string,
       message: string,
       data: any
-   );
+   ) : void;
 
    logInfo (component: string,
       method: string,
       message: string,
       data: any
-   );
+   ) : void;
 }
 
 export class LoggerFactory {

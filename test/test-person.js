@@ -1,16 +1,12 @@
 'use strict';
 // Copyright TXPCo ltd, 2020
 
-if (typeof exports !== 'undefined') {
+var pkg = require('../Core/dist/cmn-bundle.js');
+var EntryPoints = pkg.default;
+var Person = EntryPoints.Person;
+var TypeRegistry = EntryPoints.TypeRegistry;
 
-   var personModule = require('../common/person.js');
-   var Person = personModule.Person;
-
-   var typesModule = require('../common/types.js');
-   var TypeRegistry = typesModule.TypeRegistry;
-
-   var expect = require("chai").expect;
-}
+var expect = require("chai").expect;
 
 describe("Person", function () {
    var person1, person2;
