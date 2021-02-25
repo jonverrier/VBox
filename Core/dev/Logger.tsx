@@ -2,8 +2,8 @@
 /*global exports*/
 /*! Copyright TXPCo, 2020 */
 
-import { ServerLoggerWrap } from './LoggerServerWrap.js';
-import { ClientLoggerWrap } from './LoggerClientWrap.js';
+//import { ServerLoggerWrap } from './LoggerServerWrap';
+import { ClientLoggerWrap } from './LoggerClientWrap';
 
 export enum LoggerType {
    Server,
@@ -32,7 +32,7 @@ export class LoggerFactory {
    logger(loggerType: LoggerType): ILogger {
       switch (loggerType) {
          case LoggerType.Server:
-            return new ServerLogger();
+            return new ClientLogger();
 
          case LoggerType.Client:
             return new ClientLogger();;
@@ -41,6 +41,7 @@ export class LoggerFactory {
    }
 }
 
+/*
 class ServerLogger implements ILogger {
 
    private logger: any;
@@ -77,6 +78,7 @@ class ServerLogger implements ILogger {
       );
    }
 }
+*/
 
 class ClientLogger implements ILogger {
 

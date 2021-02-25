@@ -1,0 +1,97 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <Name>NewServer</Name>
+    <RootNamespace>NewServer</RootNamespace>
+    <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
+    <NodejsPort>1337</NodejsPort>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>c2241bfc-3df3-4d98-83cb-59acfbef521a</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>dev\server.js</StartupFile>
+    <StartWebBrowser>False</StartWebBrowser>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>..</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <StartWebBrowser>False</StartWebBrowser>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="app.js" />
+    <Content Include="dev\api-routes.js" />
+    <Content Include="dev\auth-controller.js" />
+    <Content Include="dev\auth-routes.js" />
+    <Content Include="dev\event-source.js" />
+    <Content Include="dev\facility-model.js" />
+    <Content Include="dev\facilitymeeting-model.js" />
+    <Content Include="dev\facilityperson-model.js" />
+    <Content Include="dev\housekeeping.js" />
+    <Content Include="dev\lead-model.js" />
+    <Content Include="dev\page-routes.js" />
+    <Content Include="dev\person-model.js" />
+    <Content Include="dev\server.js" />
+    <Content Include="dev\signalmessage-model.js" />
+    <Content Include="dist\client-bundle.js" />
+    <Content Include="dist\client-bundle.js.map" />
+    <Content Include="dist\core-bundle.js" />
+    <Content Include="dist\core-bundle.js.map" />
+    <Content Include="package.json" />
+    <Content Include="public\10-Minute-Timer.mp3" />
+    <Content Include="public\130-bpm-workout-V2 trimmed.mp3" />
+    <Content Include="public\15-Minute-Timer.mp3" />
+    <Content Include="public\20-Minute-Timer.mp3" />
+    <Content Include="public\board.png" />
+    <Content Include="public\building-black.png" />
+    <Content Include="public\building-black128x128.png" />
+    <Content Include="public\building-white.png" />
+    <Content Include="public\building-white128x128.png" />
+    <Content Include="public\circle-black-green-128x128.png" />
+    <Content Include="public\circle-black-grey-128x128.png" />
+    <Content Include="public\circle-black-red-128x128.png" />
+    <Content Include="public\circle-black-yellow-128x128.png" />
+    <Content Include="public\circle-black.png" />
+    <Content Include="public\datadeleted.html" />
+    <Content Include="public\digital-7 %28mono%29.ttf" />
+    <Content Include="public\evolution-weightlifting-b-128x128.png" />
+    <Content Include="public\evolution-weightlifting-b.png" />
+    <Content Include="public\evolution-weightlifting-w.png" />
+    <Content Include="public\FitologySquare.png" />
+    <Content Include="public\FortitudeSquare.png" />
+    <Content Include="public\group-coach.jpg" />
+    <Content Include="public\group-pullups.jpg" />
+    <Content Include="public\group-weights.jpg" />
+    <Content Include="public\index.html" />
+    <Content Include="public\internalerror.html" />
+    <Content Include="public\landing-music.png" />
+    <Content Include="public\landing-video.png" />
+    <Content Include="public\landing-workout.png" />
+    <Content Include="public\logonnotallowed.html" />
+    <Content Include="public\nofile.html" />
+    <Content Include="public\person-w-128x128.png" />
+    <Content Include="public\privacy.html" />
+    <Content Include="public\vbox-styles.css" />
+    <Content Include="public\weightlifter-b-128x128.png" />
+    <Content Include="public\weightlifter-w-128x128.png" />
+    <Content Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="dev\" />
+    <Folder Include="dist\" />
+    <Folder Include="public\" />
+    <Folder Include="test\" />
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
+</Project>

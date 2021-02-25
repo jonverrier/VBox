@@ -1,6 +1,6 @@
 'use strict';
 
-import pkg from './dist/cmn-bundle.js';
+import pkg from './dist/core-bundle.js';
 
 var EntryPoints = pkg.default;
 

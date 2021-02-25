@@ -1,0 +1,22 @@
+{
+   "compilerOptions": {
+      "lib": [ "es6" ],
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "noImplicitAny": false,
+      "module": "CommonJS",
+      "noEmitOnError": true,
+      "removeComments": false,
+      "sourceMap": true,
+      "target": "es6",
+      "jsx": "react"
+   },
+   "exclude": [
+      "node_modules"
+   ],
+   "files": [
+      "dev/EntryPoints.tsx"
+   ]
+}

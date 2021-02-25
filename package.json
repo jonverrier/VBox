@@ -1,57 +1,17 @@
 {
-   "name": "vbox",
+   "name": "ultrabox",
    "version": "0.0.0",
-   "description": "VBox",
-   "main": "server.js",
+   "description": "ultrabox",
+   "main": "app.mjs",
    "author": {
       "name": ""
    },
    "dependencies": {
-      "@primer/octicons-react": "^12.0.0",
-      "@types/react": "^16.9.56",
-      "axios": "^0.21.1",
-      "body-parser": "^1.19.0",
-      "compression": "^1.7.4",
-      "connect-mongo": "^3.2.0",
-      "cookie-parser": "^1.4.5",
-      "css-loader": "^5.0.1",
-      "errorhandler": "^1.5.1",
-      "express": "4.17.*",
-      "express-session": "^1.17.1",
-      "lodash": "^4.17.20",
-      "loglevel": "^1.7.1",
-      "mongoose": "^5.10.15",
-      "nanoid": "^3.1.20",
-      "passport": "^0.4.1",
-      "passport-custom": "^1.1.1",
-      "passport-facebook": "^3.0.0",
-      "passport-local": "^1.0.0",
-      "path": "*",
-      "react": "^16.8.6",
-      "react-bootstrap": "^1.4.0",
-      "react-border-wrapper": "^1.0.3",
-      "react-dom": "~16.*",
-      "react-helmet": "^6.1.0",
-      "react-router-dom": "^5.2.0",
-      "style-loader": "^2.0.0",
-      "ts-loader": "^8.0.11",
-      "uuid": "^8.3.2",
-      "versionator": "^2.0.0",
-      "webpack": "^5.4.0",
-      "webpack-cli": "^4.2.0",
-      "webrtc-adapter": "^7.7.0",
-      "winston": "^3.3.3"
    },
    "scripts": {
-      "build": "webpack-cli --config webpack-config.js",
-      "build-cmn": "webpack-cli --config webpack-cmn-config.js",
-      "clean": "tsc --build --clean"
+      "build": "cd core && npm run build && cd ../client && npm run build && cd ../server && npm run build"
    },
    "devDependencies": {
-      "chai": "^4.2.0",
-      "csstype": "^3.0.5",
-      "mocha": "^8.2.1",
-      "typescript": "^4.1.5"
    },
    "repository": {
       "type": "git",

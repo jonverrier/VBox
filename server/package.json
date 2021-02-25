@@ -1,0 +1,46 @@
+{
+   "name": "vbox",
+   "version": "0.0.0",
+   "description": "VBox",
+   "main": "dev/server.js",
+   "author": {
+      "name": ""
+   },
+   "dependencies": {
+      "body-parser": "^1.19.0",
+      "compression": "^1.7.4",
+      "connect-mongo": "^3.2.0",
+      "cookie-parser": "^1.4.5",
+      "errorhandler": "^1.5.1",
+      "express": "4.17.*",
+      "express-session": "^1.17.1",
+      "lodash": "^4.17.20",
+      "loglevel": "^1.7.1",
+      "mongoose": "^5.10.15",
+      "nanoid": "^3.1.20",
+      "passport": "^0.4.1",
+      "passport-custom": "^1.1.1",
+      "passport-facebook": "^3.0.0",
+      "passport-local": "^1.0.0",
+      "path": "*",
+      "uuid": "^8.3.2",
+      "versionator": "^2.0.0",
+      "webpack": "^5.4.0",
+      "winston": "^3.3.3"
+   },
+   "scripts": {
+      "clean": "",
+      "build": "ncp ../client/dist dist && ncp ../core/dist dist "
+   },
+   "devDependencies": {
+      "chai": "^4.2.0",
+      "copyfile": "^0.1.2",
+      "mocha": "^8.2.1",
+      "ncp": "^2.0.0"
+   },
+   "repository": {
+      "type": "git",
+      "url": "https://github.com/jonverrier/vbox.git"
+   },
+   "license": "MIT"
+}

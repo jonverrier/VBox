@@ -35,15 +35,21 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="app.mjs" />
-    <Content Include="dev\LoggerClientWrap.js" />
-    <Content Include="dev\LoggerServerWrap.js" />
-    <Content Include="dist\cmn-bundle.js" />
-    <Content Include="dist\cmn-bundle.js.map" />
+    <Content Include="dist\core-bundle.js" />
+    <Content Include="dist\core-bundle.js.map" />
     <Content Include="package.json" />
     <Content Include="README.md" />
+    <Content Include="test\test-call.js" />
+    <Content Include="test\test-clock.js" />
+    <Content Include="test\test-dates.js" />
+    <Content Include="test\test-facility.js" />
     <Content Include="test\test-person.js" />
-    <Content Include="tsconfig-core.json" />
-    <Content Include="webpack-config-core.js" />
+    <Content Include="test\test-queue.js" />
+    <Content Include="test\test-signal.js" />
+    <Content Include="test\test-userfacilities.js" />
+    <Content Include="test\test-whiteboard.js" />
+    <Content Include="tsconfig.json" />
+    <Content Include="webpack-config.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="dev\" />
@@ -51,10 +57,23 @@
     <Folder Include="test\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="dev\Call.tsx" />
+    <TypeScriptCompile Include="dev\Dates.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />
+    <TypeScriptCompile Include="dev\Enum.tsx" />
+    <TypeScriptCompile Include="dev\Equals.tsx" />
+    <TypeScriptCompile Include="dev\Facility.tsx" />
+    <TypeScriptCompile Include="dev\GymClock.tsx" />
     <TypeScriptCompile Include="dev\Logger.tsx" />
-    <TypeScriptCompile Include="dev\person.tsx" />
+    <TypeScriptCompile Include="dev\LoggerClientWrap.tsx" />
+    <TypeScriptCompile Include="dev\LoggerServerWrap.tsx" />
+    <TypeScriptCompile Include="dev\Person.tsx" />
+    <TypeScriptCompile Include="dev\Queue.tsx" />
+    <TypeScriptCompile Include="dev\Signal.tsx" />
+    <TypeScriptCompile Include="dev\Streamable.tsx" />
     <TypeScriptCompile Include="dev\Types.tsx" />
+    <TypeScriptCompile Include="dev\UserFacilities.tsx" />
+    <TypeScriptCompile Include="dev\Whiteboard.tsx" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
 </Project>
