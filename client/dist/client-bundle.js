@@ -53047,8 +53047,7 @@ const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ../../core/dev/Facility */ "../core/dev/Facility.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities */ "../core/dev/UserFacilities.tsx");
-const party_1 = __webpack_require__(/*! ./party */ "./dev/party.tsx");
-const party_2 = __webpack_require__(/*! ./party */ "./dev/party.tsx");
+const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
 const callpanel_1 = __webpack_require__(/*! ./callpanel */ "./dev/callpanel.tsx");
 const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
 const loginfb_1 = __webpack_require__(/*! ./loginfb */ "./dev/loginfb.tsx");
@@ -53234,7 +53233,7 @@ class MemberPage extends React.Component {
                     React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                        React.createElement(participant_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
@@ -53261,7 +53260,7 @@ class MemberPage extends React.Component {
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
@@ -53270,7 +53269,7 @@ class MemberPage extends React.Component {
                             React.createElement(callpanel_1.RemoteConnectionStatus, { rtc: this.state.rtc }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginMc.logOut }, "Sign Out...")))))),
@@ -53387,7 +53386,7 @@ class CoachPage extends React.Component {
                     React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                        React.createElement(participant_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
@@ -53406,7 +53405,7 @@ class CoachPage extends React.Component {
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
@@ -53415,7 +53414,7 @@ class CoachPage extends React.Component {
                             React.createElement(callpanel_1.MasterConnectionStatus, { rtc: this.state.rtc }),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(party_2.PartySmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginFb.logOut }, "Sign Out...")))))),
@@ -53503,7 +53502,7 @@ class LandingPage extends React.Component {
                 React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: facilityNavStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(party_1.PartyBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                    React.createElement(participant_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement("audio", { className: "audio-element", loop: true },
                     React.createElement("source", { src: "15-Minute-Timer.mp3" })),
@@ -53626,7 +53625,7 @@ const Dropdown_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Dropd
 // This app
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Enum_1 = __webpack_require__(/*! ../../core/dev/Enum */ "../core/dev/Enum.tsx");
-const party_1 = __webpack_require__(/*! ./party */ "./dev/party.tsx");
+const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px'
 };
@@ -53657,27 +53656,27 @@ function participant(status, name, okText, issueText, small) {
     if (small) {
         switch (status) {
             case Enum_1.FourStateRagEnum.Green:
-                return React.createElement(party_1.PartySmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+                return React.createElement(participant_1.ParticipantSmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
             case Enum_1.FourStateRagEnum.Amber:
-                return React.createElement(party_1.PartySmall, { name: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+                return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
             case Enum_1.FourStateRagEnum.Red:
-                return React.createElement(party_1.PartySmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+                return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
             case Enum_1.FourStateRagEnum.Indeterminate:
             default:
-                return React.createElement(party_1.PartySmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+                return React.createElement(participant_1.ParticipantSmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
         }
     }
     else {
         switch (status) {
             case Enum_1.FourStateRagEnum.Green:
-                return React.createElement(party_1.PartyCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
             case Enum_1.FourStateRagEnum.Amber:
-                return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
+                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
             case Enum_1.FourStateRagEnum.Red:
-                return React.createElement(party_1.PartyCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
             case Enum_1.FourStateRagEnum.Indeterminate:
             default:
-                return React.createElement(party_1.PartyCaption, { name: name, caption: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
+                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
         }
     }
 }
@@ -55036,10 +55035,10 @@ exports.Media = Media;
 
 /***/ }),
 
-/***/ "./dev/party.tsx":
-/*!***********************!*\
-  !*** ./dev/party.tsx ***!
-  \***********************/
+/***/ "./dev/participant.tsx":
+/*!*****************************!*\
+  !*** ./dev/participant.tsx ***!
+  \*****************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -55067,7 +55066,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PartySmall = exports.PartyCaption = exports.PartyNoImage = exports.Party = exports.PartyBanner = void 0;
+exports.ParticipantSmall = exports.ParticipantCaption = exports.ParticipantNoImage = exports.Participant = exports.ParticipantBanner = void 0;
 const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 /*! Copyright TXPCo, 2020 */
 const Container_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js"));
@@ -55112,34 +55111,34 @@ const partyRowStyle = {
 const thinStyle = {
     margin: '0px', padding: '0px'
 };
-const PartyBanner = (props) => (React.createElement("div", null,
+const ParticipantBanner = (props) => (React.createElement("div", null,
     React.createElement(Container_1.default, { fluid: true, style: thinStyle },
         React.createElement(Row_1.default, { style: bannerRowStyle },
             React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
             React.createElement("p", { style: partyBannerNameStyle }, props.name)))));
-exports.PartyBanner = PartyBanner;
-const Party = (props) => (React.createElement("div", null,
+exports.ParticipantBanner = ParticipantBanner;
+const Participant = (props) => (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement(Col_1.default, { style: thinStyle },
                 React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
                 React.createElement("p", { style: partyNameStyle }, props.name))))));
-exports.Party = Party;
-const PartyNoImage = (props) => (React.createElement("div", null,
+exports.Participant = Participant;
+const ParticipantNoImage = (props) => (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement(Col_1.default, { style: thinStyle },
                 React.createElement("p", { style: partyNameStyle }, props.name))))));
-exports.PartyNoImage = PartyNoImage;
-const PartyCaption = (props) => (React.createElement("div", null,
+exports.ParticipantNoImage = ParticipantNoImage;
+const ParticipantCaption = (props) => (React.createElement("div", null,
     React.createElement(Container_1.default, { style: thinStyle },
         React.createElement(Row_1.default, { style: partyRowStyle },
             React.createElement(Col_1.default, { style: thinStyle },
                 React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.caption, title: props.caption, height: '32px' }),
                 React.createElement("p", { style: partyNameStyle }, props.name))))));
-exports.PartyCaption = PartyCaption;
-const PartySmall = (props) => (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }));
-exports.PartySmall = PartySmall;
+exports.ParticipantCaption = ParticipantCaption;
+const ParticipantSmall = (props) => (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }));
+exports.ParticipantSmall = ParticipantSmall;
 
 
 /***/ }),
@@ -55185,7 +55184,7 @@ const React = __importStar(__webpack_require__(/*! react */ "./node_modules/reac
 const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
 // This app
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const party_1 = __webpack_require__(/*! ./party */ "./dev/party.tsx");
+const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
 class RemotePeople extends React.Component {
     constructor(props) {
         super(props);
@@ -55217,12 +55216,12 @@ class RemotePeople extends React.Component {
         });
         if (this.state.people.length === 0) {
             return (React.createElement(Row_1.default, null,
-                React.createElement(party_1.PartyNoImage, { name: 'No-one else is connected.' })));
+                React.createElement(participant_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
         }
         else {
             return (React.createElement("div", null,
                 items.map((item) => React.createElement(Row_1.default, { key: item.key },
-                    React.createElement(party_1.Party, { name: item.name, thumbnailUrl: item.thumbnailUrl }))),
+                    React.createElement(participant_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl }))),
                 "  "));
         }
     }

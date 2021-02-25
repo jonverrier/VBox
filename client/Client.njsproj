@@ -50,7 +50,7 @@
     <TypeScriptCompile Include="dev\loginfb.tsx" />
     <TypeScriptCompile Include="dev\loginmc.tsx" />
     <TypeScriptCompile Include="dev\media.tsx" />
-    <TypeScriptCompile Include="dev\party.tsx" />
+    <TypeScriptCompile Include="dev\participant.tsx" />
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
     <TypeScriptCompile Include="dev\rtc.tsx" />
     <TypeScriptCompile Include="dev\whiteboardpanel.tsx" />

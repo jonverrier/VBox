@@ -29,8 +29,7 @@ import { Person } from '../../core/dev/Person';
 import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
 
-import { PartyBanner } from './party';
-import { PartySmall } from './party';
+import { ParticipantBanner, ParticipantSmall } from './participant';
 import { RemoteConnectionStatus, MasterConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
@@ -281,7 +280,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                </Helmet>
                <Navbar style={facilityNavStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
+                     <ParticipantBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
                </Navbar>
                <Container fluid style={pageStyle}>
@@ -333,7 +332,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      <Nav className="mr-auto">
                         <Dropdown as={ButtonGroup} id="collasible-nav-facility">
                            <Button variant="secondary" style={thinStyle}>
-                              <PartySmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
                            </Dropdown.Toggle>
@@ -347,7 +346,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                         <RemoteConnectionStatus rtc={this.state.rtc}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
-                              <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
@@ -516,7 +515,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                </Helmet>
                <Navbar style={facilityNavStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
-                     <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
+                     <ParticipantBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
                </Navbar>
                <Container fluid style={pageStyle}>
@@ -545,7 +544,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <Nav className="mr-auto">
                         <Dropdown as={ButtonGroup} id="collasible-nav-facility">
                            <Button variant="secondary" style={thinStyle}>
-                              <PartySmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
                            </Dropdown.Toggle>
@@ -559,7 +558,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                         <MasterConnectionStatus rtc={this.state.rtc} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
-                              <PartySmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
@@ -692,7 +691,7 @@ export class LandingPage extends React.Component<ILandingPageProps, ILoginPageSt
             </Helmet>
             <Navbar style={facilityNavStyle}>
                <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <PartyBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
+                  <ParticipantBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                </Navbar.Brand>
             </Navbar>
                <Container fluid style={pageStyle}>

@@ -10,7 +10,7 @@ import Row from 'react-bootstrap/Row';
 
 // This app
 import { Person } from '../../core/dev/Person';
-import { Party, PartyNoImage } from './party';
+import { Participant, ParticipantNoImage } from './participant';
 import { Rtc, RtcLink } from './rtc';
 
 export interface IRemotePeopleProps {
@@ -62,7 +62,7 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
       if (this.state.people.length === 0) {
          return (
             <Row>
-               <PartyNoImage name={'No-one else is connected.'} /> 
+               <ParticipantNoImage name={'No-one else is connected.'} /> 
             </Row>
          );
       } else {
@@ -70,7 +70,7 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
             {
                items.map((item) =>
                   <Row key={item.key}>
-                     <Party name={item.name} thumbnailUrl={item.thumbnailUrl} />
+                     <Participant name={item.name} thumbnailUrl={item.thumbnailUrl} />
                   </Row>)
             }  </div>                                                               
          );

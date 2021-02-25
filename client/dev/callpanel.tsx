@@ -16,7 +16,7 @@ import * as CSS from 'csstype';
 // This app
 import { Person } from '../../core/dev/Person';
 import { FourStateRagEnum } from '../../core/dev/Enum';
-import { Party, PartySmall, PartyCaption, PartyNoImage } from './party';
+import { Participant, ParticipantSmall, ParticipantCaption, ParticipantNoImage } from './participant';
 import { Rtc, RtcLink } from './rtc';
 
 const thinStyle: CSS.Properties = {
@@ -68,26 +68,26 @@ function participant(status: any, name: string, okText: string, issueText: strin
    if (small) {
       switch (status) {
          case FourStateRagEnum.Green:
-            return <PartySmall name={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
+            return <ParticipantSmall name={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
          case FourStateRagEnum.Amber:
-            return <PartySmall name={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
+            return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
          case FourStateRagEnum.Red:
-            return <PartySmall name={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
+            return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
          case FourStateRagEnum.Indeterminate:
          default:
-            return <PartySmall name={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
+            return <ParticipantSmall name={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
       }
    } else {
       switch (status) {
          case FourStateRagEnum.Green:
-            return <PartyCaption name={name} caption={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
+            return <ParticipantCaption name={name} caption={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
          case FourStateRagEnum.Amber:
-            return <PartyCaption name={name} caption={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
+            return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
          case FourStateRagEnum.Red:
-            return <PartyCaption name={name} caption={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
+            return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
          case FourStateRagEnum.Indeterminate:
          default:
-            return <PartyCaption name={name} caption={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
+            return <ParticipantCaption name={name} caption={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
       }
    }
 }
