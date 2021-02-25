@@ -1,4 +1,4 @@
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music. 
 // GymClockAction is a way to send the start, pause, stop list via Rpc
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 

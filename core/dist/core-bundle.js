@@ -293,7 +293,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
 //==============================//
@@ -822,7 +822,7 @@ CallKeepAlive.__type = "CallKeepAlive";
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DateWithDays = void 0;
 class DateWithDays {
@@ -863,7 +863,7 @@ exports.DateWithDays = DateWithDays;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isEqual = void 0;
 function isEqual(value, other) {
@@ -938,7 +938,7 @@ exports.isEqual = isEqual;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Facility = void 0;
 class Facility {
@@ -1044,7 +1044,7 @@ Facility.__type = "Facility";
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music. 
 // GymClockAction is a way to send the start, pause, stop list via Rpc
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
@@ -1322,7 +1322,7 @@ GymClockState.__type = "GymClockState";
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoggerFactory = exports.LoggerType = void 0;
 //import { ServerLoggerWrap } from './LoggerServerWrap';
@@ -1414,7 +1414,7 @@ var LoggerEntryPoints = {
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ClientLoggerWrap = void 0;
 var logging = __webpack_require__(/*! loglevel */ "./node_modules/loglevel/lib/loglevel.js");
@@ -1448,7 +1448,7 @@ exports.ClientLoggerWrap = ClientLoggerWrap;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Person = void 0;
 class Person {
@@ -1561,7 +1561,7 @@ Person.__type = "Person";
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.QueueAny = exports.QueueNumber = exports.QueueString = exports.Queue = void 0;
 //==============================//
@@ -1649,7 +1649,7 @@ exports.QueueAny = QueueAny;
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SignalMessage = void 0;
 const Types_1 = __webpack_require__(/*! ./Types */ "./dev/Types.tsx");
@@ -1783,7 +1783,7 @@ SignalMessage.__type = "SignalMessage";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TypeRegistry = void 0;
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ./Facility */ "./dev/Facility.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
@@ -1853,7 +1853,7 @@ exports.TypeRegistry = TypeRegistry;
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserFacilities = void 0;
 const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
@@ -1968,7 +1968,7 @@ UserFacilities.__type = "UserFacilities";
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WhiteboardElement = exports.Whiteboard = void 0;
 //==============================//
@@ -2159,7 +2159,7 @@ var exports = __webpack_exports__;
   !*** ./dev/EntryPoints.tsx ***!
   \*****************************/
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
 const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");

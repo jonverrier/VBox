@@ -1,4 +1,4 @@
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 
 // Core React
 import ReactDOM from 'react-dom';

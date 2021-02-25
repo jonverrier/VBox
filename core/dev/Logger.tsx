@@ -1,6 +1,6 @@
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 
 //import { ServerLoggerWrap } from './LoggerServerWrap';
 import { ClientLoggerWrap } from './LoggerClientWrap';

@@ -1,4 +1,4 @@
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // Component to support Login via a meeting code
 
 declare var require: any

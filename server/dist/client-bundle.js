@@ -52999,7 +52999,7 @@ function warning(condition, message) {
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -53589,7 +53589,7 @@ react_dom_1.default.render(React.createElement(PageSwitcher, null), document.get
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // References:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
@@ -53779,14 +53779,14 @@ class MasterConnectionStatus extends React.Component {
         const serverStatus = this.props.rtc.serverLinkStatus;
         var worstLinkStatus = Enum_1.FourStateRagEnum.Green;
         for (var i = 0; i < this.state.members.length && worstLinkStatus === Enum_1.FourStateRagEnum.Green; i++) {
-            if (this.props.rtc.memberLinkStatus(this.state.members[i]) === Enum_1.FourStateRagEnum.Red) {
+            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === Enum_1.FourStateRagEnum.Red) {
                 worstLinkStatus = Enum_1.FourStateRagEnum.Red;
             }
-            if (this.props.rtc.memberLinkStatus(this.state.members[i]) === Enum_1.FourStateRagEnum.Amber) {
+            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === Enum_1.FourStateRagEnum.Amber) {
                 // Amber if any one link is Amber
                 worstLinkStatus = Enum_1.FourStateRagEnum.Amber;
             }
-            if (this.props.rtc.memberLinkStatus(this.state.members[i]) === Enum_1.FourStateRagEnum.Indeterminate) {
+            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === Enum_1.FourStateRagEnum.Indeterminate) {
                 // Indeterminate if any one link is Indeterminate
                 worstLinkStatus = Enum_1.FourStateRagEnum.Indeterminate;
             }
@@ -53851,7 +53851,7 @@ exports.MasterConnectionStatus = MasterConnectionStatus;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -54452,7 +54452,7 @@ exports.GymClock = GymClock;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -54552,7 +54552,7 @@ exports.LeaderResolve = LeaderResolve;
 
 "use strict";
 
-/*! Copyright TXPCo, 2015 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MeetingWorkoutState = exports.MeetingScreenState = exports.LocalStore = void 0;
 //==============================//
@@ -54733,7 +54733,7 @@ exports.MeetingWorkoutState = MeetingWorkoutState;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -54879,7 +54879,7 @@ exports.LoginFb = LoginFb;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // Component to support Login via a meeting code
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -54981,7 +54981,7 @@ exports.LoginMc = LoginMc;
 
 "use strict";
 
-/*! Copyright TXPCo, 2015 */
+/*! Copyright TXPCo, 2020, 2021  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Media = void 0;
 //==============================//
@@ -55067,8 +55067,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ParticipantSmall = exports.ParticipantCaption = exports.ParticipantNoImage = exports.Participant = exports.ParticipantBanner = void 0;
+/*! Copyright TXPCo, 2020, 2021 */
 const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-/*! Copyright TXPCo, 2020 */
 const Container_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js"));
 const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
 const Col_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js"));
@@ -55151,7 +55151,7 @@ exports.ParticipantSmall = ParticipantSmall;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // References:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
@@ -55239,7 +55239,7 @@ exports.RemotePeople = RemotePeople;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // References:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
 // https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
@@ -56059,7 +56059,7 @@ exports.Rtc = Rtc;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -56386,7 +56386,7 @@ class RemoteWhiteboardElement extends React.Component {
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
 //==============================//
@@ -56915,7 +56915,7 @@ CallKeepAlive.__type = "CallKeepAlive";
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DateWithDays = void 0;
 class DateWithDays {
@@ -56958,7 +56958,7 @@ exports.DateWithDays = DateWithDays;
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FourStateRagEnum = exports.ThreeStateRagEnum = void 0;
 var ThreeStateRagEnum;
@@ -56988,7 +56988,7 @@ var FourStateRagEnum;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isEqual = void 0;
 function isEqual(value, other) {
@@ -57063,7 +57063,7 @@ exports.isEqual = isEqual;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Facility = void 0;
 class Facility {
@@ -57169,7 +57169,7 @@ Facility.__type = "Facility";
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 // GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music. 
 // GymClockAction is a way to send the start, pause, stop list via Rpc
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
@@ -57447,7 +57447,7 @@ GymClockState.__type = "GymClockState";
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoggerFactory = exports.LoggerType = void 0;
 //import { ServerLoggerWrap } from './LoggerServerWrap';
@@ -57539,7 +57539,7 @@ var LoggerEntryPoints = {
 
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ClientLoggerWrap = void 0;
 var logging = __webpack_require__(/*! loglevel */ "../core/node_modules/loglevel/lib/loglevel.js");
@@ -57573,7 +57573,7 @@ exports.ClientLoggerWrap = ClientLoggerWrap;
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Person = void 0;
 class Person {
@@ -57686,7 +57686,7 @@ Person.__type = "Person";
 
 "use strict";
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.QueueAny = exports.QueueNumber = exports.QueueString = exports.Queue = void 0;
 //==============================//
@@ -57774,7 +57774,7 @@ exports.QueueAny = QueueAny;
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SignalMessage = void 0;
 const Types_1 = __webpack_require__(/*! ./Types */ "../core/dev/Types.tsx");
@@ -57908,7 +57908,7 @@ SignalMessage.__type = "SignalMessage";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TypeRegistry = void 0;
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 const Person_1 = __webpack_require__(/*! ./Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ./Facility */ "../core/dev/Facility.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
@@ -57978,7 +57978,7 @@ exports.TypeRegistry = TypeRegistry;
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserFacilities = void 0;
 const Person_1 = __webpack_require__(/*! ./Person */ "../core/dev/Person.tsx");
@@ -58093,7 +58093,7 @@ UserFacilities.__type = "UserFacilities";
 /*jslint white: false, indent: 3, maxerr: 1000 */
 /*global Enum*/
 /*global exports*/
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.WhiteboardElement = exports.Whiteboard = void 0;
 //==============================//
