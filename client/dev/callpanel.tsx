@@ -179,8 +179,8 @@ interface IMasterConnectionStatusState {
    overallStatus: any;
    serverStatus: any;
    overallLinkStatus: any;
-   members: Array<any>;
-   memberStatuses: Array<any>;
+   members: Array<Person>;
+   memberStatuses: Array<FourStateRagEnum>;
    intervalId: number;
 }
 
@@ -243,14 +243,14 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       var worstLinkStatus: any = FourStateRagEnum.Green;
 
       for (var i: number = 0; i < this.state.members.length && worstLinkStatus === FourStateRagEnum.Green; i++) {
-         if (this.props.rtc.memberLinkStatus(this.state.members[i]) === FourStateRagEnum.Red) {
+         if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === FourStateRagEnum.Red) {
             worstLinkStatus = FourStateRagEnum.Red;
          }
-         if (this.props.rtc.memberLinkStatus(this.state.members[i]) === FourStateRagEnum.Amber) {
+         if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === FourStateRagEnum.Amber) {
             // Amber if any one link is Amber
             worstLinkStatus = FourStateRagEnum.Amber;
          }
-         if (this.props.rtc.memberLinkStatus(this.state.members[i]) === FourStateRagEnum.Indeterminate) {
+         if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === FourStateRagEnum.Indeterminate) {
             // Indeterminate if any one link is Indeterminate
             worstLinkStatus = FourStateRagEnum.Indeterminate;
          }
