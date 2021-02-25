@@ -1,5 +1,5 @@
 'use strict';
-// Copyright TXPCo ltd, 2020
+// Copyright TXPCo ltd, 2020, 2021
 
 // Core logic classes
 var pkg = require('../dist/core-bundle.js');

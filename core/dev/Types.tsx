@@ -1,5 +1,5 @@
 
-/*! Copyright TXPCo, 2020 */
+/*! Copyright TXPCo, 2020, 2021 */
 import { Person } from './Person';
 import { Facility } from './Facility';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive } from './Call'

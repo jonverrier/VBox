@@ -1,6 +1,5 @@
-
+/*! Copyright TXPCo, 2020, 2021 */
 import * as React from 'react';
-/*! Copyright TXPCo, 2020 */
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
