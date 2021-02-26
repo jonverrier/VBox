@@ -12,6 +12,7 @@ import { TriangleDownIcon } from '@primer/octicons-react'
 import * as CSS from 'csstype';
 
 import { DateWithDays } from '../../core/dev/Dates';
+import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
 import { Rtc, RtcLink } from './rtc';
@@ -140,7 +141,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
       var haveWorkout: boolean = false;
 
       if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
 
       this.storedWorkoutState = new MeetingWorkoutState();
@@ -173,11 +174,13 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onremotedata(ev: any, link: RtcLink) {
+   onRemoteData(ev: IStreamable, link: RtcLink) {
+      var ev2 = ev as Person;
+
       // By convention, new joiners broadcast a 'Person' object
       if (ev.type === Person.__type) {
 
@@ -187,12 +190,12 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
 
          if (text === defaultMasterResultsText) {
             // Overrwite contents if its the first participant
-            text = ev.name;
+            text = ev2.name;
          }
          else 
-         if (!text.includes(ev.name) ) {
+         if (!text.includes(ev2.name) ) {
             // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
-            text = text + '\n' + ev.name;
+            text = text + '\n' + ev2.name;
             rows = rows + 1;
          }
          this.setState({ haveRealResults: true, results: new WhiteboardElement (rows, text) });
@@ -377,7 +380,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       super(props);
 
       if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
 
       this.state = {
@@ -389,13 +392,13 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onremotedata(ev: any, link: RtcLink) {
+   onRemoteData(ev: IStreamable, link: RtcLink) {
       if (ev.type === Whiteboard.__type) {
-         var whiteboard: Whiteboard = ev;
+         var whiteboard: Whiteboard = ev as Whiteboard;
 
          if (!this.state.workoutValue.equals(whiteboard.workout)) {
             this.state.workoutValue.assign(whiteboard.workout); 

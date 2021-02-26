@@ -4,7 +4,7 @@
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
 // GymClock is a running clock - created from a spec, then can start, stop, pause etc. 
 
-import { IStreamable } from './Streamable';
+import { IStreamableFor } from './Streamable';
 
 export enum GymClockDurationEnum { 'Five', 'Ten', 'Fifteen', 'Twenty' };
 export enum GymClockMusicEnum { 'Uptempo', 'Midtempo', 'None' };
@@ -35,7 +35,7 @@ function calculateCountToSeconds (durationEnum) {
 //==============================//
 // GymClockSpec class
 //==============================//
-export class GymClockSpec implements IStreamable<GymClockSpec> {
+export class GymClockSpec implements IStreamableFor<GymClockSpec> {
 
    private _durationEnum: GymClockDurationEnum;
    private _musicEnum: GymClockMusicEnum;
@@ -130,7 +130,7 @@ export class GymClockSpec implements IStreamable<GymClockSpec> {
 // GymClockAction class 
 // Exists just to transport en enum of RPC with a type
 //==============================//
-export class GymClockAction implements IStreamable<GymClockAction> {
+export class GymClockAction implements IStreamableFor<GymClockAction> {
 
    private _actionEnum: GymClockActionEnum;
 
@@ -205,7 +205,7 @@ export class GymClockAction implements IStreamable<GymClockAction> {
 //==============================//
 // GymClockState class 
 //==============================//
-export class GymClockState implements IStreamable<GymClockState >  {
+export class GymClockState implements IStreamableFor<GymClockState >  {
 
    _stateEnum: GymClockStateEnum;
    _secondsIn: number;

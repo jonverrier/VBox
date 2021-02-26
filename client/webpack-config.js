@@ -5,10 +5,11 @@ module.exports = {
    target: 'node',
    output: {
       filename: "./client-bundle.js",
-      devtoolModuleFilenameTemplate: '[resource-path]'  // removes the webpack:/// prefix
+      devtoolModuleFilenameTemplate: '[resource-path]',  // removes the webpack:/// prefix
+      libraryTarget: 'commonjs'
    },
    resolve: {
-      extensions: ['.Webpack.js', '.web.js', '.ts', '.js', '.jsx', '.tsx', '.css']
+      extensions: ['.tsx', '.js', '.css']
    },
    module: {
       rules: [

@@ -19,16 +19,6 @@ interface ILoginFbState {
    userAccessToken: string;
 }
 
-/* https://blog.cloudboost.io/waiting-till-facebook-sdk-or-any-other-async-sdk-has-loaded-6682839b9538 */
-function Deferred() {
-   var self = this;
-   this.promise = new Promise(function (resolve, reject) {
-      self.reject = reject
-      self.resolve = resolve
-   })
-}
-(window as any).fbLoaded = (new Deferred());
-
 export class LoginFb {
    //member variables
    props: ILoginFbProps;
@@ -155,12 +145,5 @@ export class LoginFb {
             logger.logError('LoginFb', 'logOut', 'Error:', e);
             window.location.href = "/";
          });
-      /* var self = this;
-      (window as any).FB.logout(function () {
-         self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-         self.props.onLoginStatusChange(false);
-         // Go back to front page.
-         window.location.href = "/";
-      }); */
    }
 }

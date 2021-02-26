@@ -3,7 +3,7 @@
 /*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
 
-import { IStreamable } from './Streamable';
+import { IStreamableFor } from './Streamable';
 
 import { Person } from './Person';
 import { Facility } from './Facility';
@@ -12,7 +12,7 @@ import { isEqual } from './Equals';
 //==============================//
 // UserFacilities class
 //==============================//
-export class UserFacilities implements IStreamable<UserFacilities> {
+export class UserFacilities implements IStreamableFor<UserFacilities> {
 
    private _sessionId: string;
    private _person: Person;
