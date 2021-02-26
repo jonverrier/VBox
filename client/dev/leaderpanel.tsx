@@ -7,6 +7,7 @@ import Nav from 'react-bootstrap/Nav';
 import * as CSS from 'csstype';
 
 import { TypeRegistry } from '../../core/dev/Types'
+import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { CallLeaderResolve } from '../../core/dev/Call';
 import { Rtc, RtcLink } from './rtc';
@@ -40,7 +41,7 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
       var resolve = new CallLeaderResolve();
       this.state = { isLeader: true, myLeaderResolve: resolve };
       if (this.props.rtc) {
-         this.props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         this.props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
@@ -52,11 +53,11 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onremotedata(ev: any, link: RtcLink) {
+   onRemoteData(ev: IStreamable, link: RtcLink) {
       // By convention, new joiners broadcast a 'Person' object
       if (ev.type === Person.__type) {
          // Send them our CallLeaderResolve 
@@ -66,7 +67,7 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
       }
       // If we recieve a CallLeaderResolve that beats us, we are not leader.
       if (ev.type === CallLeaderResolve.__type) {
-         if (! this.state.myLeaderResolve.isWinnerVs(ev)) {
+         if (!this.state.myLeaderResolve.isWinnerVs(ev as CallLeaderResolve)) {
             this.setState({ isLeader: false });
             if (this.props.onLeaderChange)
                this.props.onLeaderChange(false);

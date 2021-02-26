@@ -52991,6 +52991,195 @@ function warning(condition, message) {
 
 /***/ }),
 
+/***/ "./dev/RunnableClock.tsx":
+/*!*******************************!*\
+  !*** ./dev/RunnableClock.tsx ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music.
+// GymClockAction is a way to send the start, pause, stop list via Rpc
+// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
+// RunnableClock is a running clock - created from a spec, then can start, stop, pause etc.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RunnableClock = void 0;
+const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
+const countDownSeconds = 15;
+// Keep this function need declation in case an extra Enum is added above & this needs to change
+function calculateCountToSeconds(durationEnum) {
+    switch (durationEnum) {
+        case GymClock_1.GymClockDurationEnum.Five:
+            return (countDownSeconds + 5 * 60);
+        default:
+        case GymClock_1.GymClockDurationEnum.Ten:
+            return (countDownSeconds + 10 * 60);
+        case GymClock_1.GymClockDurationEnum.Fifteen:
+            return (countDownSeconds + 15 * 60);
+        case GymClock_1.GymClockDurationEnum.Twenty:
+            return (countDownSeconds + 20 * 60);
+    }
+}
+;
+//==============================//
+// RunnableClock class
+//==============================//
+class RunnableClock {
+    /**
+     * Create a RunnableClock object
+     */
+    constructor(clockSpec) {
+        this.clockSpec = clockSpec;
+        this.clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
+        this.secondsCounted = 0;
+        this.startReference = new Date();
+        this.countToSeconds = 0;
+        this.intervalId = null;
+        this.callbackFn = null;
+        if (this.clockSpec.musicUrl) {
+            this.audio = new Audio();
+            this.audio.src = this.clockSpec.musicUrl;
+            this.audio.loop = true;
+        }
+        else
+            this.audio = null;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return (this.clockSpec.equals(rhs.clockSpec)
+            && this.clockStateEnum == rhs.clockStateEnum
+            && this.secondsCounted === rhs.secondsCounted
+            && this.startReference.getTime() === rhs.startReference.getTime()
+            && this.countToSeconds === rhs.countToSeconds);
+    }
+    ;
+    start(callbackFn, secondsPlayed) {
+        if (secondsPlayed)
+            this.secondsCounted = secondsPlayed;
+        this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this.intervalId = setInterval(this.onClockInterval.bind(this), 200);
+        // Set effective start time by working out the duration of any ticks already counted
+        this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
+        if (this.secondsCounted >= countDownSeconds)
+            this.clockStateEnum = GymClock_1.GymClockStateEnum.Running;
+        else
+            this.clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown;
+        this.callbackFn = callbackFn;
+        if (this.audio) {
+            this.audio.currentTime = this.secondsCounted;
+            this.audio.play();
+        }
+        // call first tick to start the visible clock
+        this.onClockInterval();
+    }
+    ;
+    stop() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this.clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
+        this.secondsCounted = 0;
+        this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
+        if (this.audio)
+            this.audio.pause();
+        if (this.callbackFn)
+            this.callbackFn(0, 0);
+    }
+    ;
+    pause() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        if (this.audio)
+            this.audio.pause();
+        this.clockStateEnum = GymClock_1.GymClockStateEnum.Paused;
+    }
+    ;
+    onClockInterval() {
+        var now, mm, ss, seconds;
+        now = new Date();
+        seconds = (now.getTime() - this.startReference.getTime()) / 1000;
+        this.secondsCounted = seconds;
+        if (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown && seconds < countDownSeconds) {
+            mm = Math.floor((countDownSeconds - seconds) / 60);
+            ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
+        }
+        else {
+            if (this.clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown) {
+                this.clockStateEnum = GymClock_1.GymClockStateEnum.Running;
+            }
+            mm = Math.floor((seconds - countDownSeconds) / 60);
+            ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60)); // Switch from floor to Ceil Compensate for passing zero in common across two counters
+            if (seconds >= this.countToSeconds) {
+                mm = (this.countToSeconds - countDownSeconds) / 60;
+                ss = 0;
+                this.stop();
+            }
+        }
+        if (this.callbackFn)
+            this.callbackFn(mm, ss);
+    }
+    ;
+    isRunning() {
+        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
+            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+    }
+    ;
+    canPause() {
+        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
+            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+    }
+    ;
+    canStop() {
+        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
+            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
+            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+    }
+    ;
+    canStart() {
+        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
+            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Stopped);
+    }
+    ;
+    saveToState() {
+        return new GymClock_1.GymClockState(this.clockStateEnum, this.secondsCounted);
+    }
+    ;
+    loadFromState(state, callbackFn) {
+        switch (state.stateEnum) {
+            case GymClock_1.GymClockStateEnum.Stopped:
+                if (this.canStop())
+                    this.stop();
+                break;
+            case GymClock_1.GymClockStateEnum.CountingDown:
+            case GymClock_1.GymClockStateEnum.Running:
+                if (this.canStart())
+                    this.start(callbackFn, state.secondsIn);
+                break;
+            case GymClock_1.GymClockStateEnum.Paused:
+                if (this.canPause())
+                    this.pause();
+                break;
+        }
+    }
+    ;
+}
+exports.RunnableClock = RunnableClock;
+
+
+/***/ }),
+
 /***/ "./dev/app.tsx":
 /*!*********************!*\
   !*** ./dev/app.tsx ***!
@@ -53887,7 +54076,7 @@ const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./no
 const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
 const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const gymclock_1 = __webpack_require__(/*! ./gymclock */ "./dev/gymclock.tsx");
+const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
 const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
@@ -53979,7 +54168,7 @@ class RemoteClock extends React.Component {
                 this.state.clock.stop();
             // replace with a new one matching the spec
             let spec = new GymClock_1.GymClockSpec(ev.durationEnum, ev.musicEnum, ev.musicUrl);
-            let clock = new gymclock_1.GymClock(spec);
+            let clock = new RunnableClock_1.RunnableClock(spec);
             this.setState({ clock: clock });
         }
         else if (ev.type === GymClock_1.GymClockState.__type) {
@@ -54033,7 +54222,7 @@ class MasterClock extends React.Component {
         }
         else
             clockSpec = new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Ten, GymClock_1.GymClockMusicEnum.None, undefined);
-        let clock = new gymclock_1.GymClock(clockSpec);
+        let clock = new RunnableClock_1.RunnableClock(clockSpec);
         // Use cached copy of the workout clock state if there is one
         var storedClockState = this.storedWorkoutState.loadClockState();
         var clockState;
@@ -54101,7 +54290,7 @@ class MasterClock extends React.Component {
     processSave() {
         var spec = new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl);
         this.state.clock.stop();
-        var clock = new gymclock_1.GymClock(spec);
+        var clock = new RunnableClock_1.RunnableClock(spec);
         this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
         // Cache the clock spec as JSON
         this.storedWorkoutState.saveClockSpec(JSON.stringify(this.state.clockSpec));
@@ -54251,195 +54440,6 @@ class MasterClock extends React.Component {
     }
 }
 exports.MasterClock = MasterClock;
-
-
-/***/ }),
-
-/***/ "./dev/gymclock.tsx":
-/*!**************************!*\
-  !*** ./dev/gymclock.tsx ***!
-  \**************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music.
-// GymClockAction is a way to send the start, pause, stop list via Rpc
-// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
-// GymClock is a running clock - created from a spec, then can start, stop, pause etc. 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GymClock = void 0;
-const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
-const countDownSeconds = 15;
-// Keep this function need declation in case an extra Enum is added above & this needs to change
-function calculateCountToSeconds(durationEnum) {
-    switch (durationEnum) {
-        case GymClock_1.GymClockDurationEnum.Five:
-            return (countDownSeconds + 5 * 60);
-        default:
-        case GymClock_1.GymClockDurationEnum.Ten:
-            return (countDownSeconds + 10 * 60);
-        case GymClock_1.GymClockDurationEnum.Fifteen:
-            return (countDownSeconds + 15 * 60);
-        case GymClock_1.GymClockDurationEnum.Twenty:
-            return (countDownSeconds + 20 * 60);
-    }
-}
-;
-//==============================//
-// GymClock class
-//==============================//
-class GymClock {
-    /**
-     * Create a GymClock object
-     */
-    constructor(clockSpec) {
-        this.clockSpec = clockSpec;
-        this.clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
-        this.secondsCounted = 0;
-        this.startReference = new Date();
-        this.countToSeconds = 0;
-        this.intervalId = null;
-        this.callbackFn = null;
-        if (this.clockSpec.musicUrl) {
-            this.audio = new Audio();
-            this.audio.src = this.clockSpec.musicUrl;
-            this.audio.loop = true;
-        }
-        else
-            this.audio = null;
-    }
-    /**
-     * test for equality - checks all fields are the same.
-     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-     * @param rhs - the object to compare this one to.
-     */
-    equals(rhs) {
-        return (this.clockSpec.equals(rhs.clockSpec)
-            && this.clockStateEnum == rhs.clockStateEnum
-            && this.secondsCounted === rhs.secondsCounted
-            && this.startReference.getTime() === rhs.startReference.getTime()
-            && this.countToSeconds === rhs.countToSeconds);
-    }
-    ;
-    start(callbackFn, secondsPlayed) {
-        if (secondsPlayed)
-            this.secondsCounted = secondsPlayed;
-        this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
-        this.intervalId = setInterval(this.onClockInterval.bind(this), 200);
-        // Set effective start time by working out the duration of any ticks already counted
-        this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
-        if (this.secondsCounted >= countDownSeconds)
-            this.clockStateEnum = GymClock_1.GymClockStateEnum.Running;
-        else
-            this.clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown;
-        this.callbackFn = callbackFn;
-        if (this.audio) {
-            this.audio.currentTime = this.secondsCounted;
-            this.audio.play();
-        }
-        // call first tick to start the visible clock
-        this.onClockInterval();
-    }
-    ;
-    stop() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
-        this.clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
-        this.secondsCounted = 0;
-        this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-        if (this.audio)
-            this.audio.pause();
-        if (this.callbackFn)
-            this.callbackFn(0, 0);
-    }
-    ;
-    pause() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
-        if (this.audio)
-            this.audio.pause();
-        this.clockStateEnum = GymClock_1.GymClockStateEnum.Paused;
-    }
-    ;
-    onClockInterval() {
-        var now, mm, ss, seconds;
-        now = new Date();
-        seconds = (now.getTime() - this.startReference.getTime()) / 1000;
-        this.secondsCounted = seconds;
-        if (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown && seconds < countDownSeconds) {
-            mm = Math.floor((countDownSeconds - seconds) / 60);
-            ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
-        }
-        else {
-            if (this.clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown) {
-                this.clockStateEnum = GymClock_1.GymClockStateEnum.Running;
-            }
-            mm = Math.floor((seconds - countDownSeconds) / 60);
-            ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60)); // Switch from floor to Ceil Compensate for passing zero in common across two counters
-            if (seconds >= this.countToSeconds) {
-                mm = (this.countToSeconds - countDownSeconds) / 60;
-                ss = 0;
-                this.stop();
-            }
-        }
-        if (this.callbackFn)
-            this.callbackFn(mm, ss);
-    }
-    ;
-    isRunning() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
-    }
-    ;
-    canPause() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
-    }
-    ;
-    canStop() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
-    }
-    ;
-    canStart() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Stopped);
-    }
-    ;
-    saveToState() {
-        return new GymClock_1.GymClockState(this.clockStateEnum, this.secondsCounted);
-    }
-    ;
-    loadFromState(state, callbackFn) {
-        switch (state.stateEnum) {
-            case GymClock_1.GymClockStateEnum.Stopped:
-                if (this.canStop())
-                    this.stop();
-                break;
-            case GymClock_1.GymClockStateEnum.CountingDown:
-            case GymClock_1.GymClockStateEnum.Running:
-                if (this.canStart())
-                    this.start(callbackFn, state.secondsIn);
-                break;
-            case GymClock_1.GymClockStateEnum.Paused:
-                if (this.canPause())
-                    this.pause();
-                break;
-        }
-    }
-    ;
-}
-exports.GymClock = GymClock;
 
 
 /***/ }),
@@ -54742,15 +54742,6 @@ exports.LoginFb = void 0;
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
-/* https://blog.cloudboost.io/waiting-till-facebook-sdk-or-any-other-async-sdk-has-loaded-6682839b9538 */
-function Deferred() {
-    var self = this;
-    this.promise = new Promise(function (resolve, reject) {
-        self.reject = reject;
-        self.resolve = resolve;
-    });
-}
-window.fbLoaded = (new Deferred());
 class LoginFb {
     constructor(props) {
         this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
@@ -54857,13 +54848,6 @@ class LoginFb {
             logger.logError('LoginFb', 'logOut', 'Error:', e);
             window.location.href = "/";
         });
-        /* var self = this;
-        (window as any).FB.logout(function () {
-           self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-           self.props.onLoginStatusChange(false);
-           // Go back to front page.
-           window.location.href = "/";
-        }); */
     }
 }
 exports.LoginFb = LoginFb;

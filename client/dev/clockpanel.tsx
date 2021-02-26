@@ -13,9 +13,10 @@ import * as CSS from 'csstype';
 
 import { GymClockDurationEnum, GymClockMusicEnum, GymClockStateEnum, GymClockActionEnum, GymClockSpec, GymClockState, GymClockAction } from '../../core/dev/GymClock';
 import { TypeRegistry } from '../../core/dev/Types'
+import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person'
 
-import { GymClock } from './gymclock';
+import { RunnableClock } from './RunnableClock';
 import { MeetingWorkoutState } from './localstore';
 import { Rtc, RtcLink } from './rtc';
 
@@ -98,7 +99,7 @@ export interface IRemoteClockState {
    isMounted: boolean;
    mm: number;
    ss: number;
-   clock: GymClock | null;
+   clock: RunnableClock | null;
 }
 
 export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClockState> {
@@ -108,7 +109,7 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
       super(props);
 
       if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
 
       this.state = {
@@ -131,38 +132,43 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onremotedata(ev: any, link: RtcLink) {
+   onRemoteData(ev: IStreamable, link: RtcLink) {
 
       if (ev.type === GymClockSpec.__type) {
          // we are sent a clock spec as soon as we connect
+         var evSpec = ev as GymClockSpec;
 
          // Stop current clock if it is going
          if (this.state.clock && this.state.clock.isRunning())
             this.state.clock.stop();
 
          // replace with a new one matching the spec
-         let spec = new GymClockSpec(ev.durationEnum, ev.musicEnum, ev.musicUrl);
-         let clock = new GymClock (spec);
+         let spec = new GymClockSpec(evSpec.durationEnum, evSpec.musicEnum, evSpec.musicUrl);
+         let clock = new RunnableClock (spec);
          this.setState({clock: clock});
       }
       else
       if (ev.type === GymClockState.__type) {
          // Then we are sent the state of the clock (running/paused/stopped etc)
-         let state = new GymClockState(ev.stateEnum, ev.secondsIn);
+         var evState = ev as GymClockState;
+
+         let state = new GymClockState(evState.stateEnum, evState.secondsIn);
          if (this.state.clock)
             this.state.clock.loadFromState(state, this.onTick.bind(this));
       }
       else
       if (ev.type === GymClockAction.__type) {
          // Finally we are sent play/pause/stop etc when the coach selects an action
-         switch (ev.actionEnum) {
+         var evAction= ev as GymClockAction;
+
+         switch (evAction.actionEnum) {
             case GymClockActionEnum.Start:
                if (this.state.clock)
-                  this.state.clock.start(this.onTick.bind(this), ev.secondsIn);
+                  this.state.clock.start(this.onTick.bind(this));
                break;
             case GymClockActionEnum.Stop:
                if (this.state.clock)
@@ -201,7 +207,7 @@ interface IMasterClockState {
    enableCancel: boolean;
    clockStateEnum: any;
    clockSpec: GymClockSpec;
-   clock: GymClock;
+   clock: RunnableClock;
    mm: number;
    ss: number;
 }
@@ -231,7 +237,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       } else
          clockSpec = new GymClockSpec(GymClockDurationEnum.Ten, GymClockMusicEnum.None, undefined); 
 
-      let clock = new GymClock(clockSpec);
+      let clock = new RunnableClock(clockSpec);
 
       // Use cached copy of the workout clock state if there is one
       var storedClockState = this.storedWorkoutState.loadClockState();
@@ -258,7 +264,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       };
 
       if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
 
 
@@ -268,11 +274,11 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onremotedata(ev: any, link: RtcLink) {
+   onRemoteData(ev: IStreamable, link: RtcLink) {
 
       // By convention, new joiners broadcast a 'Person' object
       if (ev.type === Person.__type) {
@@ -319,7 +325,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl); 
 
       this.state.clock.stop();
-      var clock = new GymClock(spec);
+      var clock = new RunnableClock(spec);
 
       this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
 

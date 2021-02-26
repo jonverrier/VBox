@@ -4,12 +4,12 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
 import { isEqual } from './Equals';
-import { IStreamable } from './Streamable';
+import { IStreamableFor } from './Streamable';
 
 //==============================//
 // Whiteboard class
 //==============================//
-export class Whiteboard implements IStreamable<Whiteboard> {
+export class Whiteboard implements IStreamableFor<Whiteboard> {
 
    private _workout: WhiteboardElement;
    private _results: WhiteboardElement;
@@ -93,7 +93,7 @@ export class Whiteboard implements IStreamable<Whiteboard> {
 //==============================//
 // WhiteboardElement class
 //==============================//
-export class WhiteboardElement implements IStreamable<WhiteboardElement> {
+export class WhiteboardElement implements IStreamableFor<WhiteboardElement> {
    "use strict";
 
    private _rows: number;

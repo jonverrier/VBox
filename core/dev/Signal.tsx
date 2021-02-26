@@ -6,12 +6,12 @@
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive } from './Call';
 import { TypeRegistry } from './Types';
 
-import { IStreamable } from './Streamable';
+import { IStreamableFor } from './Streamable';
 
 //==============================//
 // SignalMessage class
 //==============================//
-export class SignalMessage implements IStreamable<SignalMessage>  {
+export class SignalMessage implements IStreamableFor<SignalMessage>  {
 
    private _id: any;
    private _facilityId : string;

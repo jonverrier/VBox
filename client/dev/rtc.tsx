@@ -18,6 +18,8 @@ import { TypeRegistry } from '../../core/dev/Types';
 import { FourStateRagEnum } from '../../core/dev/Enum';
 import { Queue } from '../../core/dev/Queue';
 import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
+import { PeerNameCache, RtcPeerHelper, IPeerCaller, IPeerReciever } from './PeerInterfaces';
+import { IStreamable } from '../../core/dev/Streamable';
 
 function uuidPart(): string {
    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
@@ -29,75 +31,32 @@ function uuid(): string {
 
 var logger = new LoggerFactory().logger (LoggerType.Client);
 
-// Helper class - take a name like 'Jon' and if the name is not unique for the session,
-// tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
-// This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
-class RtcNameCache {
+class RtcCaller implements IPeerCaller {
    // member variables
-   nameMap: Map<string, boolean>;
-
-   constructor() {
-      this.nameMap = new Map<string, boolean> ();
-   }
-
-   addReturnUnique(name: string) : string {
-      if (!this.nameMap.has(name)) {
-         this.nameMap.set(name, true);
-         return name;
-      }
-
-      var index: number = 1;
-      while (true) {
-         var newName = name + ':' + index.toString();
-         if (!this.nameMap.has(newName)) {
-            this.nameMap.set(newName, true);
-            return newName;
-         }
-         index++;
-      }
-   }
-}
-
-class RtcCaller {
-   // member variables
-   localCallParticipation: CallParticipation;
-   remoteCallParticipation: CallParticipation;
-   localPerson: Person;
-   remotePerson: Person;
+   peerHelp: RtcPeerHelper;
    sendConnection: RTCPeerConnection;
-   sendChannel: RTCDataChannel;
-   recieveChannel: RTCDataChannel;
-   isChannelConnected: boolean;
-   isIceConnected: boolean;
    iceQueue: Queue<any>;
-   sendQueue: Queue<any>;
-   nameCache: RtcNameCache;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
-      nameCache: RtcNameCache) {
-      this.localCallParticipation = localCallParticipation;
-      this.remoteCallParticipation = remoteCallParticipation;
-      this.localPerson = person;
-      this.remotePerson = null;
+      nameCache: PeerNameCache) {
+
+      this.peerHelp = new RtcPeerHelper(localCallParticipation,
+         remoteCallParticipation,
+         person, nameCache);
+
+      // Hook to pass any data up the chain
+      this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+
       this.sendConnection = null;
-      this.sendChannel = null;
-      this.recieveChannel = null;
-      this.isChannelConnected = false;
-      this.isIceConnected = false;
       this.iceQueue = new Queue();
-      this.sendQueue = new Queue();
-      this.nameCache = nameCache;
    }
 
    // Override these for notifications - TODO - see top of file
-   onremoteclose: ((this: RtcCaller, ev: Event) => any) | null;
-   onremoteissues: ((this: RtcCaller, ev: Event) => any) | null;
-   onremoteconnection: ((this: RtcCaller, ev: Event) => any) | null;
-   onremotedata: ((this: RtcCaller, ev: Event) => any) | null;
+   onRemoteData: ((this: RtcCaller, ev: IStreamable) => any) | null;
 
-   placeCall() {
+   placeCall() : void {
 
       var self = this;
 
@@ -116,25 +75,21 @@ class RtcCaller {
 
       this.sendConnection = new RTCPeerConnection(configuration);
       this.sendConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, self.remoteCallParticipation);
+         self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
       };
       this.sendConnection.onnegotiationneeded = (ev) => { self.onnegotiationneeded(ev, self) };
-      this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
-      this.sendConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
-      this.sendConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.sendConnection, self); };
-      this.sendConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
+      this.sendConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel) };
+      this.sendConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.sendConnection); };
+      this.sendConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.sendConnection); };
+      this.sendConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
 
-      self.sendChannel = this.sendConnection.createDataChannel("FromCallerSend");
-      self.sendChannel.onerror = this.onsendchannelerror;
-      self.sendChannel.onmessage = this.onsendchannelmessage;
-      self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
-      self.sendChannel.onclose = this.onsendchannelclose;
+      this.peerHelp.createSendChannel(this.sendConnection, "FromCall");
    }
 
-   handleAnswer(answer: CallAnswer) {
+   handleAnswer(answer: CallAnswer) : void {
       var self = this;
 
-      if (!this.isIceConnected) {
+      if (!this.peerHelp.isIceConnected) {
          this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer.answer))
             .then(() => {
                logger.logInfo('RtcCaller', 'handleAnswer', 'succeeded', null);
@@ -151,7 +106,7 @@ class RtcCaller {
       }
    }
 
-   handleIceCandidate(ice) {
+   handleIceCandidate(ice: CallIceCandidate) : void {
 
       // ICE candidates can arrive before call offer/answer
       // If we have not yet set remoteDescription, queue the iceCandidate for later
@@ -163,8 +118,8 @@ class RtcCaller {
       }
 
       if (ice) {
-         if (!this.isIceConnected) { // dont add another candidate if we are connected
-            this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+         if (!this.peerHelp.isIceConnected) { // dont add another candidate if we are connected
+            this.sendConnection.addIceCandidate(new RTCIceCandidate(ice.ice))
                .catch(e => {
                   // TODO - analyse error paths
                   logger.logError('RtcCaller', 'handleIceCandidate', "error:", e);
@@ -180,12 +135,16 @@ class RtcCaller {
       } */ 
    }
 
+   send(obj: IStreamable): void {
+      this.peerHelp.send(obj);
+   }
+
    onicecandidate(candidate, to: CallParticipation) {
 
       var self = this;
 
       // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, true);
+      var callIceCandidate = new CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, true);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
             logger.logInfo('RtcCaller', 'onicecandidate', 'Post Ok, candidate:', candidate);
@@ -218,179 +177,40 @@ class RtcCaller {
          });
    };
 
-   onrecievedatachannel(ev, self) {
-      logger.logInfo('RtcCaller', 'onrecievedatachannel', "channel:", ev.channel);
+   private onRemoteDataInner(ev: IStreamable): void {
 
-      self.receiveChannel = ev.channel;
-      self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation) };
-      self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
-      self.receiveChannel.onclose = self.onrecievechannelclose;
-      self.receiveChannel.onerror = self.onrecievechannelerror;
-   }
-
-   oniceconnectionstatechange(ev, pc, outbound) {
-      var state = pc.iceConnectionState;
-      logger.logInfo('RtcCaller', 'oniceconnectionstatechange', "state:", state);
-
-      if (state === "connected") {
-         this.isIceConnected = true;
-      }
-      if (state === "failed") {
-         this.isIceConnected = false;
-         if (pc.restartIce) {
-            pc.restartIce();
-         }
-      }
-   }
-
-   onconnectionstatechange(ev, pc, self) {
-      switch (pc.connectionState) {
-         case "connected":
-            // The connection has become fully connected
-            if (self.onremoteconnection)
-               self.onremoteconnection (ev);
-            break;
-         case "disconnected":
-            // Something going on ... 
-            if (self.onremoteissues)
-               self.onremoteissues(ev);
-            break;
-         case "failed":
-            // The connection has been closed or failed
-            self.isChannelConnected = false;
-            if (self.onremoteclose)
-               self.onremoteclose(ev);
-            break;
-         case "closed":
-            // The connection has been closed or failed
-            self.isChannelConnected = false;
-            if (self.onremoteclose)
-               self.onremoteclose(ev);
-            break;
-      }
-   }
-
-   onicecandidateerror(ev, self) {
-      if (ev.errorCode === 701) {
-         logger.logError('RtcCaller', 'onicecandidateerror', ev.url + ' ', ev.errorText);
-      } else {
-         logger.logInfo('RtcCaller', 'onicecandidateerror', 'event:', ev);
-      }
-   }
-
-   onsendchannelopen(ev, dc, localCallParticipation: CallParticipation) {
-      logger.logInfo('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
-
-      this.isChannelConnected = true;
-
-      try {
-         dc.send(JSON.stringify (this.localPerson));
-      }
-      catch (e) {
-         logger.logError('RtcCaller', 'onsendchannelopen', "error:", e);
-      }
-   }
-
-   onsendchannelmessage(msg) {
-      logger.logInfo('RtcCaller', 'onsendchannelmessage', "message:", msg.data);
-   }
-
-   onsendchannelerror(e) {
-      logger.logError('RtcCaller', 'onsendchannelerror', "error:", e.error);
-   }
-
-   onsendchannelclose(ev) {
-      logger.logInfo('RtcCaller', 'onsendchannelmessage', "event:", ev);
-   }
-
-   onrecievechannelopen(ev, dc) {
-      logger.logInfo('RtcCaller', 'onrecievechannelopen', "event:", ev);
-   }
-
-   onrecievechannelmessage(msg, localCallParticipation: CallParticipation) {
-      // Too noisy to keep this on 
-      // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
-
-      var types = new TypeRegistry();
-      var remoteCallData = types.reviveFromJSON(msg.data);
-
-      // Store the person we are talking to - allows tracking in the UI later
-      if (remoteCallData.type === Person.__type) {
-         // Store a unique derivation of name in case they join multiple times
-         this.remotePerson = new Person(remoteCallData.id,
-            remoteCallData.externalId,
-            this.nameCache.addReturnUnique(remoteCallData.name),
-            remoteCallData.email,
-            remoteCallData.thumbnailUrl,
-            remoteCallData.lastAuthCode);
-      }
-
-      if (this.onremotedata) {
-         this.onremotedata(remoteCallData);
-      }
-   }
-
-   onrecievechannelerror(e) {
-      logger.logError('RtcCaller', 'onrecievechannelerror', "error:", e);
-   }
-
-   onrecievechannelclose(ev) {
-      logger.logInfo('RtcCaller', 'onrecievechannelclose', "event:", ev);
-   }
-
-   send(obj) {
-      if (this.sendChannel && this.sendChannel.readyState === 'open') {
-         // Dequeue any messages that were enqueued while we were not ready
-         while (!this.sendQueue.isEmpty()) {
-            this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
-         }
-         this.sendChannel.send(JSON.stringify(obj));
-      } else {
-         this.sendQueue.enqueue(obj);
+      if (this.onRemoteData) {
+         this.onRemoteData(ev);
       }
    }
 }
 
-class RtcReciever {
+class RtcReciever implements IPeerReciever {
    // member variables
-   localCallParticipation: CallParticipation;
-   remoteCallParticipation: CallParticipation;
-   localPerson: Person;
-   remotePerson: Person;
+   peerHelp: RtcPeerHelper;
    recieveConnection: RTCPeerConnection;
-   sendChannel: RTCDataChannel;
-   recieveChannel: RTCDataChannel;
-   isChannelConnected: boolean;
-   isIceConnected: boolean;
    iceQueue: Queue<any>;
-   sendQueue: Queue<any>;
-   nameCache: RtcNameCache;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
-      nameCache: RtcNameCache) {
-      this.localCallParticipation = localCallParticipation;
-      this.remoteCallParticipation = remoteCallParticipation;
-      this.localPerson = person;
-      this.remotePerson = null;;
+      nameCache: PeerNameCache) {
+      this.peerHelp = new RtcPeerHelper(localCallParticipation,
+         remoteCallParticipation,
+         person, nameCache);
+
+      // Hook to pass any data up the chain
+      this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+
       this.recieveConnection = null;
-      this.sendChannel = null;
-      this.recieveChannel = null;
-      this.isChannelConnected = false;
-      this.isIceConnected = false;
+
       this.iceQueue = new Queue();
-      this.sendQueue = new Queue();
-      this.nameCache = nameCache;
    }
 
    // Override these for notifications  - TODO - see top of file
-   onremoteclose: ((this: RtcReciever, ev: Event) => any) | null;
-   onremoteissues: ((this: RtcReciever, ev: Event) => any) | null;
-   onremoteconnection: ((this: RtcReciever, ev: Event) => any) | null;
-   onremotedata: ((this: RtcReciever, ev: Event) => any) | null;
+   onRemoteData: ((this: RtcReciever, ev: IStreamable) => any) | null;
 
-   answerCall(remoteOffer: CallOffer) {
+   answerCall(remoteOffer: CallOffer) : void {
 
       var self = this;
 
@@ -409,19 +229,15 @@ class RtcReciever {
 
       this.recieveConnection = new RTCPeerConnection(configuration);
       this.recieveConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, self.remoteCallParticipation);
+         self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
       };
       this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
-      this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self) };
-      this.recieveConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
-      this.recieveConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.recieveConnection, self); };
-      this.recieveConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
+      this.recieveConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel) };
+      this.recieveConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.recieveConnection); };
+      this.recieveConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.recieveConnection); };
+      this.recieveConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
 
-      this.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
-      this.sendChannel.onerror = this.onsendchannelerror;
-      this.sendChannel.onmessage = this.onsendchannelmessage;
-      this.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
-      this.sendChannel.onclose = this.onsendchannelclose;
+      this.peerHelp.createSendChannel(this.recieveConnection, "FromAnswer");
 
       this.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
          .then(() => self.recieveConnection.createAnswer({ iceRestart: true })) 
@@ -429,7 +245,7 @@ class RtcReciever {
          .then(() => {
             logger.logInfo('RtcReciever', 'answerCall', 'Posting answer', null);
             // Send our call answer data in
-            var callAnswer = new CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
+            var callAnswer = new CallAnswer(null, self.peerHelp.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
             axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
                .then((response) => {
                   // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
@@ -446,7 +262,7 @@ class RtcReciever {
          });
    }
 
-   handleIceCandidate(ice) {
+   handleIceCandidate(ice: CallIceCandidate) : void {
       // ICE candidates can arrive before call offer/answer
       // If we have not yet set remoteDescription, queue the iceCandidate for later
       if (!this.recieveConnection
@@ -457,8 +273,8 @@ class RtcReciever {
       }
 
       if (ice) {
-         if (!this.isIceConnected) { // dont add another candidate if we are connected
-            this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+         if (!this.peerHelp.isIceConnected) { // dont add another candidate if we are connected
+            this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice.ice))
                .catch(e => {
                   // TODO - analyse error paths
                   logger.logError('RtcReciever', 'handleIceCandidate', "error:", e);
@@ -474,12 +290,16 @@ class RtcReciever {
       } */
    }
 
+   send(obj: IStreamable) : void {
+      this.peerHelp.send(obj);
+   }
+
    onicecandidate(candidate, to: CallParticipation) {
 
       var self = this;
 
       // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, self.localCallParticipation, to, candidate, false);
+      var callIceCandidate = new CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, false);
       axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
          .then((response) => {
             logger.logInfo('RtcReciever', 'onicecandidate', 'Post Ok, candidate:', candidate);
@@ -496,134 +316,10 @@ class RtcReciever {
       logger.logInfo('RtcReciever', 'onnegotiationneeded', 'Event:', ev);
    };
 
-   onrecievedatachannel(ev, self) {
-      logger.logInfo('RtcReciever', 'onrecievedatachannel', '', null);
-      self.receiveChannel = ev.channel;
-      self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation) };
-      self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel) };
-      self.receiveChannel.onclose = self.onrecievechannelclose;
-      self.receiveChannel.onerror = self.onrecievechannelerror;
-   }
+   private onRemoteDataInner(ev: IStreamable): void {
 
-   oniceconnectionstatechange(ev, pc, outbound) {
-      var state = pc.iceConnectionState;
-      logger.logInfo('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
-
-      if (state === "connected") {
-         this.isIceConnected = true;
-      }
-      else
-      if (state === "failed") {
-         this.isIceConnected = false;
-         if (pc.restartIce) {
-            pc.restartIce();
-         }
-      }
-   }
-
-   onconnectionstatechange(ev, pc, self) {
-      switch (pc.connectionState) {
-         case "connected":
-            // The connection has become fully connected
-            if (self.onremoteconnection)
-               self.onremoteconnection(ev);
-            break;
-         case "disconnected":
-            // Something going on ... 
-            if (self.onremoteissues)
-               self.onremoteissues(ev);
-            break;
-         case "failed":
-            // The connection has been closed or failed
-            self.isChannelConnected = false;
-            if (self.onremoteclose)
-               self.onremoteclose(ev);
-         case "closed":
-            // The connection has been closed or failed
-            self.isChannelConnected = false;
-            if (self.onremoteclose)
-               self.onremoteclose(ev);
-            break;
-      }
-   }
-
-   onicecandidateerror(ev, self) {
-      if (ev.errorCode === 701) {
-         logger.logError('RtcReciever', 'onicecandidateerror', ev.url + ' ', ev.errorText);
-      } else {
-         logger.logInfo('RtcReciever', 'onicecandidateerror', 'event:', ev);
-      }
-   }
-
-   onsendchannelopen(ev, dc, localCallParticipation: CallParticipation) {
-      logger.logInfo('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
-
-      this.isChannelConnected = true;
-      try {
-         // By convention, new joiners broadcast a 'Person' object
-         dc.send(JSON.stringify(this.localPerson));
-      }
-      catch (e) {
-         logger.logError('RtcReciever', 'onsendchannelopen', "error:", e);
-      }
-   }
-
-   onsendchannelmessage(msg) {
-      logger.logInfo('RtcReciever', 'onsendchannelmessage', 'message:', msg.data);
-   }
-
-   onsendchannelerror(e) {
-      logger.logError('RtcReciever', 'onsendchannelerror', "error:", e.error);
-   }
-
-   onsendchannelclose(ev) {
-      logger.logInfo('RtcReciever', 'onsendchannelclose', 'event:', ev);
-   }
-
-   onrecievechannelopen(ev, dc) {
-      logger.logInfo('RtcReciever', 'onrecievechannelopen', 'event:', ev);
-   }
-
-   onrecievechannelmessage(msg, localCallParticipation: CallParticipation) {
-      // Too noisy to keep this on 
-      // logger.logInfo('RtcReciever', 'onrecievechannelmessage', "message:", msg.data);
-
-      var types = new TypeRegistry();
-      var remoteCallData = types.reviveFromJSON(msg.data);
-
-      // Store the person we are talking to - allows tracking in the UI later
-      if (remoteCallData.type === Person.__type) {
-         // Store a unique derivation of name in case they join multiple times
-         this.remotePerson = new Person(remoteCallData.id,
-            remoteCallData.externalId,
-            this.nameCache.addReturnUnique(remoteCallData.name),
-            remoteCallData.email,
-            remoteCallData.thumbnailUrl,
-            remoteCallData.lastAuthCode);
-      }
-
-      if (this.onremotedata) {
-         this.onremotedata(remoteCallData);
-      }
-   }
-
-   onrecievechannelerror(e) {
-      logger.logError('RtcReciever', 'onrecievechannelerror', "error:", e.error);
-   }
-
-   onrecievechannelclose(ev) {
-      logger.logInfo('RtcReciever', 'onrecievechannelclose', 'event:', ev);
-   }
-
-   send(obj) {
-      if (this.sendChannel && this.sendChannel.readyState === 'open') {
-         // Dequeue any messages that were enqueued while we were not ready
-         while (!this.sendQueue.isEmpty()) {
-            this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
-         }
-         this.sendChannel.send(JSON.stringify(obj));
-      } else {
-         this.sendQueue.enqueue(obj);
+      if (this.onRemoteData) {
+         this.onRemoteData(ev);
       }
    }
 }
@@ -645,57 +341,10 @@ export class RtcLink {
       this.caller = caller;
       this.reciever = reciever;
       this.linkStatus = FourStateRagEnum.Indeterminate;
-
-      if (reciever) {
-         reciever.onremoteclose = this.onremoterecieverclose.bind(this);
-         reciever.onremoteissues = this.onremoterecieverissues.bind(this);
-         reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
-      }
-      if (caller) {
-         caller.onremoteclose = this.onremotesenderclose.bind(this);
-         caller.onremoteissues = this.onremotesenderissues.bind(this);
-         caller.onremoteconnection = this.onremotesenderconnection.bind(this);
-      }
    }
 
    // Override these for notifications  - TODO - see top of file
    onlinkstatechange: ((this: RtcLink, ev: any) => any) | null;
-
-   onremoterecieverclose(ev) {
-      this.linkStatus = FourStateRagEnum.Red;
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(this.linkStatus);
-   }
-
-   onremoterecieverissues(ev) {
-      this.linkStatus = FourStateRagEnum.Amber;
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(this.linkStatus);
-   }
-
-   onremoterecieverconnection(ev) {
-      this.linkStatus = FourStateRagEnum.Green;
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(this.linkStatus);
-   }
-
-   onremotesenderclose(ev) {
-      this.linkStatus = FourStateRagEnum.Red;
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(this.linkStatus);
-   }
-
-   onremotesenderissues(ev) {
-      this.linkStatus = FourStateRagEnum.Amber;
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(this.linkStatus);
-   }
-
-   onremotesenderconnection(ev) {
-      this.linkStatus = FourStateRagEnum.Green;
-      if (this.onlinkstatechange)
-         this.onlinkstatechange(this.linkStatus);
-   }
 
    send(obj) {
       if (this.outbound && this.caller)
@@ -726,7 +375,7 @@ export class Rtc {
    retries: number;
    datalisteners: Array<Function>;
    isEdgeOnly: boolean;
-   nameCache: RtcNameCache;
+   nameCache: PeerNameCache;
 
    constructor(props: IRtcProps) {
       this.localCallParticipation = null;
@@ -734,7 +383,7 @@ export class Rtc {
       this.lastSequenceNo = 0;
       this.datalisteners = new Array();
       this.isEdgeOnly = props.isEdgeOnly;
-      this.nameCache = new RtcNameCache();
+      this.nameCache = new PeerNameCache();
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
       this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid());
@@ -783,14 +432,14 @@ export class Rtc {
    coachLinkStatus() {
 
       for (var i = 0; i < this.links.length; i++) {
-         if (this.links[i].reciever && this.links[i].reciever.remotePerson
-            && this.links[i].reciever.remoteCallParticipation.isCandidateLeader
-            && this.links[i].reciever.isChannelConnected) {
+         if (this.links[i].reciever && this.links[i].reciever.peerHelp.remotePerson
+            && this.links[i].reciever.peerHelp.remoteCallParticipation.isCandidateLeader
+            && this.links[i].reciever.peerHelp.isChannelConnected) {
             return FourStateRagEnum.Green;
          }
-         if (this.links[i].caller && this.links[i].caller.remotePerson
-            && this.links[i].caller.remoteCallParticipation.isCandidateLeader
-            && this.links[i].caller.isChannelConnected) {
+         if (this.links[i].caller && this.links[i].caller.peerHelp.remotePerson
+            && this.links[i].caller.peerHelp.remoteCallParticipation.isCandidateLeader
+            && this.links[i].caller.peerHelp.isChannelConnected) {
             return FourStateRagEnum.Green;
          }
       }
@@ -800,16 +449,16 @@ export class Rtc {
    memberLinkStatus(name: string): FourStateRagEnum {
 
       for (var i = 0; i < this.links.length; i++) {
-         if (this.links[i].reciever && this.links[i].reciever.remotePerson
-            && this.links[i].reciever.remotePerson.name === name) {
-            if (this.links[i].reciever.isChannelConnected)
+         if (this.links[i].reciever && this.links[i].reciever.peerHelp.remotePerson
+            && this.links[i].reciever.peerHelp.remotePerson.name === name) {
+            if (this.links[i].reciever.peerHelp.isChannelConnected)
                return FourStateRagEnum.Green;
             else
                return FourStateRagEnum.Red;
          }
-         if (this.links[i].caller && this.links[i].caller.remotePerson
-            && this.links[i].caller.remotePerson.name === name) {
-            if (this.links[i].caller.isChannelConnected)
+         if (this.links[i].caller && this.links[i].caller.peerHelp.remotePerson
+            && this.links[i].caller.peerHelp.remotePerson.name === name) {
+            if (this.links[i].caller.peerHelp.isChannelConnected)
                return FourStateRagEnum.Green;
             else
                return FourStateRagEnum.Red;
@@ -899,7 +548,7 @@ export class Rtc {
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
       // Hooks to pass up data
-      sender.onremotedata = (ev) => {
+      sender.onRemoteData = (ev) => {
          if (this.datalisteners) {
             for (var i = 0; i < this.datalisteners.length; i++) {
                this.datalisteners[i](ev, link);
@@ -920,7 +569,7 @@ export class Rtc {
       var link = new RtcLink(remoteParticipant, false, null, reciever);
 
       // Hooks to pass up data
-      reciever.onremotedata = (ev) => {
+      reciever.onRemoteData = (ev) => {
          if (this.datalisteners) {
             for (var i = 0; i < this.datalisteners.length; i++) {
                this.datalisteners[i](ev, link);
@@ -992,11 +641,11 @@ export class Rtc {
          if (self.links[i].to.equals(remoteIceCandidate.from)) {
             if (remoteIceCandidate.outbound) {
                if (self.links[i].reciever) 
-                  self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
+                  self.links[i].reciever.handleIceCandidate(remoteIceCandidate);
                // else silent fail
             } else {
                if (self.links[i].caller)
-                  self.links[i].caller.handleIceCandidate(remoteIceCandidate.ice);
+                  self.links[i].caller.handleIceCandidate(remoteIceCandidate);
                // else silent fail
             }
             found = true;

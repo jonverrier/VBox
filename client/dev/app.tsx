@@ -41,6 +41,10 @@ import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
 import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
 import { Media } from './media';
+import EntryPoints from './EntryPoints';
+
+// Pseudo call, just exists to pull 'EntryPoints' in the the bundle
+EntryPoints.pointless = 1;
 
 var logger = new LoggerFactory().logger(LoggerType.Client);
 
@@ -819,4 +823,7 @@ export class Footer extends React.Component {
    }
 }
 
-ReactDOM.render(<PageSwitcher />, document.getElementById('root'));
+// This allows code to be loaded in node.js for tests, even if we dont run actual React methods
+if (document !== undefined && document.getElementById !== undefined) {
+   ReactDOM.render(<PageSwitcher />, document.getElementById('root'));
+}

@@ -1,8 +1,8 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
-import { IStreamable } from './Streamable';
+import { IStreamableFor } from './Streamable';
 
-export class Person implements IStreamable<Person> {
+export class Person implements IStreamableFor<Person> {
    private _id: any; 
    private _externalId : string;
    private _name: string;

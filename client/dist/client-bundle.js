@@ -52991,6 +52991,439 @@ function warning(condition, message) {
 
 /***/ }),
 
+/***/ "./dev/EntryPoints.tsx":
+/*!*****************************!*\
+  !*** ./dev/EntryPoints.tsx ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
+/*
+var EntryPoints = (function invocation () {
+   RunnableClock: RunnableClock
+
+   function EntryPoints() {
+   }
+
+   EntryPoints.prototype.initialise = function (key) {
+   };
+
+   return EntryPoints;
+} ());
+
+*/
+var EntryPoints = {
+    RunnableClock: RunnableClock_1.RunnableClock,
+    pointless: 0
+};
+exports.default = EntryPoints;
+
+
+/***/ }),
+
+/***/ "./dev/PeerInterfaces.tsx":
+/*!********************************!*\
+  !*** ./dev/PeerInterfaces.tsx ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RtcPeerHelper = exports.PeerNameCache = void 0;
+// This app
+const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const Queue_1 = __webpack_require__(/*! ../../core/dev/Queue */ "../core/dev/Queue.tsx");
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
+var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
+// Helper class - take a name like 'Jon' and if the name is not unique for the session,
+// tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
+// This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
+class PeerNameCache {
+    constructor() {
+        this.nameMap = new Map();
+    }
+    addReturnUnique(name) {
+        if (!this.nameMap.has(name)) {
+            this.nameMap.set(name, true);
+            return name;
+        }
+        var index = 1;
+        while (true) {
+            var newName = name + ':' + index.toString();
+            if (!this.nameMap.has(newName)) {
+                this.nameMap.set(newName, true);
+                return newName;
+            }
+            index++;
+        }
+    }
+}
+exports.PeerNameCache = PeerNameCache;
+class RtcPeerHelper {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache) {
+        this._isChannelConnected = false;
+        this._sendChannel = null;
+        this._recieveChannel = null;
+        this._sendQueue = new Queue_1.Queue();
+    }
+    /**
+    * set of 'getters' & some 'stters' for private variables
+    */
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    get remoteCallParticipation() {
+        return this._remoteCallParticipation;
+    }
+    get localPerson() {
+        return this._localPerson;
+    }
+    get remotePerson() {
+        return this._remotePerson;
+    }
+    get isChannelConnected() {
+        return this._isChannelConnected;
+    }
+    get isIceConnected() {
+        return this._isIceConnected;
+    }
+    onConnectionStateChange(ev, pc) {
+        switch (pc.connectionState) {
+            case "connected":
+                break;
+            case "disconnected":
+                break;
+            case "failed":
+                // The connection has been closed or failed
+                this._isChannelConnected = false;
+                break;
+            case "closed":
+                // The connection has been closed or failed
+                this._isChannelConnected = false;
+                break;
+        }
+    }
+    // Send channel handling
+    //////////
+    createSendChannel(connection, name) {
+        if (this._sendChannel) {
+            this._sendChannel.close();
+        }
+        this._sendChannel = connection.createDataChannel(name);
+        this._sendChannel.onopen = (ev) => { this.onSendChannelOpen(ev, this._sendChannel); };
+        this._sendChannel.onerror = this.onSendChannelError.bind(this);
+        this._sendChannel.onmessage = this.onSendChannelMessage.bind(this);
+        this._sendChannel.onclose = this.onSendChannelClose.bind(this);
+    }
+    send(obj) {
+        if (this._sendChannel && this._sendChannel.readyState === 'open') {
+            // Dequeue any messages that were enqueued while we were not ready
+            while (!this._sendQueue.isEmpty()) {
+                this._sendChannel.send(JSON.stringify(this._sendQueue.dequeue()));
+            }
+            this._sendChannel.send(JSON.stringify(obj));
+        }
+        else {
+            this._sendQueue.enqueue(obj);
+        }
+    }
+    onSendChannelOpen(ev, dc) {
+        this._isChannelConnected = true;
+        try {
+            // By convention, new joiners broadcast a 'Person' object to peers
+            dc.send(JSON.stringify(this.localPerson));
+        }
+        catch (e) {
+            logger.logError(RtcPeerHelper.className, 'onSendChannelOpen', "error:", e);
+        }
+    }
+    onSendChannelMessage(msg) {
+        logger.logInfo(RtcPeerHelper.className, 'onSendChannelMessage', "message:", msg.data);
+    }
+    onSendChannelError(ev) {
+        let ev2 = ev;
+        logger.logError(RtcPeerHelper.className, 'onSendChannelError', "error:", ev2.error);
+    }
+    onSendChannelClose(ev) {
+        logger.logInfo(RtcPeerHelper.className, 'onSendChannelClose', "event:", ev);
+    }
+    // ICE handling
+    //////////
+    onIceConnectionStateChange(ev, pc) {
+        var state = pc.iceConnectionState;
+        logger.logInfo(RtcPeerHelper.className, 'onIceConnectionStateChange', "state:", state);
+        if (state === "connected") {
+            this._isIceConnected = true;
+        }
+        if (state === "failed") {
+            this._isIceConnected = false;
+            // TODO restartIce here
+        }
+    }
+    onIceCandidateError(ev) {
+        var ev2 = ev;
+        if (ev2.errorCode === 701) {
+            logger.logError(RtcPeerHelper.className, 'onIceCandidateError', ev2.url + ' ', ev2.errorText);
+        }
+        else {
+            logger.logInfo(RtcPeerHelper.className, 'onIceCandidateError', 'event:', ev);
+        }
+    }
+    // Recieve channel handling
+    //////////
+    onRecieveDataChannel(channel) {
+        logger.logInfo(RtcPeerHelper.className, 'onRecieveDataChannel', '', null);
+        if (this._recieveChannel) {
+            this._recieveChannel.close();
+        }
+        this._recieveChannel = channel;
+        this._recieveChannel.onmessage = (ev) => { this.onRecieveChannelMessage(ev); };
+        this._recieveChannel.onopen = (ev) => { this.onRecieveChannelOpen(ev, this._recieveChannel); };
+        this._recieveChannel.onclose = this.onRecieveChannelClose.bind(this);
+        this._recieveChannel.onerror = this.onRecieveChannelError.bind(this);
+    }
+    onRecieveChannelOpen(ev, dc) {
+        logger.logInfo(RtcPeerHelper.className, 'onRecieveChannelOpen', '', null);
+    }
+    onRecieveChannelError(ev) {
+        var ev2 = ev;
+        logger.logError(RtcPeerHelper.className, 'onRecieveChannelError', "error:", ev2.error);
+    }
+    onRecieveChannelClose(ev) {
+        logger.logInfo(RtcPeerHelper.className, 'onRecieveChannelClose', '', null);
+    }
+    onRecieveChannelMessage(ev) {
+        // Too noisy to keep this on 
+        // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+        var ev2 = ev;
+        var types = new Types_1.TypeRegistry();
+        var remoteCallData = types.reviveFromJSON(ev2.data);
+        // Store the person we are talking to - allows tracking in the UI later
+        if (remoteCallData.type === Person_1.Person.__type) {
+            var person = remoteCallData;
+            // Store a unique derivation of name in case a person join multiple times
+            this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+        }
+        if (this.onRemoteData) {
+            this.onRemoteData(remoteCallData);
+        }
+    }
+}
+exports.RtcPeerHelper = RtcPeerHelper;
+RtcPeerHelper.className = 'RtcPeerHelper';
+
+
+/***/ }),
+
+/***/ "./dev/RunnableClock.tsx":
+/*!*******************************!*\
+  !*** ./dev/RunnableClock.tsx ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music.
+// GymClockAction is a way to send the start, pause, stop list via Rpc
+// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
+// RunnableClock is a running clock - created from a spec, then can start, stop, pause etc.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RunnableClock = void 0;
+const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
+const countDownSeconds = 15;
+// Keep this function need declation in case an extra Enum is added above & this needs to change
+function calculateCountToSeconds(durationEnum) {
+    switch (durationEnum) {
+        case GymClock_1.GymClockDurationEnum.Five:
+            return (countDownSeconds + 5 * 60);
+        default:
+        case GymClock_1.GymClockDurationEnum.Ten:
+            return (countDownSeconds + 10 * 60);
+        case GymClock_1.GymClockDurationEnum.Fifteen:
+            return (countDownSeconds + 15 * 60);
+        case GymClock_1.GymClockDurationEnum.Twenty:
+            return (countDownSeconds + 20 * 60);
+    }
+}
+;
+//==============================//
+// RunnableClock class
+//==============================//
+class RunnableClock {
+    /**
+     * Create a RunnableClock object
+     */
+    constructor(clockSpec) {
+        this._clockSpec = clockSpec;
+        this._clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
+        this._secondsCounted = 0;
+        this.startReference = new Date();
+        this.countToSeconds = 0;
+        this.intervalId = null;
+        this.callbackFn = null;
+        if (this._clockSpec.musicUrl) {
+            this.audio = new Audio();
+            this.audio.src = this._clockSpec.musicUrl;
+            this.audio.loop = true;
+        }
+        else
+            this.audio = null;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get clockSpec() {
+        return this._clockSpec;
+    }
+    get clockStateEnum() {
+        return this._clockStateEnum;
+    }
+    get secondsCounted() {
+        return this._secondsCounted;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return (this._clockSpec.equals(rhs._clockSpec)
+            && this._clockStateEnum == rhs._clockStateEnum
+            && this._secondsCounted === rhs._secondsCounted
+            && this.startReference.getTime() === rhs.startReference.getTime()
+            && this.countToSeconds === rhs.countToSeconds);
+    }
+    ;
+    start(callbackFn, secondsPlayed) {
+        if (secondsPlayed)
+            this._secondsCounted = secondsPlayed;
+        if (this._secondsCounted >= countDownSeconds)
+            this._clockStateEnum = GymClock_1.GymClockStateEnum.Running;
+        else
+            this._clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown;
+        this.countToSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this.intervalId = setInterval(this.onClockInterval.bind(this), 200);
+        // Set effective start time by working out the duration of any ticks already counted
+        this.startReference.setTime(new Date().getTime() - this._secondsCounted * 1000);
+        this.callbackFn = callbackFn;
+        if (this.audio) {
+            this.audio.currentTime = this._secondsCounted;
+            this.audio.play();
+        }
+        // call first tick to start the visible clock
+        this.onClockInterval();
+    }
+    ;
+    stop() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this._clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
+        this._secondsCounted = 0;
+        this.countToSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
+        if (this.audio)
+            this.audio.pause();
+        if (this.callbackFn)
+            this.callbackFn(0, 0);
+    }
+    ;
+    pause() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        if (this.audio)
+            this.audio.pause();
+        this._clockStateEnum = GymClock_1.GymClockStateEnum.Paused;
+    }
+    ;
+    onClockInterval() {
+        var now, mm, ss, seconds;
+        now = new Date();
+        seconds = (now.getTime() - this.startReference.getTime()) / 1000;
+        this._secondsCounted = seconds;
+        if (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown
+            && seconds < countDownSeconds) {
+            mm = Math.floor((countDownSeconds - seconds) / 60);
+            ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
+        }
+        else {
+            if (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown) {
+                this._clockStateEnum = GymClock_1.GymClockStateEnum.Running;
+            }
+            mm = Math.floor((seconds - countDownSeconds) / 60);
+            ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60)); // Switch from floor to Ceil Compensate for passing zero in common across count down then count up
+            if (seconds >= this.countToSeconds) {
+                mm = (this.countToSeconds - countDownSeconds) / 60;
+                ss = 0;
+                this.stop();
+            }
+        }
+        if (this.callbackFn)
+            this.callbackFn(mm, ss);
+    }
+    ;
+    isRunning() {
+        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
+            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+    }
+    ;
+    canPause() {
+        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
+            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+    }
+    ;
+    canStop() {
+        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
+            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
+            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+    }
+    ;
+    canStart() {
+        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
+            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Stopped);
+    }
+    ;
+    saveToState() {
+        return new GymClock_1.GymClockState(this._clockStateEnum, this._secondsCounted);
+    }
+    ;
+    loadFromState(state, callbackFn) {
+        switch (state.stateEnum) {
+            case GymClock_1.GymClockStateEnum.Stopped:
+                if (this.canStop())
+                    this.stop();
+                break;
+            case GymClock_1.GymClockStateEnum.CountingDown:
+            case GymClock_1.GymClockStateEnum.Running:
+                if (this.canStart())
+                    this.start(callbackFn, state.secondsIn);
+                break;
+            case GymClock_1.GymClockStateEnum.Paused:
+                if (this.canPause())
+                    this.pause();
+                break;
+        }
+    }
+    ;
+}
+exports.RunnableClock = RunnableClock;
+
+
+/***/ }),
+
 /***/ "./dev/app.tsx":
 /*!*********************!*\
   !*** ./dev/app.tsx ***!
@@ -53059,6 +53492,9 @@ const whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./dev/wh
 const leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./dev/leaderpanel.tsx");
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 const media_1 = __webpack_require__(/*! ./media */ "./dev/media.tsx");
+const EntryPoints_1 = __importDefault(__webpack_require__(/*! ./EntryPoints */ "./dev/EntryPoints.tsx"));
+// Pseudo call, just exists to pull 'EntryPoints' in the the bundle
+EntryPoints_1.default.pointless = 1;
 var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
 const jumbotronStyle = {
     paddingLeft: '10px',
@@ -53576,7 +54012,10 @@ class Footer extends React.Component {
     }
 }
 exports.Footer = Footer;
-react_dom_1.default.render(React.createElement(PageSwitcher, null), document.getElementById('root'));
+// This allows code to be loaded in node.js for tests, even if we dont run actual React methods
+if (document !== undefined && document.getElementById !== undefined) {
+    react_dom_1.default.render(React.createElement(PageSwitcher, null), document.getElementById('root'));
+}
 
 
 /***/ }),
@@ -53887,7 +54326,7 @@ const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./no
 const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
 const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const gymclock_1 = __webpack_require__(/*! ./gymclock */ "./dev/gymclock.tsx");
+const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
 const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
@@ -53949,7 +54388,7 @@ class RemoteClock extends React.Component {
     constructor(props) {
         super(props);
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
         this.state = {
             isMounted: false,
@@ -53968,32 +54407,35 @@ class RemoteClock extends React.Component {
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onremotedata(ev, link) {
+    onRemoteData(ev, link) {
         if (ev.type === GymClock_1.GymClockSpec.__type) {
             // we are sent a clock spec as soon as we connect
+            var evSpec = ev;
             // Stop current clock if it is going
             if (this.state.clock && this.state.clock.isRunning())
                 this.state.clock.stop();
             // replace with a new one matching the spec
-            let spec = new GymClock_1.GymClockSpec(ev.durationEnum, ev.musicEnum, ev.musicUrl);
-            let clock = new gymclock_1.GymClock(spec);
+            let spec = new GymClock_1.GymClockSpec(evSpec.durationEnum, evSpec.musicEnum, evSpec.musicUrl);
+            let clock = new RunnableClock_1.RunnableClock(spec);
             this.setState({ clock: clock });
         }
         else if (ev.type === GymClock_1.GymClockState.__type) {
             // Then we are sent the state of the clock (running/paused/stopped etc)
-            let state = new GymClock_1.GymClockState(ev.stateEnum, ev.secondsIn);
+            var evState = ev;
+            let state = new GymClock_1.GymClockState(evState.stateEnum, evState.secondsIn);
             if (this.state.clock)
                 this.state.clock.loadFromState(state, this.onTick.bind(this));
         }
         else if (ev.type === GymClock_1.GymClockAction.__type) {
             // Finally we are sent play/pause/stop etc when the coach selects an action
-            switch (ev.actionEnum) {
+            var evAction = ev;
+            switch (evAction.actionEnum) {
                 case GymClock_1.GymClockActionEnum.Start:
                     if (this.state.clock)
-                        this.state.clock.start(this.onTick.bind(this), ev.secondsIn);
+                        this.state.clock.start(this.onTick.bind(this));
                     break;
                 case GymClock_1.GymClockActionEnum.Stop:
                     if (this.state.clock)
@@ -54033,7 +54475,7 @@ class MasterClock extends React.Component {
         }
         else
             clockSpec = new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Ten, GymClock_1.GymClockMusicEnum.None, undefined);
-        let clock = new gymclock_1.GymClock(clockSpec);
+        let clock = new RunnableClock_1.RunnableClock(clockSpec);
         // Use cached copy of the workout clock state if there is one
         var storedClockState = this.storedWorkoutState.loadClockState();
         var clockState;
@@ -54056,17 +54498,17 @@ class MasterClock extends React.Component {
             ss: 0
         };
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
         // Scynch our clock up to the state we load
         clock.loadFromState(clockState, this.onTick.bind(this));
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onremotedata(ev, link) {
+    onRemoteData(ev, link) {
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
             // Send them the clock
@@ -54101,7 +54543,7 @@ class MasterClock extends React.Component {
     processSave() {
         var spec = new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl);
         this.state.clock.stop();
-        var clock = new gymclock_1.GymClock(spec);
+        var clock = new RunnableClock_1.RunnableClock(spec);
         this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
         // Cache the clock spec as JSON
         this.storedWorkoutState.saveClockSpec(JSON.stringify(this.state.clockSpec));
@@ -54255,195 +54697,6 @@ exports.MasterClock = MasterClock;
 
 /***/ }),
 
-/***/ "./dev/gymclock.tsx":
-/*!**************************!*\
-  !*** ./dev/gymclock.tsx ***!
-  \**************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music.
-// GymClockAction is a way to send the start, pause, stop list via Rpc
-// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
-// GymClock is a running clock - created from a spec, then can start, stop, pause etc. 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GymClock = void 0;
-const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
-const countDownSeconds = 15;
-// Keep this function need declation in case an extra Enum is added above & this needs to change
-function calculateCountToSeconds(durationEnum) {
-    switch (durationEnum) {
-        case GymClock_1.GymClockDurationEnum.Five:
-            return (countDownSeconds + 5 * 60);
-        default:
-        case GymClock_1.GymClockDurationEnum.Ten:
-            return (countDownSeconds + 10 * 60);
-        case GymClock_1.GymClockDurationEnum.Fifteen:
-            return (countDownSeconds + 15 * 60);
-        case GymClock_1.GymClockDurationEnum.Twenty:
-            return (countDownSeconds + 20 * 60);
-    }
-}
-;
-//==============================//
-// GymClock class
-//==============================//
-class GymClock {
-    /**
-     * Create a GymClock object
-     */
-    constructor(clockSpec) {
-        this.clockSpec = clockSpec;
-        this.clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
-        this.secondsCounted = 0;
-        this.startReference = new Date();
-        this.countToSeconds = 0;
-        this.intervalId = null;
-        this.callbackFn = null;
-        if (this.clockSpec.musicUrl) {
-            this.audio = new Audio();
-            this.audio.src = this.clockSpec.musicUrl;
-            this.audio.loop = true;
-        }
-        else
-            this.audio = null;
-    }
-    /**
-     * test for equality - checks all fields are the same.
-     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-     * @param rhs - the object to compare this one to.
-     */
-    equals(rhs) {
-        return (this.clockSpec.equals(rhs.clockSpec)
-            && this.clockStateEnum == rhs.clockStateEnum
-            && this.secondsCounted === rhs.secondsCounted
-            && this.startReference.getTime() === rhs.startReference.getTime()
-            && this.countToSeconds === rhs.countToSeconds);
-    }
-    ;
-    start(callbackFn, secondsPlayed) {
-        if (secondsPlayed)
-            this.secondsCounted = secondsPlayed;
-        this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
-        this.intervalId = setInterval(this.onClockInterval.bind(this), 200);
-        // Set effective start time by working out the duration of any ticks already counted
-        this.startReference.setTime(new Date().getTime() - this.secondsCounted * 1000);
-        if (this.secondsCounted >= countDownSeconds)
-            this.clockStateEnum = GymClock_1.GymClockStateEnum.Running;
-        else
-            this.clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown;
-        this.callbackFn = callbackFn;
-        if (this.audio) {
-            this.audio.currentTime = this.secondsCounted;
-            this.audio.play();
-        }
-        // call first tick to start the visible clock
-        this.onClockInterval();
-    }
-    ;
-    stop() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
-        this.clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
-        this.secondsCounted = 0;
-        this.countToSeconds = calculateCountToSeconds(this.clockSpec.durationEnum);
-        if (this.audio)
-            this.audio.pause();
-        if (this.callbackFn)
-            this.callbackFn(0, 0);
-    }
-    ;
-    pause() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
-        }
-        if (this.audio)
-            this.audio.pause();
-        this.clockStateEnum = GymClock_1.GymClockStateEnum.Paused;
-    }
-    ;
-    onClockInterval() {
-        var now, mm, ss, seconds;
-        now = new Date();
-        seconds = (now.getTime() - this.startReference.getTime()) / 1000;
-        this.secondsCounted = seconds;
-        if (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown && seconds < countDownSeconds) {
-            mm = Math.floor((countDownSeconds - seconds) / 60);
-            ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
-        }
-        else {
-            if (this.clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown) {
-                this.clockStateEnum = GymClock_1.GymClockStateEnum.Running;
-            }
-            mm = Math.floor((seconds - countDownSeconds) / 60);
-            ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60)); // Switch from floor to Ceil Compensate for passing zero in common across two counters
-            if (seconds >= this.countToSeconds) {
-                mm = (this.countToSeconds - countDownSeconds) / 60;
-                ss = 0;
-                this.stop();
-            }
-        }
-        if (this.callbackFn)
-            this.callbackFn(mm, ss);
-    }
-    ;
-    isRunning() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
-    }
-    ;
-    canPause() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
-    }
-    ;
-    canStop() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Running);
-    }
-    ;
-    canStart() {
-        return (this.clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
-            || (this.clockStateEnum === GymClock_1.GymClockStateEnum.Stopped);
-    }
-    ;
-    saveToState() {
-        return new GymClock_1.GymClockState(this.clockStateEnum, this.secondsCounted);
-    }
-    ;
-    loadFromState(state, callbackFn) {
-        switch (state.stateEnum) {
-            case GymClock_1.GymClockStateEnum.Stopped:
-                if (this.canStop())
-                    this.stop();
-                break;
-            case GymClock_1.GymClockStateEnum.CountingDown:
-            case GymClock_1.GymClockStateEnum.Running:
-                if (this.canStart())
-                    this.start(callbackFn, state.secondsIn);
-                break;
-            case GymClock_1.GymClockStateEnum.Paused:
-                if (this.canPause())
-                    this.pause();
-                break;
-        }
-    }
-    ;
-}
-exports.GymClock = GymClock;
-
-
-/***/ }),
-
 /***/ "./dev/leaderpanel.tsx":
 /*!*****************************!*\
   !*** ./dev/leaderpanel.tsx ***!
@@ -54497,7 +54750,7 @@ class LeaderResolve extends React.Component {
         var resolve = new Call_1.CallLeaderResolve();
         this.state = { isLeader: true, myLeaderResolve: resolve };
         if (this.props.rtc) {
-            this.props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            this.props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
     componentDidMount() {
@@ -54506,10 +54759,10 @@ class LeaderResolve extends React.Component {
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onremotedata(ev, link) {
+    onRemoteData(ev, link) {
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
             // Send them our CallLeaderResolve 
@@ -54742,15 +54995,6 @@ exports.LoginFb = void 0;
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
-/* https://blog.cloudboost.io/waiting-till-facebook-sdk-or-any-other-async-sdk-has-loaded-6682839b9538 */
-function Deferred() {
-    var self = this;
-    this.promise = new Promise(function (resolve, reject) {
-        self.reject = reject;
-        self.resolve = resolve;
-    });
-}
-window.fbLoaded = (new Deferred());
 class LoginFb {
     constructor(props) {
         this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
@@ -54857,13 +55101,6 @@ class LoginFb {
             logger.logError('LoginFb', 'logOut', 'Error:', e);
             window.location.href = "/";
         });
-        /* var self = this;
-        (window as any).FB.logout(function () {
-           self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-           self.props.onLoginStatusChange(false);
-           // Go back to front page.
-           window.location.href = "/";
-        }); */
     }
 }
 exports.LoginFb = LoginFb;
@@ -55189,17 +55426,17 @@ class RemotePeople extends React.Component {
     constructor(props) {
         super(props);
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
         var people = new Array();
         this.state = { people: people };
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onremotedata(ev, link) {
+    onRemoteData(ev, link) {
         if (ev.type === Person_1.Person.__type) {
             var person = ev;
             let people = this.state.people;
@@ -55270,6 +55507,7 @@ const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Typ
 const Enum_1 = __webpack_require__(/*! ../../core/dev/Enum */ "../core/dev/Enum.tsx");
 const Queue_1 = __webpack_require__(/*! ../../core/dev/Queue */ "../core/dev/Queue.tsx");
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
 function uuidPart() {
     return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
 }
@@ -55278,43 +55516,13 @@ function uuid() {
     return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
 }
 var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
-// Helper class - take a name like 'Jon' and if the name is not unique for the session,
-// tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
-// This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
-class RtcNameCache {
-    constructor() {
-        this.nameMap = new Map();
-    }
-    addReturnUnique(name) {
-        if (!this.nameMap.has(name)) {
-            this.nameMap.set(name, true);
-            return name;
-        }
-        var index = 1;
-        while (true) {
-            var newName = name + ':' + index.toString();
-            if (!this.nameMap.has(newName)) {
-                this.nameMap.set(newName, true);
-                return newName;
-            }
-            index++;
-        }
-    }
-}
 class RtcCaller {
     constructor(localCallParticipation, remoteCallParticipation, person, nameCache) {
-        this.localCallParticipation = localCallParticipation;
-        this.remoteCallParticipation = remoteCallParticipation;
-        this.localPerson = person;
-        this.remotePerson = null;
+        this.peerHelp = new PeerInterfaces_1.RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache);
+        // Hook to pass any data up the chain
+        this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
         this.sendConnection = null;
-        this.sendChannel = null;
-        this.recieveChannel = null;
-        this.isChannelConnected = false;
-        this.isIceConnected = false;
         this.iceQueue = new Queue_1.Queue();
-        this.sendQueue = new Queue_1.Queue();
-        this.nameCache = nameCache;
     }
     placeCall() {
         var self = this;
@@ -55332,22 +55540,18 @@ class RtcCaller {
         };
         this.sendConnection = new RTCPeerConnection(configuration);
         this.sendConnection.onicecandidate = (ice) => {
-            self.onicecandidate(ice.candidate, self.remoteCallParticipation);
+            self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
         };
         this.sendConnection.onnegotiationneeded = (ev) => { self.onnegotiationneeded(ev, self); };
-        this.sendConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self); };
-        this.sendConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.sendConnection, true); };
-        this.sendConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.sendConnection, self); };
-        this.sendConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
-        self.sendChannel = this.sendConnection.createDataChannel("FromCallerSend");
-        self.sendChannel.onerror = this.onsendchannelerror;
-        self.sendChannel.onmessage = this.onsendchannelmessage;
-        self.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
-        self.sendChannel.onclose = this.onsendchannelclose;
+        this.sendConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel); };
+        this.sendConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.sendConnection); };
+        this.sendConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.sendConnection); };
+        this.sendConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
+        this.peerHelp.createSendChannel(this.sendConnection, "FromCall");
     }
     handleAnswer(answer) {
         var self = this;
-        if (!this.isIceConnected) {
+        if (!this.peerHelp.isIceConnected) {
             this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer.answer))
                 .then(() => {
                 logger.logInfo('RtcCaller', 'handleAnswer', 'succeeded', null);
@@ -55371,8 +55575,8 @@ class RtcCaller {
             return;
         }
         if (ice) {
-            if (!this.isIceConnected) { // dont add another candidate if we are connected
-                this.sendConnection.addIceCandidate(new RTCIceCandidate(ice))
+            if (!this.peerHelp.isIceConnected) { // dont add another candidate if we are connected
+                this.sendConnection.addIceCandidate(new RTCIceCandidate(ice.ice))
                     .catch(e => {
                     // TODO - analyse error paths
                     logger.logError('RtcCaller', 'handleIceCandidate', "error:", e);
@@ -55387,10 +55591,13 @@ class RtcCaller {
               });
         } */
     }
+    send(obj) {
+        this.peerHelp.send(obj);
+    }
     onicecandidate(candidate, to) {
         var self = this;
         // Send our call ICE candidate in
-        var callIceCandidate = new Call_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, true);
+        var callIceCandidate = new Call_1.CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, true);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then((response) => {
             logger.logInfo('RtcCaller', 'onicecandidate', 'Post Ok, candidate:', candidate);
@@ -55420,131 +55627,19 @@ class RtcCaller {
         });
     }
     ;
-    onrecievedatachannel(ev, self) {
-        logger.logInfo('RtcCaller', 'onrecievedatachannel', "channel:", ev.channel);
-        self.receiveChannel = ev.channel;
-        self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation); };
-        self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel); };
-        self.receiveChannel.onclose = self.onrecievechannelclose;
-        self.receiveChannel.onerror = self.onrecievechannelerror;
-    }
-    oniceconnectionstatechange(ev, pc, outbound) {
-        var state = pc.iceConnectionState;
-        logger.logInfo('RtcCaller', 'oniceconnectionstatechange', "state:", state);
-        if (state === "connected") {
-            this.isIceConnected = true;
-        }
-        if (state === "failed") {
-            this.isIceConnected = false;
-            if (pc.restartIce) {
-                pc.restartIce();
-            }
-        }
-    }
-    onconnectionstatechange(ev, pc, self) {
-        switch (pc.connectionState) {
-            case "connected":
-                // The connection has become fully connected
-                if (self.onremoteconnection)
-                    self.onremoteconnection(ev);
-                break;
-            case "disconnected":
-                // Something going on ... 
-                if (self.onremoteissues)
-                    self.onremoteissues(ev);
-                break;
-            case "failed":
-                // The connection has been closed or failed
-                self.isChannelConnected = false;
-                if (self.onremoteclose)
-                    self.onremoteclose(ev);
-                break;
-            case "closed":
-                // The connection has been closed or failed
-                self.isChannelConnected = false;
-                if (self.onremoteclose)
-                    self.onremoteclose(ev);
-                break;
-        }
-    }
-    onicecandidateerror(ev, self) {
-        if (ev.errorCode === 701) {
-            logger.logError('RtcCaller', 'onicecandidateerror', ev.url + ' ', ev.errorText);
-        }
-        else {
-            logger.logInfo('RtcCaller', 'onicecandidateerror', 'event:', ev);
-        }
-    }
-    onsendchannelopen(ev, dc, localCallParticipation) {
-        logger.logInfo('RtcCaller', 'onsendchannelopen', "sender is:", localCallParticipation.sessionSubId);
-        this.isChannelConnected = true;
-        try {
-            dc.send(JSON.stringify(this.localPerson));
-        }
-        catch (e) {
-            logger.logError('RtcCaller', 'onsendchannelopen', "error:", e);
-        }
-    }
-    onsendchannelmessage(msg) {
-        logger.logInfo('RtcCaller', 'onsendchannelmessage', "message:", msg.data);
-    }
-    onsendchannelerror(e) {
-        logger.logError('RtcCaller', 'onsendchannelerror', "error:", e.error);
-    }
-    onsendchannelclose(ev) {
-        logger.logInfo('RtcCaller', 'onsendchannelmessage', "event:", ev);
-    }
-    onrecievechannelopen(ev, dc) {
-        logger.logInfo('RtcCaller', 'onrecievechannelopen', "event:", ev);
-    }
-    onrecievechannelmessage(msg, localCallParticipation) {
-        // Too noisy to keep this on 
-        // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
-        var types = new Types_1.TypeRegistry();
-        var remoteCallData = types.reviveFromJSON(msg.data);
-        // Store the person we are talking to - allows tracking in the UI later
-        if (remoteCallData.type === Person_1.Person.__type) {
-            // Store a unique derivation of name in case they join multiple times
-            this.remotePerson = new Person_1.Person(remoteCallData.id, remoteCallData.externalId, this.nameCache.addReturnUnique(remoteCallData.name), remoteCallData.email, remoteCallData.thumbnailUrl, remoteCallData.lastAuthCode);
-        }
-        if (this.onremotedata) {
-            this.onremotedata(remoteCallData);
-        }
-    }
-    onrecievechannelerror(e) {
-        logger.logError('RtcCaller', 'onrecievechannelerror', "error:", e);
-    }
-    onrecievechannelclose(ev) {
-        logger.logInfo('RtcCaller', 'onrecievechannelclose', "event:", ev);
-    }
-    send(obj) {
-        if (this.sendChannel && this.sendChannel.readyState === 'open') {
-            // Dequeue any messages that were enqueued while we were not ready
-            while (!this.sendQueue.isEmpty()) {
-                this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
-            }
-            this.sendChannel.send(JSON.stringify(obj));
-        }
-        else {
-            this.sendQueue.enqueue(obj);
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData) {
+            this.onRemoteData(ev);
         }
     }
 }
 class RtcReciever {
     constructor(localCallParticipation, remoteCallParticipation, person, nameCache) {
-        this.localCallParticipation = localCallParticipation;
-        this.remoteCallParticipation = remoteCallParticipation;
-        this.localPerson = person;
-        this.remotePerson = null;
-        ;
+        this.peerHelp = new PeerInterfaces_1.RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache);
+        // Hook to pass any data up the chain
+        this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
         this.recieveConnection = null;
-        this.sendChannel = null;
-        this.recieveChannel = null;
-        this.isChannelConnected = false;
-        this.isIceConnected = false;
         this.iceQueue = new Queue_1.Queue();
-        this.sendQueue = new Queue_1.Queue();
-        this.nameCache = nameCache;
     }
     answerCall(remoteOffer) {
         var self = this;
@@ -55563,25 +55658,21 @@ class RtcReciever {
         };
         this.recieveConnection = new RTCPeerConnection(configuration);
         this.recieveConnection.onicecandidate = (ice) => {
-            self.onicecandidate(ice.candidate, self.remoteCallParticipation);
+            self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
         };
         this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
-        this.recieveConnection.ondatachannel = (ev) => { self.onrecievedatachannel(ev, self); };
-        this.recieveConnection.oniceconnectionstatechange = (ev) => { self.oniceconnectionstatechange(ev, self.recieveConnection, false); };
-        this.recieveConnection.onconnectionstatechange = (ev) => { self.onconnectionstatechange(ev, self.recieveConnection, self); };
-        this.recieveConnection.onicecandidateerror = (ev) => { self.onicecandidateerror(ev, self); };
-        this.sendChannel = this.recieveConnection.createDataChannel("FromAnswerSend");
-        this.sendChannel.onerror = this.onsendchannelerror;
-        this.sendChannel.onmessage = this.onsendchannelmessage;
-        this.sendChannel.onopen = (ev) => { this.onsendchannelopen(ev, self.sendChannel, self.localCallParticipation); };
-        this.sendChannel.onclose = this.onsendchannelclose;
+        this.recieveConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel); };
+        this.recieveConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.recieveConnection); };
+        this.recieveConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.recieveConnection); };
+        this.recieveConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
+        this.peerHelp.createSendChannel(this.recieveConnection, "FromAnswer");
         this.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
             .then(() => self.recieveConnection.createAnswer({ iceRestart: true }))
             .then((answer) => self.recieveConnection.setLocalDescription(answer))
             .then(() => {
             logger.logInfo('RtcReciever', 'answerCall', 'Posting answer', null);
             // Send our call answer data in
-            var callAnswer = new Call_1.CallAnswer(null, self.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
+            var callAnswer = new Call_1.CallAnswer(null, self.peerHelp.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
             axios_1.default.post('/api/answer', { params: { callAnswer: callAnswer } })
                 .then((response) => {
                 // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
@@ -55606,8 +55697,8 @@ class RtcReciever {
             return;
         }
         if (ice) {
-            if (!this.isIceConnected) { // dont add another candidate if we are connected
-                this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice))
+            if (!this.peerHelp.isIceConnected) { // dont add another candidate if we are connected
+                this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice.ice))
                     .catch(e => {
                     // TODO - analyse error paths
                     logger.logError('RtcReciever', 'handleIceCandidate', "error:", e);
@@ -55622,10 +55713,13 @@ class RtcReciever {
               });
         } */
     }
+    send(obj) {
+        this.peerHelp.send(obj);
+    }
     onicecandidate(candidate, to) {
         var self = this;
         // Send our call ICE candidate in
-        var callIceCandidate = new Call_1.CallIceCandidate(null, self.localCallParticipation, to, candidate, false);
+        var callIceCandidate = new Call_1.CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, false);
         axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
             .then((response) => {
             logger.logInfo('RtcReciever', 'onicecandidate', 'Post Ok, candidate:', candidate);
@@ -55640,113 +55734,9 @@ class RtcReciever {
         logger.logInfo('RtcReciever', 'onnegotiationneeded', 'Event:', ev);
     }
     ;
-    onrecievedatachannel(ev, self) {
-        logger.logInfo('RtcReciever', 'onrecievedatachannel', '', null);
-        self.receiveChannel = ev.channel;
-        self.receiveChannel.onmessage = (ev) => { self.onrecievechannelmessage(ev, self.localCallParticipation); };
-        self.receiveChannel.onopen = (ev) => { self.onrecievechannelopen(ev, self.recieveChannel); };
-        self.receiveChannel.onclose = self.onrecievechannelclose;
-        self.receiveChannel.onerror = self.onrecievechannelerror;
-    }
-    oniceconnectionstatechange(ev, pc, outbound) {
-        var state = pc.iceConnectionState;
-        logger.logInfo('RtcReciever', 'oniceconnectionstatechange', 'state:', state);
-        if (state === "connected") {
-            this.isIceConnected = true;
-        }
-        else if (state === "failed") {
-            this.isIceConnected = false;
-            if (pc.restartIce) {
-                pc.restartIce();
-            }
-        }
-    }
-    onconnectionstatechange(ev, pc, self) {
-        switch (pc.connectionState) {
-            case "connected":
-                // The connection has become fully connected
-                if (self.onremoteconnection)
-                    self.onremoteconnection(ev);
-                break;
-            case "disconnected":
-                // Something going on ... 
-                if (self.onremoteissues)
-                    self.onremoteissues(ev);
-                break;
-            case "failed":
-                // The connection has been closed or failed
-                self.isChannelConnected = false;
-                if (self.onremoteclose)
-                    self.onremoteclose(ev);
-            case "closed":
-                // The connection has been closed or failed
-                self.isChannelConnected = false;
-                if (self.onremoteclose)
-                    self.onremoteclose(ev);
-                break;
-        }
-    }
-    onicecandidateerror(ev, self) {
-        if (ev.errorCode === 701) {
-            logger.logError('RtcReciever', 'onicecandidateerror', ev.url + ' ', ev.errorText);
-        }
-        else {
-            logger.logInfo('RtcReciever', 'onicecandidateerror', 'event:', ev);
-        }
-    }
-    onsendchannelopen(ev, dc, localCallParticipation) {
-        logger.logInfo('RtcReciever', 'onsendchannelopen', 'sender session is:', localCallParticipation.sessionSubId);
-        this.isChannelConnected = true;
-        try {
-            // By convention, new joiners broadcast a 'Person' object
-            dc.send(JSON.stringify(this.localPerson));
-        }
-        catch (e) {
-            logger.logError('RtcReciever', 'onsendchannelopen', "error:", e);
-        }
-    }
-    onsendchannelmessage(msg) {
-        logger.logInfo('RtcReciever', 'onsendchannelmessage', 'message:', msg.data);
-    }
-    onsendchannelerror(e) {
-        logger.logError('RtcReciever', 'onsendchannelerror', "error:", e.error);
-    }
-    onsendchannelclose(ev) {
-        logger.logInfo('RtcReciever', 'onsendchannelclose', 'event:', ev);
-    }
-    onrecievechannelopen(ev, dc) {
-        logger.logInfo('RtcReciever', 'onrecievechannelopen', 'event:', ev);
-    }
-    onrecievechannelmessage(msg, localCallParticipation) {
-        // Too noisy to keep this on 
-        // logger.logInfo('RtcReciever', 'onrecievechannelmessage', "message:", msg.data);
-        var types = new Types_1.TypeRegistry();
-        var remoteCallData = types.reviveFromJSON(msg.data);
-        // Store the person we are talking to - allows tracking in the UI later
-        if (remoteCallData.type === Person_1.Person.__type) {
-            // Store a unique derivation of name in case they join multiple times
-            this.remotePerson = new Person_1.Person(remoteCallData.id, remoteCallData.externalId, this.nameCache.addReturnUnique(remoteCallData.name), remoteCallData.email, remoteCallData.thumbnailUrl, remoteCallData.lastAuthCode);
-        }
-        if (this.onremotedata) {
-            this.onremotedata(remoteCallData);
-        }
-    }
-    onrecievechannelerror(e) {
-        logger.logError('RtcReciever', 'onrecievechannelerror', "error:", e.error);
-    }
-    onrecievechannelclose(ev) {
-        logger.logInfo('RtcReciever', 'onrecievechannelclose', 'event:', ev);
-    }
-    send(obj) {
-        if (this.sendChannel && this.sendChannel.readyState === 'open') {
-            // Dequeue any messages that were enqueued while we were not ready
-            while (!this.sendQueue.isEmpty()) {
-                this.sendChannel.send(JSON.stringify(this.sendQueue.dequeue()));
-            }
-            this.sendChannel.send(JSON.stringify(obj));
-        }
-        else {
-            this.sendQueue.enqueue(obj);
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData) {
+            this.onRemoteData(ev);
         }
     }
 }
@@ -55757,46 +55747,6 @@ class RtcLink {
         this.caller = caller;
         this.reciever = reciever;
         this.linkStatus = Enum_1.FourStateRagEnum.Indeterminate;
-        if (reciever) {
-            reciever.onremoteclose = this.onremoterecieverclose.bind(this);
-            reciever.onremoteissues = this.onremoterecieverissues.bind(this);
-            reciever.onremoteconnection = this.onremoterecieverconnection.bind(this);
-        }
-        if (caller) {
-            caller.onremoteclose = this.onremotesenderclose.bind(this);
-            caller.onremoteissues = this.onremotesenderissues.bind(this);
-            caller.onremoteconnection = this.onremotesenderconnection.bind(this);
-        }
-    }
-    onremoterecieverclose(ev) {
-        this.linkStatus = Enum_1.FourStateRagEnum.Red;
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(this.linkStatus);
-    }
-    onremoterecieverissues(ev) {
-        this.linkStatus = Enum_1.FourStateRagEnum.Amber;
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(this.linkStatus);
-    }
-    onremoterecieverconnection(ev) {
-        this.linkStatus = Enum_1.FourStateRagEnum.Green;
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(this.linkStatus);
-    }
-    onremotesenderclose(ev) {
-        this.linkStatus = Enum_1.FourStateRagEnum.Red;
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(this.linkStatus);
-    }
-    onremotesenderissues(ev) {
-        this.linkStatus = Enum_1.FourStateRagEnum.Amber;
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(this.linkStatus);
-    }
-    onremotesenderconnection(ev) {
-        this.linkStatus = Enum_1.FourStateRagEnum.Green;
-        if (this.onlinkstatechange)
-            this.onlinkstatechange(this.linkStatus);
     }
     send(obj) {
         if (this.outbound && this.caller)
@@ -55813,7 +55763,7 @@ class Rtc {
         this.lastSequenceNo = 0;
         this.datalisteners = new Array();
         this.isEdgeOnly = props.isEdgeOnly;
-        this.nameCache = new RtcNameCache();
+        this.nameCache = new PeerInterfaces_1.PeerNameCache();
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new Call_1.CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid());
         // Store data on the Person who is running the app - used in data handshake & exchange
@@ -55852,14 +55802,14 @@ class Rtc {
     }
     coachLinkStatus() {
         for (var i = 0; i < this.links.length; i++) {
-            if (this.links[i].reciever && this.links[i].reciever.remotePerson
-                && this.links[i].reciever.remoteCallParticipation.isCandidateLeader
-                && this.links[i].reciever.isChannelConnected) {
+            if (this.links[i].reciever && this.links[i].reciever.peerHelp.remotePerson
+                && this.links[i].reciever.peerHelp.remoteCallParticipation.isCandidateLeader
+                && this.links[i].reciever.peerHelp.isChannelConnected) {
                 return Enum_1.FourStateRagEnum.Green;
             }
-            if (this.links[i].caller && this.links[i].caller.remotePerson
-                && this.links[i].caller.remoteCallParticipation.isCandidateLeader
-                && this.links[i].caller.isChannelConnected) {
+            if (this.links[i].caller && this.links[i].caller.peerHelp.remotePerson
+                && this.links[i].caller.peerHelp.remoteCallParticipation.isCandidateLeader
+                && this.links[i].caller.peerHelp.isChannelConnected) {
                 return Enum_1.FourStateRagEnum.Green;
             }
         }
@@ -55867,16 +55817,16 @@ class Rtc {
     }
     memberLinkStatus(name) {
         for (var i = 0; i < this.links.length; i++) {
-            if (this.links[i].reciever && this.links[i].reciever.remotePerson
-                && this.links[i].reciever.remotePerson.name === name) {
-                if (this.links[i].reciever.isChannelConnected)
+            if (this.links[i].reciever && this.links[i].reciever.peerHelp.remotePerson
+                && this.links[i].reciever.peerHelp.remotePerson.name === name) {
+                if (this.links[i].reciever.peerHelp.isChannelConnected)
                     return Enum_1.FourStateRagEnum.Green;
                 else
                     return Enum_1.FourStateRagEnum.Red;
             }
-            if (this.links[i].caller && this.links[i].caller.remotePerson
-                && this.links[i].caller.remotePerson.name === name) {
-                if (this.links[i].caller.isChannelConnected)
+            if (this.links[i].caller && this.links[i].caller.peerHelp.remotePerson
+                && this.links[i].caller.peerHelp.remotePerson.name === name) {
+                if (this.links[i].caller.peerHelp.isChannelConnected)
                     return Enum_1.FourStateRagEnum.Green;
                 else
                     return Enum_1.FourStateRagEnum.Red;
@@ -55951,7 +55901,7 @@ class Rtc {
         var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache);
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hooks to pass up data
-        sender.onremotedata = (ev) => {
+        sender.onRemoteData = (ev) => {
             if (this.datalisteners) {
                 for (var i = 0; i < this.datalisteners.length; i++) {
                     this.datalisteners[i](ev, link);
@@ -55967,7 +55917,7 @@ class Rtc {
         var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache);
         var link = new RtcLink(remoteParticipant, false, null, reciever);
         // Hooks to pass up data
-        reciever.onremotedata = (ev) => {
+        reciever.onRemoteData = (ev) => {
             if (this.datalisteners) {
                 for (var i = 0; i < this.datalisteners.length; i++) {
                     this.datalisteners[i](ev, link);
@@ -56028,12 +55978,12 @@ class Rtc {
             if (self.links[i].to.equals(remoteIceCandidate.from)) {
                 if (remoteIceCandidate.outbound) {
                     if (self.links[i].reciever)
-                        self.links[i].reciever.handleIceCandidate(remoteIceCandidate.ice);
+                        self.links[i].reciever.handleIceCandidate(remoteIceCandidate);
                     // else silent fail
                 }
                 else {
                     if (self.links[i].caller)
-                        self.links[i].caller.handleIceCandidate(remoteIceCandidate.ice);
+                        self.links[i].caller.handleIceCandidate(remoteIceCandidate);
                     // else silent fail
                 }
                 found = true;
@@ -56169,7 +56119,7 @@ class MasterWhiteboard extends React.Component {
         super(props);
         var haveWorkout = false;
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
         this.storedWorkoutState = new localstore_1.MeetingWorkoutState();
         var workout;
@@ -56195,10 +56145,11 @@ class MasterWhiteboard extends React.Component {
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onremotedata(ev, link) {
+    onRemoteData(ev, link) {
+        var ev2 = ev;
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
             // Add the new participant to the Results board element
@@ -56206,11 +56157,11 @@ class MasterWhiteboard extends React.Component {
             var rows = this.state.results.rows;
             if (text === defaultMasterResultsText) {
                 // Overrwite contents if its the first participant
-                text = ev.name;
+                text = ev2.name;
             }
-            else if (!text.includes(ev.name)) {
+            else if (!text.includes(ev2.name)) {
                 // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
-                text = text + '\n' + ev.name;
+                text = text + '\n' + ev2.name;
                 rows = rows + 1;
             }
             this.setState({ haveRealResults: true, results: new Whiteboard_1.WhiteboardElement(rows, text) });
@@ -56319,7 +56270,7 @@ class RemoteWhiteboard extends React.Component {
     constructor(props) {
         super(props);
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
         this.state = {
             workoutValue: new Whiteboard_1.WhiteboardElement(10, initialBoardText),
@@ -56328,10 +56279,10 @@ class RemoteWhiteboard extends React.Component {
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onremotedata(ev, link) {
+    onRemoteData(ev, link) {
         if (ev.type === Whiteboard_1.Whiteboard.__type) {
             var whiteboard = ev;
             if (!this.state.workoutValue.equals(whiteboard.workout)) {
@@ -62195,6 +62146,9 @@ module.exports = require("zlib");;
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
 /******/ 	var __webpack_exports__ = __webpack_require__("./dev/app.tsx");
+/******/ 	var __webpack_export_target__ = exports;
+/******/ 	for(var i in __webpack_exports__) __webpack_export_target__[i] = __webpack_exports__[i];
+/******/ 	if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
 /******/ 	
 /******/ })()
 ;

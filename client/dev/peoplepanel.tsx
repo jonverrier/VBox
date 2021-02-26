@@ -10,6 +10,7 @@ import Row from 'react-bootstrap/Row';
 
 // This app
 import { Person } from '../../core/dev/Person';
+import { IStreamable } from '../../core/dev/Streamable';
 import { Participant, ParticipantNoImage } from './participant';
 import { Rtc, RtcLink } from './rtc';
 
@@ -26,7 +27,7 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
    constructor(props: IRemotePeopleProps) {
       super(props);
       if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
       var people = new Array<Person>();
       this.state = { people: people }
@@ -34,14 +35,14 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
 
    UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onremotedata.bind(this));
+         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onremotedata(ev: any, link: RtcLink) {
+   onRemoteData(ev: IStreamable, link: RtcLink) {
 
       if (ev.type === Person.__type) {
-         var person: Person = ev;
+         var person: Person = ev as Person;
 
          let people = this.state.people;
          people.push(person);

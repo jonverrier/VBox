@@ -1,11 +1,11 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
-import { IStreamable } from './Streamable';
+import { IStreamableFor } from './Streamable';
 
 //==============================//
 // CallParticipation class
 //==============================//
-export class CallParticipation implements IStreamable<CallParticipation> {
+export class CallParticipation implements IStreamableFor<CallParticipation> {
    
    private _id: any;
    private _facilityId: string;
@@ -145,7 +145,7 @@ export class CallParticipation implements IStreamable<CallParticipation> {
 //==============================//
 // CallOffer class
 //==============================//
-export class CallOffer implements IStreamable<CallOffer>  {
+export class CallOffer implements IStreamableFor<CallOffer>  {
 
    private _id: any;
    private _from: CallParticipation;
@@ -247,7 +247,7 @@ export class CallOffer implements IStreamable<CallOffer>  {
 //==============================//
 // CallAnswer class
 //==============================//
-export class CallAnswer implements IStreamable<CallAnswer> {
+export class CallAnswer implements IStreamableFor<CallAnswer> {
 
    private _id: any;
    private _from: CallParticipation;
@@ -349,7 +349,7 @@ export class CallAnswer implements IStreamable<CallAnswer> {
 //==============================//
 // CallIceCandidate class
 //==============================//
-export class CallIceCandidate implements IStreamable<CallIceCandidate>  {
+export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
 
    private _id: any;
    private _from: CallParticipation;
@@ -461,7 +461,7 @@ export class CallIceCandidate implements IStreamable<CallIceCandidate>  {
 // CallLeaderResolve class - used to resolve who is the call leader. 
 // Send random numbers to each other, highest wins. 
 //==============================//
-export class CallLeaderResolve implements IStreamable<CallLeaderResolve>  {
+export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
 
    private _id: any; 
    private _glareDate: Date; 
@@ -561,7 +561,7 @@ export class CallLeaderResolve implements IStreamable<CallLeaderResolve>  {
 //==============================//
 // CallKeepAlive class
 //==============================//
-export class CallKeepAlive implements IStreamable<CallKeepAlive> {
+export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
    private _id: string;
 
    static readonly __type = "CallKeepAlive";
