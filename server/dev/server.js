@@ -31,6 +31,8 @@ if (process.env.NODE_ENV === 'development') {
 // Note: do this BEFORE adding sessions, else sessions get called multiple times, 
 // once for each asset including static ones
 var cacheAge = 86400000; // 86400000 is One Day
+if (inDevelopment)
+   cacheAge = 0;
 
 // Insert versioning middleware before static
 var currentVersion = '0.1';

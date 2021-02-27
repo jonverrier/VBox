@@ -57,6 +57,8 @@
     <TypeScriptCompile Include="dev\media.tsx" />
     <TypeScriptCompile Include="dev\participant.tsx" />
     <TypeScriptCompile Include="dev\PeerInterfaces.tsx" />
+    <TypeScriptCompile Include="dev\PeerRtc.tsx" />
+    <TypeScriptCompile Include="dev\PeerSignaller.tsx" />
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
     <TypeScriptCompile Include="dev\rtc.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />

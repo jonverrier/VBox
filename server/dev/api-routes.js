@@ -7,7 +7,6 @@ var router = express.Router();
 // Core logic classes
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
-var TypeRegistry = EntryPoints.TypeRegistry;
 
 var logger = new EntryPoints.LoggerFactory().logger(EntryPoints.LoggerType.Server);
 var Person = EntryPoints.Person;
@@ -196,7 +195,6 @@ router.post('/api/offer', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallOffer in the query string
-      var types = new TypeRegistry();
       var callOffer = CallOffer.revive(req.body.params.callOffer);
 
       // This pushes the notice of a new offer over server-sent event channel
@@ -214,7 +212,6 @@ router.post('/api/answer', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallAnswer in the query string
-      var types = new TypeRegistry();
       var callAnswer = CallAnswer.revive(req.body.params.callAnswer);
 
       // This pushes the notice of a new offer over server-sent event channel
@@ -232,7 +229,6 @@ router.post('/api/icecandidate', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Client passes CallIceCandidate in the query string
-      var types = new TypeRegistry();
       var callIceCandidate = CallIceCandidate.revive(req.body.params.callIceCandidate);
 
       // This pushes the notice of a new ICE candidate over server-sent event channel
