@@ -53445,7 +53445,7 @@ class Signaller {
         return new Promise((resolve, reject) => {
             axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
                 .then((response) => {
-                logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate);
+                logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate.ice);
                 resolve('');
             })
                 .catch(function (error) {
