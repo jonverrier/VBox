@@ -53,7 +53,7 @@ export class Signaller implements IPeerSignaller {
       return new Promise((resolve, reject) => {
          axios.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
             .then((response) => {
-               logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok", null);
+               logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate);
                resolve('');
             })
             .catch(function (error) {
