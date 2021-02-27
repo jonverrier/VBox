@@ -2,7 +2,7 @@ module.exports = {
    devtool: 'source-map',
    entry: "./dev/app.tsx",
    mode: "development",
-   target: 'node',
+   target: 'node', // only use this when degugging / running locally
    output: {
       filename: "./client-bundle.js",
       devtoolModuleFilenameTemplate: '[resource-path]',  // removes the webpack:/// prefix

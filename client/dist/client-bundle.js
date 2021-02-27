@@ -52991,44 +52991,10 @@ function warning(condition, message) {
 
 /***/ }),
 
-/***/ "./dev/EntryPoints.tsx":
-/*!*****************************!*\
-  !*** ./dev/EntryPoints.tsx ***!
-  \*****************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
-/*
-var EntryPoints = (function invocation () {
-   RunnableClock: RunnableClock
-
-   function EntryPoints() {
-   }
-
-   EntryPoints.prototype.initialise = function (key) {
-   };
-
-   return EntryPoints;
-} ());
-
-*/
-var EntryPoints = {
-    RunnableClock: RunnableClock_1.RunnableClock,
-    pointless: 0
-};
-exports.default = EntryPoints;
-
-
-/***/ }),
-
-/***/ "./dev/PeerInterfaces.tsx":
-/*!********************************!*\
-  !*** ./dev/PeerInterfaces.tsx ***!
-  \********************************/
+/***/ "./dev/PeerRtc.tsx":
+/*!*************************!*\
+  !*** ./dev/PeerRtc.tsx ***!
+  \*************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -53068,6 +53034,10 @@ class PeerNameCache {
 exports.PeerNameCache = PeerNameCache;
 class RtcPeerHelper {
     constructor(localCallParticipation, remoteCallParticipation, person, nameCache) {
+        this._localCallParticipation = localCallParticipation;
+        this._remoteCallParticipation = remoteCallParticipation;
+        this._localPerson = person;
+        this._nameCache = nameCache;
         this._isChannelConnected = false;
         this._sendChannel = null;
         this._recieveChannel = null;
@@ -53218,6 +53188,56 @@ class RtcPeerHelper {
 }
 exports.RtcPeerHelper = RtcPeerHelper;
 RtcPeerHelper.className = 'RtcPeerHelper';
+
+
+/***/ }),
+
+/***/ "./dev/PeerSignaller.tsx":
+/*!*******************************!*\
+  !*** ./dev/PeerSignaller.tsx ***!
+  \*******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Signaller = void 0;
+const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
+// This app
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
+// Helper class - take a name like 'Jon' and if the name is not unique for the session,
+class Signaller {
+    constructor() {
+    }
+    sendOffer(offer) {
+        axios_1.default.post('/api/offer', { params: { callOffer: offer } })
+            .then((response) => {
+            logger.logInfo(Signaller.className, 'sendOffer', "Post Ok", null);
+        })
+            .catch(function (error) {
+            logger.logError(Signaller.className, 'sendOffer', 'error:', error);
+        });
+    }
+    sendAnswer(answer) {
+    }
+    sendIceCandidate(iceCandidate) {
+        axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
+            .then((response) => {
+            logger.logInfo(Signaller.className, 'sendIceCandidate', 'Post Ok', null);
+        })
+            .catch((e) => {
+            logger.logError(Signaller.className, 'sendIceCandidate', 'Post error:', e);
+        });
+    }
+}
+exports.Signaller = Signaller;
+// member variables
+Signaller.className = 'Signaller';
 
 
 /***/ }),
@@ -53477,6 +53497,7 @@ const react_helmet_1 = __webpack_require__(/*! react-helmet */ "./node_modules/r
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/esm/react-router-dom.js");
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 // This app
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ../../core/dev/Facility */ "../core/dev/Facility.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities */ "../core/dev/UserFacilities.tsx");
@@ -53490,11 +53511,7 @@ const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.t
 const clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./dev/clockpanel.tsx");
 const whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./dev/whiteboardpanel.tsx");
 const leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./dev/leaderpanel.tsx");
-const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 const media_1 = __webpack_require__(/*! ./media */ "./dev/media.tsx");
-const EntryPoints_1 = __importDefault(__webpack_require__(/*! ./EntryPoints */ "./dev/EntryPoints.tsx"));
-// Pseudo call, just exists to pull 'EntryPoints' in the the bundle
-EntryPoints_1.default.pointless = 1;
 var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
 const jumbotronStyle = {
     paddingLeft: '10px',
@@ -55507,7 +55524,8 @@ const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Typ
 const Enum_1 = __webpack_require__(/*! ../../core/dev/Enum */ "../core/dev/Enum.tsx");
 const Queue_1 = __webpack_require__(/*! ../../core/dev/Queue */ "../core/dev/Queue.tsx");
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+const PeerRtc_1 = __webpack_require__(/*! ./PeerRtc */ "./dev/PeerRtc.tsx");
+const PeerSignaller_1 = __webpack_require__(/*! ./PeerSignaller */ "./dev/PeerSignaller.tsx");
 function uuidPart() {
     return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
 }
@@ -55517,15 +55535,15 @@ function uuid() {
 }
 var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client);
 class RtcCaller {
-    constructor(localCallParticipation, remoteCallParticipation, person, nameCache) {
-        this.peerHelp = new PeerInterfaces_1.RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache);
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        this.peerHelp = new PeerRtc_1.RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache);
+        this.signaller = signaller;
         // Hook to pass any data up the chain
         this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
         this.sendConnection = null;
         this.iceQueue = new Queue_1.Queue();
     }
     placeCall() {
-        var self = this;
         let configuration = {
             iceServers: [{
                     "urls": "stun:stun.l.google.com:19302?transport=tcp"
@@ -55540,13 +55558,13 @@ class RtcCaller {
         };
         this.sendConnection = new RTCPeerConnection(configuration);
         this.sendConnection.onicecandidate = (ice) => {
-            self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
+            this.onicecandidate(ice.candidate, this.peerHelp.remoteCallParticipation);
         };
-        this.sendConnection.onnegotiationneeded = (ev) => { self.onnegotiationneeded(ev, self); };
-        this.sendConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel); };
-        this.sendConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.sendConnection); };
-        this.sendConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.sendConnection); };
-        this.sendConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
+        this.sendConnection.onnegotiationneeded = (ev) => { this.onnegotiationneeded(ev); };
+        this.sendConnection.ondatachannel = (ev) => { this.peerHelp.onRecieveDataChannel(ev.channel); };
+        this.sendConnection.oniceconnectionstatechange = (ev) => { this.peerHelp.onIceConnectionStateChange(ev, this.sendConnection); };
+        this.sendConnection.onconnectionstatechange = (ev) => { this.peerHelp.onConnectionStateChange(ev, this.sendConnection); };
+        this.sendConnection.onicecandidateerror = (ev) => { this.peerHelp.onIceCandidateError(ev); };
         this.peerHelp.createSendChannel(this.sendConnection, "FromCall");
     }
     handleAnswer(answer) {
@@ -55598,32 +55616,18 @@ class RtcCaller {
         var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new Call_1.CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, true);
-        axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
-            .then((response) => {
-            logger.logInfo('RtcCaller', 'onicecandidate', 'Post Ok, candidate:', candidate);
-        })
-            .catch((e) => {
-            // TODO - analyse error paths
-            logger.logError('RtcCaller', 'onicecandidate', 'Post error:', e);
-        });
+        this.signaller.sendIceCandidate(callIceCandidate);
     }
-    onnegotiationneeded(ev, self) {
+    onnegotiationneeded(ev) {
         logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-        self.sendConnection.createOffer({ iceRestart: true })
-            .then(offer => self.sendConnection.setLocalDescription(offer))
+        this.sendConnection.createOffer({ iceRestart: true })
+            .then(offer => this.sendConnection.setLocalDescription(offer))
             .then(() => {
             // Send our call offer data in
             logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Posting offer', null);
-            var callOffer = new Call_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
-            axios_1.default.post('/api/offer', { params: { callOffer: callOffer } })
-                .then((response) => {
-                logger.logInfo('RtcCaller', 'onnegotiationneeded', "Post Ok", null);
-            });
-        })
-            .catch(function (error) {
-            // TODO - analyse error paths 
-            logger.logError('RtcCaller', 'onnegotiationneeded', 'error', error);
+            var callOffer = new Call_1.CallOffer(null, this.peerHelp.localCallParticipation, this.peerHelp.remoteCallParticipation, this.sendConnection.localDescription);
+            this.signaller.sendOffer(callOffer);
         });
     }
     ;
@@ -55634,8 +55638,9 @@ class RtcCaller {
     }
 }
 class RtcReciever {
-    constructor(localCallParticipation, remoteCallParticipation, person, nameCache) {
-        this.peerHelp = new PeerInterfaces_1.RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache);
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        this.peerHelp = new PeerRtc_1.RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache);
+        this.signaller = signaller;
         // Hook to pass any data up the chain
         this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
         this.recieveConnection = null;
@@ -55720,14 +55725,7 @@ class RtcReciever {
         var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new Call_1.CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, false);
-        axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
-            .then((response) => {
-            logger.logInfo('RtcReciever', 'onicecandidate', 'Post Ok, candidate:', candidate);
-        })
-            .catch((e) => {
-            // TODO - analyse error paths
-            logger.logError('RtcReciever', 'onicecandidate', "Post error:", e);
-        });
+        this.signaller.sendIceCandidate(callIceCandidate);
     }
     onnegotiationneeded(ev) {
         var self = this;
@@ -55763,7 +55761,8 @@ class Rtc {
         this.lastSequenceNo = 0;
         this.datalisteners = new Array();
         this.isEdgeOnly = props.isEdgeOnly;
-        this.nameCache = new PeerInterfaces_1.PeerNameCache();
+        this.nameCache = new PeerRtc_1.PeerNameCache();
+        this.signaller = new PeerSignaller_1.Signaller();
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this.localCallParticipation = new Call_1.CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid());
         // Store data on the Person who is running the app - used in data handshake & exchange
@@ -55898,7 +55897,7 @@ class Rtc {
         // If we are an edge node, and the caller is nota leader, dont respond.
         if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
             return;
-        var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache);
+        var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache, self.signaller);
         var link = new RtcLink(remoteParticipation, true, sender, null);
         // Hooks to pass up data
         sender.onRemoteData = (ev) => {
@@ -55914,7 +55913,7 @@ class Rtc {
     }
     setupRecieverLink(remoteParticipant) {
         var self = this;
-        var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache);
+        var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache, self.signaller);
         var link = new RtcLink(remoteParticipant, false, null, reciever);
         // Hooks to pass up data
         reciever.onRemoteData = (ev) => {

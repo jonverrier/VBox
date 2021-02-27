@@ -25,6 +25,7 @@ import axios from 'axios';
 import * as CSS from 'csstype';
 
 // This app
+import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
 import { Person } from '../../core/dev/Person';
 import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
@@ -39,12 +40,7 @@ import { MeetingScreenState } from './localstore';
 import { MasterClock, RemoteClock } from './clockpanel';
 import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
-import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
 import { Media } from './media';
-import EntryPoints from './EntryPoints';
-
-// Pseudo call, just exists to pull 'EntryPoints' in the the bundle
-EntryPoints.pointless = 1;
 
 var logger = new LoggerFactory().logger(LoggerType.Client);
 

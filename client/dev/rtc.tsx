@@ -18,7 +18,9 @@ import { TypeRegistry } from '../../core/dev/Types';
 import { FourStateRagEnum } from '../../core/dev/Enum';
 import { Queue } from '../../core/dev/Queue';
 import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
-import { PeerNameCache, RtcPeerHelper, IPeerCaller, IPeerReciever } from './PeerInterfaces';
+import { IPeerSignaller, IPeerCaller, IPeerReciever } from './PeerInterfaces';
+import { PeerNameCache, RtcPeerHelper } from './PeerRtc';
+import { Signaller} from './PeerSignaller';
 import { IStreamable } from '../../core/dev/Streamable';
 
 function uuidPart(): string {
@@ -36,15 +38,18 @@ class RtcCaller implements IPeerCaller {
    peerHelp: RtcPeerHelper;
    sendConnection: RTCPeerConnection;
    iceQueue: Queue<any>;
+   signaller: IPeerSignaller;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
-      nameCache: PeerNameCache) {
+      nameCache: PeerNameCache,
+      signaller: IPeerSignaller) {
 
       this.peerHelp = new RtcPeerHelper(localCallParticipation,
          remoteCallParticipation,
          person, nameCache);
+      this.signaller = signaller;
 
       // Hook to pass any data up the chain
       this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
@@ -57,8 +62,6 @@ class RtcCaller implements IPeerCaller {
    onRemoteData: ((this: RtcCaller, ev: IStreamable) => any) | null;
 
    placeCall() : void {
-
-      var self = this;
 
       let configuration = {
          iceServers: [{
@@ -75,13 +78,13 @@ class RtcCaller implements IPeerCaller {
 
       this.sendConnection = new RTCPeerConnection(configuration);
       this.sendConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
+         this.onicecandidate(ice.candidate, this.peerHelp.remoteCallParticipation);
       };
-      this.sendConnection.onnegotiationneeded = (ev) => { self.onnegotiationneeded(ev, self) };
-      this.sendConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel) };
-      this.sendConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.sendConnection); };
-      this.sendConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.sendConnection); };
-      this.sendConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
+      this.sendConnection.onnegotiationneeded = (ev) => { this.onnegotiationneeded(ev) };
+      this.sendConnection.ondatachannel = (ev) => { this.peerHelp.onRecieveDataChannel(ev.channel) };
+      this.sendConnection.oniceconnectionstatechange = (ev) => { this.peerHelp.onIceConnectionStateChange(ev, this.sendConnection); };
+      this.sendConnection.onconnectionstatechange = (ev) => { this.peerHelp.onConnectionStateChange(ev, this.sendConnection); };
+      this.sendConnection.onicecandidateerror = (ev) => { this.peerHelp.onIceCandidateError(ev); };
 
       this.peerHelp.createSendChannel(this.sendConnection, "FromCall");
    }
@@ -145,36 +148,22 @@ class RtcCaller implements IPeerCaller {
 
       // Send our call ICE candidate in
       var callIceCandidate = new CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, true);
-      axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
-         .then((response) => {
-            logger.logInfo('RtcCaller', 'onicecandidate', 'Post Ok, candidate:', candidate);
-         })
-         .catch((e) => {
-            // TODO - analyse error paths
-            logger.logError ('RtcCaller', 'onicecandidate', 'Post error:', e);
-         });
+      this.signaller.sendIceCandidate(callIceCandidate);
    }
 
-   onnegotiationneeded(ev, self) {
+   onnegotiationneeded(ev: Event) {
 
       logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      self.sendConnection.createOffer({iceRestart: true}) 
-         .then(offer => self.sendConnection.setLocalDescription(offer))
+      this.sendConnection.createOffer({ iceRestart: true })
+         .then(offer => this.sendConnection.setLocalDescription(offer))
          .then(() => {
-            // Send our call offer data in
-            logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Posting offer', null);
-            var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self.sendConnection.localDescription);
-            axios.post ('/api/offer', { params: { callOffer: callOffer } })
-               .then((response) => {
-                  logger.logInfo('RtcCaller', 'onnegotiationneeded', "Post Ok", null);
-               });
-         })
-         .catch(function (error) {
-            // TODO - analyse error paths 
-            logger.logError('RtcCaller', 'onnegotiationneeded', 'error', error);
-         });
+             // Send our call offer data in
+             logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Posting offer', null);
+            var callOffer = new CallOffer(null, this.peerHelp.localCallParticipation, this.peerHelp.remoteCallParticipation, this.sendConnection.localDescription);
+             this.signaller.sendOffer(callOffer);
+         })          
    };
 
    private onRemoteDataInner(ev: IStreamable): void {
@@ -190,14 +179,18 @@ class RtcReciever implements IPeerReciever {
    peerHelp: RtcPeerHelper;
    recieveConnection: RTCPeerConnection;
    iceQueue: Queue<any>;
+   signaller: IPeerSignaller;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
-      nameCache: PeerNameCache) {
+      nameCache: PeerNameCache,
+      signaller: IPeerSignaller) {
+
       this.peerHelp = new RtcPeerHelper(localCallParticipation,
          remoteCallParticipation,
          person, nameCache);
+      this.signaller = signaller;
 
       // Hook to pass any data up the chain
       this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
@@ -300,17 +293,10 @@ class RtcReciever implements IPeerReciever {
 
       // Send our call ICE candidate in
       var callIceCandidate = new CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, false);
-      axios.post ('/api/icecandidate', { params: { callIceCandidate: callIceCandidate } })
-         .then((response) => {
-            logger.logInfo('RtcReciever', 'onicecandidate', 'Post Ok, candidate:', candidate);
-         })
-         .catch((e) => {
-            // TODO - analyse error paths
-            logger.logError('RtcReciever', 'onicecandidate', "Post error:", e);
-         });
+      this.signaller.sendIceCandidate(callIceCandidate);
    }
 
-   onnegotiationneeded(ev) {
+   onnegotiationneeded(ev: Event) {
       var self = this;
 
       logger.logInfo('RtcReciever', 'onnegotiationneeded', 'Event:', ev);
@@ -376,6 +362,7 @@ export class Rtc {
    datalisteners: Array<Function>;
    isEdgeOnly: boolean;
    nameCache: PeerNameCache;
+   signaller: IPeerSignaller;
 
    constructor(props: IRtcProps) {
       this.localCallParticipation = null;
@@ -384,6 +371,7 @@ export class Rtc {
       this.datalisteners = new Array();
       this.isEdgeOnly = props.isEdgeOnly;
       this.nameCache = new PeerNameCache();
+      this.signaller = new Signaller();
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
       this.localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid());
@@ -544,7 +532,7 @@ export class Rtc {
       if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
          return;
 
-      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache); 
+      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache, self.signaller);
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
       // Hooks to pass up data
@@ -565,7 +553,7 @@ export class Rtc {
    setupRecieverLink(remoteParticipant: CallParticipation): RtcReciever {
       var self = this;
 
-      var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache);
+      var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache, self.signaller);
       var link = new RtcLink(remoteParticipant, false, null, reciever);
 
       // Hooks to pass up data
