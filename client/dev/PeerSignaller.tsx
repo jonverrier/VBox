@@ -1,12 +1,14 @@
 /*! Copyright TXPCo, 2020, 2021 */
+// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerSignaller - contains an implementation of the PeerSignaller interface.
 
+// External components
 import axios from 'axios';
 
-// This app
+// This app, this component
 import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
-import { TypeRegistry } from '../../core/dev/Types';
-import { IStreamable } from '../../core/dev/Streamable';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { IPeerSignaller } from './PeerInterfaces';
 
 var logger = new LoggerFactory().logger(LoggerType.Client);
@@ -19,28 +21,46 @@ export class Signaller implements IPeerSignaller {
    constructor() {
    }
 
-   sendOffer(offer: CallOffer): void {
-      axios.post('/api/offer', { params: { callOffer: offer } })
-         .then((response) => {
-            logger.logInfo(Signaller.className, 'sendOffer', "Post Ok", null);
-         })
-         .catch(function(error) {
-            logger.logError(Signaller.className, 'sendOffer', 'error:', error);
-         });
+   sendOffer(offer: CallOffer): Promise<string>  {
+      return new Promise((resolve, reject) => {
+         axios.post('/api/offer', { params: { callOffer: offer } })
+            .then((response) => {
+               logger.logInfo(Signaller.className, 'sendOffer', "Post Ok", null);
+               resolve('');
+            })
+            .catch(function (error) {
+               logger.logError(Signaller.className, 'sendOffer', 'error:', error);
+               reject(error.toString());
+            });
+      });
    }
 
-   sendAnswer(answer: CallAnswer): void {
-
+   sendAnswer(answer: CallAnswer): Promise<string> {
+      return new Promise((resolve, reject) => {
+         axios.post('/api/answer', { params: { callAnswer: answer } })
+            .then((response) => {
+               logger.logInfo(Signaller.className, 'sendAnswer', "Post Ok", null);
+               resolve('');
+            })
+            .catch(function (error) {
+               logger.logError(Signaller.className, 'sendAnswer', 'error:', error);
+               reject(error.toString());
+            });
+      });
    }
 
-   sendIceCandidate(iceCandidate: CallIceCandidate): void {
-      axios.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
-         .then((response) => {
-            logger.logInfo(Signaller.className, 'sendIceCandidate', 'Post Ok', null);
-         })
-         .catch((e) => {
-            logger.logError(Signaller.className, 'sendIceCandidate', 'Post error:', e);
-         });
+   sendIceCandidate(iceCandidate: CallIceCandidate): Promise<string>  {
+      return new Promise((resolve, reject) => {
+         axios.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
+            .then((response) => {
+               logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok", null);
+               resolve('');
+            })
+            .catch(function (error) {
+               logger.logError(Signaller.className, 'sendIceCandidate', 'error:', error);
+               reject(error.toString());
+            });
+      });
    }
 }
 

@@ -1,27 +1,22 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// References:
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
-// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
 //
-// TODO - improve implementation of event firing / callback functions, which is  
-// currently duplicate for a 'single' function overwrite vs adding multiple listeners 
 
+// External libraries
 import * as React from 'react';
 import axios from 'axios';
 import adapter from 'webrtc-adapter'; // Google shim library
  
-// This app
+// This app, external components
 import { Person } from '../../core/dev/Person';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { TypeRegistry } from '../../core/dev/Types';
 import { FourStateRagEnum } from '../../core/dev/Enum';
-import { Queue } from '../../core/dev/Queue';
 import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
-import { IPeerSignaller, IPeerCaller, IPeerReciever } from './PeerInterfaces';
-import { PeerNameCache, RtcPeerHelper } from './PeerRtc';
+
+// This app, this component
+import { PeerNameCache, IPeerSignaller, IPeerCaller, IPeerReciever } from './PeerInterfaces';
+import { PeerCallerRtc, PeerRecieverRtc } from './PeerRtc';
 import { Signaller} from './PeerSignaller';
-import { IStreamable } from '../../core/dev/Streamable';
 
 function uuidPart(): string {
    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
@@ -33,295 +28,18 @@ function uuid(): string {
 
 var logger = new LoggerFactory().logger (LoggerType.Client);
 
-class RtcCaller implements IPeerCaller {
-   // member variables
-   peerHelp: RtcPeerHelper;
-   sendConnection: RTCPeerConnection;
-   iceQueue: Queue<any>;
-   signaller: IPeerSignaller;
-
-   constructor(localCallParticipation: CallParticipation,
-      remoteCallParticipation: CallParticipation,
-      person: Person,
-      nameCache: PeerNameCache,
-      signaller: IPeerSignaller) {
-
-      this.peerHelp = new RtcPeerHelper(localCallParticipation,
-         remoteCallParticipation,
-         person, nameCache);
-      this.signaller = signaller;
-
-      // Hook to pass any data up the chain
-      this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
-
-      this.sendConnection = null;
-      this.iceQueue = new Queue();
-   }
-
-   // Override these for notifications - TODO - see top of file
-   onRemoteData: ((this: RtcCaller, ev: IStreamable) => any) | null;
-
-   placeCall() : void {
-
-      let configuration = {
-         iceServers: [{
-            "urls": "stun:stun.l.google.com:19302?transport=tcp"
-         },
-         {
-            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
-         },
-         {
-            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
-         }
-         ]
-      };
-
-      this.sendConnection = new RTCPeerConnection(configuration);
-      this.sendConnection.onicecandidate = (ice) => {
-         this.onicecandidate(ice.candidate, this.peerHelp.remoteCallParticipation);
-      };
-      this.sendConnection.onnegotiationneeded = (ev) => { this.onnegotiationneeded(ev) };
-      this.sendConnection.ondatachannel = (ev) => { this.peerHelp.onRecieveDataChannel(ev.channel) };
-      this.sendConnection.oniceconnectionstatechange = (ev) => { this.peerHelp.onIceConnectionStateChange(ev, this.sendConnection); };
-      this.sendConnection.onconnectionstatechange = (ev) => { this.peerHelp.onConnectionStateChange(ev, this.sendConnection); };
-      this.sendConnection.onicecandidateerror = (ev) => { this.peerHelp.onIceCandidateError(ev); };
-
-      this.peerHelp.createSendChannel(this.sendConnection, "FromCall");
-   }
-
-   handleAnswer(answer: CallAnswer) : void {
-      var self = this;
-
-      if (!this.peerHelp.isIceConnected) {
-         this.sendConnection.setRemoteDescription(new RTCSessionDescription(answer.answer))
-            .then(() => {
-               logger.logInfo('RtcCaller', 'handleAnswer', 'succeeded', null);
-
-               // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
-               while (!self.iceQueue.isEmpty()) {
-                  self.handleIceCandidate.bind(self)(self.iceQueue.dequeue());
-               }
-            })
-            .catch(e => {
-
-               logger.logError('RtcCaller', 'handleAnswer', 'error:', e);
-            });
-      }
-   }
-
-   handleIceCandidate(ice: CallIceCandidate) : void {
-
-      // ICE candidates can arrive before call offer/answer
-      // If we have not yet set remoteDescription, queue the iceCandidate for later
-      if (!this.sendConnection
-         || !this.sendConnection.remoteDescription
-         || !this.sendConnection.remoteDescription.type) {
-         this.iceQueue.enqueue(ice);
-         return;
-      }
-
-      if (ice) {
-         if (!this.peerHelp.isIceConnected) { // dont add another candidate if we are connected
-            this.sendConnection.addIceCandidate(new RTCIceCandidate(ice.ice))
-               .catch(e => {
-                  // TODO - analyse error paths
-                  logger.logError('RtcCaller', 'handleIceCandidate', "error:", e);
-               });
-         }
-      } /* Debugging ICE - does setting a null candidate from the remote interfere with the local?? 
-      else {
-         this.sendConnection.addIceCandidate(null)
-            .catch(e => {
-               // TODO - analyse error paths
-               logger.logError('RtcCaller', 'handleIceCandidate', "error on null ICE candidate:", e);
-            });
-      } */ 
-   }
-
-   send(obj: IStreamable): void {
-      this.peerHelp.send(obj);
-   }
-
-   onicecandidate(candidate, to: CallParticipation) {
-
-      var self = this;
-
-      // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, true);
-      this.signaller.sendIceCandidate(callIceCandidate);
-   }
-
-   onnegotiationneeded(ev: Event) {
-
-      logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Event:', ev);
-
-      // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
-      this.sendConnection.createOffer({ iceRestart: true })
-         .then(offer => this.sendConnection.setLocalDescription(offer))
-         .then(() => {
-             // Send our call offer data in
-             logger.logInfo('RtcCaller', 'onnegotiationneeded', 'Posting offer', null);
-            var callOffer = new CallOffer(null, this.peerHelp.localCallParticipation, this.peerHelp.remoteCallParticipation, this.sendConnection.localDescription);
-             this.signaller.sendOffer(callOffer);
-         })          
-   };
-
-   private onRemoteDataInner(ev: IStreamable): void {
-
-      if (this.onRemoteData) {
-         this.onRemoteData(ev);
-      }
-   }
-}
-
-class RtcReciever implements IPeerReciever {
-   // member variables
-   peerHelp: RtcPeerHelper;
-   recieveConnection: RTCPeerConnection;
-   iceQueue: Queue<any>;
-   signaller: IPeerSignaller;
-
-   constructor(localCallParticipation: CallParticipation,
-      remoteCallParticipation: CallParticipation,
-      person: Person,
-      nameCache: PeerNameCache,
-      signaller: IPeerSignaller) {
-
-      this.peerHelp = new RtcPeerHelper(localCallParticipation,
-         remoteCallParticipation,
-         person, nameCache);
-      this.signaller = signaller;
-
-      // Hook to pass any data up the chain
-      this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
-
-      this.recieveConnection = null;
-
-      this.iceQueue = new Queue();
-   }
-
-   // Override these for notifications  - TODO - see top of file
-   onRemoteData: ((this: RtcReciever, ev: IStreamable) => any) | null;
-
-   answerCall(remoteOffer: CallOffer) : void {
-
-      var self = this;
-
-      let configuration = {
-         iceServers: [
-         {
-            "urls": "stun:stun.l.google.com:19302?transport=tcp"
-         },
-         {
-            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
-         },
-         {
-            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
-         }]
-      };
-
-      this.recieveConnection = new RTCPeerConnection(configuration);
-      this.recieveConnection.onicecandidate = (ice) => {
-         self.onicecandidate(ice.candidate, self.peerHelp.remoteCallParticipation);
-      };
-      this.recieveConnection.onnegotiationneeded = this.onnegotiationneeded;
-      this.recieveConnection.ondatachannel = (ev) => { self.peerHelp.onRecieveDataChannel(ev.channel) };
-      this.recieveConnection.oniceconnectionstatechange = (ev) => { self.peerHelp.onIceConnectionStateChange(ev, self.recieveConnection); };
-      this.recieveConnection.onconnectionstatechange = (ev) => { self.peerHelp.onConnectionStateChange(ev, self.recieveConnection); };
-      this.recieveConnection.onicecandidateerror = (ev) => { self.peerHelp.onIceCandidateError(ev); };
-
-      this.peerHelp.createSendChannel(this.recieveConnection, "FromAnswer");
-
-      this.recieveConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
-         .then(() => self.recieveConnection.createAnswer({ iceRestart: true })) 
-         .then((answer) => self.recieveConnection.setLocalDescription(answer))
-         .then(() => {
-            logger.logInfo('RtcReciever', 'answerCall', 'Posting answer', null);
-            // Send our call answer data in
-            var callAnswer = new CallAnswer(null, self.peerHelp.localCallParticipation, remoteOffer.from, self.recieveConnection.localDescription);
-            axios.post ('/api/answer', { params: { callAnswer: callAnswer } })
-               .then((response) => {
-                  // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
-                  while (!self.iceQueue.isEmpty()) {
-                     self.handleIceCandidate.bind(self) (self.iceQueue.dequeue())
-                  }
-
-                  logger.logInfo('RtcReciever', 'answerCall', 'Post Ok', null);
-               })
-         })
-         .catch((e) => {
-            // TODO - analyse error paths
-            logger.logError('RtcReciever', 'answerCall', "error:", e);
-         });
-   }
-
-   handleIceCandidate(ice: CallIceCandidate) : void {
-      // ICE candidates can arrive before call offer/answer
-      // If we have not yet set remoteDescription, queue the iceCandidate for later
-      if (!this.recieveConnection
-         || !this.recieveConnection.remoteDescription
-         || !this.recieveConnection.remoteDescription.type) {
-         this.iceQueue.enqueue(ice);
-         return;
-      }
-
-      if (ice) {
-         if (!this.peerHelp.isIceConnected) { // dont add another candidate if we are connected
-            this.recieveConnection.addIceCandidate(new RTCIceCandidate(ice.ice))
-               .catch(e => {
-                  // TODO - analyse error paths
-                  logger.logError('RtcReciever', 'handleIceCandidate', "error:", e);
-               });
-         }
-      } /* Debugging ICE - does setting a null candidate from the remote interfere with the local?? 
-       * else {
-         this.recieveConnection.addIceCandidate(null)
-            .catch(e => {
-               // TODO - analyse error paths
-               logger.logError('RtcReciever', 'handleIceCandidate', "error on null ICE candidate:", e);
-            });
-      } */
-   }
-
-   send(obj: IStreamable) : void {
-      this.peerHelp.send(obj);
-   }
-
-   onicecandidate(candidate, to: CallParticipation) {
-
-      var self = this;
-
-      // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, self.peerHelp.localCallParticipation, to, candidate, false);
-      this.signaller.sendIceCandidate(callIceCandidate);
-   }
-
-   onnegotiationneeded(ev: Event) {
-      var self = this;
-
-      logger.logInfo('RtcReciever', 'onnegotiationneeded', 'Event:', ev);
-   };
-
-   private onRemoteDataInner(ev: IStreamable): void {
-
-      if (this.onRemoteData) {
-         this.onRemoteData(ev);
-      }
-   }
-}
-
 export class RtcLink {
    // member variables
    to: CallParticipation;
    outbound: boolean;
-   caller: RtcCaller;
-   reciever: RtcReciever;
+   caller: PeerCallerRtc;
+   reciever: PeerRecieverRtc;
    linkStatus: FourStateRagEnum;
 
    constructor(to: CallParticipation,
       outbound: boolean,
-      caller: RtcCaller,
-      reciever: RtcReciever) {
+      caller: PeerCallerRtc,
+      reciever: PeerRecieverRtc) {
       this.to = to;
       this.outbound = outbound;
       this.caller = caller;
@@ -506,7 +224,7 @@ export class Rtc {
    onServerError(ev) {
       var self = this;
 
-      logger.logInfo('RtcReciever', 'onServerError', "event:", ev);
+      logger.logInfo('Rtc', 'onServerError', "event:", ev);
       self.events.close();
       self.connectLater(5000);
       self.retries++;
@@ -532,7 +250,7 @@ export class Rtc {
       if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
          return;
 
-      var sender = new RtcCaller(self.localCallParticipation, remoteParticipation, self.person, self.nameCache, self.signaller);
+      var sender = new PeerCallerRtc (self.localCallParticipation, remoteParticipation, self.person, self.nameCache, self.signaller);
       var link = new RtcLink(remoteParticipation, true, sender, null);
 
       // Hooks to pass up data
@@ -550,10 +268,10 @@ export class Rtc {
       sender.placeCall();
    }
 
-   setupRecieverLink(remoteParticipant: CallParticipation): RtcReciever {
+   setupRecieverLink(remoteParticipant: CallParticipation): PeerRecieverRtc {
       var self = this;
 
-      var reciever = new RtcReciever(self.localCallParticipation, remoteParticipant, self.person, self.nameCache, self.signaller);
+      var reciever = new PeerRecieverRtc (self.localCallParticipation, remoteParticipant, self.person, self.nameCache, self.signaller);
       var link = new RtcLink(remoteParticipant, false, null, reciever);
 
       // Hooks to pass up data
