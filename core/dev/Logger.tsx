@@ -2,6 +2,9 @@
 /*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
 
+// External components
+import axios from 'axios';
+
 //import { ServerLoggerWrap } from './LoggerServerWrap';
 import { ClientLoggerWrap } from './LoggerClientWrap';
 
@@ -9,7 +12,6 @@ export enum LoggerType {
    Server,
    Client
 }
-
 
 interface ILogger {
    logError (component: string,
@@ -29,13 +31,13 @@ export class LoggerFactory {
    constructor() {
    }
 
-   logger(loggerType: LoggerType): ILogger {
+   logger(loggerType: LoggerType, shipToSever: boolean): ILogger {
       switch (loggerType) {
          case LoggerType.Server:
-            return new ClientLogger();
+            return new ClientLogger(shipToSever);
 
          case LoggerType.Client:
-            return new ClientLogger();;
+            return new ClientLogger(shipToSever);;
       }
       
    }
@@ -83,11 +85,13 @@ class ServerLogger implements ILogger {
 class ClientLogger implements ILogger {
 
    private logger: any;
+   private shipToSever: boolean;
 
-   constructor() {
+   constructor(shipToSever: boolean) {
 
       // instantiate a new Winston Logger with the settings defined above
       this.logger = new ClientLoggerWrap();
+      this.shipToSever = shipToSever;
    }
 
    logError(component: string,
@@ -101,6 +105,11 @@ class ClientLogger implements ILogger {
          message,
          data ? JSON.stringify(data, null, 2) : ""
       );
+
+      if (this.shipToSever) {
+         const msg = component + "." + method + ": " + message + (data ? JSON.stringify(data, null, 2) : "");
+         axios.post('/api/error', { params: { message: msg } });
+      }
    }
 
    logInfo(component: string,

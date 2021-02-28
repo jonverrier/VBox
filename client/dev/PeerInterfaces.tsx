@@ -6,11 +6,15 @@
 
 // This app, external components
 import { CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { IStreamable } from '../../core/dev/Streamable'
 
 
 export interface IPeer {
 
-   handleIceCandidate(ice: CallIceCandidate) : void;
+   handleIceCandidate(ice: CallIceCandidate): void;
+   onRemoteData(data: IStreamable): void;
+   onRemoteFail(): void;
+   close(): void;
 }
 
 export interface IPeerCaller extends IPeer  {

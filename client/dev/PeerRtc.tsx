@@ -20,7 +20,7 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { IPeerSignaller, IPeerCaller, IPeerReciever, PeerNameCache } from './PeerInterfaces'
 
-var logger = new LoggerFactory().logger(LoggerType.Client);
+var logger = new LoggerFactory().logger(LoggerType.Client, true);
 
 export class PeerCallerRtc implements IPeerCaller {
    // member variables
@@ -38,10 +38,12 @@ export class PeerCallerRtc implements IPeerCaller {
 
       // Hook to pass any data up the chain
       this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+      this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
    }
 
    // Override this for data for notifications 
    onRemoteData: ((this: PeerCallerRtc, ev: IStreamable) => any) | null;
+   onRemoteFail: ((this: PeerCallerRtc) => void) | null;
 
    placeCall(): void {
 
@@ -60,10 +62,20 @@ export class PeerCallerRtc implements IPeerCaller {
       this.peerHelp.send(obj);
    }
 
+   close(): void {
+      this.peerHelp.close();
+   }
+
    private onRemoteDataInner(ev: IStreamable): void {
 
       if (this.onRemoteData) {
          this.onRemoteData(ev);
+      }
+   }
+   private onRemoteFailInner(): void {
+
+      if (this.onRemoteFail) {
+         this.onRemoteFail();
       }
    }
 }
@@ -85,10 +97,12 @@ export class PeerRecieverRtc implements IPeerReciever {
 
       // Hook to pass any data up the chain
       this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+      this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
    }
 
    // Override this for data for notifications 
-   onRemoteData: ((this: PeerRecieverRtc, ev: IStreamable) => any) | null;
+   onRemoteData: ((this: PeerRecieverRtc, ev: IStreamable) => void) | null;
+   onRemoteFail: ((this: PeerRecieverRtc) => void) | null;
 
    answerCall(offer: CallOffer): void {
 
@@ -105,10 +119,21 @@ export class PeerRecieverRtc implements IPeerReciever {
       this.peerHelp.send(obj);
    }
 
+   close(): void {
+      this.peerHelp.close();
+   }
+
    private onRemoteDataInner(ev: IStreamable): void {
 
       if (this.onRemoteData) {
          this.onRemoteData(ev);
+      }
+   }
+
+   private onRemoteFailInner(): void {
+
+      if (this.onRemoteFail) {
+         this.onRemoteFail();
       }
    }
 }
@@ -159,7 +184,8 @@ class RtcPeerHelper {
    }
 
    // Override these for notifications - TODO - see top of file
-   onRemoteData: ((this: RtcPeerHelper, ev: Event) => any) | null;
+   onRemoteData: ((this: RtcPeerHelper, ev: Event) => void) | null;
+   onRemoteFail: ((this: RtcPeerHelper) => void) | null;
 
    /**
    * set of 'getters' & some 'stters' for private variables
@@ -261,6 +287,8 @@ class RtcPeerHelper {
          case "failed":
             // The connection has been closed or failed
             this._isChannelConnected = false;
+            if (this.onRemoteFail)
+               this.onRemoteFail();
             break;
          case "closed":
             // The connection has been closed or failed
@@ -336,6 +364,10 @@ class RtcPeerHelper {
                   }
                })
          });
+   }
+
+   close(): void {
+      this._connection.close();
    }
 
    // Send channel handling

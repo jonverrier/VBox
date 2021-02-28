@@ -42,7 +42,7 @@ import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
 import { Media } from './media';
 
-var logger = new LoggerFactory().logger(LoggerType.Client);
+var logger = new LoggerFactory().logger(LoggerType.Client, true);
 
 const jumbotronStyle: CSS.Properties = {
    paddingLeft: '10px',

@@ -26,7 +26,7 @@ function uuid(): string {
    return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
 }
 
-var logger = new LoggerFactory().logger (LoggerType.Client);
+var logger = new LoggerFactory().logger (LoggerType.Client, true);
 
 export class RtcLink {
    // member variables

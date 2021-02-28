@@ -5,7 +5,7 @@ import axios from 'axios';
 
 import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
 
-var logger = new LoggerFactory().logger(LoggerType.Client);
+var logger = new LoggerFactory().logger(LoggerType.Client, true);
 
 interface ILoginFbProps {
    autoLogin: Boolean;

@@ -11,7 +11,7 @@ import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
 import { CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { IPeerSignaller } from './PeerInterfaces';
 
-var logger = new LoggerFactory().logger(LoggerType.Client);
+var logger = new LoggerFactory().logger(LoggerType.Client, true);
 
 // Helper class - take a name like 'Jon' and if the name is not unique for the session,
 export class Signaller implements IPeerSignaller {
