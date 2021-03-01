@@ -3,24 +3,24 @@
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
 // RunnableClock is a running clock - created from a spec, then can start, stop, pause etc.
 
-import { GymClockDurationEnum, GymClockMusicEnum, GymClockStateEnum, GymClockActionEnum, GymClockSpec, GymClockAction, GymClockState } from '../../core/dev/GymClock'
+import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from '../../core/dev/GymClock'
 
 const countDownSeconds : number = 15;
 
 // Keep this function need declation in case an extra Enum is added above & this needs to change
 function calculateCountToSeconds (durationEnum) {
    switch (durationEnum) {
-      case GymClockDurationEnum.Five:
+      case EGymClockDuration.Five:
          return (countDownSeconds + 5 * 60);
 
       default:
-      case GymClockDurationEnum.Ten:
+      case EGymClockDuration.Ten:
          return (countDownSeconds + 10 * 60);
 
-      case GymClockDurationEnum.Fifteen:
+      case EGymClockDuration.Fifteen:
          return (countDownSeconds + 15 * 60);
 
-      case GymClockDurationEnum.Twenty:
+      case EGymClockDuration.Twenty:
          return (countDownSeconds + 20 * 60);
 
    }
@@ -31,7 +31,7 @@ function calculateCountToSeconds (durationEnum) {
 //==============================//
 export class RunnableClock  {
    private _clockSpec: GymClockSpec; 
-   private _clockStateEnum: GymClockStateEnum;
+   private _clockStateEnum: EGymClockState;
    private _secondsCounted: number;
    private startReference: Date;
    private countToSeconds: number;
@@ -44,7 +44,7 @@ export class RunnableClock  {
     */
    constructor (clockSpec) {
       this._clockSpec = clockSpec;
-      this._clockStateEnum = GymClockStateEnum.Stopped;
+      this._clockStateEnum = EGymClockState.Stopped;
       this._secondsCounted = 0;
       this.startReference = new Date();
       this.countToSeconds = 0;
@@ -65,7 +65,7 @@ export class RunnableClock  {
    get clockSpec(): GymClockSpec {
       return this._clockSpec;
    }
-   get clockStateEnum(): GymClockStateEnum {
+   get clockStateEnum(): EGymClockState {
       return this._clockStateEnum;
    }
    get secondsCounted(): number {
@@ -92,9 +92,9 @@ export class RunnableClock  {
          this._secondsCounted = secondsPlayed;
 
       if (this._secondsCounted >= countDownSeconds)
-         this._clockStateEnum = GymClockStateEnum.Running;
+         this._clockStateEnum = EGymClockState.Running;
       else
-         this._clockStateEnum = GymClockStateEnum.CountingDown;
+         this._clockStateEnum = EGymClockState.CountingDown;
 
       this.countToSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
       if (this.intervalId) {
@@ -123,7 +123,7 @@ export class RunnableClock  {
          clearInterval(this.intervalId);
          this.intervalId = null;
       }
-      this._clockStateEnum = GymClockStateEnum.Stopped;
+      this._clockStateEnum = EGymClockState.Stopped;
       this._secondsCounted = 0;
       this.countToSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
 
@@ -142,7 +142,7 @@ export class RunnableClock  {
       if (this.audio)
          this.audio.pause();
 
-      this._clockStateEnum = GymClockStateEnum.Paused;
+      this._clockStateEnum = EGymClockState.Paused;
    };
 
    onClockInterval () : void {
@@ -153,14 +153,14 @@ export class RunnableClock  {
       seconds = (now.getTime() - this.startReference.getTime()) / 1000;
       this._secondsCounted = seconds;
 
-      if (this._clockStateEnum === GymClockStateEnum.CountingDown
+      if (this._clockStateEnum === EGymClockState.CountingDown
          && seconds < countDownSeconds) {
 
          mm = Math.floor((countDownSeconds - seconds) / 60);
          ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
       } else {
-         if (this._clockStateEnum === GymClockStateEnum.CountingDown) {
-            this._clockStateEnum = GymClockStateEnum.Running;
+         if (this._clockStateEnum === EGymClockState.CountingDown) {
+            this._clockStateEnum = EGymClockState.Running;
          } 
 
          mm = Math.floor((seconds - countDownSeconds) / 60);
@@ -177,27 +177,27 @@ export class RunnableClock  {
 
    isRunning () : boolean {
 
-      return (this._clockStateEnum === GymClockStateEnum.CountingDown)
-         || (this._clockStateEnum === GymClockStateEnum.Running);
+      return (this._clockStateEnum === EGymClockState.CountingDown)
+         || (this._clockStateEnum === EGymClockState.Running);
    };
 
    canPause () : boolean {
 
-      return (this._clockStateEnum === GymClockStateEnum.CountingDown)
-         || (this._clockStateEnum === GymClockStateEnum.Running);
+      return (this._clockStateEnum === EGymClockState.CountingDown)
+         || (this._clockStateEnum === EGymClockState.Running);
    };
 
    canStop (): boolean {
 
-      return (this._clockStateEnum === GymClockStateEnum.Paused)
-         || (this._clockStateEnum === GymClockStateEnum.CountingDown)
-         || (this._clockStateEnum === GymClockStateEnum.Running);
+      return (this._clockStateEnum === EGymClockState.Paused)
+         || (this._clockStateEnum === EGymClockState.CountingDown)
+         || (this._clockStateEnum === EGymClockState.Running);
    };
 
    canStart () : boolean {
 
-      return (this._clockStateEnum === GymClockStateEnum.Paused)
-         || (this._clockStateEnum === GymClockStateEnum.Stopped);
+      return (this._clockStateEnum === EGymClockState.Paused)
+         || (this._clockStateEnum === EGymClockState.Stopped);
    };
 
    saveToState(): GymClockState {
@@ -208,16 +208,16 @@ export class RunnableClock  {
    loadFromState(state: GymClockState, callbackFn: Function) {
 
       switch (state.stateEnum) {
-         case GymClockStateEnum.Stopped:
+         case EGymClockState.Stopped:
             if (this.canStop())
                this.stop();
             break;
-         case GymClockStateEnum.CountingDown:
-         case GymClockStateEnum.Running:
+         case EGymClockState.CountingDown:
+         case EGymClockState.Running:
             if (this.canStart())
                this.start(callbackFn, state.secondsIn);
             break;
-         case GymClockStateEnum.Paused:
+         case EGymClockState.Paused:
             if (this.canPause())
                this.pause();
             break;

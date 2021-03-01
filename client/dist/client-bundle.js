@@ -3139,6 +3139,8 @@ var sizeMap = {
 function getSvgProps(_ref) {
   var ariaLabel = _ref['aria-label'],
       className = _ref.className,
+      _ref$fill = _ref.fill,
+      fill = _ref$fill === undefined ? 'currentColor' : _ref$fill,
       size = _ref.size,
       verticalAlign = _ref.verticalAlign,
       svgDataByHeight = _ref.svgDataByHeight;
@@ -3157,7 +3159,7 @@ function getSvgProps(_ref) {
     viewBox: '0 0 ' + naturalWidth + ' ' + naturalHeight,
     width: width,
     height: height,
-    fill: 'currentColor',
+    fill: fill,
     style: {
       display: 'inline-block',
       userSelect: 'none',
@@ -3183,7 +3185,7 @@ function AlertIcon(props) {
 }
 
 AlertIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-alert',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3194,7 +3196,7 @@ function ArchiveIcon(props) {
 }
 
 ArchiveIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-archive',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3205,7 +3207,7 @@ function ArrowBothIcon(props) {
 }
 
 ArrowBothIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-both',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3216,7 +3218,7 @@ function ArrowDownIcon(props) {
 }
 
 ArrowDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3227,7 +3229,7 @@ function ArrowDownLeftIcon(props) {
 }
 
 ArrowDownLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-down-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3238,7 +3240,7 @@ function ArrowDownRightIcon(props) {
 }
 
 ArrowDownRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-down-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3249,7 +3251,7 @@ function ArrowLeftIcon(props) {
 }
 
 ArrowLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3260,7 +3262,7 @@ function ArrowRightIcon(props) {
 }
 
 ArrowRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3271,7 +3273,7 @@ function ArrowSwitchIcon(props) {
 }
 
 ArrowSwitchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-switch',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3282,7 +3284,7 @@ function ArrowUpIcon(props) {
 }
 
 ArrowUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3293,7 +3295,7 @@ function ArrowUpLeftIcon(props) {
 }
 
 ArrowUpLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-up-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3304,7 +3306,7 @@ function ArrowUpRightIcon(props) {
 }
 
 ArrowUpRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-up-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3315,7 +3317,7 @@ function BeakerIcon(props) {
 }
 
 BeakerIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-beaker',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3326,7 +3328,7 @@ function BellIcon(props) {
 }
 
 BellIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bell',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3337,7 +3339,7 @@ function BellFillIcon(props) {
 }
 
 BellFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bell-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3348,7 +3350,7 @@ function BellSlashIcon(props) {
 }
 
 BellSlashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bell-slash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3359,7 +3361,7 @@ function BoldIcon(props) {
 }
 
 BoldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bold',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3370,7 +3372,7 @@ function BookIcon(props) {
 }
 
 BookIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-book',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3381,7 +3383,7 @@ function BookmarkIcon(props) {
 }
 
 BookmarkIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3392,7 +3394,7 @@ function BookmarkFillIcon(props) {
 }
 
 BookmarkFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3403,7 +3405,7 @@ function BookmarkSlashIcon(props) {
 }
 
 BookmarkSlashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark-slash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3414,7 +3416,7 @@ function BookmarkSlashFillIcon(props) {
 }
 
 BookmarkSlashFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark-slash-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3425,7 +3427,7 @@ function BriefcaseIcon(props) {
 }
 
 BriefcaseIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-briefcase',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3436,7 +3438,7 @@ function BroadcastIcon(props) {
 }
 
 BroadcastIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-broadcast',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3447,7 +3449,7 @@ function BrowserIcon(props) {
 }
 
 BrowserIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-browser',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3458,7 +3460,7 @@ function BugIcon(props) {
 }
 
 BugIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bug',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3469,7 +3471,7 @@ function CalendarIcon(props) {
 }
 
 CalendarIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-calendar',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3480,7 +3482,7 @@ function CheckIcon(props) {
 }
 
 CheckIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-check',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3491,7 +3493,7 @@ function CheckCircleIcon(props) {
 }
 
 CheckCircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-check-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3502,7 +3504,7 @@ function CheckCircleFillIcon(props) {
 }
 
 CheckCircleFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-check-circle-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3513,7 +3515,7 @@ function ChecklistIcon(props) {
 }
 
 ChecklistIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-checklist',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3524,7 +3526,7 @@ function ChevronDownIcon(props) {
 }
 
 ChevronDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3535,7 +3537,7 @@ function ChevronLeftIcon(props) {
 }
 
 ChevronLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3546,7 +3548,7 @@ function ChevronRightIcon(props) {
 }
 
 ChevronRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3557,7 +3559,7 @@ function ChevronUpIcon(props) {
 }
 
 ChevronUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3568,7 +3570,7 @@ function CircleIcon(props) {
 }
 
 CircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3579,7 +3581,7 @@ function CircleSlashIcon(props) {
 }
 
 CircleSlashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-circle-slash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3590,7 +3592,7 @@ function ClippyIcon(props) {
 }
 
 ClippyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-clippy',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3601,7 +3603,7 @@ function ClockIcon(props) {
 }
 
 ClockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-clock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3612,7 +3614,7 @@ function CodeIcon(props) {
 }
 
 CodeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-code',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3623,7 +3625,7 @@ function CodeReviewIcon(props) {
 }
 
 CodeReviewIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-code-review',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3634,7 +3636,7 @@ function CodeSquareIcon(props) {
 }
 
 CodeSquareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-code-square',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3645,7 +3647,7 @@ function CommentIcon(props) {
 }
 
 CommentIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-comment',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3656,7 +3658,7 @@ function CommentDiscussionIcon(props) {
 }
 
 CommentDiscussionIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-comment-discussion',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3667,7 +3669,7 @@ function CommitIcon(props) {
 }
 
 CommitIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-commit',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3678,7 +3680,7 @@ function ContainerIcon(props) {
 }
 
 ContainerIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-container',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3689,7 +3691,7 @@ function CopyIcon(props) {
 }
 
 CopyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-copy',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3700,7 +3702,7 @@ function CpuIcon(props) {
 }
 
 CpuIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-cpu',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3711,7 +3713,7 @@ function CreditCardIcon(props) {
 }
 
 CreditCardIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-credit-card',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3722,7 +3724,7 @@ function CrossReferenceIcon(props) {
 }
 
 CrossReferenceIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-cross-reference',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3733,7 +3735,7 @@ function DashIcon(props) {
 }
 
 DashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-dash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3744,7 +3746,7 @@ function DatabaseIcon(props) {
 }
 
 DatabaseIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-database',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3755,7 +3757,7 @@ function DesktopDownloadIcon(props) {
 }
 
 DesktopDownloadIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-desktop-download',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3766,7 +3768,7 @@ function DeviceCameraIcon(props) {
 }
 
 DeviceCameraIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-camera',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3777,7 +3779,7 @@ function DeviceCameraVideoIcon(props) {
 }
 
 DeviceCameraVideoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-camera-video',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3788,7 +3790,7 @@ function DeviceDesktopIcon(props) {
 }
 
 DeviceDesktopIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-desktop',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3799,7 +3801,7 @@ function DeviceMobileIcon(props) {
 }
 
 DeviceMobileIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-mobile',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3810,7 +3812,7 @@ function DiffIcon(props) {
 }
 
 DiffIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3821,7 +3823,7 @@ function DiffAddedIcon(props) {
 }
 
 DiffAddedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-added',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3832,7 +3834,7 @@ function DiffIgnoredIcon(props) {
 }
 
 DiffIgnoredIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-ignored',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3843,7 +3845,7 @@ function DiffModifiedIcon(props) {
 }
 
 DiffModifiedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-modified',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3854,7 +3856,7 @@ function DiffRemovedIcon(props) {
 }
 
 DiffRemovedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-removed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3865,7 +3867,7 @@ function DiffRenamedIcon(props) {
 }
 
 DiffRenamedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-renamed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3876,7 +3878,7 @@ function DotIcon(props) {
 }
 
 DotIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-dot',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3887,7 +3889,7 @@ function DotFillIcon(props) {
 }
 
 DotFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-dot-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3898,7 +3900,7 @@ function DownloadIcon(props) {
 }
 
 DownloadIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-download',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3909,7 +3911,7 @@ function EllipsisIcon(props) {
 }
 
 EllipsisIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-ellipsis',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3920,7 +3922,7 @@ function EyeIcon(props) {
 }
 
 EyeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-eye',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3931,7 +3933,7 @@ function EyeClosedIcon(props) {
 }
 
 EyeClosedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-eye-closed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3942,7 +3944,7 @@ function FileIcon(props) {
 }
 
 FileIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3953,7 +3955,7 @@ function FileBadgeIcon(props) {
 }
 
 FileBadgeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-badge',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3964,7 +3966,7 @@ function FileBinaryIcon(props) {
 }
 
 FileBinaryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-binary',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3975,7 +3977,7 @@ function FileCodeIcon(props) {
 }
 
 FileCodeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-code',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3986,7 +3988,7 @@ function FileDiffIcon(props) {
 }
 
 FileDiffIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-diff',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3997,7 +3999,7 @@ function FileDirectoryIcon(props) {
 }
 
 FileDirectoryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-directory',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4008,7 +4010,7 @@ function FileDirectoryFillIcon(props) {
 }
 
 FileDirectoryFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-directory-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4019,7 +4021,7 @@ function FileMediaIcon(props) {
 }
 
 FileMediaIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-media',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4030,7 +4032,7 @@ function FileSubmoduleIcon(props) {
 }
 
 FileSubmoduleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-submodule',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4041,7 +4043,7 @@ function FileSymlinkFileIcon(props) {
 }
 
 FileSymlinkFileIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-symlink-file',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4052,7 +4054,7 @@ function FileZipIcon(props) {
 }
 
 FileZipIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-zip',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4063,7 +4065,7 @@ function FilterIcon(props) {
 }
 
 FilterIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-filter',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4074,7 +4076,7 @@ function FlameIcon(props) {
 }
 
 FlameIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-flame',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4085,7 +4087,7 @@ function FoldIcon(props) {
 }
 
 FoldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-fold',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4096,7 +4098,7 @@ function FoldDownIcon(props) {
 }
 
 FoldDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-fold-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4107,7 +4109,7 @@ function FoldUpIcon(props) {
 }
 
 FoldUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-fold-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4118,7 +4120,7 @@ function GearIcon(props) {
 }
 
 GearIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-gear',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4129,7 +4131,7 @@ function GiftIcon(props) {
 }
 
 GiftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-gift',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4140,7 +4142,7 @@ function GitBranchIcon(props) {
 }
 
 GitBranchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-branch',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4151,7 +4153,7 @@ function GitCommitIcon(props) {
 }
 
 GitCommitIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-commit',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4162,7 +4164,7 @@ function GitCompareIcon(props) {
 }
 
 GitCompareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-compare',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4173,7 +4175,7 @@ function GitForkIcon(props) {
 }
 
 GitForkIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-fork',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4184,7 +4186,7 @@ function GitMergeIcon(props) {
 }
 
 GitMergeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-merge',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4195,7 +4197,7 @@ function GitPullRequestIcon(props) {
 }
 
 GitPullRequestIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-pull-request',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4206,7 +4208,7 @@ function GlobeIcon(props) {
 }
 
 GlobeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-globe',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4217,7 +4219,7 @@ function GrabberIcon(props) {
 }
 
 GrabberIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-grabber',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4228,7 +4230,7 @@ function GraphIcon(props) {
 }
 
 GraphIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-graph',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4239,7 +4241,7 @@ function HeadingIcon(props) {
 }
 
 HeadingIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-heading',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4250,7 +4252,7 @@ function HeartIcon(props) {
 }
 
 HeartIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-heart',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4261,7 +4263,7 @@ function HeartFillIcon(props) {
 }
 
 HeartFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-heart-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4272,7 +4274,7 @@ function HistoryIcon(props) {
 }
 
 HistoryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-history',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4283,7 +4285,7 @@ function HomeIcon(props) {
 }
 
 HomeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-home',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4294,7 +4296,7 @@ function HomeFillIcon(props) {
 }
 
 HomeFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-home-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4305,7 +4307,7 @@ function HorizontalRuleIcon(props) {
 }
 
 HorizontalRuleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-horizontal-rule',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4316,7 +4318,7 @@ function HourglassIcon(props) {
 }
 
 HourglassIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-hourglass',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4327,7 +4329,7 @@ function HubotIcon(props) {
 }
 
 HubotIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-hubot',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4338,7 +4340,7 @@ function ImageIcon(props) {
 }
 
 ImageIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-image',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4349,7 +4351,7 @@ function InboxIcon(props) {
 }
 
 InboxIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-inbox',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4360,7 +4362,7 @@ function InfinityIcon(props) {
 }
 
 InfinityIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-infinity',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4371,7 +4373,7 @@ function InfoIcon(props) {
 }
 
 InfoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-info',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4382,7 +4384,7 @@ function InsightsIcon(props) {
 }
 
 InsightsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-insights',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4393,7 +4395,7 @@ function IssueClosedIcon(props) {
 }
 
 IssueClosedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-issue-closed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4404,7 +4406,7 @@ function IssueOpenedIcon(props) {
 }
 
 IssueOpenedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-issue-opened',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4415,7 +4417,7 @@ function IssueReopenedIcon(props) {
 }
 
 IssueReopenedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-issue-reopened',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4426,7 +4428,7 @@ function ItalicIcon(props) {
 }
 
 ItalicIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-italic',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4437,7 +4439,7 @@ function KebabHorizontalIcon(props) {
 }
 
 KebabHorizontalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-kebab-horizontal',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4448,7 +4450,7 @@ function KeyIcon(props) {
 }
 
 KeyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-key',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4459,7 +4461,7 @@ function LawIcon(props) {
 }
 
 LawIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-law',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4470,7 +4472,7 @@ function LightBulbIcon(props) {
 }
 
 LightBulbIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-light-bulb',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4481,7 +4483,7 @@ function LinkIcon(props) {
 }
 
 LinkIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-link',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4492,7 +4494,7 @@ function LinkExternalIcon(props) {
 }
 
 LinkExternalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-link-external',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4503,7 +4505,7 @@ function ListOrderedIcon(props) {
 }
 
 ListOrderedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-list-ordered',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4514,7 +4516,7 @@ function ListUnorderedIcon(props) {
 }
 
 ListUnorderedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-list-unordered',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4525,7 +4527,7 @@ function LocationIcon(props) {
 }
 
 LocationIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-location',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4536,7 +4538,7 @@ function LockIcon(props) {
 }
 
 LockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-lock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4547,7 +4549,7 @@ function LogoGistIcon(props) {
 }
 
 LogoGistIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-logo-gist',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4558,7 +4560,7 @@ function LogoGithubIcon(props) {
 }
 
 LogoGithubIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-logo-github',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4569,7 +4571,7 @@ function MailIcon(props) {
 }
 
 MailIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mail',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4580,7 +4582,7 @@ function MarkGithubIcon(props) {
 }
 
 MarkGithubIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mark-github',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4591,7 +4593,7 @@ function MarkdownIcon(props) {
 }
 
 MarkdownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-markdown',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4602,7 +4604,7 @@ function MegaphoneIcon(props) {
 }
 
 MegaphoneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-megaphone',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4613,7 +4615,7 @@ function MentionIcon(props) {
 }
 
 MentionIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mention',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4624,7 +4626,7 @@ function MeterIcon(props) {
 }
 
 MeterIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-meter',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4635,7 +4637,7 @@ function MilestoneIcon(props) {
 }
 
 MilestoneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-milestone',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4646,7 +4648,7 @@ function MirrorIcon(props) {
 }
 
 MirrorIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mirror',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4657,7 +4659,7 @@ function MoonIcon(props) {
 }
 
 MoonIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-moon',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4668,7 +4670,7 @@ function MortarBoardIcon(props) {
 }
 
 MortarBoardIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mortar-board',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4679,7 +4681,7 @@ function MultiSelectIcon(props) {
 }
 
 MultiSelectIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-multi-select',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4690,7 +4692,7 @@ function MuteIcon(props) {
 }
 
 MuteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mute',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4701,7 +4703,7 @@ function NoEntryIcon(props) {
 }
 
 NoEntryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-no-entry',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4712,7 +4714,7 @@ function NorthStarIcon(props) {
 }
 
 NorthStarIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-north-star',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4723,7 +4725,7 @@ function NoteIcon(props) {
 }
 
 NoteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-note',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4734,7 +4736,7 @@ function NumberIcon(props) {
 }
 
 NumberIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-number',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4745,7 +4747,7 @@ function OctofaceIcon(props) {
 }
 
 OctofaceIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-octoface',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4756,7 +4758,7 @@ function OrganizationIcon(props) {
 }
 
 OrganizationIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-organization',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4767,7 +4769,7 @@ function PackageIcon(props) {
 }
 
 PackageIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-package',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4778,7 +4780,7 @@ function PackageDependenciesIcon(props) {
 }
 
 PackageDependenciesIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-package-dependencies',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4789,7 +4791,7 @@ function PackageDependentsIcon(props) {
 }
 
 PackageDependentsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-package-dependents',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4800,7 +4802,7 @@ function PaintbrushIcon(props) {
 }
 
 PaintbrushIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-paintbrush',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4811,7 +4813,7 @@ function PaperAirplaneIcon(props) {
 }
 
 PaperAirplaneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-paper-airplane',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4822,7 +4824,7 @@ function PencilIcon(props) {
 }
 
 PencilIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-pencil',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4833,7 +4835,7 @@ function PeopleIcon(props) {
 }
 
 PeopleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-people',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4844,7 +4846,7 @@ function PersonIcon(props) {
 }
 
 PersonIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-person',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4855,7 +4857,7 @@ function PinIcon(props) {
 }
 
 PinIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-pin',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4866,7 +4868,7 @@ function PlayIcon(props) {
 }
 
 PlayIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-play',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4877,7 +4879,7 @@ function PlugIcon(props) {
 }
 
 PlugIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-plug',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4888,7 +4890,7 @@ function PlusIcon(props) {
 }
 
 PlusIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-plus',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4899,7 +4901,7 @@ function PlusCircleIcon(props) {
 }
 
 PlusCircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-plus-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4910,7 +4912,7 @@ function ProjectIcon(props) {
 }
 
 ProjectIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-project',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4921,7 +4923,7 @@ function PulseIcon(props) {
 }
 
 PulseIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-pulse',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4932,7 +4934,7 @@ function QuestionIcon(props) {
 }
 
 QuestionIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-question',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4943,7 +4945,7 @@ function QuoteIcon(props) {
 }
 
 QuoteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-quote',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4954,7 +4956,7 @@ function ReplyIcon(props) {
 }
 
 ReplyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-reply',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4965,7 +4967,7 @@ function RepoIcon(props) {
 }
 
 RepoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4976,7 +4978,7 @@ function RepoCloneIcon(props) {
 }
 
 RepoCloneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-clone',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4987,7 +4989,7 @@ function RepoForkedIcon(props) {
 }
 
 RepoForkedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-forked',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4998,7 +5000,7 @@ function RepoPullIcon(props) {
 }
 
 RepoPullIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-pull',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5009,7 +5011,7 @@ function RepoPushIcon(props) {
 }
 
 RepoPushIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-push',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5020,7 +5022,7 @@ function RepoTemplateIcon(props) {
 }
 
 RepoTemplateIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-template',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5031,7 +5033,7 @@ function ReportIcon(props) {
 }
 
 ReportIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-report',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5042,7 +5044,7 @@ function RocketIcon(props) {
 }
 
 RocketIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-rocket',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5053,7 +5055,7 @@ function RssIcon(props) {
 }
 
 RssIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-rss',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5064,7 +5066,7 @@ function RubyIcon(props) {
 }
 
 RubyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-ruby',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5075,7 +5077,7 @@ function ScreenFullIcon(props) {
 }
 
 ScreenFullIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-screen-full',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5086,7 +5088,7 @@ function ScreenNormalIcon(props) {
 }
 
 ScreenNormalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-screen-normal',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5097,7 +5099,7 @@ function SearchIcon(props) {
 }
 
 SearchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-search',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5108,7 +5110,7 @@ function ServerIcon(props) {
 }
 
 ServerIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-server',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5119,7 +5121,7 @@ function ShareIcon(props) {
 }
 
 ShareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-share',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5130,7 +5132,7 @@ function ShareAndroidIcon(props) {
 }
 
 ShareAndroidIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-share-android',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5141,7 +5143,7 @@ function ShieldIcon(props) {
 }
 
 ShieldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5152,7 +5154,7 @@ function ShieldCheckIcon(props) {
 }
 
 ShieldCheckIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield-check',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5163,7 +5165,7 @@ function ShieldLockIcon(props) {
 }
 
 ShieldLockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield-lock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5174,7 +5176,7 @@ function ShieldXIcon(props) {
 }
 
 ShieldXIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield-x',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5185,7 +5187,7 @@ function SignInIcon(props) {
 }
 
 SignInIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sign-in',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5196,7 +5198,7 @@ function SignOutIcon(props) {
 }
 
 SignOutIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sign-out',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5207,7 +5209,7 @@ function SkipIcon(props) {
 }
 
 SkipIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-skip',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5218,7 +5220,7 @@ function SmileyIcon(props) {
 }
 
 SmileyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-smiley',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5229,7 +5231,7 @@ function SquareIcon(props) {
 }
 
 SquareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-square',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5240,7 +5242,7 @@ function SquareFillIcon(props) {
 }
 
 SquareFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-square-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5251,7 +5253,7 @@ function SquirrelIcon(props) {
 }
 
 SquirrelIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-squirrel',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5262,7 +5264,7 @@ function StarIcon(props) {
 }
 
 StarIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-star',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5273,7 +5275,7 @@ function StarFillIcon(props) {
 }
 
 StarFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-star-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5284,7 +5286,7 @@ function StopIcon(props) {
 }
 
 StopIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-stop',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5295,7 +5297,7 @@ function StopwatchIcon(props) {
 }
 
 StopwatchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-stopwatch',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5306,7 +5308,7 @@ function StrikethroughIcon(props) {
 }
 
 StrikethroughIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-strikethrough',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5317,7 +5319,7 @@ function SunIcon(props) {
 }
 
 SunIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sun',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5328,7 +5330,7 @@ function SyncIcon(props) {
 }
 
 SyncIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sync',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5339,7 +5341,7 @@ function TabIcon(props) {
 }
 
 TabIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tab',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5350,7 +5352,7 @@ function TagIcon(props) {
 }
 
 TagIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tag',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5361,7 +5363,7 @@ function TasklistIcon(props) {
 }
 
 TasklistIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tasklist',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5372,7 +5374,7 @@ function TelescopeIcon(props) {
 }
 
 TelescopeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-telescope',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5383,7 +5385,7 @@ function TerminalIcon(props) {
 }
 
 TerminalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-terminal',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5394,7 +5396,7 @@ function ThreeBarsIcon(props) {
 }
 
 ThreeBarsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-three-bars',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5405,7 +5407,7 @@ function ThumbsdownIcon(props) {
 }
 
 ThumbsdownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-thumbsdown',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5416,7 +5418,7 @@ function ThumbsupIcon(props) {
 }
 
 ThumbsupIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-thumbsup',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5427,7 +5429,7 @@ function ToolsIcon(props) {
 }
 
 ToolsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tools',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5438,7 +5440,7 @@ function TrashIcon(props) {
 }
 
 TrashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-trash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5449,7 +5451,7 @@ function TriangleDownIcon(props) {
 }
 
 TriangleDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5460,7 +5462,7 @@ function TriangleLeftIcon(props) {
 }
 
 TriangleLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5471,7 +5473,7 @@ function TriangleRightIcon(props) {
 }
 
 TriangleRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5482,7 +5484,7 @@ function TriangleUpIcon(props) {
 }
 
 TriangleUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5493,7 +5495,7 @@ function TypographyIcon(props) {
 }
 
 TypographyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-typography',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5504,7 +5506,7 @@ function UnfoldIcon(props) {
 }
 
 UnfoldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unfold',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5515,7 +5517,7 @@ function UnlockIcon(props) {
 }
 
 UnlockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unlock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5526,7 +5528,7 @@ function UnmuteIcon(props) {
 }
 
 UnmuteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unmute',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5537,7 +5539,7 @@ function UnverifiedIcon(props) {
 }
 
 UnverifiedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unverified',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5548,7 +5550,7 @@ function UploadIcon(props) {
 }
 
 UploadIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-upload',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5559,7 +5561,7 @@ function VerifiedIcon(props) {
 }
 
 VerifiedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-verified',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5570,7 +5572,7 @@ function VersionsIcon(props) {
 }
 
 VersionsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-versions',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5581,7 +5583,7 @@ function VideoIcon(props) {
 }
 
 VideoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-video',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5592,7 +5594,7 @@ function WorkflowIcon(props) {
 }
 
 WorkflowIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-workflow',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5603,7 +5605,7 @@ function XIcon(props) {
 }
 
 XIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-x',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5614,7 +5616,7 @@ function XCircleIcon(props) {
 }
 
 XCircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-x-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5625,7 +5627,7 @@ function XCircleFillIcon(props) {
 }
 
 XCircleFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-x-circle-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5636,7 +5638,7 @@ function ZapIcon(props) {
 }
 
 ZapIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-zap',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -52991,6 +52993,214 @@ function warning(condition, message) {
 
 /***/ }),
 
+/***/ "./dev/PeerConnection.tsx":
+/*!********************************!*\
+  !*** ./dev/PeerConnection.tsx ***!
+  \********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+//
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeerConnection = void 0;
+const webrtc_adapter_1 = __importDefault(__webpack_require__(/*! webrtc-adapter */ "./node_modules/webrtc-adapter/src/js/adapter_core.js")); // Google shim library
+// This app, external components
+const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const Call_1 = __webpack_require__(/*! ../../core/dev/Call */ "../core/dev/Call.tsx");
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+// This app, this component
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+const PeerLink_1 = __webpack_require__(/*! ./PeerLink */ "./dev/PeerLink.tsx");
+const PeerSignaller_1 = __webpack_require__(/*! ./PeerSignaller */ "./dev/PeerSignaller.tsx");
+function uuidPart() {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
+}
+;
+function uuid() {
+    return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
+}
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class PeerConnection {
+    constructor(props) {
+        this._localCallParticipation = null;
+        this._links = new Array();
+        this._datalisteners = new Array();
+        this._isEdgeOnly = props.isEdgeOnly;
+        this._nameCache = new PeerInterfaces_1.PeerNameCache();
+        this._signalSender = new PeerSignaller_1.SignalSender();
+        this._signalReciever = new PeerSignaller_1.SignalReciever();
+        this._signalReciever.onRemoteData = this.onServerEvent.bind(this);
+        // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
+        this._localCallParticipation = new Call_1.CallParticipation(null, props.facilityId, props.personId, !this._isEdgeOnly, props.sessionId, uuid());
+        // Store data on the Person who is running the app - used in data handshake & exchange
+        this._person = new Person_1.Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
+        // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
+        logger.logInfo(PeerConnection.className, 'constructor', 'Browser:', webrtc_adapter_1.default.browserDetails);
+    }
+    addRemoteDataListener(fn) {
+        this._datalisteners.push(fn);
+    }
+    ;
+    connect() {
+        this._signalReciever.connect(this._localCallParticipation);
+    }
+    isConnectedToServer() {
+        return this._signalReciever.isConnected();
+    }
+    isConnectedToLeader() {
+        for (var i = 0; i < this._links.length; i++) {
+            if (this._links[i].isConnectedToLeader()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    isConnectedToMember(name) {
+        for (var i = 0; i < this._links.length; i++) {
+            if (this._links[i].isConnectedToPerson(name))
+                return true;
+        }
+        return false;
+    }
+    broadcast(obj) {
+        var self = this;
+        for (var i = 0; i < self._links.length; i++) {
+            self._links[i].send(obj);
+        }
+    }
+    onServerEvent(data) {
+        let casting = data;
+        switch (data.type) {
+            case "CallParticipation":
+                logger.logInfo(PeerConnection.className, 'onServerEvent', "CallParticipation", null);
+                let participation = casting;
+                this.onParticipant(participation);
+                break;
+            case "CallOffer":
+                logger.logInfo(PeerConnection.className, 'onServerEvent', "CallOffer", null);
+                let offer = casting;
+                this.onOffer(offer);
+                break;
+            case "CallAnswer":
+                logger.logInfo(PeerConnection.className, 'onServerEvent', "CallAnswer", null);
+                let answer = casting;
+                this.onAnswer(answer);
+                break;
+            case "CallIceCandidate":
+                let iceCandidate = casting;
+                logger.logInfo(PeerConnection.className, 'onServerEvent', "CallIceCandidate", iceCandidate.ice);
+                this.onRemoteIceCandidate(iceCandidate);
+                break;
+            case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
+                break;
+            default:
+                logger.logInfo(PeerConnection.className, 'onServerEvent', "data:", data);
+                break;
+        }
+    }
+    onParticipant(remoteParticipation) {
+        // If we are an edge node, and the caller is not a leader, dont respond.
+        if (this._isEdgeOnly && !remoteParticipation.isCandidateLeader)
+            return;
+        var link = new PeerLink_1.PeerLink(true, this._localCallParticipation, remoteParticipation, this._person, this._nameCache, this._signalSender);
+        // Hooks to pass up data
+        link.onRemoteData = (ev) => {
+            if (this._datalisteners) {
+                for (var i = 0; i < this._datalisteners.length; i++) {
+                    this._datalisteners[i](ev);
+                }
+            }
+        };
+        this._links.push(link);
+        // place the call after setting up 'links' to avoid a race condition
+        link.placeCall();
+    }
+    setupRecieverLink(remoteParticipation) {
+        var link = new PeerLink_1.PeerLink(false, this._localCallParticipation, remoteParticipation, this._person, this._nameCache, this._signalSender);
+        // Hooks to pass up data
+        link.onRemoteData = (ev) => {
+            if (this._datalisteners) {
+                for (var i = 0; i < this._datalisteners.length; i++) {
+                    this._datalisteners[i](ev);
+                }
+            }
+        };
+        this._links.push(link);
+        return link;
+    }
+    onOffer(remoteOffer) {
+        var self = this;
+        // This loop removes glare, when we may be trying to set up calls with each other.
+        for (var i = 0; i < self._links.length; i++) {
+            if (self._links[i].remoteCallParticipation().equals(remoteOffer.from)) {
+                // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
+                // The recipient with the greater glareResolve makes the winning offer 
+                if (self._localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
+                    self._links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
+                }
+                else {
+                    return; // if we win, they will answer our offer, we do nothing more 
+                }
+            }
+        }
+        // Setup links befoe answering the call to remove race conditions from asynchronous arrival
+        let link = this.setupRecieverLink(remoteOffer.from);
+        link.answerCall(remoteOffer);
+    }
+    onAnswer(remoteAnswer) {
+        var self = this;
+        var found = false;
+        for (var i = 0; i < self._links.length; i++) {
+            if (self._links[i].remoteCallParticipation().equals(remoteAnswer.from)) {
+                self._links[i].handleAnswer(remoteAnswer);
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            logger.logError(PeerConnection.className, 'onAnswer', "cannot find target:", remoteAnswer);
+    }
+    onRemoteIceCandidate(remoteIceCandidate) {
+        var self = this;
+        var found = false;
+        for (var i = 0; i < self._links.length && !found; i++) {
+            if (self._links[i].remoteCallParticipation().equals(remoteIceCandidate.from)) {
+                found = true;
+            }
+        }
+        if (!found) {
+            this.setupRecieverLink(remoteIceCandidate.from);
+        }
+        found = false;
+        // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
+        // incoming messages still pending
+        // So fail silently if we get unexpected Ice candidate messages 
+        for (var i = 0; i < self._links.length; i++) {
+            if (self._links[i].remoteCallParticipation().equals(remoteIceCandidate.from)) {
+                if (remoteIceCandidate.outbound) {
+                    self._links[i].handleIceCandidate(remoteIceCandidate);
+                }
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            logger.logError(PeerConnection.className, 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
+            logger.logError(PeerConnection.className, 'onRemoteIceCandidate', "Links:", self._links);
+        }
+    }
+}
+exports.PeerConnection = PeerConnection;
+PeerConnection.className = 'PeerConnection';
+
+
+/***/ }),
+
 /***/ "./dev/PeerInterfaces.tsx":
 /*!********************************!*\
   !*** ./dev/PeerInterfaces.tsx ***!
@@ -53001,11 +53211,18 @@ function warning(condition, message) {
 
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
-// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
 // PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
-// PeerSignaller - contains an implementation of the PeerSignaller interface. 
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PeerNameCache = void 0;
+exports.PeerNameCache = exports.EPeerConnectionType = void 0;
+var EPeerConnectionType;
+(function (EPeerConnectionType) {
+    EPeerConnectionType[EPeerConnectionType["RtcCaller"] = 0] = "RtcCaller";
+    EPeerConnectionType[EPeerConnectionType["RtcReciever"] = 1] = "RtcReciever";
+})(EPeerConnectionType = exports.EPeerConnectionType || (exports.EPeerConnectionType = {}));
 // Helper class - take a name like 'Jon' and if the name is not unique for the session,
 // tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
 // This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
@@ -53034,6 +53251,136 @@ exports.PeerNameCache = PeerNameCache;
 
 /***/ }),
 
+/***/ "./dev/PeerLink.tsx":
+/*!**************************!*\
+  !*** ./dev/PeerLink.tsx ***!
+  \**************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeerLink = void 0;
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+// This app, this component
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+const PeerRtc_1 = __webpack_require__(/*! ./PeerRtc */ "./dev/PeerRtc.tsx");
+function uuidPart() {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
+}
+;
+function uuid() {
+    return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
+}
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class PeerLink {
+    constructor(outbound, localCallParticipation, remoteCallParticipation, person, nameCache, signalSender) {
+        this._outbound = outbound;
+        this._localCallParticipation = localCallParticipation;
+        this._remoteCallParticipation = remoteCallParticipation;
+        this._person = person;
+        let factory = new PeerRtc_1.PeerFactory();
+        if (outbound) {
+            this._peerCaller = factory.createCallerConnection(PeerInterfaces_1.EPeerConnectionType.RtcCaller, localCallParticipation, remoteCallParticipation, person, nameCache, signalSender);
+            this._peerCaller.onRemoteData = this.onRemoteDataInner.bind(this);
+            this._peerCaller.onRemoteFail = this.onRemoteFailInner.bind(this);
+        }
+        else {
+            this._peerReciever = factory.createRecieverConnection(PeerInterfaces_1.EPeerConnectionType.RtcReciever, localCallParticipation, remoteCallParticipation, person, nameCache, signalSender);
+            this._peerReciever.onRemoteData = this.onRemoteDataInner.bind(this);
+            this._peerReciever.onRemoteFail = this.onRemoteFailInner.bind(this);
+        }
+    }
+    remoteCallParticipation() {
+        return this._remoteCallParticipation;
+    }
+    placeCall() {
+        if (this._outbound && this._peerCaller)
+            this._peerCaller.placeCall();
+        else
+            logger.logError(PeerLink.className, 'placeCall', "Recieved placeCall but do not have caller:", null);
+    }
+    answerCall(offer) {
+        if (!this._outbound && this._peerReciever)
+            this._peerReciever.answerCall(offer);
+        else
+            logger.logError(PeerLink.className, 'answerCall', "Recieved offer but do not have reciever:", offer);
+    }
+    handleAnswer(answer) {
+        if (this._outbound && this._peerCaller)
+            this._peerCaller.handleAnswer(answer);
+        else
+            logger.logError(PeerLink.className, 'handleAnswer', "Recieved answer but do not have caller:", answer);
+    }
+    handleIceCandidate(ice) {
+        // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
+        // incoming messages still pending
+        // So fail silently if we get unexpected Ice candidate messages 
+        if (this._outbound) {
+            if (this._peerCaller)
+                this._peerCaller.handleIceCandidate(ice);
+            // else silent fail
+        }
+        else {
+            if (this._peerReciever)
+                this._peerReciever.handleIceCandidate(ice);
+            // else silent fail
+        }
+    }
+    send(obj) {
+        if (this._outbound && this._peerCaller)
+            this._peerCaller.send(obj);
+        if (!this._outbound && this._peerReciever)
+            this._peerReciever.send(obj);
+    }
+    isConnectedToLeader() {
+        if (!this._outbound && this._peerReciever && this._peerReciever.remotePerson()
+            && this._peerReciever.remoteCallParticipation().isCandidateLeader
+            && this._peerReciever.isConnected()) {
+            return true;
+        }
+        if (this._outbound && this._peerCaller && this._peerCaller.remotePerson()
+            && this._peerCaller.remoteCallParticipation().isCandidateLeader
+            && this._peerCaller.isConnected()) {
+            return true;
+        }
+        return false;
+    }
+    isConnectedToPerson(name) {
+        if (!this._outbound && this._peerReciever && this._peerReciever.remotePerson()
+            && this._peerReciever.remotePerson().name === name
+            && this._peerReciever.isConnected()) {
+            return true;
+        }
+        if (this._outbound && this._peerCaller && this._peerCaller.remotePerson()
+            && this._peerCaller.remotePerson().name === name
+            && this._peerCaller.isConnected()) {
+            return true;
+        }
+        return false;
+    }
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData)
+            this.onRemoteData(ev);
+    }
+    onRemoteFailInner() {
+        if (this.onRemoteFail)
+            this.onRemoteFail();
+    }
+}
+exports.PeerLink = PeerLink;
+PeerLink.className = 'PeerLink';
+
+
+/***/ }),
+
 /***/ "./dev/PeerRtc.tsx":
 /*!*************************!*\
   !*** ./dev/PeerRtc.tsx ***!
@@ -53043,18 +53390,97 @@ exports.PeerNameCache = PeerNameCache;
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
 // PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
-// PeerSignaller - contains an implementation of the PeerSignaller interface. 
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PeerRecieverRtc = exports.PeerCallerRtc = void 0;
-// This app
+exports.PeerRecieverRtc = exports.PeerCallerRtc = exports.RtcConfigFactory = exports.PeerFactory = exports.ERtcConfigurationType = void 0;
+// This app, other components
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Queue_1 = __webpack_require__(/*! ../../core/dev/Queue */ "../core/dev/Queue.tsx");
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
 const Call_1 = __webpack_require__(/*! ../../core/dev/Call */ "../core/dev/Call.tsx");
-var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client, true);
+// This app, this component
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+var ERtcConfigurationType;
+(function (ERtcConfigurationType) {
+    ERtcConfigurationType[ERtcConfigurationType["StunOnly"] = 0] = "StunOnly";
+    ERtcConfigurationType[ERtcConfigurationType["TurnOnly"] = 1] = "TurnOnly";
+    ERtcConfigurationType[ERtcConfigurationType["StunThenTurn"] = 2] = "StunThenTurn";
+})(ERtcConfigurationType = exports.ERtcConfigurationType || (exports.ERtcConfigurationType = {}));
+// Set this to control connection scope
+const rtcConfigType = ERtcConfigurationType.StunOnly;
+class PeerFactory {
+    constructor() {
+    }
+    createCallerConnection(connectionType, localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        switch (connectionType) {
+            case PeerInterfaces_1.EPeerConnectionType.RtcCaller:
+                return new PeerCallerRtc(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+            default:
+                return null;
+        }
+    }
+    createRecieverConnection(connectionType, localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        switch (connectionType) {
+            case PeerInterfaces_1.EPeerConnectionType.RtcReciever:
+                return new PeerRecieverRtc(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+            default:
+                return null;
+        }
+    }
+}
+exports.PeerFactory = PeerFactory;
+class RtcConfigFactory {
+    constructor() {
+    }
+    createConfig(configType) {
+        switch (configType) {
+            case ERtcConfigurationType.StunOnly:
+                let stunConfiguration = {
+                    iceServers: [{
+                            "urls": "stun:stun.l.google.com:19302?transport=tcp"
+                        },
+                        {
+                            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+                        }]
+                };
+                return stunConfiguration;
+            case ERtcConfigurationType.TurnOnly:
+                let turnConfiguration = {
+                    iceServers: [
+                        {
+                            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+                        }
+                    ]
+                };
+                return turnConfiguration;
+            case ERtcConfigurationType.StunThenTurn:
+            default:
+                let defaultConfiguration = {
+                    iceServers: [{
+                            "urls": "stun:stun.l.google.com:19302?transport=tcp"
+                        },
+                        {
+                            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+                        },
+                        {
+                            "urls": "trurn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp",
+                            username: 'turnuser1678',
+                            credentials: 'iwtutfmp'
+                        }
+                    ]
+                };
+                return defaultConfiguration;
+        }
+    }
+}
+exports.RtcConfigFactory = RtcConfigFactory;
 class PeerCallerRtc {
     constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
         this.peerHelp = new RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
@@ -53062,8 +53488,26 @@ class PeerCallerRtc {
         this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
         this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
     }
+    /**
+    * set of 'getters' for private variables
+    */
+    localCallParticipation() {
+        return this.peerHelp.localCallParticipation;
+    }
+    remoteCallParticipation() {
+        return this.peerHelp.remoteCallParticipation;
+    }
+    localPerson() {
+        return this.peerHelp.localPerson;
+    }
+    remotePerson() {
+        return this.peerHelp.remotePerson;
+    }
+    isConnected() {
+        return this.peerHelp.isChannelConnected;
+    }
     placeCall() {
-        this.peerHelp.createConnection(RtcConnectionType.Caller, "Celler");
+        this.peerHelp.createConnection(PeerInterfaces_1.EPeerConnectionType.RtcCaller, "Celler");
     }
     handleAnswer(answer) {
         this.peerHelp.handleAnswer(answer);
@@ -53096,8 +53540,26 @@ class PeerRecieverRtc {
         this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
         this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
     }
+    /**
+    * set of 'getters' for private variables
+    */
+    localCallParticipation() {
+        return this.peerHelp.localCallParticipation;
+    }
+    remoteCallParticipation() {
+        return this.peerHelp.remoteCallParticipation;
+    }
+    localPerson() {
+        return this.peerHelp.localPerson;
+    }
+    remotePerson() {
+        return this.peerHelp.remotePerson;
+    }
+    isConnected() {
+        return this.peerHelp.isChannelConnected;
+    }
     answerCall(offer) {
-        this.peerHelp.createConnection(RtcConnectionType.Reciever, "Reciever");
+        this.peerHelp.createConnection(PeerInterfaces_1.EPeerConnectionType.RtcReciever, "Reciever");
         this.peerHelp.answerCall(offer);
     }
     handleIceCandidate(ice) {
@@ -53121,11 +53583,6 @@ class PeerRecieverRtc {
     }
 }
 exports.PeerRecieverRtc = PeerRecieverRtc;
-var RtcConnectionType;
-(function (RtcConnectionType) {
-    RtcConnectionType[RtcConnectionType["Caller"] = 0] = "Caller";
-    RtcConnectionType[RtcConnectionType["Reciever"] = 1] = "Reciever";
-})(RtcConnectionType || (RtcConnectionType = {}));
 class RtcPeerHelper {
     constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
         this._localCallParticipation = localCallParticipation;
@@ -53133,6 +53590,7 @@ class RtcPeerHelper {
         this._localPerson = person;
         this._nameCache = nameCache;
         this._signaller = signaller;
+        this._types = new Types_1.TypeRegistry();
         this._isChannelConnected = false;
         this._sendChannel = null;
         this._recieveChannel = null;
@@ -53164,63 +53622,49 @@ class RtcPeerHelper {
     // Connection handling
     //////////
     createConnection(type, channelName) {
-        // TODO - factory for config:
-        // - STUN only
-        // - TURN only
-        // - All
-        let configuration = {
-            iceServers: [{
-                    "urls": "stun:stun.l.google.com:19302?transport=tcp"
-                },
-                {
-                    "urls": "stun:stun1.l.google.com:19302?transport=tcp"
-                },
-                {
-                    "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
-                }
-            ]
-        };
+        let factory = new RtcConfigFactory();
+        let configuration = factory.createConfig(rtcConfigType);
         this._connection = new RTCPeerConnection(configuration);
         this._connection.onicecandidate = (ice) => {
             this.onIceCandidate(ice.candidate, this.remoteCallParticipation);
         };
-        if (type === RtcConnectionType.Caller) {
-            this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededCaller(ev); };
+        if (type === PeerInterfaces_1.EPeerConnectionType.RtcCaller) {
+            this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededCaller.bind(this)(ev); };
         }
         else {
-            this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededReciever(ev); };
+            this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededReciever.bind(this)(ev); };
         }
-        this._connection.ondatachannel = (ev) => { this.onRecieveDataChannel(ev.channel); };
-        this._connection.oniceconnectionstatechange = (ev) => { this.onIceConnectionStateChange(ev, this._connection); };
-        this._connection.onconnectionstatechange = (ev) => { this.onConnectionStateChange(ev, this._connection); };
-        this._connection.onicecandidateerror = (ev) => { this.onIceCandidateError(ev); };
+        this._connection.ondatachannel = (ev) => { this.onRecieveDataChannel.bind(this)(ev.channel); };
+        this._connection.oniceconnectionstatechange = (ev) => { this.onIceConnectionStateChange.bind(this)(ev, this._connection); };
+        this._connection.onconnectionstatechange = (ev) => { this.onConnectionStateChange.bind(this)(ev, this._connection); };
+        this._connection.onicecandidateerror = (ev) => { this.onIceCandidateError.bind(this)(ev); };
         this.createSendChannel(this._connection, channelName);
     }
     onIceCandidate(candidate, to) {
-        var self = this;
         // Send our call ICE candidate in
         var callIceCandidate = new Call_1.CallIceCandidate(null, this.localCallParticipation, to, candidate, true);
         this._signaller.sendIceCandidate(callIceCandidate);
     }
     onNegotiationNeededCaller(ev) {
+        var self = this;
         logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Event:', ev);
         // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
         this._connection.createOffer({ iceRestart: true })
-            .then(offer => this._connection.setLocalDescription(offer))
+            .then(offer => self._connection.setLocalDescription(offer))
             .then(() => {
             // Send our call offer data in
             logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Posting offer', null);
-            var callOffer = new Call_1.CallOffer(null, this.localCallParticipation, this.remoteCallParticipation, this._connection.localDescription);
-            this._signaller.sendOffer(callOffer);
+            var callOffer = new Call_1.CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self._connection.localDescription);
+            self._signaller.sendOffer(callOffer);
         });
     }
     ;
     onNegotiationNeededReciever(ev) {
-        var self = this;
         logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededReciever', 'Event:', ev);
     }
     ;
     onConnectionStateChange(ev, pc) {
+        logger.logInfo(RtcPeerHelper.className, 'onConnectionStateChange', 'State:', pc.connectionState);
         switch (pc.connectionState) {
             case "connected":
                 break;
@@ -53394,8 +53838,7 @@ class RtcPeerHelper {
         // Too noisy to keep this on 
         // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
         var ev2 = ev;
-        var types = new Types_1.TypeRegistry();
-        var remoteCallData = types.reviveFromJSON(ev2.data);
+        var remoteCallData = this._types.reviveFromJSON(ev2.data);
         // Store the person we are talking to - allows tracking in the UI later
         if (remoteCallData.type === Person_1.Person.__type) {
             var person = remoteCallData;
@@ -53421,32 +53864,44 @@ RtcPeerHelper.className = 'RtcPeerHelper';
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
 // PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
-// PeerSignaller - contains an implementation of the PeerSignaller interface.
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Signaller = void 0;
+exports.SignalReciever = exports.SignalSender = void 0;
 // External components
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
-// This app, this component
+// This app, other components 
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client, true);
-// Helper class - take a name like 'Jon' and if the name is not unique for the session,
-class Signaller {
+const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class SignalSender {
     constructor() {
     }
     sendOffer(offer) {
         return new Promise((resolve, reject) => {
             axios_1.default.post('/api/offer', { params: { callOffer: offer } })
                 .then((response) => {
-                logger.logInfo(Signaller.className, 'sendOffer', "Post Ok", null);
+                logger.logInfo(SignalSender.className, 'sendOffer', "Post Ok", null);
                 resolve('');
             })
                 .catch(function (error) {
-                logger.logError(Signaller.className, 'sendOffer', 'error:', error);
+                logger.logError(SignalSender.className, 'sendOffer', 'error:', error);
                 reject(error.toString());
             });
         });
@@ -53455,11 +53910,11 @@ class Signaller {
         return new Promise((resolve, reject) => {
             axios_1.default.post('/api/answer', { params: { callAnswer: answer } })
                 .then((response) => {
-                logger.logInfo(Signaller.className, 'sendAnswer', "Post Ok", null);
+                logger.logInfo(SignalSender.className, 'sendAnswer', "Post Ok", null);
                 resolve('');
             })
                 .catch(function (error) {
-                logger.logError(Signaller.className, 'sendAnswer', 'error:', error);
+                logger.logError(SignalSender.className, 'sendAnswer', 'error:', error);
                 reject(error.toString());
             });
         });
@@ -53468,19 +53923,71 @@ class Signaller {
         return new Promise((resolve, reject) => {
             axios_1.default.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
                 .then((response) => {
-                logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate.ice);
+                logger.logInfo(SignalSender.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate.ice);
                 resolve('');
             })
                 .catch(function (error) {
-                logger.logError(Signaller.className, 'sendIceCandidate', 'error:', error);
+                logger.logError(SignalSender.className, 'sendIceCandidate', 'error:', error);
                 reject(error.toString());
             });
         });
     }
 }
-exports.Signaller = Signaller;
+exports.SignalSender = SignalSender;
 // member variables
-Signaller.className = 'Signaller';
+SignalSender.className = 'SignalSender';
+class SignalReciever {
+    constructor() {
+        this._lastSequenceNo = 0;
+        this._retries = 0;
+        this._types = new Types_1.TypeRegistry();
+    }
+    connect(participation) {
+        this._participation = participation;
+        this.reConnect(participation);
+    }
+    isConnected() {
+        return this._events != null;
+    }
+    reConnect(participation) {
+        if (this._events) {
+            this._events.close();
+        }
+        // Send our own details & subscribe to more
+        const sourceUrl = '/callevents/?callParticipation='
+            + encodeURIComponent(JSON.stringify(this._participation))
+            + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this._lastSequenceNo));
+        this._events = new EventSource(sourceUrl);
+        this._events.onmessage = this.onServerData.bind(this);
+        this._events.onerror = this.onServerError.bind(this);
+    }
+    onServerData(ev) {
+        this._retries = 0;
+        let ev2 = ev;
+        var remoteCallData = this._types.reviveFromJSON(ev2.data);
+        var payload = remoteCallData.data;
+        if (this.onRemoteData)
+            this.onRemoteData(payload);
+        this._lastSequenceNo = remoteCallData.sequenceNo;
+    }
+    onServerError(ev) {
+        logger.logInfo(SignalReciever.className, 'onServerError', "event, retries:", { ev: ev, retries: this._retries });
+        this._events.close();
+        this.connectLater(3000);
+        this._retries++;
+    }
+    sleep(time) {
+        return new Promise(resolve => setTimeout(resolve, time));
+    }
+    connectLater(time) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.sleep(time);
+            this.reConnect(this._participation);
+        });
+    }
+}
+exports.SignalReciever = SignalReciever;
+SignalReciever.className = 'SignalReciever';
 
 
 /***/ }),
@@ -53504,14 +54011,14 @@ const countDownSeconds = 15;
 // Keep this function need declation in case an extra Enum is added above & this needs to change
 function calculateCountToSeconds(durationEnum) {
     switch (durationEnum) {
-        case GymClock_1.GymClockDurationEnum.Five:
+        case GymClock_1.EGymClockDuration.Five:
             return (countDownSeconds + 5 * 60);
         default:
-        case GymClock_1.GymClockDurationEnum.Ten:
+        case GymClock_1.EGymClockDuration.Ten:
             return (countDownSeconds + 10 * 60);
-        case GymClock_1.GymClockDurationEnum.Fifteen:
+        case GymClock_1.EGymClockDuration.Fifteen:
             return (countDownSeconds + 15 * 60);
-        case GymClock_1.GymClockDurationEnum.Twenty:
+        case GymClock_1.EGymClockDuration.Twenty:
             return (countDownSeconds + 20 * 60);
     }
 }
@@ -53525,7 +54032,7 @@ class RunnableClock {
      */
     constructor(clockSpec) {
         this._clockSpec = clockSpec;
-        this._clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
+        this._clockStateEnum = GymClock_1.EGymClockState.Stopped;
         this._secondsCounted = 0;
         this.startReference = new Date();
         this.countToSeconds = 0;
@@ -53568,9 +54075,9 @@ class RunnableClock {
         if (secondsPlayed)
             this._secondsCounted = secondsPlayed;
         if (this._secondsCounted >= countDownSeconds)
-            this._clockStateEnum = GymClock_1.GymClockStateEnum.Running;
+            this._clockStateEnum = GymClock_1.EGymClockState.Running;
         else
-            this._clockStateEnum = GymClock_1.GymClockStateEnum.CountingDown;
+            this._clockStateEnum = GymClock_1.EGymClockState.CountingDown;
         this.countToSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
         if (this.intervalId) {
             clearInterval(this.intervalId);
@@ -53593,7 +54100,7 @@ class RunnableClock {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
-        this._clockStateEnum = GymClock_1.GymClockStateEnum.Stopped;
+        this._clockStateEnum = GymClock_1.EGymClockState.Stopped;
         this._secondsCounted = 0;
         this.countToSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
         if (this.audio)
@@ -53609,7 +54116,7 @@ class RunnableClock {
         }
         if (this.audio)
             this.audio.pause();
-        this._clockStateEnum = GymClock_1.GymClockStateEnum.Paused;
+        this._clockStateEnum = GymClock_1.EGymClockState.Paused;
     }
     ;
     onClockInterval() {
@@ -53617,14 +54124,14 @@ class RunnableClock {
         now = new Date();
         seconds = (now.getTime() - this.startReference.getTime()) / 1000;
         this._secondsCounted = seconds;
-        if (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown
+        if (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown
             && seconds < countDownSeconds) {
             mm = Math.floor((countDownSeconds - seconds) / 60);
             ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
         }
         else {
-            if (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown) {
-                this._clockStateEnum = GymClock_1.GymClockStateEnum.Running;
+            if (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown) {
+                this._clockStateEnum = GymClock_1.EGymClockState.Running;
             }
             mm = Math.floor((seconds - countDownSeconds) / 60);
             ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60)); // Switch from floor to Ceil Compensate for passing zero in common across count down then count up
@@ -53639,24 +54146,24 @@ class RunnableClock {
     }
     ;
     isRunning() {
-        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+        return (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
     }
     ;
     canPause() {
-        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+        return (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
     }
     ;
     canStop() {
-        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
-            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.CountingDown)
-            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Running);
+        return (this._clockStateEnum === GymClock_1.EGymClockState.Paused)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
     }
     ;
     canStart() {
-        return (this._clockStateEnum === GymClock_1.GymClockStateEnum.Paused)
-            || (this._clockStateEnum === GymClock_1.GymClockStateEnum.Stopped);
+        return (this._clockStateEnum === GymClock_1.EGymClockState.Paused)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Stopped);
     }
     ;
     saveToState() {
@@ -53665,16 +54172,16 @@ class RunnableClock {
     ;
     loadFromState(state, callbackFn) {
         switch (state.stateEnum) {
-            case GymClock_1.GymClockStateEnum.Stopped:
+            case GymClock_1.EGymClockState.Stopped:
                 if (this.canStop())
                     this.stop();
                 break;
-            case GymClock_1.GymClockStateEnum.CountingDown:
-            case GymClock_1.GymClockStateEnum.Running:
+            case GymClock_1.EGymClockState.CountingDown:
+            case GymClock_1.EGymClockState.Running:
                 if (this.canStart())
                     this.start(callbackFn, state.secondsIn);
                 break;
-            case GymClock_1.GymClockStateEnum.Paused:
+            case GymClock_1.EGymClockState.Paused:
                 if (this.canPause())
                     this.pause();
                 break;
@@ -53739,23 +54246,24 @@ const Carousel_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Carou
 const react_helmet_1 = __webpack_require__(/*! react-helmet */ "./node_modules/react-helmet/es/Helmet.js");
 const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/esm/react-router-dom.js");
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
-// This app
+// This app, other components
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ../../core/dev/Facility */ "../core/dev/Facility.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities */ "../core/dev/UserFacilities.tsx");
+// This app, this component
 const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
 const callpanel_1 = __webpack_require__(/*! ./callpanel */ "./dev/callpanel.tsx");
 const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
 const loginfb_1 = __webpack_require__(/*! ./loginfb */ "./dev/loginfb.tsx");
 const loginmc_1 = __webpack_require__(/*! ./loginmc */ "./dev/loginmc.tsx");
-const rtc_1 = __webpack_require__(/*! ./rtc */ "./dev/rtc.tsx");
+const PeerConnection_1 = __webpack_require__(/*! ./PeerConnection */ "./dev/PeerConnection.tsx");
 const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
 const clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./dev/clockpanel.tsx");
 const whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./dev/whiteboardpanel.tsx");
 const leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./dev/leaderpanel.tsx");
 const media_1 = __webpack_require__(/*! ./media */ "./dev/media.tsx");
-var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client, true);
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 const jumbotronStyle = {
     paddingLeft: '10px',
     paddingRight: '10px',
@@ -53825,7 +54333,7 @@ const footerElementStyle = {
 class MemberPage extends React.Component {
     constructor(props) {
         super(props);
-        this.lastUserData = new localstore_1.MeetingScreenState();
+        this.lastUserData = new localstore_1.StoredMeetingState();
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), new Array());
         this.pageData = this.defaultPageData;
         this.state = {
@@ -53890,7 +54398,7 @@ class MemberPage extends React.Component {
                 // Success, set state to data for logged in user 
                 self.pageData = UserFacilities_1.UserFacilities.revive(response.data);
                 // Initialise WebRTC and connect
-                var rtc = new rtc_1.Rtc({
+                var rtc = new PeerConnection_1.PeerConnection({
                     isEdgeOnly: true,
                     sessionId: self.pageData.sessionId,
                     facilityId: self.pageData.currentFacility.externalId,
@@ -53898,7 +54406,7 @@ class MemberPage extends React.Component {
                     personName: self.pageData.person.name,
                     personThumbnailUrl: self.pageData.person.thumbnailUrl
                 });
-                rtc.connectFirst();
+                rtc.connect();
                 self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
                 self.forceUpdate();
             })
@@ -53962,7 +54470,7 @@ class MemberPage extends React.Component {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(callpanel_1.RemoteConnectionStatus, { rtc: this.state.rtc }, " "),
+                            React.createElement(callpanel_1.RemoteConnectionStatus, { peers: this.state.rtc }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
                                     React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -53974,9 +54482,9 @@ class MemberPage extends React.Component {
                         React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.rtc }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clockpanel_1.RemoteClock, { rtc: this.state.rtc }),
+                            React.createElement(clockpanel_1.RemoteClock, { peers: this.state.rtc }),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))),
+                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.rtc }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -54044,7 +54552,7 @@ class CoachPage extends React.Component {
                     // Success, set state to data for logged in user 
                     self.pageData = UserFacilities_1.UserFacilities.revive(response.data);
                     // Initialise WebRTC and connect
-                    var rtc = new rtc_1.Rtc({
+                    var rtc = new PeerConnection_1.PeerConnection({
                         isEdgeOnly: false,
                         sessionId: self.pageData.sessionId,
                         facilityId: self.pageData.currentFacility.externalId,
@@ -54052,7 +54560,7 @@ class CoachPage extends React.Component {
                         personName: self.pageData.person.name,
                         personThumbnailUrl: self.pageData.person.thumbnailUrl
                     });
-                    rtc.connectFirst();
+                    rtc.connect();
                     self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
                 }
                 else {
@@ -54107,7 +54615,7 @@ class CoachPage extends React.Component {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(callpanel_1.MasterConnectionStatus, { rtc: this.state.rtc }),
+                            React.createElement(callpanel_1.MasterConnectionStatus, { peers: this.state.rtc }),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
                                     React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -54117,14 +54625,14 @@ class CoachPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: thinStyle },
-                            React.createElement(leaderpanel_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), rtc: this.state.rtc }, " "))),
+                            React.createElement(leaderpanel_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), peers: this.state.rtc }, " "))),
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, rtc: this.state.rtc }, " ")),
+                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peers: this.state.rtc }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.rtc }, " "),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { rtc: this.state.rtc }, " "))),
+                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.rtc }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -54333,59 +54841,34 @@ const thinishStyle = {
 };
 function overallStatusFromTwo(one, two) {
     var overallStatus = null;
-    if (one === Enum_1.FourStateRagEnum.Red || two === Enum_1.FourStateRagEnum.Red) {
+    if (!one || !two) {
         // Red if either one is red
-        overallStatus = Enum_1.FourStateRagEnum.Red;
+        return false;
     }
-    else if (one === Enum_1.FourStateRagEnum.Amber || two === Enum_1.FourStateRagEnum.Amber) {
-        // Amber if either one is amber
-        overallStatus = Enum_1.FourStateRagEnum.Amber;
-    }
-    else if (one === Enum_1.FourStateRagEnum.Green && two === Enum_1.FourStateRagEnum.Green) {
-        // Green if both are green 
-        overallStatus = Enum_1.FourStateRagEnum.Green;
-    }
-    else {
-        // else indeterminate
-        overallStatus = Enum_1.FourStateRagEnum.Indeterminate;
-    }
-    return overallStatus;
+    else
+        return true;
 }
 function participant(status, name, okText, issueText, small) {
     if (small) {
-        switch (status) {
-            case Enum_1.FourStateRagEnum.Green:
-                return React.createElement(participant_1.ParticipantSmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-            case Enum_1.FourStateRagEnum.Amber:
-                return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
-            case Enum_1.FourStateRagEnum.Red:
-                return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
-            case Enum_1.FourStateRagEnum.Indeterminate:
-            default:
-                return React.createElement(participant_1.ParticipantSmall, { name: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
-        }
+        if (status)
+            return React.createElement(participant_1.ParticipantSmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+        else
+            return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
     }
     else {
-        switch (status) {
-            case Enum_1.FourStateRagEnum.Green:
-                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-            case Enum_1.FourStateRagEnum.Amber:
-                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-yellow-128x128.png' });
-            case Enum_1.FourStateRagEnum.Red:
-                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
-            case Enum_1.FourStateRagEnum.Indeterminate:
-            default:
-                return React.createElement(participant_1.ParticipantCaption, { name: name, caption: 'Connecting ...', thumbnailUrl: 'circle-black-grey-128x128.png' });
-        }
+        if (status)
+            return React.createElement(participant_1.ParticipantCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+        else
+            return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
     }
 }
 class RemoteConnectionStatus extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            overallStatus: Enum_1.FourStateRagEnum.Indeterminate,
-            serverStatus: Enum_1.FourStateRagEnum.Indeterminate,
-            coachStatus: Enum_1.FourStateRagEnum.Indeterminate,
+            overallStatus: false,
+            serverStatus: false,
+            coachStatus: false,
             intervalId: undefined
         };
     }
@@ -54399,8 +54882,8 @@ class RemoteConnectionStatus extends React.Component {
         }
     }
     onInterval() {
-        const serverStatus = this.props.rtc.serverLinkStatus;
-        const coachStatus = this.props.rtc.coachLinkStatus();
+        const serverStatus = this.props.peers.isConnectedToServer();
+        const coachStatus = this.props.peers.isConnectedToLeader();
         var overallStatus = overallStatusFromTwo(serverStatus, coachStatus);
         this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
     }
@@ -54414,9 +54897,9 @@ class RemoteConnectionStatus extends React.Component {
         var isCoach = false;
         var isServer = false;
         var issueString = undefined;
-        if (this.state.serverStatus != Enum_1.FourStateRagEnum.Green)
+        if (!this.state.serverStatus)
             isServer = true;
-        if (this.state.coachStatus != Enum_1.FourStateRagEnum.Green)
+        if (this.state.coachStatus)
             isCoach = true;
         if (isServer && isCoach)
             issueString = 'Not connected to web or to coach.';
@@ -54436,8 +54919,8 @@ exports.RemoteConnectionStatus = RemoteConnectionStatus;
 class MasterConnectionStatus extends React.Component {
     constructor(props) {
         super(props);
-        if (props.rtc)
-            props.rtc.addremotedatalistener(this.onData.bind(this));
+        if (props.peers)
+            props.peers.addRemoteDataListener(this.onData.bind(this));
         var members = new Array();
         var memberStatuses = new Array();
         this.state = {
@@ -54459,7 +54942,7 @@ class MasterConnectionStatus extends React.Component {
         }
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
             nextProps.rtc.addremotedatalistener(this.onData.bind(this));
         }
     }
@@ -54468,33 +54951,25 @@ class MasterConnectionStatus extends React.Component {
             var members = this.state.members;
             members.push(ev);
             var memberStatuses = this.state.memberStatuses;
-            var memberStatus = this.props.rtc.memberLinkStatus(ev.name);
+            var memberStatus = this.props.peers.isConnectedToMember(ev.name) ? Enum_1.FourStateRagEnum.Green : Enum_1.FourStateRagEnum.Red;
             memberStatuses.push(memberStatus);
             this.setState({ members: members, memberStatuses: memberStatuses });
         }
     }
     onInterval() {
         // First build up the overall status & get the status for the server link
-        const serverStatus = this.props.rtc.serverLinkStatus;
+        const serverStatus = this.props.peers.isConnectedToServer;
         var worstLinkStatus = Enum_1.FourStateRagEnum.Green;
         for (var i = 0; i < this.state.members.length && worstLinkStatus === Enum_1.FourStateRagEnum.Green; i++) {
-            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === Enum_1.FourStateRagEnum.Red) {
+            if (!this.props.peers.isConnectedToMember(this.state.members[i].name)) {
                 worstLinkStatus = Enum_1.FourStateRagEnum.Red;
-            }
-            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === Enum_1.FourStateRagEnum.Amber) {
-                // Amber if any one link is Amber
-                worstLinkStatus = Enum_1.FourStateRagEnum.Amber;
-            }
-            if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === Enum_1.FourStateRagEnum.Indeterminate) {
-                // Indeterminate if any one link is Indeterminate
-                worstLinkStatus = Enum_1.FourStateRagEnum.Indeterminate;
             }
         }
         // Then in a second pass, get all the link statuses
         // Could do all in one pass but not likely to be a relevant gain
         var memberStatuses = this.state.memberStatuses;
         for (var i = 0; i < this.state.members.length; i++) {
-            memberStatuses[i] = this.props.rtc.memberLinkStatus(this.state.members[i].name);
+            memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name) ? Enum_1.FourStateRagEnum.Green : Enum_1.FourStateRagEnum.Red;
         }
         this.setState({
             overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
@@ -54613,32 +55088,32 @@ const blockCharStyle = {
 // Keep this function need declation in case an extra Enum is added above & this needs to change
 function selectMusic(durationEnum, musicEnum) {
     var url;
-    if (musicEnum == GymClock_1.GymClockMusicEnum.None) {
+    if (musicEnum == GymClock_1.EGymClockMusic.None) {
         return null;
     }
-    else if (musicEnum == GymClock_1.GymClockMusicEnum.Uptempo) {
+    else if (musicEnum == GymClock_1.EGymClockMusic.Uptempo) {
         switch (durationEnum) {
-            case GymClock_1.GymClockDurationEnum.Five:
+            case GymClock_1.EGymClockDuration.Five:
                 return '130-bpm-workout-V2 trimmed.mp3';
             default:
-            case GymClock_1.GymClockDurationEnum.Ten:
+            case GymClock_1.EGymClockDuration.Ten:
                 return '10-Minute-Timer.mp3';
-            case GymClock_1.GymClockDurationEnum.Fifteen:
+            case GymClock_1.EGymClockDuration.Fifteen:
                 return '15-Minute-Timer.mp3';
-            case GymClock_1.GymClockDurationEnum.Twenty:
+            case GymClock_1.EGymClockDuration.Twenty:
                 return '20-Minute-Timer.mp3';
         }
     }
-    else if (musicEnum == GymClock_1.GymClockMusicEnum.Midtempo) {
+    else if (musicEnum == GymClock_1.EGymClockMusic.Midtempo) {
         switch (durationEnum) {
-            case GymClock_1.GymClockDurationEnum.Five:
+            case GymClock_1.EGymClockDuration.Five:
                 return '130-bpm-workout-V2 trimmed.mp3';
             default:
-            case GymClock_1.GymClockDurationEnum.Ten:
+            case GymClock_1.EGymClockDuration.Ten:
                 return '130-bpm-workout-V2 trimmed.mp3';
-            case GymClock_1.GymClockDurationEnum.Fifteen:
+            case GymClock_1.EGymClockDuration.Fifteen:
                 return '130-bpm-workout-V2 trimmed.mp3';
-            case GymClock_1.GymClockDurationEnum.Twenty:
+            case GymClock_1.EGymClockDuration.Twenty:
                 return '130-bpm-workout-V2 trimmed.mp3';
         }
     }
@@ -54647,8 +55122,8 @@ function selectMusic(durationEnum, musicEnum) {
 class RemoteClock extends React.Component {
     constructor(props) {
         super(props);
-        if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+        if (props.peers) {
+            props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
         }
         this.state = {
             isMounted: false,
@@ -54666,11 +55141,11 @@ class RemoteClock extends React.Component {
         this.setState({ isMounted: false });
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
             nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onRemoteData(ev, link) {
+    onRemoteData(ev) {
         if (ev.type === GymClock_1.GymClockSpec.__type) {
             // we are sent a clock spec as soon as we connect
             var evSpec = ev;
@@ -54693,15 +55168,15 @@ class RemoteClock extends React.Component {
             // Finally we are sent play/pause/stop etc when the coach selects an action
             var evAction = ev;
             switch (evAction.actionEnum) {
-                case GymClock_1.GymClockActionEnum.Start:
+                case GymClock_1.EGymClockAction.Start:
                     if (this.state.clock)
                         this.state.clock.start(this.onTick.bind(this));
                     break;
-                case GymClock_1.GymClockActionEnum.Stop:
+                case GymClock_1.EGymClockAction.Stop:
                     if (this.state.clock)
                         this.state.clock.stop();
                     break;
-                case GymClock_1.GymClockActionEnum.Pause:
+                case GymClock_1.EGymClockAction.Pause:
                     if (this.state.clock)
                         this.state.clock.pause();
                     break;
@@ -54724,7 +55199,7 @@ exports.RemoteClock = RemoteClock;
 class MasterClock extends React.Component {
     constructor(props) {
         super(props);
-        this.storedWorkoutState = new localstore_1.MeetingWorkoutState();
+        this.storedWorkoutState = new localstore_1.StoredWorkoutState();
         // Use cached copy of the workout clock if there is one
         var storedClockSpec = this.storedWorkoutState.loadClockSpec();
         var clockSpec;
@@ -54734,7 +55209,7 @@ class MasterClock extends React.Component {
             clockSpec = new GymClock_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum, selectMusic(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum));
         }
         else
-            clockSpec = new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Ten, GymClock_1.GymClockMusicEnum.None, undefined);
+            clockSpec = new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Ten, GymClock_1.EGymClockMusic.None, undefined);
         let clock = new RunnableClock_1.RunnableClock(clockSpec);
         // Use cached copy of the workout clock state if there is one
         var storedClockState = this.storedWorkoutState.loadClockState();
@@ -54745,7 +55220,7 @@ class MasterClock extends React.Component {
             clockState = new GymClock_1.GymClockState(loadedClockState.stateEnum, loadedClockState.secondsIn);
         }
         else
-            clockState = new GymClock_1.GymClockState(GymClock_1.GymClockStateEnum.Stopped, 0);
+            clockState = new GymClock_1.GymClockState(GymClock_1.EGymClockState.Stopped, 0);
         this.state = {
             inEditMode: false,
             isMounted: false,
@@ -54758,7 +55233,7 @@ class MasterClock extends React.Component {
             ss: 0
         };
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+            props.rtc.addRemoteDataListener(this.onRemoteData.bind(this));
         }
         // Scynch our clock up to the state we load
         clock.loadFromState(clockState, this.onTick.bind(this));
@@ -54768,7 +55243,7 @@ class MasterClock extends React.Component {
             nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onRemoteData(ev, link) {
+    onRemoteData(ev) {
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
             // Send them the clock
@@ -54824,27 +55299,27 @@ class MasterClock extends React.Component {
     }
     processPlay() {
         this.state.clock.start(this.onTick.bind(this), this.state.clock.secondsCounted);
-        this.setState({ clockStateEnum: GymClock_1.GymClockStateEnum.CountingDown });
+        this.setState({ clockStateEnum: GymClock_1.EGymClockState.CountingDown });
         // broadcast the clock change to remotes
-        let action = new GymClock_1.GymClockAction(GymClock_1.GymClockActionEnum.Start);
+        let action = new GymClock_1.GymClockAction(GymClock_1.EGymClockAction.Start);
         this.props.rtc.broadcast(action);
         // Save state to local store - for recovery purposes
         this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
     }
     processPause() {
         this.state.clock.pause();
-        this.setState({ clockStateEnum: GymClock_1.GymClockStateEnum.Paused });
+        this.setState({ clockStateEnum: GymClock_1.EGymClockState.Paused });
         // broadcast the clock change to remotes
-        let action = new GymClock_1.GymClockAction(GymClock_1.GymClockActionEnum.Pause);
+        let action = new GymClock_1.GymClockAction(GymClock_1.EGymClockAction.Pause);
         this.props.rtc.broadcast(action);
         // Save state to local store - for recovery purposes
         this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
     }
     processStop() {
         this.state.clock.stop();
-        this.setState({ clockStateEnum: GymClock_1.GymClockStateEnum.Stopped });
+        this.setState({ clockStateEnum: GymClock_1.EGymClockState.Stopped });
         // broadcast the clock change to remotes
-        let action = new GymClock_1.GymClockAction(GymClock_1.GymClockActionEnum.Stop);
+        let action = new GymClock_1.GymClockAction(GymClock_1.EGymClockAction.Stop);
         this.props.rtc.broadcast(action);
         // Save state to local store - for recovery purposes
         this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
@@ -54877,37 +55352,37 @@ class MasterClock extends React.Component {
                         React.createElement(Form_1.default.Row, { style: { textAlign: 'left' } },
                             React.createElement(Form_1.default.Group, { controlId: "durationGroupId" },
                                 React.createElement(Form_1.default.Label, null, "Run timer for:"),
-                                React.createElement(Form_1.default.Check, { label: "5m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.GymClockDurationEnum.Five, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "5m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Five, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Five, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.GymClockDurationEnum.Five, this.state.clockSpec.musicEnum)),
+                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Five, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Five, this.state.clockSpec.musicEnum)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "10m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.GymClockDurationEnum.Ten, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "10m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Ten, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Ten, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.GymClockDurationEnum.Ten, this.state.clockSpec.musicEnum)),
+                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Ten, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Ten, this.state.clockSpec.musicEnum)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "15m", type: "radio", id: '15m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.GymClockDurationEnum.Fifteen, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "15m", type: "radio", id: '15m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Fifteen, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Fifteen, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.GymClockDurationEnum.Fifteen, this.state.clockSpec.musicEnum)),
+                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Fifteen, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Fifteen, this.state.clockSpec.musicEnum)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "20m", type: "radio", id: '20m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.GymClockDurationEnum.Twenty, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "20m", type: "radio", id: '20m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Twenty, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.GymClockDurationEnum.Twenty, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.GymClockDurationEnum.Twenty, this.state.clockSpec.musicEnum)),
+                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Twenty, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Twenty, this.state.clockSpec.musicEnum)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
@@ -54918,28 +55393,28 @@ class MasterClock extends React.Component {
                                 React.createElement(Form_1.default.Label, null, "Music:"),
                                 React.createElement(Form_1.default.Check, { label: "Up tempo", type: "radio", id: 'upTempo-select', 
                                     // TODO - should be able to remove 'name' from all these 
-                                    checked: this.state.clockSpec.musicEnum === GymClock_1.GymClockMusicEnum.Uptempo, onChange: (ev) => {
+                                    checked: this.state.clockSpec.musicEnum === GymClock_1.EGymClockMusic.Uptempo, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.GymClockMusicEnum.Uptempo, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.GymClockMusicEnum.Uptempo)),
+                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Uptempo, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Uptempo)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "Mid tempo", type: "radio", id: 'midTempo-select', checked: this.state.clockSpec.musicEnum === GymClock_1.GymClockMusicEnum.Midtempo, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "Mid tempo", type: "radio", id: 'midTempo-select', checked: this.state.clockSpec.musicEnum === GymClock_1.EGymClockMusic.Midtempo, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.GymClockMusicEnum.Midtempo, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.GymClockMusicEnum.Midtempo)),
+                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Midtempo, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Midtempo)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "None", type: "radio", id: 'noMusic-select', checked: this.state.clockSpec.musicEnum === GymClock_1.GymClockMusicEnum.None, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "None", type: "radio", id: 'noMusic-select', checked: this.state.clockSpec.musicEnum === GymClock_1.EGymClockMusic.None, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.GymClockMusicEnum.None, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.GymClockMusicEnum.None)),
+                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.None, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.None)),
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
@@ -54990,6 +55465,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LeaderResolve = void 0;
+// External components
 const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const Alert_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Alert */ "./node_modules/react-bootstrap/esm/Alert.js"));
 const Nav_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Nav */ "./node_modules/react-bootstrap/esm/Nav.js"));
@@ -55009,8 +55485,8 @@ class LeaderResolve extends React.Component {
         // This ensures we have one before we hook data updates
         var resolve = new Call_1.CallLeaderResolve();
         this.state = { isLeader: true, myLeaderResolve: resolve };
-        if (this.props.rtc) {
-            this.props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+        if (this.props.peers) {
+            this.props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
         }
     }
     componentDidMount() {
@@ -55018,16 +55494,16 @@ class LeaderResolve extends React.Component {
     componentWillUnmount() {
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
             nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onRemoteData(ev, link) {
+    onRemoteData(ev) {
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
             // Send them our CallLeaderResolve 
             this.forceUpdate(() => {
-                this.props.rtc.broadcast(this.state.myLeaderResolve);
+                this.props.peers.broadcast(this.state.myLeaderResolve);
             });
         }
         // If we recieve a CallLeaderResolve that beats us, we are not leader.
@@ -55067,7 +55543,7 @@ exports.LeaderResolve = LeaderResolve;
 
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MeetingWorkoutState = exports.MeetingScreenState = exports.LocalStore = void 0;
+exports.StoredWorkoutState = exports.StoredMeetingState = exports.LocalStore = void 0;
 //==============================//
 // LocalStore class
 //==============================//
@@ -55117,11 +55593,11 @@ const lastWorkoutId = "lastWorkout";
 const lastClockId = "lastClock";
 const lastClockStateId = "lastClockState";
 //==============================//
-// MeetingScreenState class
+// StoredMeetingState class
 //==============================//
-class MeetingScreenState {
+class StoredMeetingState {
     constructor() {
-        this.store = new LocalStore();
+        this._store = new LocalStore();
     }
     /**
      *
@@ -55129,7 +55605,7 @@ class MeetingScreenState {
      * @param meetingId - value to save
      */
     saveMeetingId(meetingId) {
-        this.store.saveValue(lastMeetingId, meetingId);
+        this._store.saveValue(lastMeetingId, meetingId);
     }
     ;
     /**
@@ -55137,7 +55613,7 @@ class MeetingScreenState {
      * loadMeetingId
      */
     loadMeetingId() {
-        var ret = this.store.loadValue(lastMeetingId);
+        var ret = this._store.loadValue(lastMeetingId);
         if (!ret)
             ret = "";
         return ret;
@@ -55149,7 +55625,7 @@ class MeetingScreenState {
      * @param meetingId - value to save
      */
     saveName(meetingId) {
-        this.store.saveValue(lastNameId, meetingId);
+        this._store.saveValue(lastNameId, meetingId);
     }
     ;
     /**
@@ -55157,20 +55633,20 @@ class MeetingScreenState {
      * loadName
      */
     loadName() {
-        var ret = this.store.loadValue(lastNameId);
+        var ret = this._store.loadValue(lastNameId);
         if (!ret)
             ret = "";
         return ret;
     }
     ;
 }
-exports.MeetingScreenState = MeetingScreenState;
+exports.StoredMeetingState = StoredMeetingState;
 //==============================//
-// MeetingWorkoutState class
+// StoredWorkoutState class
 //==============================//
-class MeetingWorkoutState {
+class StoredWorkoutState {
     constructor() {
-        this.store = new LocalStore();
+        this._store = new LocalStore();
     }
     /**
      *
@@ -55178,7 +55654,7 @@ class MeetingWorkoutState {
      * @param workout - value to save
      */
     saveWorkout(workout) {
-        this.store.saveValue(lastWorkoutId, workout);
+        this._store.saveValue(lastWorkoutId, workout);
     }
     ;
     /**
@@ -55186,7 +55662,7 @@ class MeetingWorkoutState {
      * loadWorkout
      */
     loadWorkout() {
-        var ret = this.store.loadValue(lastWorkoutId);
+        var ret = this._store.loadValue(lastWorkoutId);
         if (!ret)
             ret = "";
         return ret;
@@ -55198,7 +55674,7 @@ class MeetingWorkoutState {
      * @param clock - value to save
      */
     saveClockSpec(clock) {
-        this.store.saveValue(lastClockId, clock);
+        this._store.saveValue(lastClockId, clock);
     }
     ;
     /**
@@ -55206,7 +55682,7 @@ class MeetingWorkoutState {
      * loadClockSpec
      */
     loadClockSpec() {
-        var ret = this.store.loadValue(lastClockId);
+        var ret = this._store.loadValue(lastClockId);
         if (!ret)
             ret = "";
         return ret;
@@ -55218,7 +55694,7 @@ class MeetingWorkoutState {
      * @param clock - value to save
      */
     saveClockState(clock) {
-        this.store.saveValue(lastClockStateId, clock);
+        this._store.saveValue(lastClockStateId, clock);
     }
     ;
     /**
@@ -55226,14 +55702,14 @@ class MeetingWorkoutState {
      * loadClockState
      */
     loadClockState() {
-        var ret = this.store.loadValue(lastClockStateId);
+        var ret = this._store.loadValue(lastClockStateId);
         if (!ret)
             ret = "";
         return ret;
     }
     ;
 }
-exports.MeetingWorkoutState = MeetingWorkoutState;
+exports.StoredWorkoutState = StoredWorkoutState;
 
 
 /***/ }),
@@ -55254,7 +55730,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginFb = void 0;
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client, true);
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 class LoginFb {
     constructor(props) {
         this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
@@ -55385,7 +55861,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LoginMc = void 0;
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client, true);
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 class LoginMc {
     constructor(props) {
         this.state = { isLoggedIn: false, meetCode: props.meetCode, name: props.name, isValidMeetCode: false, isTimerPending: false };
@@ -55685,18 +56161,18 @@ const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participan
 class RemotePeople extends React.Component {
     constructor(props) {
         super(props);
-        if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+        if (props.peers) {
+            props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
         }
         var people = new Array();
         this.state = { people: people };
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
             nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onRemoteData(ev, link) {
+    onRemoteData(ev) {
         if (ev.type === Person_1.Person.__type) {
             var person = ev;
             let people = this.state.people;
@@ -55724,311 +56200,6 @@ class RemotePeople extends React.Component {
     }
 }
 exports.RemotePeople = RemotePeople;
-
-
-/***/ }),
-
-/***/ "./dev/rtc.tsx":
-/*!*********************!*\
-  !*** ./dev/rtc.tsx ***!
-  \*********************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-//
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Rtc = exports.RtcLink = void 0;
-const webrtc_adapter_1 = __importDefault(__webpack_require__(/*! webrtc-adapter */ "./node_modules/webrtc-adapter/src/js/adapter_core.js")); // Google shim library
-// This app, external components
-const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const Call_1 = __webpack_require__(/*! ../../core/dev/Call */ "../core/dev/Call.tsx");
-const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
-const Enum_1 = __webpack_require__(/*! ../../core/dev/Enum */ "../core/dev/Enum.tsx");
-const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-// This app, this component
-const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
-const PeerRtc_1 = __webpack_require__(/*! ./PeerRtc */ "./dev/PeerRtc.tsx");
-const PeerSignaller_1 = __webpack_require__(/*! ./PeerSignaller */ "./dev/PeerSignaller.tsx");
-function uuidPart() {
-    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
-}
-;
-function uuid() {
-    return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
-}
-var logger = new Logger_1.LoggerFactory().logger(Logger_1.LoggerType.Client, true);
-class RtcLink {
-    constructor(to, outbound, caller, reciever) {
-        this.to = to;
-        this.outbound = outbound;
-        this.caller = caller;
-        this.reciever = reciever;
-        this.linkStatus = Enum_1.FourStateRagEnum.Indeterminate;
-    }
-    send(obj) {
-        if (this.outbound && this.caller)
-            this.caller.send(obj);
-        if (!this.outbound && this.reciever)
-            this.reciever.send(obj);
-    }
-}
-exports.RtcLink = RtcLink;
-class Rtc {
-    constructor(props) {
-        this.localCallParticipation = null;
-        this.links = new Array();
-        this.lastSequenceNo = 0;
-        this.datalisteners = new Array();
-        this.isEdgeOnly = props.isEdgeOnly;
-        this.nameCache = new PeerInterfaces_1.PeerNameCache();
-        this.signaller = new PeerSignaller_1.Signaller();
-        // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
-        this.localCallParticipation = new Call_1.CallParticipation(null, props.facilityId, props.personId, !this.isEdgeOnly, props.sessionId, uuid());
-        // Store data on the Person who is running the app - used in data handshake & exchange
-        this.person = new Person_1.Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
-        this.retries = 0;
-        this.serverLinkStatus = Enum_1.FourStateRagEnum.Indeterminate;
-        // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
-        logger.logInfo("Rtc", 'constructor', 'Browser:', webrtc_adapter_1.default.browserDetails);
-    }
-    addremotedatalistener(fn) {
-        this.datalisteners.push(fn);
-    }
-    ;
-    connectFirst() {
-        this.connect();
-    }
-    connect() {
-        logger.logInfo('Rtc', 'connect', "", null);
-        var self = this;
-        // Send our own details & subscribe to more
-        const sourceUrl = '/callevents/?callParticipation='
-            + encodeURIComponent(JSON.stringify(this.localCallParticipation))
-            + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this.lastSequenceNo));
-        self.events = new EventSource(sourceUrl);
-        self.events.onmessage = self.onServerEvent.bind(self);
-        self.events.onerror = self.onServerError.bind(self);
-    }
-    sleep(time) {
-        return new Promise(resolve => setTimeout(resolve, time));
-    }
-    connectLater(time) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.sleep(time);
-            this.connect();
-        });
-    }
-    coachLinkStatus() {
-        for (var i = 0; i < this.links.length; i++) {
-            if (this.links[i].reciever && this.links[i].reciever.peerHelp.remotePerson
-                && this.links[i].reciever.peerHelp.remoteCallParticipation.isCandidateLeader
-                && this.links[i].reciever.peerHelp.isChannelConnected) {
-                return Enum_1.FourStateRagEnum.Green;
-            }
-            if (this.links[i].caller && this.links[i].caller.peerHelp.remotePerson
-                && this.links[i].caller.peerHelp.remoteCallParticipation.isCandidateLeader
-                && this.links[i].caller.peerHelp.isChannelConnected) {
-                return Enum_1.FourStateRagEnum.Green;
-            }
-        }
-        return Enum_1.FourStateRagEnum.Indeterminate;
-    }
-    memberLinkStatus(name) {
-        for (var i = 0; i < this.links.length; i++) {
-            if (this.links[i].reciever && this.links[i].reciever.peerHelp.remotePerson
-                && this.links[i].reciever.peerHelp.remotePerson.name === name) {
-                if (this.links[i].reciever.peerHelp.isChannelConnected)
-                    return Enum_1.FourStateRagEnum.Green;
-                else
-                    return Enum_1.FourStateRagEnum.Red;
-            }
-            if (this.links[i].caller && this.links[i].caller.peerHelp.remotePerson
-                && this.links[i].caller.peerHelp.remotePerson.name === name) {
-                if (this.links[i].caller.peerHelp.isChannelConnected)
-                    return Enum_1.FourStateRagEnum.Green;
-                else
-                    return Enum_1.FourStateRagEnum.Red;
-            }
-        }
-        return Enum_1.FourStateRagEnum.Indeterminate;
-    }
-    broadcast(obj) {
-        var self = this;
-        for (var i = 0; i < self.links.length; i++) {
-            self.links[i].send(obj);
-        }
-    }
-    onServerEvent(ev) {
-        this.retries = 0;
-        // RAG status checking and notification
-        if (this.serverLinkStatus !== Enum_1.FourStateRagEnum.Green) {
-            this.serverLinkStatus = Enum_1.FourStateRagEnum.Green;
-        }
-        var types = new Types_1.TypeRegistry();
-        var remoteCallData = types.reviveFromJSON(ev.data);
-        var payload = remoteCallData.data;
-        switch (payload.type) {
-            case "CallParticipation":
-                logger.logInfo('Rtc', 'onServerEvent', "CallParticipation", null);
-                this.onParticipant(payload);
-                break;
-            case "CallOffer":
-                logger.logInfo('Rtc', 'onServerEvent', "CallOffer", null);
-                this.onOffer(payload);
-                break;
-            case "CallAnswer":
-                logger.logInfo('Rtc', 'onServerEvent', "CallAnswer", null);
-                this.onAnswer(payload);
-                break;
-            case "CallIceCandidate":
-                logger.logInfo('Rtc', 'onServerEvent', "CallIceCandidate", payload.ice);
-                this.onRemoteIceCandidate(payload);
-                break;
-            case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
-                break;
-            default:
-                logger.logInfo('Rtc', 'onServerEvent', "data:", payload);
-                break;
-        }
-        this.lastSequenceNo = remoteCallData.sequenceNo;
-    }
-    onServerError(ev) {
-        var self = this;
-        logger.logInfo('Rtc', 'onServerError', "event:", ev);
-        self.events.close();
-        self.connectLater(5000);
-        self.retries++;
-        if (self.retries > 3) {
-            // RAG status checking and notification
-            if (this.serverLinkStatus !== Enum_1.FourStateRagEnum.Red) {
-                this.serverLinkStatus = Enum_1.FourStateRagEnum.Red;
-            }
-        }
-        else {
-            // RAG status checking and notification
-            if (this.serverLinkStatus !== Enum_1.FourStateRagEnum.Amber) {
-                this.serverLinkStatus = Enum_1.FourStateRagEnum.Amber;
-            }
-        }
-    }
-    onParticipant(remoteParticipation) {
-        var self = this;
-        // If we are an edge node, and the caller is nota leader, dont respond.
-        if (self.isEdgeOnly && !remoteParticipation.isCandidateLeader)
-            return;
-        var sender = new PeerRtc_1.PeerCallerRtc(self.localCallParticipation, remoteParticipation, self.person, self.nameCache, self.signaller);
-        var link = new RtcLink(remoteParticipation, true, sender, null);
-        // Hooks to pass up data
-        sender.onRemoteData = (ev) => {
-            if (this.datalisteners) {
-                for (var i = 0; i < this.datalisteners.length; i++) {
-                    this.datalisteners[i](ev, link);
-                }
-            }
-        };
-        self.links.push(link);
-        // place the call after setting up 'links' to avoid a race condition
-        sender.placeCall();
-    }
-    setupRecieverLink(remoteParticipant) {
-        var self = this;
-        var reciever = new PeerRtc_1.PeerRecieverRtc(self.localCallParticipation, remoteParticipant, self.person, self.nameCache, self.signaller);
-        var link = new RtcLink(remoteParticipant, false, null, reciever);
-        // Hooks to pass up data
-        reciever.onRemoteData = (ev) => {
-            if (this.datalisteners) {
-                for (var i = 0; i < this.datalisteners.length; i++) {
-                    this.datalisteners[i](ev, link);
-                }
-            }
-        };
-        self.links.push(link);
-        return reciever;
-    }
-    onOffer(remoteOffer) {
-        var self = this;
-        // This loop removes glare, when we may be trying to set up calls with each other.
-        for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(remoteOffer.from)) {
-                // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
-                // The recipient with the greater glareResolve makes the winning offer 
-                if (self.localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
-                    self.links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
-                }
-                else {
-                    return; // if we win, they will answer our offer, we do nothing more 
-                }
-            }
-        }
-        // Setup links befoe answering the call to remove race conditions from asynchronous arrival
-        var reciever = this.setupRecieverLink(remoteOffer.from);
-        reciever.answerCall(remoteOffer);
-    }
-    onAnswer(remoteAnswer) {
-        var self = this;
-        var found = false;
-        for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(remoteAnswer.from)) {
-                self.links[i].caller.handleAnswer(remoteAnswer);
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            logger.logError('RtcLink', 'onAnswer', "cannot find target:", remoteAnswer);
-    }
-    onRemoteIceCandidate(remoteIceCandidate) {
-        var self = this;
-        var found = false;
-        for (var i = 0; i < self.links.length && !found; i++) {
-            if (self.links[i].to.equals(remoteIceCandidate.from)) {
-                found = true;
-            }
-        }
-        if (!found) {
-            this.setupRecieverLink(remoteIceCandidate.from);
-        }
-        found = false;
-        // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
-        // incoming messages still pending
-        // So fail silently if we get unexpected Ice candidate messages 
-        for (var i = 0; i < self.links.length; i++) {
-            if (self.links[i].to.equals(remoteIceCandidate.from)) {
-                if (remoteIceCandidate.outbound) {
-                    if (self.links[i].reciever)
-                        self.links[i].reciever.handleIceCandidate(remoteIceCandidate);
-                    // else silent fail
-                }
-                else {
-                    if (self.links[i].caller)
-                        self.links[i].caller.handleIceCandidate(remoteIceCandidate);
-                    // else silent fail
-                }
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            logger.logError('Rtc', 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
-            logger.logError('Rtc', 'onRemoteIceCandidate', "Links:", self.links);
-        }
-    }
-}
-exports.Rtc = Rtc;
 
 
 /***/ }),
@@ -56150,10 +56321,10 @@ class MasterWhiteboard extends React.Component {
     constructor(props) {
         super(props);
         var haveWorkout = false;
-        if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+        if (props.peers) {
+            props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
         }
-        this.storedWorkoutState = new localstore_1.MeetingWorkoutState();
+        this.storedWorkoutState = new localstore_1.StoredWorkoutState();
         var workout;
         // Use cached copy of the workout if there is one
         var storedWorkout = this.storedWorkoutState.loadWorkout();
@@ -56176,11 +56347,11 @@ class MasterWhiteboard extends React.Component {
     componentWillUnmount() {
     }
     UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
             nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onRemoteData(ev, link) {
+    onRemoteData(ev) {
         var ev2 = ev;
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
@@ -56200,21 +56371,21 @@ class MasterWhiteboard extends React.Component {
             this.forceUpdate(() => {
                 // Send them the whole contents of the board
                 var board = new Whiteboard_1.Whiteboard(this.state.workout, this.state.results);
-                this.props.rtc.broadcast(board);
+                this.props.peers.broadcast(board);
             });
         }
     }
     onworkoutchange(element) {
         this.setState({ haveRealWorkout: true, workout: element });
         var board = new Whiteboard_1.Whiteboard(element, this.state.results);
-        this.props.rtc.broadcast(board);
+        this.props.peers.broadcast(board);
         // save in local cache
         this.storedWorkoutState.saveWorkout(element.text);
     }
     onresultschange(element) {
         this.setState({ haveRealResults: true, results: element });
         var board = new Whiteboard_1.Whiteboard(this.state.workout, element);
-        this.props.rtc.broadcast(board);
+        this.props.peers.broadcast(board);
     }
     render() {
         return (React.createElement("div", { style: whiteboardStyle },
@@ -56222,9 +56393,9 @@ class MasterWhiteboard extends React.Component {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, new Dates_1.DateWithDays().getWeekDay())),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, value: this.state.workout.text, valueAsOf: new Date(), onchange: this.onworkoutchange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peers, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, value: this.state.workout.text, valueAsOf: new Date(), onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.rtc, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, value: this.state.results.text, valueAsOf: new Date(), onchange: this.onresultschange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peers, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, value: this.state.results.text, valueAsOf: new Date(), onchange: this.onresultschange.bind(this) })))));
     }
 }
 exports.MasterWhiteboard = MasterWhiteboard;
@@ -56302,7 +56473,7 @@ class RemoteWhiteboard extends React.Component {
     constructor(props) {
         super(props);
         if (props.rtc) {
-            props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+            props.rtc.addRemoteDataListener(this.onRemoteData.bind(this));
         }
         this.state = {
             workoutValue: new Whiteboard_1.WhiteboardElement(10, initialBoardText),
@@ -56314,7 +56485,7 @@ class RemoteWhiteboard extends React.Component {
             nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
         }
     }
-    onRemoteData(ev, link) {
+    onRemoteData(ev) {
         if (ev.type === Whiteboard_1.Whiteboard.__type) {
             var whiteboard = ev;
             if (!this.state.workoutValue.equals(whiteboard.workout)) {
@@ -57158,49 +57329,49 @@ Facility.__type = "Facility";
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
 // GymClock is a running clock - created from a spec, then can start, stop, pause etc. 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GymClockState = exports.GymClockAction = exports.GymClockSpec = exports.GymClockActionEnum = exports.GymClockStateEnum = exports.GymClockMusicEnum = exports.GymClockDurationEnum = void 0;
-var GymClockDurationEnum;
-(function (GymClockDurationEnum) {
-    GymClockDurationEnum[GymClockDurationEnum["Five"] = 0] = "Five";
-    GymClockDurationEnum[GymClockDurationEnum["Ten"] = 1] = "Ten";
-    GymClockDurationEnum[GymClockDurationEnum["Fifteen"] = 2] = "Fifteen";
-    GymClockDurationEnum[GymClockDurationEnum["Twenty"] = 3] = "Twenty";
-})(GymClockDurationEnum = exports.GymClockDurationEnum || (exports.GymClockDurationEnum = {}));
+exports.GymClockState = exports.GymClockAction = exports.GymClockSpec = exports.EGymClockAction = exports.EGymClockState = exports.EGymClockMusic = exports.EGymClockDuration = void 0;
+var EGymClockDuration;
+(function (EGymClockDuration) {
+    EGymClockDuration[EGymClockDuration["Five"] = 0] = "Five";
+    EGymClockDuration[EGymClockDuration["Ten"] = 1] = "Ten";
+    EGymClockDuration[EGymClockDuration["Fifteen"] = 2] = "Fifteen";
+    EGymClockDuration[EGymClockDuration["Twenty"] = 3] = "Twenty";
+})(EGymClockDuration = exports.EGymClockDuration || (exports.EGymClockDuration = {}));
 ;
-var GymClockMusicEnum;
-(function (GymClockMusicEnum) {
-    GymClockMusicEnum[GymClockMusicEnum["Uptempo"] = 0] = "Uptempo";
-    GymClockMusicEnum[GymClockMusicEnum["Midtempo"] = 1] = "Midtempo";
-    GymClockMusicEnum[GymClockMusicEnum["None"] = 2] = "None";
-})(GymClockMusicEnum = exports.GymClockMusicEnum || (exports.GymClockMusicEnum = {}));
+var EGymClockMusic;
+(function (EGymClockMusic) {
+    EGymClockMusic[EGymClockMusic["Uptempo"] = 0] = "Uptempo";
+    EGymClockMusic[EGymClockMusic["Midtempo"] = 1] = "Midtempo";
+    EGymClockMusic[EGymClockMusic["None"] = 2] = "None";
+})(EGymClockMusic = exports.EGymClockMusic || (exports.EGymClockMusic = {}));
 ;
-var GymClockStateEnum;
-(function (GymClockStateEnum) {
-    GymClockStateEnum[GymClockStateEnum["Stopped"] = 0] = "Stopped";
-    GymClockStateEnum[GymClockStateEnum["CountingDown"] = 1] = "CountingDown";
-    GymClockStateEnum[GymClockStateEnum["Running"] = 2] = "Running";
-    GymClockStateEnum[GymClockStateEnum["Paused"] = 3] = "Paused";
-})(GymClockStateEnum = exports.GymClockStateEnum || (exports.GymClockStateEnum = {}));
+var EGymClockState;
+(function (EGymClockState) {
+    EGymClockState[EGymClockState["Stopped"] = 0] = "Stopped";
+    EGymClockState[EGymClockState["CountingDown"] = 1] = "CountingDown";
+    EGymClockState[EGymClockState["Running"] = 2] = "Running";
+    EGymClockState[EGymClockState["Paused"] = 3] = "Paused";
+})(EGymClockState = exports.EGymClockState || (exports.EGymClockState = {}));
 ;
-var GymClockActionEnum;
-(function (GymClockActionEnum) {
-    GymClockActionEnum[GymClockActionEnum["Start"] = 0] = "Start";
-    GymClockActionEnum[GymClockActionEnum["Stop"] = 1] = "Stop";
-    GymClockActionEnum[GymClockActionEnum["Pause"] = 2] = "Pause";
-})(GymClockActionEnum = exports.GymClockActionEnum || (exports.GymClockActionEnum = {}));
+var EGymClockAction;
+(function (EGymClockAction) {
+    EGymClockAction[EGymClockAction["Start"] = 0] = "Start";
+    EGymClockAction[EGymClockAction["Stop"] = 1] = "Stop";
+    EGymClockAction[EGymClockAction["Pause"] = 2] = "Pause";
+})(EGymClockAction = exports.EGymClockAction || (exports.EGymClockAction = {}));
 ;
 const countDownSeconds = 15;
 // Keep this function  declation up here in case an extra Enum is added above & this needs to change
 function calculateCountToSeconds(durationEnum) {
     switch (durationEnum) {
-        case GymClockDurationEnum.Five:
+        case EGymClockDuration.Five:
             return (countDownSeconds + 5 * 60);
         default:
-        case GymClockDurationEnum.Ten:
+        case EGymClockDuration.Ten:
             return (countDownSeconds + 10 * 60);
-        case GymClockDurationEnum.Fifteen:
+        case EGymClockDuration.Fifteen:
             return (countDownSeconds + 15 * 60);
-        case GymClockDurationEnum.Twenty:
+        case EGymClockDuration.Twenty:
             return (countDownSeconds + 20 * 60);
     }
 }
@@ -57215,7 +57386,7 @@ class GymClockSpec {
      * @param musicEnum - one of the enumeration objects (Uptempo, Midtempo, none, ...)
      * @param musicUrl - string URL to the music file. Can be null.
      */
-    constructor(durationEnum = GymClockDurationEnum.Ten, musicEnum = GymClockMusicEnum.None, musicUrl = '') {
+    constructor(durationEnum = EGymClockDuration.Ten, musicEnum = EGymClockMusic.None, musicUrl = '') {
         this._durationEnum = durationEnum;
         this._musicEnum = musicEnum;
         this._musicUrl = musicUrl;
@@ -57435,26 +57606,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LoggerFactory = exports.LoggerType = void 0;
+exports.LoggerFactory = exports.ELoggerType = void 0;
 // External components
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "../core/node_modules/axios/index.js"));
 //import { ServerLoggerWrap } from './LoggerServerWrap';
 const LoggerClientWrap_1 = __webpack_require__(/*! ./LoggerClientWrap */ "../core/dev/LoggerClientWrap.tsx");
-var LoggerType;
-(function (LoggerType) {
-    LoggerType[LoggerType["Server"] = 0] = "Server";
-    LoggerType[LoggerType["Client"] = 1] = "Client";
-})(LoggerType = exports.LoggerType || (exports.LoggerType = {}));
+var ELoggerType;
+(function (ELoggerType) {
+    ELoggerType[ELoggerType["Server"] = 0] = "Server";
+    ELoggerType[ELoggerType["Client"] = 1] = "Client";
+})(ELoggerType = exports.ELoggerType || (exports.ELoggerType = {}));
 class LoggerFactory {
     constructor() {
     }
-    logger(loggerType, shipToSever) {
+    createLogger(loggerType, shipToSever) {
         switch (loggerType) {
-            case LoggerType.Server:
+            case ELoggerType.Server:
                 return new ClientLogger(shipToSever);
-            case LoggerType.Client:
+            case ELoggerType.Client:
                 return new ClientLogger(shipToSever);
-                ;
+            default:
+                return null;
         }
     }
 }
@@ -57516,7 +57688,7 @@ class ClientLogger {
 }
 var LoggerEntryPoints = {
     LoggerFactory: LoggerFactory,
-    LoggerType: LoggerType
+    ELoggerType: ELoggerType
 };
 
 

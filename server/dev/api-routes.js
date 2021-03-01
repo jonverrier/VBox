@@ -8,7 +8,7 @@ var router = express.Router();
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
 
-var logger = new EntryPoints.LoggerFactory().logger(EntryPoints.LoggerType.Server);
+var logger = new EntryPoints.LoggerFactory().createLogger(EntryPoints.ELoggerType.Server);
 var Person = EntryPoints.Person;
 var CallOffer = EntryPoints.CallOffer;
 var CallAnswer = EntryPoints.CallAnswer;
@@ -167,7 +167,7 @@ router.get('/api/home', function (req, res) {
    if (req.user && req.user.externalId) {
 
       // Log session starts - later on can trawl this for billing. 
-      logger.logInfo ('Api-Routes', '/api/home', 'Session start.', {
+         logger.logInfo ('Api-Routes', '/api/home', 'Session start.', {
          userId: req.user.externalId,
          userName: req.user.name
       });

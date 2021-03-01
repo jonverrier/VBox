@@ -52,14 +52,14 @@ const lastClockId = "lastClock";
 const lastClockStateId = "lastClockState";
 
 //==============================//
-// MeetingScreenState class
+// StoredMeetingState class
 //==============================//
-export class MeetingScreenState {
+export class StoredMeetingState {
 
-   store: LocalStore;
+   private _store: LocalStore;
 
    constructor() {
-      this.store = new LocalStore();
+      this._store = new LocalStore();
    }
 
    /**
@@ -68,7 +68,7 @@ export class MeetingScreenState {
     * @param meetingId - value to save
     */
    saveMeetingId(meetingId: string) {
-      this.store.saveValue(lastMeetingId, meetingId);
+      this._store.saveValue(lastMeetingId, meetingId);
    };
 
    /**
@@ -76,7 +76,7 @@ export class MeetingScreenState {
     * loadMeetingId
     */
    loadMeetingId() : string {
-      var ret = this.store.loadValue(lastMeetingId);
+      var ret = this._store.loadValue(lastMeetingId);
       if (!ret)
          ret = "";
       return ret;
@@ -88,7 +88,7 @@ export class MeetingScreenState {
     * @param meetingId - value to save
     */
    saveName(meetingId: string) {
-      this.store.saveValue(lastNameId, meetingId);
+      this._store.saveValue(lastNameId, meetingId);
    };
 
    /**
@@ -96,7 +96,7 @@ export class MeetingScreenState {
     * loadName
     */
    loadName(): string {
-      var ret = this.store.loadValue(lastNameId);
+      var ret = this._store.loadValue(lastNameId);
       if (!ret)
          ret = "";
       return ret;
@@ -104,14 +104,14 @@ export class MeetingScreenState {
 }
 
 //==============================//
-// MeetingWorkoutState class
+// StoredWorkoutState class
 //==============================//
-export class MeetingWorkoutState {
+export class StoredWorkoutState {
 
-   store: LocalStore;
+   private _store: LocalStore;
 
    constructor() {
-      this.store = new LocalStore();
+      this._store = new LocalStore();
    }
 
    /**
@@ -120,7 +120,7 @@ export class MeetingWorkoutState {
     * @param workout - value to save
     */
    saveWorkout(workout: string) {
-      this.store.saveValue(lastWorkoutId, workout);
+      this._store.saveValue(lastWorkoutId, workout);
    };
 
    /**
@@ -128,7 +128,7 @@ export class MeetingWorkoutState {
     * loadWorkout
     */
    loadWorkout(): string {
-      var ret = this.store.loadValue(lastWorkoutId);
+      var ret = this._store.loadValue(lastWorkoutId);
       if (!ret)
          ret = "";
       return ret;
@@ -140,7 +140,7 @@ export class MeetingWorkoutState {
     * @param clock - value to save
     */
    saveClockSpec(clock: string) {
-      this.store.saveValue(lastClockId, clock);
+      this._store.saveValue(lastClockId, clock);
    };
 
    /**
@@ -148,7 +148,7 @@ export class MeetingWorkoutState {
     * loadClockSpec
     */
    loadClockSpec(): string {
-      var ret = this.store.loadValue(lastClockId);
+      var ret = this._store.loadValue(lastClockId);
       if (!ret)
          ret = "";
       return ret;
@@ -160,7 +160,7 @@ export class MeetingWorkoutState {
     * @param clock - value to save
     */
    saveClockState(clock: string) {
-      this.store.saveValue(lastClockStateId, clock);
+      this._store.saveValue(lastClockStateId, clock);
    };
 
    /**
@@ -168,7 +168,7 @@ export class MeetingWorkoutState {
     * loadClockState
     */
    loadClockState(): string {
-      var ret = this.store.loadValue(lastClockStateId);
+      var ret = this._store.loadValue(lastClockStateId);
       if (!ret)
          ret = "";
       return ret;

@@ -1,16 +1,19 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
+// External components
 import * as React from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Nav from 'react-bootstrap/Nav';
 
 import * as CSS from 'csstype';
 
-import { TypeRegistry } from '../../core/dev/Types'
+// This app, other components
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { CallLeaderResolve } from '../../core/dev/Call';
-import { Rtc, RtcLink } from './rtc';
+
+// This app, this component
+import { PeerConnection } from './PeerConnection';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -21,7 +24,7 @@ const alertStyle: CSS.Properties = {
 };
 
 export interface ILeaderConnectionProps {
-   rtc: Rtc;
+   peers: PeerConnection;
    onLeaderChange: Function;
 }
 
@@ -40,8 +43,8 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
       // This ensures we have one before we hook data updates
       var resolve = new CallLeaderResolve();
       this.state = { isLeader: true, myLeaderResolve: resolve };
-      if (this.props.rtc) {
-         this.props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+      if (this.props.peers) {
+         this.props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
       }
    }
 
@@ -52,17 +55,17 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
          nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onRemoteData(ev: IStreamable, link: RtcLink) {
+   onRemoteData(ev: IStreamable) {
       // By convention, new joiners broadcast a 'Person' object
       if (ev.type === Person.__type) {
          // Send them our CallLeaderResolve 
          this.forceUpdate(() => {
-            this.props.rtc.broadcast(this.state.myLeaderResolve);
+            this.props.peers.broadcast(this.state.myLeaderResolve);
          });
       }
       // If we recieve a CallLeaderResolve that beats us, we are not leader.

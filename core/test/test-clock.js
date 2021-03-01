@@ -4,10 +4,10 @@
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
 
-var GymClockDurationEnum = EntryPoints.GymClockDurationEnum;
-var GymClockMusicEnum = EntryPoints.GymClockMusicEnum;
-var GymClockActionEnum = EntryPoints.GymClockActionEnum;
-var GymClockStateEnum = EntryPoints.GymClockStateEnum;
+var EGymClockDuration = EntryPoints.EGymClockDuration;
+var EGymClockMusic = EntryPoints.EGymClockMusic;
+var EGymClockAction = EntryPoints.EGymClockAction;
+var EGymClockState = EntryPoints.EGymClockState;
 var GymClockSpec = EntryPoints.GymClockSpec;
 var GymClockAction = EntryPoints.GymClockAction;
 var GymClockState = EntryPoints.GymClockState;
@@ -20,8 +20,8 @@ describe("GymClockSpec", function () {
    var now = new Date();
    
    beforeEach(function () {
-      spec1 = new GymClockSpec(GymClockDurationEnum.Ten, GymClockMusicEnum.None, null); 
-      spec2 = new GymClockSpec(GymClockDurationEnum.Fifteen, GymClockMusicEnum.None, null);
+      spec1 = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None, null); 
+      spec2 = new GymClockSpec(EGymClockDuration.Fifteen, EGymClockMusic.None, null);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -32,8 +32,8 @@ describe("GymClockSpec", function () {
    
    it("Needs to correctly store attributes", function () {
         
-      expect(spec1.durationEnum).to.equal(GymClockDurationEnum.Ten);      
-      expect(spec1.musicEnum).to.equal(GymClockMusicEnum.None); 
+      expect(spec1.durationEnum).to.equal(EGymClockDuration.Ten);      
+      expect(spec1.musicEnum).to.equal(EGymClockMusic.None); 
       expect(spec1.musicUrl).to.equal(null); 
    });
 
@@ -51,8 +51,8 @@ describe("GymClockAction", function () {
    var action1, action2;
 
    beforeEach(function () {
-      action1 = new GymClockAction(GymClockActionEnum.Start);
-      action2 = new GymClockAction(GymClockActionEnum.Stop);
+      action1 = new GymClockAction(EGymClockAction.Start);
+      action2 = new GymClockAction(EGymClockAction.Stop);
    });
 
 
@@ -64,7 +64,7 @@ describe("GymClockAction", function () {
 
    it("Needs to correctly store attributes", function () {
 
-      expect(action1.actionEnum).to.equal(GymClockActionEnum.Start);
+      expect(action1.actionEnum).to.equal(EGymClockAction.Start);
    });
 
    it("Needs to save and restore to/from JSON", function () {
@@ -81,8 +81,8 @@ describe("GymClockState", function () {
    var state1, state2;
 
    beforeEach(function () {
-      state1 = new GymClockState(GymClockStateEnum.Running, 0);
-      state2 = new GymClockState(GymClockStateEnum.Stopped, 1);
+      state1 = new GymClockState(EGymClockState.Running, 0);
+      state2 = new GymClockState(EGymClockState.Stopped, 1);
    });
 
 
@@ -94,7 +94,7 @@ describe("GymClockState", function () {
 
    it("Needs to correctly store attributes", function () {
 
-      expect(state1.stateEnum).to.equal(GymClockStateEnum.Running);
+      expect(state1.stateEnum).to.equal(EGymClockState.Running);
       expect(state1.secondsIn).to.equal(0);
    });
 

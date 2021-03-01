@@ -3,9 +3,9 @@
 import * as React from 'react';
 import axios from 'axios';
 
-import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
+import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 
-var logger = new LoggerFactory().logger(LoggerType.Client, true);
+var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
 interface ILoginFbProps {
    autoLogin: Boolean;

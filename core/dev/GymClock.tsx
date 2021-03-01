@@ -6,27 +6,27 @@
 
 import { IStreamableFor } from './Streamable';
 
-export enum GymClockDurationEnum { 'Five', 'Ten', 'Fifteen', 'Twenty' };
-export enum GymClockMusicEnum { 'Uptempo', 'Midtempo', 'None' };
-export enum GymClockStateEnum { 'Stopped', 'CountingDown', 'Running', 'Paused' };
-export enum GymClockActionEnum { 'Start', 'Stop', 'Pause' };
+export enum EGymClockDuration { 'Five', 'Ten', 'Fifteen', 'Twenty' };
+export enum EGymClockMusic { 'Uptempo', 'Midtempo', 'None' };
+export enum EGymClockState { 'Stopped', 'CountingDown', 'Running', 'Paused' };
+export enum EGymClockAction { 'Start', 'Stop', 'Pause' };
 
 const countDownSeconds: number = 15;
 
 // Keep this function  declation up here in case an extra Enum is added above & this needs to change
 function calculateCountToSeconds (durationEnum) {
    switch (durationEnum) {
-      case GymClockDurationEnum.Five:
+      case EGymClockDuration.Five:
          return (countDownSeconds + 5 * 60);
 
       default:
-      case GymClockDurationEnum.Ten:
+      case EGymClockDuration.Ten:
          return (countDownSeconds + 10 * 60);
 
-      case GymClockDurationEnum.Fifteen:
+      case EGymClockDuration.Fifteen:
          return (countDownSeconds + 15 * 60);
 
-      case GymClockDurationEnum.Twenty:
+      case EGymClockDuration.Twenty:
          return (countDownSeconds + 20 * 60);
 
    }
@@ -37,8 +37,8 @@ function calculateCountToSeconds (durationEnum) {
 //==============================//
 export class GymClockSpec implements IStreamableFor<GymClockSpec> {
 
-   private _durationEnum: GymClockDurationEnum;
-   private _musicEnum: GymClockMusicEnum;
+   private _durationEnum: EGymClockDuration;
+   private _musicEnum: EGymClockMusic;
    private _musicUrl: string;
 
    static readonly __type = "GymClockSpec";
@@ -49,8 +49,8 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
    * @param musicEnum - one of the enumeration objects (Uptempo, Midtempo, none, ...)
    * @param musicUrl - string URL to the music file. Can be null.
    */
-   constructor(durationEnum: GymClockDurationEnum = GymClockDurationEnum.Ten,
-      musicEnum: GymClockMusicEnum = GymClockMusicEnum.None,
+   constructor(durationEnum: EGymClockDuration = EGymClockDuration.Ten,
+      musicEnum: EGymClockMusic = EGymClockMusic.None,
       musicUrl: string = '') {
 
       this._durationEnum = durationEnum;
@@ -61,10 +61,10 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
    /**
    * set of 'getters' for private variables
    */
-   get durationEnum(): GymClockDurationEnum {
+   get durationEnum(): EGymClockDuration {
       return this._durationEnum;
    }
-   get musicEnum(): GymClockMusicEnum {
+   get musicEnum(): EGymClockMusic {
       return this._musicEnum;
    }
    get musicUrl(): string {
@@ -132,14 +132,14 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
 //==============================//
 export class GymClockAction implements IStreamableFor<GymClockAction> {
 
-   private _actionEnum: GymClockActionEnum;
+   private _actionEnum: EGymClockAction;
 
    static readonly __type = "GymClockAction";
 
    /**
     * Create a GymClockAction object
     */
-   constructor(actionEnum: GymClockActionEnum) {
+   constructor(actionEnum: EGymClockAction) {
 
       this._actionEnum = actionEnum;
    }
@@ -147,7 +147,7 @@ export class GymClockAction implements IStreamableFor<GymClockAction> {
    /**
    * set of 'getters' for private variables
    */
-   get actionEnum(): GymClockActionEnum {
+   get actionEnum(): EGymClockAction {
       return this._actionEnum;
    }
    get type(): string {
@@ -207,7 +207,7 @@ export class GymClockAction implements IStreamableFor<GymClockAction> {
 //==============================//
 export class GymClockState implements IStreamableFor<GymClockState >  {
 
-   _stateEnum: GymClockStateEnum;
+   _stateEnum: EGymClockState;
    _secondsIn: number;
 
    static readonly __type = "GymClockState";
@@ -225,7 +225,7 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
    /**
    * set of 'getters' for private variables
    */
-   get stateEnum(): GymClockStateEnum {
+   get stateEnum(): EGymClockState {
       return this._stateEnum;
    }
    get secondsIn(): number {

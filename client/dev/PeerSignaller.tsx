@@ -1,22 +1,28 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
 // PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
-// PeerSignaller - contains an implementation of the PeerSignaller interface.
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 
 // External components
 import axios from 'axios';
 
+// This app, other components 
+import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { IStreamable } from '../../core/dev/Streamable';
+import { TypeRegistry } from '../../core/dev/Types';
+
 // This app, this component
-import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
-import { CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
-import { IPeerSignaller } from './PeerInterfaces';
+import { IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 
-var logger = new LoggerFactory().logger(LoggerType.Client, true);
+var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
-// Helper class - take a name like 'Jon' and if the name is not unique for the session,
-export class Signaller implements IPeerSignaller {
+export class SignalSender implements IPeerSignalSender {
    // member variables
-   private static className: string = 'Signaller';
+   private static className: string = 'SignalSender';
 
    constructor() {
    }
@@ -25,11 +31,11 @@ export class Signaller implements IPeerSignaller {
       return new Promise((resolve, reject) => {
          axios.post('/api/offer', { params: { callOffer: offer } })
             .then((response) => {
-               logger.logInfo(Signaller.className, 'sendOffer', "Post Ok", null);
+               logger.logInfo(SignalSender.className, 'sendOffer', "Post Ok", null);
                resolve('');
             })
             .catch(function (error) {
-               logger.logError(Signaller.className, 'sendOffer', 'error:', error);
+               logger.logError(SignalSender.className, 'sendOffer', 'error:', error);
                reject(error.toString());
             });
       });
@@ -39,11 +45,11 @@ export class Signaller implements IPeerSignaller {
       return new Promise((resolve, reject) => {
          axios.post('/api/answer', { params: { callAnswer: answer } })
             .then((response) => {
-               logger.logInfo(Signaller.className, 'sendAnswer', "Post Ok", null);
+               logger.logInfo(SignalSender.className, 'sendAnswer', "Post Ok", null);
                resolve('');
             })
             .catch(function (error) {
-               logger.logError(Signaller.className, 'sendAnswer', 'error:', error);
+               logger.logError(SignalSender.className, 'sendAnswer', 'error:', error);
                reject(error.toString());
             });
       });
@@ -53,14 +59,87 @@ export class Signaller implements IPeerSignaller {
       return new Promise((resolve, reject) => {
          axios.post('/api/icecandidate', { params: { callIceCandidate: iceCandidate } })
             .then((response) => {
-               logger.logInfo(Signaller.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate.ice);
+               logger.logInfo(SignalSender.className, 'sendIceCandidate', "Post Ok: candidate:", iceCandidate.ice);
                resolve('');
             })
             .catch(function (error) {
-               logger.logError(Signaller.className, 'sendIceCandidate', 'error:', error);
+               logger.logError(SignalSender.className, 'sendIceCandidate', 'error:', error);
                reject(error.toString());
             });
       });
    }
 }
 
+export class SignalReciever implements IPeerSignalReciever {
+   // member variables
+   private _events: EventSource;
+   private _lastSequenceNo: number;
+   private _retries: number;
+   private _participation: CallParticipation;
+   private _types: TypeRegistry;
+
+   private static className: string = 'SignalReciever';
+
+   constructor() {
+      this._lastSequenceNo = 0;
+      this._retries = 0;
+      this._types = new TypeRegistry();
+   }
+
+   connect(participation: CallParticipation) {
+      this._participation = participation;     
+      this.reConnect(participation);
+   }
+
+   isConnected(): boolean {
+      return this._events != null;
+   }
+
+   // Override this for data from notifications 
+   onRemoteData: ((this: IPeerSignalReciever, ev: IStreamable) => any) | null;
+
+   private reConnect(participation: CallParticipation): void {
+
+      if (this._events) {
+         this._events.close();
+      }
+
+      // Send our own details & subscribe to more
+      const sourceUrl = '/callevents/?callParticipation='
+         + encodeURIComponent(JSON.stringify(this._participation))
+         + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this._lastSequenceNo));
+      this._events = new EventSource(sourceUrl);
+      this._events.onmessage = this.onServerData.bind(this);
+      this._events.onerror = this.onServerError.bind(this);
+   }
+
+   private onServerData(ev: Event): void {
+
+      this._retries = 0;
+
+      let ev2: any = ev;
+      var remoteCallData = this._types.reviveFromJSON(ev2.data);
+      var payload = remoteCallData.data;
+
+      if (this.onRemoteData)
+         this.onRemoteData(payload);
+
+      this._lastSequenceNo = remoteCallData.sequenceNo;
+   }
+
+   private onServerError(ev) {
+
+      logger.logInfo(SignalReciever.className, 'onServerError', "event, retries:", { ev: ev, retries: this._retries });
+      this._events.close();
+      this.connectLater(3000);
+      this._retries++;
+   }
+
+   private sleep(time) {
+      return new Promise(resolve => setTimeout(resolve, time));
+   }
+
+   private async connectLater(time) {
+      await this.sleep(time);
+      this.reConnect(this._participation);
+   }}

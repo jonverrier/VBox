@@ -15,8 +15,8 @@ import { DateWithDays } from '../../core/dev/Dates';
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
-import { Rtc, RtcLink } from './rtc';
-import { MeetingWorkoutState } from './localstore';
+import { PeerConnection } from './PeerConnection';
+import { StoredWorkoutState } from './localstore';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -96,7 +96,7 @@ const fieldXSepStyle: CSS.Properties = {
 };
 
 interface IMasterWhiteboardProps {
-   rtc: Rtc;
+   peers: PeerConnection;
    allowEdit: boolean;
 }
 
@@ -112,7 +112,7 @@ const defaultMasterWorkoutText: string = 'Workout will show here - click the but
 const defaultMasterResultsText: string = 'Workout results will show here - click the button above.';
 
 interface IMasterWhiteboardElementProps {
-   rtc: Rtc;
+   rtc: PeerConnection;
    allowEdit: boolean;
    caption: string;
    initialRows: number;
@@ -133,18 +133,18 @@ interface IMasterWhiteboardElementState {
 export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IMasterWhiteboardState> {
    //member variables
    state: IMasterWhiteboardState;
-   storedWorkoutState: MeetingWorkoutState;
+   storedWorkoutState: StoredWorkoutState;
 
    constructor(props: IMasterWhiteboardProps) {
       super(props);
 
       var haveWorkout: boolean = false;
 
-      if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+      if (props.peers) {
+         props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
       }
 
-      this.storedWorkoutState = new MeetingWorkoutState();
+      this.storedWorkoutState = new StoredWorkoutState();
       var workout;
 
       // Use cached copy of the workout if there is one
@@ -173,12 +173,12 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
          nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onRemoteData(ev: IStreamable, link: RtcLink) {
+   onRemoteData(ev: IStreamable) {
       var ev2 = ev as Person;
 
       // By convention, new joiners broadcast a 'Person' object
@@ -203,7 +203,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
          this.forceUpdate(() => {
             // Send them the whole contents of the board
             var board = new Whiteboard(this.state.workout, this.state.results);
-            this.props.rtc.broadcast(board);
+            this.props.peers.broadcast(board);
          });
       }
    }
@@ -211,7 +211,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    onworkoutchange(element: WhiteboardElement) {
       this.setState({ haveRealWorkout: true, workout: element });
       var board = new Whiteboard(element, this.state.results);
-      this.props.rtc.broadcast(board);
+      this.props.peers.broadcast(board);
 
       // save in local cache
       this.storedWorkoutState.saveWorkout(element.text);
@@ -220,7 +220,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    onresultschange(element: WhiteboardElement) {
       this.setState({ haveRealResults: true, results: element });
       var board = new Whiteboard(this.state.workout, element);
-      this.props.rtc.broadcast(board);
+      this.props.peers.broadcast(board);
    }
 
    render() {
@@ -233,14 +233,14 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
             </Row>
             <Row style={thinStyle}>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.rtc}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peers}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
                      initialRows={10}
                      value={this.state.workout.text} valueAsOf={new Date()}
                      onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.rtc}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peers}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
                      initialRows={10} 
                      value={this.state.results.text} valueAsOf={new Date()}
@@ -353,7 +353,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 }
 
 export interface IRemoteWhiteboardProps {
-   rtc: Rtc;
+   rtc: PeerConnection;
 }
 
 interface IRemoteWhiteboardState {
@@ -362,7 +362,7 @@ interface IRemoteWhiteboardState {
 }
 
 interface IRemoteWhiteboardElementProps {
-   rtc: Rtc;
+   rtc: PeerConnection;
    caption: string;
    initialRows: number;
    value: WhiteboardElement;
@@ -380,7 +380,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       super(props);
 
       if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+         props.rtc.addRemoteDataListener(this.onRemoteData.bind(this));
       }
 
       this.state = {
@@ -396,7 +396,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       }
    }
 
-   onRemoteData(ev: IStreamable, link: RtcLink) {
+   onRemoteData(ev: IStreamable) {
       if (ev.type === Whiteboard.__type) {
          var whiteboard: Whiteboard = ev as Whiteboard;
 

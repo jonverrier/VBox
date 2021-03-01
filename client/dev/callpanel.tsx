@@ -16,8 +16,8 @@ import * as CSS from 'csstype';
 // This app
 import { Person } from '../../core/dev/Person';
 import { FourStateRagEnum } from '../../core/dev/Enum';
-import { Participant, ParticipantSmall, ParticipantCaption, ParticipantNoImage } from './participant';
-import { Rtc, RtcLink } from './rtc';
+import { ParticipantSmall, ParticipantCaption } from './participant';
+import { PeerConnection } from './PeerConnection';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px'
@@ -28,67 +28,38 @@ const thinishStyle: CSS.Properties = {
 };
 
 export interface IRemoteConnectionProps {
-   rtc: Rtc;
+   peers: PeerConnection;
 }
 
 interface IRemoteConnectionStatusState {
-   overallStatus: any;
-   serverStatus: any;
-   coachStatus: any;
+   overallStatus: boolean;
+   serverStatus: boolean;
+   coachStatus: boolean;
    intervalId: NodeJS.Timeout;
 }
 
-
-function overallStatusFromTwo(one : any, two : any) : any {
+function overallStatusFromTwo(one: boolean, two: boolean): boolean {
    var overallStatus: any = null;
 
-   if (one === FourStateRagEnum.Red || two === FourStateRagEnum.Red) {
+   if (!one || !two ) {
        // Red if either one is red
-       overallStatus = FourStateRagEnum.Red;
+      return false;
    }
    else
-   if (one === FourStateRagEnum.Amber || two === FourStateRagEnum.Amber) {
-      // Amber if either one is amber
-      overallStatus = FourStateRagEnum.Amber;
-   }
-   else
-   if (one === FourStateRagEnum.Green && two === FourStateRagEnum.Green) {
-      // Green if both are green 
-      overallStatus = FourStateRagEnum.Green;
-   }
-   else {
-      // else indeterminate
-      overallStatus = FourStateRagEnum.Indeterminate;
-   }
-
-   return overallStatus;
+      return true;
 }
 
-function participant(status: any, name: string, okText: string, issueText: string, small: boolean): JSX.Element {
+function participant(status: boolean, name: string, okText: string, issueText: string, small: boolean): JSX.Element {
    if (small) {
-      switch (status) {
-         case FourStateRagEnum.Green:
-            return <ParticipantSmall name={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
-         case FourStateRagEnum.Amber:
-            return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
-         case FourStateRagEnum.Red:
-            return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
-         case FourStateRagEnum.Indeterminate:
-         default:
-            return <ParticipantSmall name={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
-      }
+      if (status) 
+         return <ParticipantSmall name={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
+      else
+         return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
    } else {
-      switch (status) {
-         case FourStateRagEnum.Green:
-            return <ParticipantCaption name={name} caption={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
-         case FourStateRagEnum.Amber:
-            return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-yellow-128x128.png'} />;
-         case FourStateRagEnum.Red:
-            return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
-         case FourStateRagEnum.Indeterminate:
-         default:
-            return <ParticipantCaption name={name} caption={'Connecting ...'} thumbnailUrl={'circle-black-grey-128x128.png'} />;
-      }
+      if (status) 
+         return <ParticipantCaption name={name} caption={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
+      else
+         return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
    }
 }
 
@@ -98,9 +69,9 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
       super(props);
 
       this.state = {
-         overallStatus: FourStateRagEnum.Indeterminate,
-         serverStatus: FourStateRagEnum.Indeterminate,
-         coachStatus: FourStateRagEnum.Indeterminate,
+         overallStatus: false,
+         serverStatus: false,
+         coachStatus: false,
          intervalId: undefined
       };
    }
@@ -117,9 +88,9 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
    }
 
    onInterval() {
-      const serverStatus: any = this.props.rtc.serverLinkStatus;
-      const coachStatus: any = this.props.rtc.coachLinkStatus();
-      var overallStatus: any = overallStatusFromTwo(serverStatus, coachStatus);
+      const serverStatus: boolean = this.props.peers.isConnectedToServer();
+      const coachStatus: boolean = this.props.peers.isConnectedToLeader();
+      var overallStatus: boolean = overallStatusFromTwo(serverStatus, coachStatus);
 
       this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
    }
@@ -141,9 +112,9 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
       var isServer: boolean = false;
       var issueString: string = undefined;
 
-      if (this.state.serverStatus != FourStateRagEnum.Green)
+      if (!this.state.serverStatus)
          isServer = true;
-      if (this.state.coachStatus != FourStateRagEnum.Green)
+      if (this.state.coachStatus)
          isCoach = true;
 
       if (isServer && isCoach)
@@ -172,7 +143,7 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
 }
 
 export interface IMasterConnectionProps {
-   rtc: Rtc;
+   peers: PeerConnection;
 }
 
 interface IMasterConnectionStatusState {
@@ -189,8 +160,8 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
    constructor(props: IMasterConnectionProps) {
       super(props);
 
-      if (props.rtc)
-         props.rtc.addremotedatalistener(this.onData.bind(this));
+      if (props.peers)
+         props.peers.addRemoteDataListener(this.onData.bind(this));
 
       var members = new Array();
       var memberStatuses = new Array();
@@ -217,7 +188,7 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
          nextProps.rtc.addremotedatalistener(this.onData.bind(this));
       }
    }
@@ -229,7 +200,7 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
          members.push(ev);
 
          var memberStatuses = this.state.memberStatuses;
-         var memberStatus = this.props.rtc.memberLinkStatus(ev.name);
+         var memberStatus = this.props.peers.isConnectedToMember(ev.name) ? FourStateRagEnum.Green : FourStateRagEnum.Red;
          memberStatuses.push(memberStatus);
 
          this.setState({ members: members, memberStatuses: memberStatuses});
@@ -239,20 +210,12 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
    onInterval() {
 
       // First build up the overall status & get the status for the server link
-      const serverStatus: any = this.props.rtc.serverLinkStatus;
+      const serverStatus: any = this.props.peers.isConnectedToServer;
       var worstLinkStatus: any = FourStateRagEnum.Green;
 
       for (var i: number = 0; i < this.state.members.length && worstLinkStatus === FourStateRagEnum.Green; i++) {
-         if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === FourStateRagEnum.Red) {
+         if (! this.props.peers.isConnectedToMember (this.state.members[i].name)) {
             worstLinkStatus = FourStateRagEnum.Red;
-         }
-         if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === FourStateRagEnum.Amber) {
-            // Amber if any one link is Amber
-            worstLinkStatus = FourStateRagEnum.Amber;
-         }
-         if (this.props.rtc.memberLinkStatus(this.state.members[i].name) === FourStateRagEnum.Indeterminate) {
-            // Indeterminate if any one link is Indeterminate
-            worstLinkStatus = FourStateRagEnum.Indeterminate;
          }
       }
 
@@ -261,7 +224,7 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       var memberStatuses = this.state.memberStatuses;
 
       for (var i: number = 0; i < this.state.members.length; i++) {
-         memberStatuses[i] = this.props.rtc.memberLinkStatus(this.state.members[i].name);
+         memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name) ? FourStateRagEnum.Green : FourStateRagEnum.Red;
       }
 
       this.setState({

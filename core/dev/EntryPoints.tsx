@@ -1,6 +1,6 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
-import { LoggerFactory, LoggerType } from './Logger';
+import { LoggerFactory, ELoggerType } from './Logger';
 import { Person } from './Person';
 import { Facility } from './Facility';
 import { TypeRegistry } from './Types';
@@ -10,11 +10,11 @@ import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderR
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
-import { GymClockDurationEnum, GymClockMusicEnum, GymClockStateEnum, GymClockActionEnum, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
+import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
 
 var EntryPoints = {
    LoggerFactory: LoggerFactory,
-   LoggerType: LoggerType,
+   ELoggerType: ELoggerType,
    TypeRegistry: TypeRegistry,
    Person: Person,
    Facility: Facility,
@@ -33,10 +33,10 @@ var EntryPoints = {
    UserFacilities: UserFacilities,
    Whiteboard: Whiteboard,
    WhiteboardElement: WhiteboardElement,
-   GymClockDurationEnum: GymClockDurationEnum,
-   GymClockMusicEnum: GymClockMusicEnum,
-   GymClockStateEnum: GymClockStateEnum,
-   GymClockActionEnum: GymClockActionEnum,
+   EGymClockDuration: EGymClockDuration,
+   EGymClockMusic: EGymClockMusic,
+   EGymClockState: EGymClockState,
+   EGymClockAction: EGymClockAction,
    GymClockSpec: GymClockSpec,
    GymClockAction: GymClockAction,
    GymClockState: GymClockState

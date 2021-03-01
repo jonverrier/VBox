@@ -9,7 +9,7 @@ var { nanoid } = require("nanoid");
 // Core logic classes
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
-var logger = new EntryPoints.LoggerFactory().logger(EntryPoints.LoggerType.Server);
+var logger = new EntryPoints.LoggerFactory().createLogger(EntryPoints.ELoggerType.Server);
 
 // Used to look up valid meeting IDs for unauthenticated users
 var facilityMeetingModel = require("./facilitymeeting-model.js").facilityMeetingModel;

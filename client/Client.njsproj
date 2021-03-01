@@ -51,16 +51,17 @@
     <TypeScriptCompile Include="dev\clockpanel.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />
     <TypeScriptCompile Include="dev\leaderpanel.tsx" />
-    <TypeScriptCompile Include="dev\localstore.tsx" />
+    <TypeScriptCompile Include="dev\LocalStore.tsx" />
     <TypeScriptCompile Include="dev\loginfb.tsx" />
     <TypeScriptCompile Include="dev\loginmc.tsx" />
     <TypeScriptCompile Include="dev\media.tsx" />
     <TypeScriptCompile Include="dev\participant.tsx" />
     <TypeScriptCompile Include="dev\PeerInterfaces.tsx" />
+    <TypeScriptCompile Include="dev\PeerLink.tsx" />
     <TypeScriptCompile Include="dev\PeerRtc.tsx" />
     <TypeScriptCompile Include="dev\PeerSignaller.tsx" />
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
-    <TypeScriptCompile Include="dev\rtc.tsx" />
+    <TypeScriptCompile Include="dev\PeerConnection.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\whiteboardpanel.tsx" />
   </ItemGroup>

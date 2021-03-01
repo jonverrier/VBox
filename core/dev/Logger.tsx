@@ -8,7 +8,7 @@ import axios from 'axios';
 //import { ServerLoggerWrap } from './LoggerServerWrap';
 import { ClientLoggerWrap } from './LoggerClientWrap';
 
-export enum LoggerType {
+export enum ELoggerType {
    Server,
    Client
 }
@@ -31,13 +31,16 @@ export class LoggerFactory {
    constructor() {
    }
 
-   logger(loggerType: LoggerType, shipToSever: boolean): ILogger {
+   createLogger(loggerType: ELoggerType, shipToSever: boolean): ILogger | null {
       switch (loggerType) {
-         case LoggerType.Server:
+         case ELoggerType.Server:
             return new ClientLogger(shipToSever);
 
-         case LoggerType.Client:
-            return new ClientLogger(shipToSever);;
+         case ELoggerType.Client:
+            return new ClientLogger(shipToSever);
+
+         default:
+            return null;
       }
       
    }
@@ -128,7 +131,7 @@ class ClientLogger implements ILogger {
 
 var LoggerEntryPoints = {
    LoggerFactory: LoggerFactory,
-   LoggerType: LoggerType
+   ELoggerType: ELoggerType
 };
 
 

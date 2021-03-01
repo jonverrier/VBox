@@ -1,15 +1,31 @@
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
-// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
 // PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
-// PeerSignaller - contains an implementation of the PeerSignaller interface. 
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 
 // This app, external components
-import { CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { Person } from '../../core/dev/Person';
+import { CallOffer, CallAnswer, CallIceCandidate, CallParticipation } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable'
 
+export enum EPeerConnectionType {
+   RtcCaller,
+   RtcReciever
+}
 
 export interface IPeer {
+   /**
+   * set of 'getters' & some 'stters' for private variables
+   */
+   localCallParticipation(): CallParticipation;
+   remoteCallParticipation(): CallParticipation;
+   localPerson(): Person;
+   remotePerson(): Person;
+   isConnected(): boolean;
+   send(data: IStreamable): void;
 
    handleIceCandidate(ice: CallIceCandidate): void;
    onRemoteData(data: IStreamable): void;
@@ -29,11 +45,17 @@ export interface IPeerReciever extends IPeer {
    answerCall(remoteOffer: CallOffer) : void;
 }
 
-export interface IPeerSignaller {
+export interface IPeerSignalSender {
 
    sendOffer(offer: CallOffer): Promise<string> ;
    sendAnswer(answer: CallAnswer): Promise<string>;
    sendIceCandidate(iceCandidate: CallIceCandidate): Promise<string> ;
+}
+
+export interface IPeerSignalReciever {
+   connect(participation: CallParticipation): void;
+   onRemoteData(data: IStreamable): void;
+   isConnected(): boolean;
 }
 
 // Helper class - take a name like 'Jon' and if the name is not unique for the session,

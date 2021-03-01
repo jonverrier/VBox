@@ -1,7 +1,10 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// PeerInterfaces - defines abstract interfaces for caller, reciever, signaller etc. 
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
 // PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
-// PeerSignaller - contains an implementation of the PeerSignaller interface. 
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 
 // RTC References:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
@@ -11,26 +14,129 @@
 // External libraries
 import axios from 'axios';
 
-// This app
+// This app, other components
 import { Person } from '../../core/dev/Person';
 import { Queue } from '../../core/dev/Queue';
-import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
+import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { TypeRegistry } from '../../core/dev/Types';
 import { IStreamable } from '../../core/dev/Streamable';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
-import { IPeerSignaller, IPeerCaller, IPeerReciever, PeerNameCache } from './PeerInterfaces'
 
-var logger = new LoggerFactory().logger(LoggerType.Client, true);
+// This app, this component
+import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache } from './PeerInterfaces'
+
+var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
+
+export enum ERtcConfigurationType {
+   StunOnly,
+   TurnOnly,
+   StunThenTurn
+}
+
+// Set this to control connection scope
+const rtcConfigType = ERtcConfigurationType.StunOnly;
+
+export class PeerFactory {
+   constructor() {
+   }
+
+   createCallerConnection(connectionType: EPeerConnectionType,
+      localCallParticipation: CallParticipation,
+      remoteCallParticipation: CallParticipation,
+      person: Person,
+      nameCache: PeerNameCache,
+      signaller: IPeerSignalSender): IPeerCaller {
+
+      switch (connectionType) {
+         case EPeerConnectionType.RtcCaller:
+            return new PeerCallerRtc(localCallParticipation,
+               remoteCallParticipation,
+               person,
+               nameCache,
+               signaller);
+         default:
+            return null;
+      }
+   }
+
+   createRecieverConnection(connectionType: EPeerConnectionType,
+      localCallParticipation: CallParticipation,
+      remoteCallParticipation: CallParticipation,
+      person: Person,
+      nameCache: PeerNameCache,
+      signaller: IPeerSignalSender): IPeerReciever {
+
+      switch (connectionType) {
+         case EPeerConnectionType.RtcReciever:
+            return new PeerRecieverRtc(localCallParticipation,
+               remoteCallParticipation,
+               person,
+               nameCache,
+               signaller);
+         default:
+            return null;
+      }
+   }
+}
+
+export class RtcConfigFactory {
+   constructor() {
+   }
+
+   createConfig(configType: ERtcConfigurationType): RTCConfiguration {
+
+      switch (configType) {
+         case ERtcConfigurationType.StunOnly:
+            let stunConfiguration = {
+               iceServers: [{
+                  "urls": "stun:stun.l.google.com:19302?transport=tcp"
+               },
+               {
+                  "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+               }]
+            };
+            return stunConfiguration;
+
+         case ERtcConfigurationType.TurnOnly:
+            let turnConfiguration = {
+               iceServers: [
+               {
+                  "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+               }
+               ]
+            };
+            return turnConfiguration;
+
+         case ERtcConfigurationType.StunThenTurn:
+         default:
+            let defaultConfiguration = {
+               iceServers: [{
+                  "urls": "stun:stun.l.google.com:19302?transport=tcp"
+               },
+               {
+                  "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+               },
+               {
+                  "urls": "trurn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp",
+                  username: 'turnuser1678',
+                  credentials: 'iwtutfmp'
+               }
+               ]
+            };
+            return defaultConfiguration;
+      }
+   }
+}
 
 export class PeerCallerRtc implements IPeerCaller {
    // member variables
-   peerHelp: RtcPeerHelper;
+   private peerHelp: RtcPeerHelper;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
       nameCache: PeerNameCache,
-      signaller: IPeerSignaller) {
+      signaller: IPeerSignalSender) {
 
       this.peerHelp = new RtcPeerHelper(localCallParticipation,
          remoteCallParticipation,
@@ -41,13 +147,32 @@ export class PeerCallerRtc implements IPeerCaller {
       this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
    }
 
-   // Override this for data for notifications 
+   /**
+   * set of 'getters' for private variables
+   */
+   localCallParticipation(): CallParticipation {
+      return this.peerHelp.localCallParticipation;
+   }
+   remoteCallParticipation(): CallParticipation {
+      return this.peerHelp.remoteCallParticipation;
+   }
+   localPerson(): Person {
+      return this.peerHelp.localPerson;
+   }
+   remotePerson(): Person {
+      return this.peerHelp.remotePerson;
+   }
+   isConnected(): boolean {
+      return this.peerHelp.isChannelConnected;
+   }
+
+   // Override this for data from notifications 
    onRemoteData: ((this: PeerCallerRtc, ev: IStreamable) => any) | null;
    onRemoteFail: ((this: PeerCallerRtc) => void) | null;
 
    placeCall(): void {
 
-      this.peerHelp.createConnection(RtcConnectionType.Caller, "Celler");
+      this.peerHelp.createConnection(EPeerConnectionType.RtcCaller, "Celler");
    }
 
    handleAnswer(answer: CallAnswer): void {
@@ -82,13 +207,13 @@ export class PeerCallerRtc implements IPeerCaller {
 
 export class PeerRecieverRtc implements IPeerReciever {
    // member variables
-   peerHelp: RtcPeerHelper;
+   private peerHelp: RtcPeerHelper;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
       nameCache: PeerNameCache,
-      signaller: IPeerSignaller) {
+      signaller: IPeerSignalSender) {
 
       this.peerHelp = new RtcPeerHelper(localCallParticipation,
          remoteCallParticipation,
@@ -100,13 +225,32 @@ export class PeerRecieverRtc implements IPeerReciever {
       this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
    }
 
+   /**
+   * set of 'getters' for private variables
+   */
+   localCallParticipation(): CallParticipation {
+      return this.peerHelp.localCallParticipation;
+   }
+   remoteCallParticipation(): CallParticipation {
+      return this.peerHelp.remoteCallParticipation;
+   }
+   localPerson(): Person {
+      return this.peerHelp.localPerson;
+   }
+   remotePerson(): Person {
+      return this.peerHelp.remotePerson;
+   }
+   isConnected(): boolean {
+      return this.peerHelp.isChannelConnected;
+   }
+
    // Override this for data for notifications 
    onRemoteData: ((this: PeerRecieverRtc, ev: IStreamable) => void) | null;
    onRemoteFail: ((this: PeerRecieverRtc) => void) | null;
 
    answerCall(offer: CallOffer): void {
 
-      this.peerHelp.createConnection(RtcConnectionType.Reciever, "Reciever");
+      this.peerHelp.createConnection(EPeerConnectionType.RtcReciever, "Reciever");
 
       this.peerHelp.answerCall(offer);
    }
@@ -138,11 +282,6 @@ export class PeerRecieverRtc implements IPeerReciever {
    }
 }
 
-enum RtcConnectionType {
-   Caller,
-   Reciever
-}
-
 class RtcPeerHelper {
 
    // member variables
@@ -153,7 +292,8 @@ class RtcPeerHelper {
    private _isChannelConnected: boolean;
    private _isIceConnected: boolean;
    private _nameCache: PeerNameCache;
-   private _signaller: IPeerSignaller;
+   private _signaller: IPeerSignalSender;
+   private _types: TypeRegistry;
    private static className: string = 'RtcPeerHelper';
 
    private _connection: RTCPeerConnection;
@@ -167,13 +307,14 @@ class RtcPeerHelper {
       remoteCallParticipation: CallParticipation,
       person: Person,
       nameCache: PeerNameCache,
-      signaller: IPeerSignaller
+      signaller: IPeerSignalSender
    ) {
       this._localCallParticipation = localCallParticipation;
       this._remoteCallParticipation = remoteCallParticipation;
       this._localPerson = person;
       this._nameCache = nameCache;
       this._signaller = signaller;
+      this._types = new TypeRegistry();
 
       this._isChannelConnected = false;
       this._sendChannel = null;
@@ -211,46 +352,30 @@ class RtcPeerHelper {
 
    // Connection handling
    //////////
-   createConnection(type: RtcConnectionType, channelName: string) : void {
-      // TODO - factory for config:
-      // - STUN only
-      // - TURN only
-      // - All
-      let configuration = {
-         iceServers: [{
-            "urls": "stun:stun.l.google.com:19302?transport=tcp"
-         },
-         {
-            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
-         },
-         {
-            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
-         }
-         ]
-      };
+   createConnection(type: EPeerConnectionType, channelName: string) : void {
+      let factory = new RtcConfigFactory();
+      let configuration = factory.createConfig(rtcConfigType);
 
       this._connection = new RTCPeerConnection(configuration);
       this._connection.onicecandidate = (ice) => {
          this.onIceCandidate(ice.candidate, this.remoteCallParticipation);
       };
 
-      if (type === RtcConnectionType.Caller) {
-         this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededCaller(ev); };
+      if (type === EPeerConnectionType.RtcCaller) {
+         this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededCaller.bind(this)(ev); };
       } else {
-         this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededReciever(ev); };
+         this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededReciever.bind(this)(ev); };
       }
 
-      this._connection.ondatachannel = (ev) => { this.onRecieveDataChannel(ev.channel) };
-      this._connection.oniceconnectionstatechange = (ev) => { this.onIceConnectionStateChange(ev, this._connection); };
-      this._connection.onconnectionstatechange = (ev) => { this.onConnectionStateChange(ev, this._connection); };
-      this._connection.onicecandidateerror = (ev) => { this.onIceCandidateError(ev); };
+      this._connection.ondatachannel = (ev) => { this.onRecieveDataChannel.bind(this)(ev.channel) };
+      this._connection.oniceconnectionstatechange = (ev) => { this.onIceConnectionStateChange.bind(this) (ev, this._connection); };
+      this._connection.onconnectionstatechange = (ev) => { this.onConnectionStateChange.bind(this) (ev, this._connection); };
+      this._connection.onicecandidateerror = (ev) => { this.onIceCandidateError.bind(this)(ev); };
 
       this.createSendChannel(this._connection, channelName);
    }
 
    private onIceCandidate(candidate, to: CallParticipation) : void {
-
-      var self = this;
 
       // Send our call ICE candidate in
       var callIceCandidate = new CallIceCandidate(null, this.localCallParticipation, to, candidate, true);
@@ -258,27 +383,30 @@ class RtcPeerHelper {
    }
 
    private onNegotiationNeededCaller (ev: Event) : void {
+      var self = this;
 
       logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Event:', ev);
 
       // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
       this._connection.createOffer({ iceRestart: true })
-         .then(offer => this._connection.setLocalDescription(offer))
+         .then(offer => self._connection.setLocalDescription(offer))
          .then(() => {
             // Send our call offer data in
             logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Posting offer', null);
-            var callOffer = new CallOffer(null, this.localCallParticipation, this.remoteCallParticipation, this._connection.localDescription);
-            this._signaller.sendOffer(callOffer);
+            var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self._connection.localDescription);
+            self._signaller.sendOffer(callOffer);
          })
    };
 
    private onNegotiationNeededReciever (ev: Event) {
-      var self = this;
 
       logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededReciever', 'Event:', ev);
    };
 
-   private onConnectionStateChange(ev: Event, pc: RTCPeerConnection) : void {
+   private onConnectionStateChange(ev: Event, pc: RTCPeerConnection): void {
+
+      logger.logInfo(RtcPeerHelper.className, 'onConnectionStateChange', 'State:', pc.connectionState);
+
       switch (pc.connectionState) {
          case "connected":
             break;
@@ -426,7 +554,7 @@ class RtcPeerHelper {
 
    // ICE handling
    //////////
-   private onIceConnectionStateChange(ev: Event, pc: RTCPeerConnection) {
+   private onIceConnectionStateChange(ev: Event, pc: RTCPeerConnection) : void {
       var state = pc.iceConnectionState;
       logger.logInfo(RtcPeerHelper.className, 'onIceConnectionStateChange', "state:", state);
 
@@ -483,8 +611,7 @@ class RtcPeerHelper {
 
       var ev2: any = ev;
 
-      var types = new TypeRegistry();
-      var remoteCallData = types.reviveFromJSON(ev2.data);
+      var remoteCallData = this._types.reviveFromJSON(ev2.data);
 
       // Store the person we are talking to - allows tracking in the UI later
       if (remoteCallData.type === Person.__type) {

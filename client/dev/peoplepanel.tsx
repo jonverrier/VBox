@@ -12,10 +12,10 @@ import Row from 'react-bootstrap/Row';
 import { Person } from '../../core/dev/Person';
 import { IStreamable } from '../../core/dev/Streamable';
 import { Participant, ParticipantNoImage } from './participant';
-import { Rtc, RtcLink } from './rtc';
+import { PeerConnection } from './PeerConnection';
 
 export interface IRemotePeopleProps {
-   rtc: Rtc;
+   peers: PeerConnection;
 }
 
 interface IRemotePeopleState {
@@ -26,20 +26,20 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
 
    constructor(props: IRemotePeopleProps) {
       super(props);
-      if (props.rtc) {
-         props.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+      if (props.peers) {
+         props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
       }
       var people = new Array<Person>();
       this.state = { people: people }
    }
 
    UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
+      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
          nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
       }
    }
 
-   onRemoteData(ev: IStreamable, link: RtcLink) {
+   onRemoteData(ev: IStreamable) {
 
       if (ev.type === Person.__type) {
          var person: Person = ev as Person;

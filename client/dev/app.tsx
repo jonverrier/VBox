@@ -16,7 +16,6 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Form from 'react-bootstrap/Form';
 import Carousel from 'react-bootstrap/Carousel';
-import { TriangleRightIcon } from '@primer/octicons-react'
 
 // Additional packages
 import { Helmet } from 'react-helmet';
@@ -24,25 +23,26 @@ import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom';
 import axios from 'axios';
 import * as CSS from 'csstype';
 
-// This app
-import { LoggerFactory, LoggerType } from '../../core/dev/Logger';
+// This app, other components
+import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { Person } from '../../core/dev/Person';
 import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
 
+// This app, this component
 import { ParticipantBanner, ParticipantSmall } from './participant';
 import { RemoteConnectionStatus, MasterConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
 import { LoginMc } from './loginmc';
-import { Rtc } from './rtc';
-import { MeetingScreenState } from './localstore';
+import { PeerConnection } from './PeerConnection';
+import { StoredMeetingState } from './localstore';
 import { MasterClock, RemoteClock } from './clockpanel';
 import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 import { LeaderResolve } from './leaderpanel';
 import { Media } from './media';
 
-var logger = new LoggerFactory().logger(LoggerType.Client, true);
+var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
 const jumbotronStyle: CSS.Properties = {
    paddingLeft: '10px',
@@ -132,7 +132,7 @@ interface IMemberPageProps {
 interface IMemberPageState {
    isLoggedIn: boolean;
    pageData: UserFacilities;
-   rtc: Rtc;
+   rtc: PeerConnection;
    meetCode: string;
    name: string;
    isValidMeetCode: boolean;
@@ -147,12 +147,12 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
    //member variables
    pageData: UserFacilities;
    defaultPageData: UserFacilities;
-   lastUserData: MeetingScreenState;
+   lastUserData: StoredMeetingState;
 
    constructor(props: IMemberPageProps) {
       super(props);
 
-      this.lastUserData = new MeetingScreenState();
+      this.lastUserData = new StoredMeetingState();
 
       this.defaultPageData = new UserFacilities(null,
          new Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''),
@@ -236,7 +236,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                self.pageData = UserFacilities.revive(response.data);
 
                // Initialise WebRTC and connect
-               var rtc = new Rtc({
+               var rtc = new PeerConnection({
                   isEdgeOnly: true, // Member nodes are edge only, coaches are full hubs
                   sessionId: self.pageData.sessionId,
                   facilityId: self.pageData.currentFacility.externalId,
@@ -244,7 +244,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   personName: self.pageData.person.name,
                   personThumbnailUrl: self.pageData.person.thumbnailUrl
                });
-               rtc.connectFirst();
+               rtc.connect();
 
                self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
                self.forceUpdate();
@@ -343,7 +343,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <RemoteConnectionStatus rtc={this.state.rtc}> </RemoteConnectionStatus>
+                        <RemoteConnectionStatus peers={this.state.rtc}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
                               <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
@@ -364,9 +364,9 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                         <RemoteWhiteboard rtc={this.state.rtc}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <RemoteClock rtc={this.state.rtc}/>
+                        <RemoteClock peers={this.state.rtc}/>
                         <br />
-                        <RemotePeople rtc={this.state.rtc}> </RemotePeople>
+                        <RemotePeople peers={this.state.rtc}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>
@@ -385,7 +385,7 @@ interface ICoachPageState {
    isLeader: boolean;
    haveAccess: boolean;
    pageData: UserFacilities;
-   rtc: Rtc;
+   rtc: PeerConnection;
    loginFb: LoginFb;
    openClockSpec: boolean;
    intervalId: any;
@@ -475,7 +475,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   self.pageData = UserFacilities.revive(response.data);
 
                   // Initialise WebRTC and connect
-                  var rtc = new Rtc({
+                  var rtc = new PeerConnection({
                      isEdgeOnly: false, // Member nodes are edge only, coaches are full hubs
                      sessionId: self.pageData.sessionId,
                      facilityId: self.pageData.currentFacility.externalId,
@@ -483,7 +483,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      personName: self.pageData.person.name,
                      personThumbnailUrl: self.pageData.person.thumbnailUrl
                   });
-                  rtc.connectFirst();
+                  rtc.connect ();
 
                   self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
                } else {
@@ -555,7 +555,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <MasterConnectionStatus rtc={this.state.rtc} />
+                        <MasterConnectionStatus peers={this.state.rtc} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
                               <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
@@ -573,17 +573,17 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={thinStyle}>
-                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} rtc={this.state.rtc}> </LeaderResolve>
+                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} peers={this.state.rtc}> </LeaderResolve>
                      </Col>
                   </Row>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <MasterWhiteboard allowEdit={this.state.isLeader} rtc={this.state.rtc}> </MasterWhiteboard>                        
+                        <MasterWhiteboard allowEdit={this.state.isLeader} peers={this.state.rtc}> </MasterWhiteboard>                        
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
                         <MasterClock allowEdit={this.state.isLeader} rtc={this.state.rtc}> </MasterClock>
                         <br />
-                        <RemotePeople rtc={this.state.rtc}> </RemotePeople>
+                        <RemotePeople peers={this.state.rtc}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>
