@@ -3139,6 +3139,8 @@ var sizeMap = {
 function getSvgProps(_ref) {
   var ariaLabel = _ref['aria-label'],
       className = _ref.className,
+      _ref$fill = _ref.fill,
+      fill = _ref$fill === undefined ? 'currentColor' : _ref$fill,
       size = _ref.size,
       verticalAlign = _ref.verticalAlign,
       svgDataByHeight = _ref.svgDataByHeight;
@@ -3157,7 +3159,7 @@ function getSvgProps(_ref) {
     viewBox: '0 0 ' + naturalWidth + ' ' + naturalHeight,
     width: width,
     height: height,
-    fill: 'currentColor',
+    fill: fill,
     style: {
       display: 'inline-block',
       userSelect: 'none',
@@ -3183,7 +3185,7 @@ function AlertIcon(props) {
 }
 
 AlertIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-alert',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3194,7 +3196,7 @@ function ArchiveIcon(props) {
 }
 
 ArchiveIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-archive',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3205,7 +3207,7 @@ function ArrowBothIcon(props) {
 }
 
 ArrowBothIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-both',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3216,7 +3218,7 @@ function ArrowDownIcon(props) {
 }
 
 ArrowDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3227,7 +3229,7 @@ function ArrowDownLeftIcon(props) {
 }
 
 ArrowDownLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-down-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3238,7 +3240,7 @@ function ArrowDownRightIcon(props) {
 }
 
 ArrowDownRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-down-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3249,7 +3251,7 @@ function ArrowLeftIcon(props) {
 }
 
 ArrowLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3260,7 +3262,7 @@ function ArrowRightIcon(props) {
 }
 
 ArrowRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3271,7 +3273,7 @@ function ArrowSwitchIcon(props) {
 }
 
 ArrowSwitchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-switch',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3282,7 +3284,7 @@ function ArrowUpIcon(props) {
 }
 
 ArrowUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3293,7 +3295,7 @@ function ArrowUpLeftIcon(props) {
 }
 
 ArrowUpLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-up-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3304,7 +3306,7 @@ function ArrowUpRightIcon(props) {
 }
 
 ArrowUpRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-arrow-up-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3315,7 +3317,7 @@ function BeakerIcon(props) {
 }
 
 BeakerIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-beaker',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3326,7 +3328,7 @@ function BellIcon(props) {
 }
 
 BellIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bell',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3337,7 +3339,7 @@ function BellFillIcon(props) {
 }
 
 BellFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bell-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3348,7 +3350,7 @@ function BellSlashIcon(props) {
 }
 
 BellSlashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bell-slash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3359,7 +3361,7 @@ function BoldIcon(props) {
 }
 
 BoldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bold',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3370,7 +3372,7 @@ function BookIcon(props) {
 }
 
 BookIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-book',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3381,7 +3383,7 @@ function BookmarkIcon(props) {
 }
 
 BookmarkIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3392,7 +3394,7 @@ function BookmarkFillIcon(props) {
 }
 
 BookmarkFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3403,7 +3405,7 @@ function BookmarkSlashIcon(props) {
 }
 
 BookmarkSlashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark-slash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3414,7 +3416,7 @@ function BookmarkSlashFillIcon(props) {
 }
 
 BookmarkSlashFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bookmark-slash-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3425,7 +3427,7 @@ function BriefcaseIcon(props) {
 }
 
 BriefcaseIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-briefcase',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3436,7 +3438,7 @@ function BroadcastIcon(props) {
 }
 
 BroadcastIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-broadcast',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3447,7 +3449,7 @@ function BrowserIcon(props) {
 }
 
 BrowserIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-browser',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3458,7 +3460,7 @@ function BugIcon(props) {
 }
 
 BugIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-bug',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3469,7 +3471,7 @@ function CalendarIcon(props) {
 }
 
 CalendarIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-calendar',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3480,7 +3482,7 @@ function CheckIcon(props) {
 }
 
 CheckIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-check',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3491,7 +3493,7 @@ function CheckCircleIcon(props) {
 }
 
 CheckCircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-check-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3502,7 +3504,7 @@ function CheckCircleFillIcon(props) {
 }
 
 CheckCircleFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-check-circle-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3513,7 +3515,7 @@ function ChecklistIcon(props) {
 }
 
 ChecklistIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-checklist',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3524,7 +3526,7 @@ function ChevronDownIcon(props) {
 }
 
 ChevronDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3535,7 +3537,7 @@ function ChevronLeftIcon(props) {
 }
 
 ChevronLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3546,7 +3548,7 @@ function ChevronRightIcon(props) {
 }
 
 ChevronRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3557,7 +3559,7 @@ function ChevronUpIcon(props) {
 }
 
 ChevronUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-chevron-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3568,7 +3570,7 @@ function CircleIcon(props) {
 }
 
 CircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3579,7 +3581,7 @@ function CircleSlashIcon(props) {
 }
 
 CircleSlashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-circle-slash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3590,7 +3592,7 @@ function ClippyIcon(props) {
 }
 
 ClippyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-clippy',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3601,7 +3603,7 @@ function ClockIcon(props) {
 }
 
 ClockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-clock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3612,7 +3614,7 @@ function CodeIcon(props) {
 }
 
 CodeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-code',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3623,7 +3625,7 @@ function CodeReviewIcon(props) {
 }
 
 CodeReviewIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-code-review',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3634,7 +3636,7 @@ function CodeSquareIcon(props) {
 }
 
 CodeSquareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-code-square',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3645,7 +3647,7 @@ function CommentIcon(props) {
 }
 
 CommentIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-comment',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3656,7 +3658,7 @@ function CommentDiscussionIcon(props) {
 }
 
 CommentDiscussionIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-comment-discussion',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3667,7 +3669,7 @@ function CommitIcon(props) {
 }
 
 CommitIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-commit',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3678,7 +3680,7 @@ function ContainerIcon(props) {
 }
 
 ContainerIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-container',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3689,7 +3691,7 @@ function CopyIcon(props) {
 }
 
 CopyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-copy',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3700,7 +3702,7 @@ function CpuIcon(props) {
 }
 
 CpuIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-cpu',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3711,7 +3713,7 @@ function CreditCardIcon(props) {
 }
 
 CreditCardIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-credit-card',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3722,7 +3724,7 @@ function CrossReferenceIcon(props) {
 }
 
 CrossReferenceIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-cross-reference',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3733,7 +3735,7 @@ function DashIcon(props) {
 }
 
 DashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-dash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3744,7 +3746,7 @@ function DatabaseIcon(props) {
 }
 
 DatabaseIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-database',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3755,7 +3757,7 @@ function DesktopDownloadIcon(props) {
 }
 
 DesktopDownloadIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-desktop-download',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3766,7 +3768,7 @@ function DeviceCameraIcon(props) {
 }
 
 DeviceCameraIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-camera',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3777,7 +3779,7 @@ function DeviceCameraVideoIcon(props) {
 }
 
 DeviceCameraVideoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-camera-video',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3788,7 +3790,7 @@ function DeviceDesktopIcon(props) {
 }
 
 DeviceDesktopIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-desktop',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3799,7 +3801,7 @@ function DeviceMobileIcon(props) {
 }
 
 DeviceMobileIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-device-mobile',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3810,7 +3812,7 @@ function DiffIcon(props) {
 }
 
 DiffIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3821,7 +3823,7 @@ function DiffAddedIcon(props) {
 }
 
 DiffAddedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-added',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3832,7 +3834,7 @@ function DiffIgnoredIcon(props) {
 }
 
 DiffIgnoredIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-ignored',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3843,7 +3845,7 @@ function DiffModifiedIcon(props) {
 }
 
 DiffModifiedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-modified',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3854,7 +3856,7 @@ function DiffRemovedIcon(props) {
 }
 
 DiffRemovedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-removed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3865,7 +3867,7 @@ function DiffRenamedIcon(props) {
 }
 
 DiffRenamedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-diff-renamed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3876,7 +3878,7 @@ function DotIcon(props) {
 }
 
 DotIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-dot',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3887,7 +3889,7 @@ function DotFillIcon(props) {
 }
 
 DotFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-dot-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3898,7 +3900,7 @@ function DownloadIcon(props) {
 }
 
 DownloadIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-download',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3909,7 +3911,7 @@ function EllipsisIcon(props) {
 }
 
 EllipsisIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-ellipsis',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3920,7 +3922,7 @@ function EyeIcon(props) {
 }
 
 EyeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-eye',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3931,7 +3933,7 @@ function EyeClosedIcon(props) {
 }
 
 EyeClosedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-eye-closed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3942,7 +3944,7 @@ function FileIcon(props) {
 }
 
 FileIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3953,7 +3955,7 @@ function FileBadgeIcon(props) {
 }
 
 FileBadgeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-badge',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3964,7 +3966,7 @@ function FileBinaryIcon(props) {
 }
 
 FileBinaryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-binary',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3975,7 +3977,7 @@ function FileCodeIcon(props) {
 }
 
 FileCodeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-code',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3986,7 +3988,7 @@ function FileDiffIcon(props) {
 }
 
 FileDiffIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-diff',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -3997,7 +3999,7 @@ function FileDirectoryIcon(props) {
 }
 
 FileDirectoryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-directory',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4008,7 +4010,7 @@ function FileDirectoryFillIcon(props) {
 }
 
 FileDirectoryFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-directory-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4019,7 +4021,7 @@ function FileMediaIcon(props) {
 }
 
 FileMediaIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-media',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4030,7 +4032,7 @@ function FileSubmoduleIcon(props) {
 }
 
 FileSubmoduleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-submodule',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4041,7 +4043,7 @@ function FileSymlinkFileIcon(props) {
 }
 
 FileSymlinkFileIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-symlink-file',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4052,7 +4054,7 @@ function FileZipIcon(props) {
 }
 
 FileZipIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-file-zip',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4063,7 +4065,7 @@ function FilterIcon(props) {
 }
 
 FilterIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-filter',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4074,7 +4076,7 @@ function FlameIcon(props) {
 }
 
 FlameIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-flame',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4085,7 +4087,7 @@ function FoldIcon(props) {
 }
 
 FoldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-fold',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4096,7 +4098,7 @@ function FoldDownIcon(props) {
 }
 
 FoldDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-fold-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4107,7 +4109,7 @@ function FoldUpIcon(props) {
 }
 
 FoldUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-fold-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4118,7 +4120,7 @@ function GearIcon(props) {
 }
 
 GearIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-gear',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4129,7 +4131,7 @@ function GiftIcon(props) {
 }
 
 GiftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-gift',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4140,7 +4142,7 @@ function GitBranchIcon(props) {
 }
 
 GitBranchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-branch',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4151,7 +4153,7 @@ function GitCommitIcon(props) {
 }
 
 GitCommitIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-commit',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4162,7 +4164,7 @@ function GitCompareIcon(props) {
 }
 
 GitCompareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-compare',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4173,7 +4175,7 @@ function GitForkIcon(props) {
 }
 
 GitForkIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-fork',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4184,7 +4186,7 @@ function GitMergeIcon(props) {
 }
 
 GitMergeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-merge',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4195,7 +4197,7 @@ function GitPullRequestIcon(props) {
 }
 
 GitPullRequestIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-git-pull-request',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4206,7 +4208,7 @@ function GlobeIcon(props) {
 }
 
 GlobeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-globe',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4217,7 +4219,7 @@ function GrabberIcon(props) {
 }
 
 GrabberIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-grabber',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4228,7 +4230,7 @@ function GraphIcon(props) {
 }
 
 GraphIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-graph',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4239,7 +4241,7 @@ function HeadingIcon(props) {
 }
 
 HeadingIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-heading',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4250,7 +4252,7 @@ function HeartIcon(props) {
 }
 
 HeartIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-heart',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4261,7 +4263,7 @@ function HeartFillIcon(props) {
 }
 
 HeartFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-heart-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4272,7 +4274,7 @@ function HistoryIcon(props) {
 }
 
 HistoryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-history',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4283,7 +4285,7 @@ function HomeIcon(props) {
 }
 
 HomeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-home',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4294,7 +4296,7 @@ function HomeFillIcon(props) {
 }
 
 HomeFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-home-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4305,7 +4307,7 @@ function HorizontalRuleIcon(props) {
 }
 
 HorizontalRuleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-horizontal-rule',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4316,7 +4318,7 @@ function HourglassIcon(props) {
 }
 
 HourglassIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-hourglass',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4327,7 +4329,7 @@ function HubotIcon(props) {
 }
 
 HubotIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-hubot',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4338,7 +4340,7 @@ function ImageIcon(props) {
 }
 
 ImageIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-image',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4349,7 +4351,7 @@ function InboxIcon(props) {
 }
 
 InboxIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-inbox',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4360,7 +4362,7 @@ function InfinityIcon(props) {
 }
 
 InfinityIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-infinity',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4371,7 +4373,7 @@ function InfoIcon(props) {
 }
 
 InfoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-info',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4382,7 +4384,7 @@ function InsightsIcon(props) {
 }
 
 InsightsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-insights',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4393,7 +4395,7 @@ function IssueClosedIcon(props) {
 }
 
 IssueClosedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-issue-closed',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4404,7 +4406,7 @@ function IssueOpenedIcon(props) {
 }
 
 IssueOpenedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-issue-opened',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4415,7 +4417,7 @@ function IssueReopenedIcon(props) {
 }
 
 IssueReopenedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-issue-reopened',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4426,7 +4428,7 @@ function ItalicIcon(props) {
 }
 
 ItalicIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-italic',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4437,7 +4439,7 @@ function KebabHorizontalIcon(props) {
 }
 
 KebabHorizontalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-kebab-horizontal',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4448,7 +4450,7 @@ function KeyIcon(props) {
 }
 
 KeyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-key',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4459,7 +4461,7 @@ function LawIcon(props) {
 }
 
 LawIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-law',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4470,7 +4472,7 @@ function LightBulbIcon(props) {
 }
 
 LightBulbIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-light-bulb',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4481,7 +4483,7 @@ function LinkIcon(props) {
 }
 
 LinkIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-link',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4492,7 +4494,7 @@ function LinkExternalIcon(props) {
 }
 
 LinkExternalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-link-external',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4503,7 +4505,7 @@ function ListOrderedIcon(props) {
 }
 
 ListOrderedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-list-ordered',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4514,7 +4516,7 @@ function ListUnorderedIcon(props) {
 }
 
 ListUnorderedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-list-unordered',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4525,7 +4527,7 @@ function LocationIcon(props) {
 }
 
 LocationIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-location',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4536,7 +4538,7 @@ function LockIcon(props) {
 }
 
 LockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-lock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4547,7 +4549,7 @@ function LogoGistIcon(props) {
 }
 
 LogoGistIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-logo-gist',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4558,7 +4560,7 @@ function LogoGithubIcon(props) {
 }
 
 LogoGithubIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-logo-github',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4569,7 +4571,7 @@ function MailIcon(props) {
 }
 
 MailIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mail',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4580,7 +4582,7 @@ function MarkGithubIcon(props) {
 }
 
 MarkGithubIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mark-github',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4591,7 +4593,7 @@ function MarkdownIcon(props) {
 }
 
 MarkdownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-markdown',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4602,7 +4604,7 @@ function MegaphoneIcon(props) {
 }
 
 MegaphoneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-megaphone',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4613,7 +4615,7 @@ function MentionIcon(props) {
 }
 
 MentionIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mention',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4624,7 +4626,7 @@ function MeterIcon(props) {
 }
 
 MeterIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-meter',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4635,7 +4637,7 @@ function MilestoneIcon(props) {
 }
 
 MilestoneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-milestone',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4646,7 +4648,7 @@ function MirrorIcon(props) {
 }
 
 MirrorIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mirror',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4657,7 +4659,7 @@ function MoonIcon(props) {
 }
 
 MoonIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-moon',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4668,7 +4670,7 @@ function MortarBoardIcon(props) {
 }
 
 MortarBoardIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mortar-board',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4679,7 +4681,7 @@ function MultiSelectIcon(props) {
 }
 
 MultiSelectIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-multi-select',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4690,7 +4692,7 @@ function MuteIcon(props) {
 }
 
 MuteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-mute',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4701,7 +4703,7 @@ function NoEntryIcon(props) {
 }
 
 NoEntryIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-no-entry',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4712,7 +4714,7 @@ function NorthStarIcon(props) {
 }
 
 NorthStarIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-north-star',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4723,7 +4725,7 @@ function NoteIcon(props) {
 }
 
 NoteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-note',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4734,7 +4736,7 @@ function NumberIcon(props) {
 }
 
 NumberIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-number',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4745,7 +4747,7 @@ function OctofaceIcon(props) {
 }
 
 OctofaceIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-octoface',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4756,7 +4758,7 @@ function OrganizationIcon(props) {
 }
 
 OrganizationIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-organization',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4767,7 +4769,7 @@ function PackageIcon(props) {
 }
 
 PackageIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-package',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4778,7 +4780,7 @@ function PackageDependenciesIcon(props) {
 }
 
 PackageDependenciesIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-package-dependencies',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4789,7 +4791,7 @@ function PackageDependentsIcon(props) {
 }
 
 PackageDependentsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-package-dependents',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4800,7 +4802,7 @@ function PaintbrushIcon(props) {
 }
 
 PaintbrushIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-paintbrush',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4811,7 +4813,7 @@ function PaperAirplaneIcon(props) {
 }
 
 PaperAirplaneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-paper-airplane',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4822,7 +4824,7 @@ function PencilIcon(props) {
 }
 
 PencilIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-pencil',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4833,7 +4835,7 @@ function PeopleIcon(props) {
 }
 
 PeopleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-people',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4844,7 +4846,7 @@ function PersonIcon(props) {
 }
 
 PersonIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-person',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4855,7 +4857,7 @@ function PinIcon(props) {
 }
 
 PinIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-pin',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4866,7 +4868,7 @@ function PlayIcon(props) {
 }
 
 PlayIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-play',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4877,7 +4879,7 @@ function PlugIcon(props) {
 }
 
 PlugIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-plug',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4888,7 +4890,7 @@ function PlusIcon(props) {
 }
 
 PlusIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-plus',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4899,7 +4901,7 @@ function PlusCircleIcon(props) {
 }
 
 PlusCircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-plus-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4910,7 +4912,7 @@ function ProjectIcon(props) {
 }
 
 ProjectIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-project',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4921,7 +4923,7 @@ function PulseIcon(props) {
 }
 
 PulseIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-pulse',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4932,7 +4934,7 @@ function QuestionIcon(props) {
 }
 
 QuestionIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-question',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4943,7 +4945,7 @@ function QuoteIcon(props) {
 }
 
 QuoteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-quote',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4954,7 +4956,7 @@ function ReplyIcon(props) {
 }
 
 ReplyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-reply',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4965,7 +4967,7 @@ function RepoIcon(props) {
 }
 
 RepoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4976,7 +4978,7 @@ function RepoCloneIcon(props) {
 }
 
 RepoCloneIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-clone',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4987,7 +4989,7 @@ function RepoForkedIcon(props) {
 }
 
 RepoForkedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-forked',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -4998,7 +5000,7 @@ function RepoPullIcon(props) {
 }
 
 RepoPullIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-pull',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5009,7 +5011,7 @@ function RepoPushIcon(props) {
 }
 
 RepoPushIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-push',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5020,7 +5022,7 @@ function RepoTemplateIcon(props) {
 }
 
 RepoTemplateIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-repo-template',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5031,7 +5033,7 @@ function ReportIcon(props) {
 }
 
 ReportIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-report',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5042,7 +5044,7 @@ function RocketIcon(props) {
 }
 
 RocketIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-rocket',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5053,7 +5055,7 @@ function RssIcon(props) {
 }
 
 RssIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-rss',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5064,7 +5066,7 @@ function RubyIcon(props) {
 }
 
 RubyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-ruby',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5075,7 +5077,7 @@ function ScreenFullIcon(props) {
 }
 
 ScreenFullIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-screen-full',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5086,7 +5088,7 @@ function ScreenNormalIcon(props) {
 }
 
 ScreenNormalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-screen-normal',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5097,7 +5099,7 @@ function SearchIcon(props) {
 }
 
 SearchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-search',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5108,7 +5110,7 @@ function ServerIcon(props) {
 }
 
 ServerIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-server',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5119,7 +5121,7 @@ function ShareIcon(props) {
 }
 
 ShareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-share',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5130,7 +5132,7 @@ function ShareAndroidIcon(props) {
 }
 
 ShareAndroidIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-share-android',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5141,7 +5143,7 @@ function ShieldIcon(props) {
 }
 
 ShieldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5152,7 +5154,7 @@ function ShieldCheckIcon(props) {
 }
 
 ShieldCheckIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield-check',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5163,7 +5165,7 @@ function ShieldLockIcon(props) {
 }
 
 ShieldLockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield-lock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5174,7 +5176,7 @@ function ShieldXIcon(props) {
 }
 
 ShieldXIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-shield-x',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5185,7 +5187,7 @@ function SignInIcon(props) {
 }
 
 SignInIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sign-in',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5196,7 +5198,7 @@ function SignOutIcon(props) {
 }
 
 SignOutIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sign-out',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5207,7 +5209,7 @@ function SkipIcon(props) {
 }
 
 SkipIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-skip',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5218,7 +5220,7 @@ function SmileyIcon(props) {
 }
 
 SmileyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-smiley',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5229,7 +5231,7 @@ function SquareIcon(props) {
 }
 
 SquareIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-square',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5240,7 +5242,7 @@ function SquareFillIcon(props) {
 }
 
 SquareFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-square-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5251,7 +5253,7 @@ function SquirrelIcon(props) {
 }
 
 SquirrelIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-squirrel',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5262,7 +5264,7 @@ function StarIcon(props) {
 }
 
 StarIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-star',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5273,7 +5275,7 @@ function StarFillIcon(props) {
 }
 
 StarFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-star-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5284,7 +5286,7 @@ function StopIcon(props) {
 }
 
 StopIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-stop',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5295,7 +5297,7 @@ function StopwatchIcon(props) {
 }
 
 StopwatchIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-stopwatch',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5306,7 +5308,7 @@ function StrikethroughIcon(props) {
 }
 
 StrikethroughIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-strikethrough',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5317,7 +5319,7 @@ function SunIcon(props) {
 }
 
 SunIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sun',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5328,7 +5330,7 @@ function SyncIcon(props) {
 }
 
 SyncIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-sync',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5339,7 +5341,7 @@ function TabIcon(props) {
 }
 
 TabIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tab',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5350,7 +5352,7 @@ function TagIcon(props) {
 }
 
 TagIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tag',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5361,7 +5363,7 @@ function TasklistIcon(props) {
 }
 
 TasklistIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tasklist',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5372,7 +5374,7 @@ function TelescopeIcon(props) {
 }
 
 TelescopeIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-telescope',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5383,7 +5385,7 @@ function TerminalIcon(props) {
 }
 
 TerminalIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-terminal',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5394,7 +5396,7 @@ function ThreeBarsIcon(props) {
 }
 
 ThreeBarsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-three-bars',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5405,7 +5407,7 @@ function ThumbsdownIcon(props) {
 }
 
 ThumbsdownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-thumbsdown',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5416,7 +5418,7 @@ function ThumbsupIcon(props) {
 }
 
 ThumbsupIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-thumbsup',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5427,7 +5429,7 @@ function ToolsIcon(props) {
 }
 
 ToolsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-tools',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5438,7 +5440,7 @@ function TrashIcon(props) {
 }
 
 TrashIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-trash',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5449,7 +5451,7 @@ function TriangleDownIcon(props) {
 }
 
 TriangleDownIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-down',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5460,7 +5462,7 @@ function TriangleLeftIcon(props) {
 }
 
 TriangleLeftIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-left',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5471,7 +5473,7 @@ function TriangleRightIcon(props) {
 }
 
 TriangleRightIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-right',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5482,7 +5484,7 @@ function TriangleUpIcon(props) {
 }
 
 TriangleUpIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-triangle-up',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5493,7 +5495,7 @@ function TypographyIcon(props) {
 }
 
 TypographyIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-typography',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5504,7 +5506,7 @@ function UnfoldIcon(props) {
 }
 
 UnfoldIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unfold',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5515,7 +5517,7 @@ function UnlockIcon(props) {
 }
 
 UnlockIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unlock',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5526,7 +5528,7 @@ function UnmuteIcon(props) {
 }
 
 UnmuteIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unmute',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5537,7 +5539,7 @@ function UnverifiedIcon(props) {
 }
 
 UnverifiedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-unverified',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5548,7 +5550,7 @@ function UploadIcon(props) {
 }
 
 UploadIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-upload',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5559,7 +5561,7 @@ function VerifiedIcon(props) {
 }
 
 VerifiedIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-verified',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5570,7 +5572,7 @@ function VersionsIcon(props) {
 }
 
 VersionsIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-versions',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5581,7 +5583,7 @@ function VideoIcon(props) {
 }
 
 VideoIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-video',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5592,7 +5594,7 @@ function WorkflowIcon(props) {
 }
 
 WorkflowIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-workflow',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5603,7 +5605,7 @@ function XIcon(props) {
 }
 
 XIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-x',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5614,7 +5616,7 @@ function XCircleIcon(props) {
 }
 
 XCircleIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-x-circle',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5625,7 +5627,7 @@ function XCircleFillIcon(props) {
 }
 
 XCircleFillIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-x-circle-fill',
   size: 16,
   verticalAlign: 'text-bottom'
 };
@@ -5636,7 +5638,7 @@ function ZapIcon(props) {
 }
 
 ZapIcon.defaultProps = {
-  className: 'octicon',
+  className: 'octicon octicon-zap',
   size: 16,
   verticalAlign: 'text-bottom'
 };
