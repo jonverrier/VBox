@@ -29,7 +29,7 @@
       "winston": "^3.3.3"
    },
    "scripts": {
-      "build-prod": "cd core && npm run build && cd ../client && npm run build && cd ../server && npm run build"
+      "build-master": "cd core && npm run build && cd ../client && npm run build && cd ../server && npm run build"
    },
    "devDependencies": {
    },
