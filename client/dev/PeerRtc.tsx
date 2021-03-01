@@ -624,10 +624,15 @@ class RtcPeerHelper {
             person.email,
             person.thumbnailUrl,
             person.lastAuthCode);
-      }
 
-      if (this.onRemoteData) {
-         this.onRemoteData(remoteCallData);
+         if (this.onRemoteData) {
+            this.onRemoteData(this._remotePerson as any);
+         }
+      } else {
+
+         if (this.onRemoteData) {
+            this.onRemoteData(remoteCallData);
+         }
       }
    }
 }
