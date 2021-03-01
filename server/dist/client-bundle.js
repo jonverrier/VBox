@@ -53403,9 +53403,14 @@ class RtcPeerHelper {
             var person = remoteCallData;
             // Store a unique derivation of name in case a person join multiple times
             this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            if (this.onRemoteData) {
+                this.onRemoteData(this._remotePerson);
+            }
         }
-        if (this.onRemoteData) {
-            this.onRemoteData(remoteCallData);
+        else {
+            if (this.onRemoteData) {
+                this.onRemoteData(remoteCallData);
+            }
         }
     }
 }
