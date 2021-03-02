@@ -53414,7 +53414,7 @@ var ERtcConfigurationType;
     ERtcConfigurationType[ERtcConfigurationType["StunThenTurn"] = 2] = "StunThenTurn";
 })(ERtcConfigurationType = exports.ERtcConfigurationType || (exports.ERtcConfigurationType = {}));
 // Set this to control connection scope
-const rtcConfigType = ERtcConfigurationType.TurnOnly;
+const rtcConfigType = ERtcConfigurationType.StunThenTurn;
 class PeerFactory {
     constructor() {
     }

@@ -34,7 +34,7 @@ export enum ERtcConfigurationType {
 }
 
 // Set this to control connection scope
-const rtcConfigType = ERtcConfigurationType.TurnOnly;
+const rtcConfigType = ERtcConfigurationType.StunThenTurn;
 
 export class PeerFactory {
    constructor() {
