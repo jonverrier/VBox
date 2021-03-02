@@ -53414,7 +53414,7 @@ var ERtcConfigurationType;
     ERtcConfigurationType[ERtcConfigurationType["StunThenTurn"] = 2] = "StunThenTurn";
 })(ERtcConfigurationType = exports.ERtcConfigurationType || (exports.ERtcConfigurationType = {}));
 // Set this to control connection scope
-const rtcConfigType = ERtcConfigurationType.StunOnly;
+const rtcConfigType = ERtcConfigurationType.TurnOnly;
 class PeerFactory {
     constructor() {
     }
@@ -53456,7 +53456,7 @@ class RtcConfigFactory {
                     iceServers: [{
                             "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
                             username: 'ubuntu',
-                            credentials: '1wtutona'
+                            credential: '1wtutona'
                         }
                     ]
                 };
@@ -53473,7 +53473,7 @@ class RtcConfigFactory {
                         {
                             "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
                             username: 'ubuntu',
-                            credentials: '1wtutona'
+                            credential: '1wtutona'
                         }
                     ]
                 };

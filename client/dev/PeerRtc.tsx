@@ -102,7 +102,7 @@ export class RtcConfigFactory {
                iceServers: [{
                   "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
                   username: 'ubuntu',
-                  credentials: '1wtutona'
+                  credential: '1wtutona'
                }
                ]
             };
@@ -120,7 +120,7 @@ export class RtcConfigFactory {
                {
                   "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
                   username: 'ubuntu',
-                  credentials: '1wtutona'
+                  credential: '1wtutona'
                }
                ]
             };
