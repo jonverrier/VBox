@@ -53453,9 +53453,10 @@ class RtcConfigFactory {
                 return stunConfiguration;
             case ERtcConfigurationType.TurnOnly:
                 let turnConfiguration = {
-                    iceServers: [
-                        {
-                            "urls": "stun:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp"
+                    iceServers: [{
+                            "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
+                            username: 'ubuntu',
+                            credentials: '1wtutona'
                         }
                     ]
                 };
@@ -53470,9 +53471,9 @@ class RtcConfigFactory {
                             "urls": "stun:stun1.l.google.com:19302?transport=tcp"
                         },
                         {
-                            "urls": "trurn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480?transport=tcp",
-                            username: 'turnuser1678',
-                            credentials: 'iwtutfmp'
+                            "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
+                            username: 'ubuntu',
+                            credentials: '1wtutona'
                         }
                     ]
                 };
