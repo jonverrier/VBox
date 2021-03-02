@@ -1,7 +1,7 @@
 module.exports = {
    devtool: 'source-map',
    entry: "./dev/EntryPoints.tsx",
-   mode: "development",
+   mode: "production",
    target: 'node',
    output: {
       filename: "./core-bundle.js",
