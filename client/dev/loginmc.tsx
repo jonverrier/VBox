@@ -41,6 +41,37 @@ export class LoginMc {
       this.checkMeetCode();
    }
 
+   logIn() : void {
+      var self = this;
+
+      axios.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
+         .then(function (response) {
+            if (response.data) {
+               self.props.onLoginStatusChange(true);
+               // if we are not already on a validated path, redirect 
+               if (!(location.pathname.includes('member'))) {
+                  window.location.href = "member";
+               }
+            } else {
+               self.props.onLoginStatusChange(false);
+            }
+         })
+         .catch(function (error) {
+            self.props.onLoginStatusChange(false);
+         });
+   }
+
+   logOut() : void {
+      axios.post('/auth/logout', { params: { null: null } })
+         .then((response) => {
+            window.location.href = "/";
+         })
+         .catch((e) => {
+            logger.logError('LoginMc', 'logOut', 'Error:', e);
+            window.location.href = "/";
+         });
+   }
+
    checkMeetCode() {
       var self = this;
 
@@ -92,37 +123,6 @@ export class LoginMc {
 
    getName(): string {
       return this.state.name;
-   }
-
-   logIn() {
-      var self = this;
-
-      axios.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
-         .then(function (response) {
-            if (response.data) {
-               self.props.onLoginStatusChange(true);
-               // if we are not already on a validated path, redirect 
-               if (!(location.pathname.includes('member'))) {
-                  window.location.href = "member";
-               }
-            } else {
-               self.props.onLoginStatusChange(false);
-            }
-         })
-         .catch(function (error) {
-            self.props.onLoginStatusChange(false);
-         });
-   }
-
-   logOut() {
-      axios.post('/api/logout', { params: {} })
-         .then((response) => {
-            window.location.href = "/";
-         })
-         .catch((e) => {
-            logger.logError('LoginMc', 'logOut', 'Error:', e);
-            window.location.href = "/";
-         });
    }
 }
 

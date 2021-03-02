@@ -30,7 +30,7 @@ export class LoginFb {
       this.props = props;
    }
 
-   loadAPI() {
+   loadAPI() : void {
       var self = this;
 
       (window as any).fbAsyncInit = function () {
@@ -60,8 +60,28 @@ export class LoginFb {
       this.testSession();
    }
 
-   testSession() {
-      axios.post('/api/sessiontest', { params: {} })
+   logInFromClick() : void {
+      this.logIn(true);
+   }
+
+   logIn(redirect: boolean) {
+      var self = this;
+      (window as any).FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
+   }
+
+   logOut() : void {
+      axios.post('/auth/logout', { params: { null: null} })
+         .then((response) => {
+            window.location.href = "/";
+         })
+         .catch((e) => {
+            logger.logError('LoginFb', 'logOut', 'Error:', e);
+            window.location.href = "/";
+         });
+   }
+
+   private testSession(): void {
+      axios.post('/api/sessiontest', { params: { null: null} })
          .then((response) => {
             if (response.data && !response.data.session) {
                window.location.href = "auth/facebook";
@@ -72,7 +92,8 @@ export class LoginFb {
          });
    }
 
-   getUserData(redirect, accessToken) {
+
+   private getUserData(redirect: boolean, accessToken: string) : void {
       var self = this;
 
       (window as any).FB.api('/me', { fields: 'id, name' }, function (response) {
@@ -87,14 +108,14 @@ export class LoginFb {
       });
    }
 
-   processUserData(redirect, name, url, token) {
+   private processUserData(redirect : boolean, name : string, url : string, token : string) : void {
       var self = this;
 
       self.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
       self.props.onLoginStatusChange(true);
    }
 
-   processFBLoginData(redirect, response) {
+   private processFBLoginData(redirect: boolean, response: any) : void {
       var self = this;
 
       if (response.status === 'connected') {
@@ -119,31 +140,11 @@ export class LoginFb {
       }
    }
 
-   processFBLoginResponse(redirect) {
+   private processFBLoginResponse(redirect: boolean) : void {
       var self = this;
 
       (window as any).FB.getLoginStatus(function (response) {
          self.processFBLoginData(redirect, response);
       }, redirect);
-   }
-
-   logInFromClick() {
-      this.logIn(true); 
-   }
-
-   logIn(redirect) {
-      var self = this;
-      (window as any).FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
-   }
-
-   logOut() {
-      axios.post('/api/logout', { params: {} })
-         .then((response) => {
-            window.location.href = "/";
-         })
-         .catch((e) => {
-            logger.logError('LoginFb', 'logOut', 'Error:', e);
-            window.location.href = "/";
-         });
    }
 }

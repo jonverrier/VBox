@@ -55769,8 +55769,25 @@ class LoginFb {
         }(document, 'script', 'facebook-jssdk'));
         this.testSession();
     }
+    logInFromClick() {
+        this.logIn(true);
+    }
+    logIn(redirect) {
+        var self = this;
+        window.FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
+    }
+    logOut() {
+        axios_1.default.post('/auth/logout', { params: { null: null } })
+            .then((response) => {
+            window.location.href = "/";
+        })
+            .catch((e) => {
+            logger.logError('LoginFb', 'logOut', 'Error:', e);
+            window.location.href = "/";
+        });
+    }
     testSession() {
-        axios_1.default.post('/api/sessiontest', { params: {} })
+        axios_1.default.post('/api/sessiontest', { params: { null: null } })
             .then((response) => {
             if (response.data && !response.data.session) {
                 window.location.href = "auth/facebook";
@@ -55827,23 +55844,6 @@ class LoginFb {
             self.processFBLoginData(redirect, response);
         }, redirect);
     }
-    logInFromClick() {
-        this.logIn(true);
-    }
-    logIn(redirect) {
-        var self = this;
-        window.FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
-    }
-    logOut() {
-        axios_1.default.post('/api/logout', { params: {} })
-            .then((response) => {
-            window.location.href = "/";
-        })
-            .catch((e) => {
-            logger.logError('LoginFb', 'logOut', 'Error:', e);
-            window.location.href = "/";
-        });
-    }
 }
 exports.LoginFb = LoginFb;
 
@@ -55875,6 +55875,35 @@ class LoginMc {
     }
     loadAPI() {
         this.checkMeetCode();
+    }
+    logIn() {
+        var self = this;
+        axios_1.default.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
+            .then(function (response) {
+            if (response.data) {
+                self.props.onLoginStatusChange(true);
+                // if we are not already on a validated path, redirect 
+                if (!(location.pathname.includes('member'))) {
+                    window.location.href = "member";
+                }
+            }
+            else {
+                self.props.onLoginStatusChange(false);
+            }
+        })
+            .catch(function (error) {
+            self.props.onLoginStatusChange(false);
+        });
+    }
+    logOut() {
+        axios_1.default.post('/auth/logout', { params: { null: null } })
+            .then((response) => {
+            window.location.href = "/";
+        })
+            .catch((e) => {
+            logger.logError('LoginMc', 'logOut', 'Error:', e);
+            window.location.href = "/";
+        });
     }
     checkMeetCode() {
         var self = this;
@@ -55916,35 +55945,6 @@ class LoginMc {
     }
     getName() {
         return this.state.name;
-    }
-    logIn() {
-        var self = this;
-        axios_1.default.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
-            .then(function (response) {
-            if (response.data) {
-                self.props.onLoginStatusChange(true);
-                // if we are not already on a validated path, redirect 
-                if (!(location.pathname.includes('member'))) {
-                    window.location.href = "member";
-                }
-            }
-            else {
-                self.props.onLoginStatusChange(false);
-            }
-        })
-            .catch(function (error) {
-            self.props.onLoginStatusChange(false);
-        });
-    }
-    logOut() {
-        axios_1.default.post('/api/logout', { params: {} })
-            .then((response) => {
-            window.location.href = "/";
-        })
-            .catch((e) => {
-            logger.logError('LoginMc', 'logOut', 'Error:', e);
-            window.location.href = "/";
-        });
     }
 }
 exports.LoginMc = LoginMc;
