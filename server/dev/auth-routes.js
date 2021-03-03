@@ -82,4 +82,17 @@ authRouter.get("/successfb", (req, res) => {
    });
 });
 
+authRouter.post("/auth/logout", (req, res) => {
+
+   if (req.user)
+      req.logout();
+   
+   if (req.session) {
+      req.session.destroy(function (err) {
+         res.send(true);
+      });
+   } else
+      res.send(false);
+});
+
 module.exports = authRouter;

@@ -34,7 +34,7 @@ export enum ERtcConfigurationType {
 }
 
 // Set this to control connection scope
-const rtcConfigType = ERtcConfigurationType.TurnOnly;
+const rtcConfigType = ERtcConfigurationType.StunThenTurn;
 
 export class PeerFactory {
    constructor() {
@@ -89,10 +89,10 @@ export class RtcConfigFactory {
          case ERtcConfigurationType.StunOnly:
             let stunConfiguration = {
                iceServers: [{
-                  "urls": "stun:stun.l.google.com:19302?transport=tcp"
+                  "urls": "stun:stun.l.google.com:19302"
                },
                {
-                  "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+                  "urls": "stun:stun1.l.google.com:19302"
                }]
             };
             return stunConfiguration;
@@ -112,10 +112,10 @@ export class RtcConfigFactory {
          default:
             let defaultConfiguration = {
                iceServers: [{
-                  "urls": "stun:stun.l.google.com:19302?transport=tcp"
+                  "urls": "stun:stun.l.google.com:19302"
                },
                {
-                  "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+                  "urls": "stun:stun1.l.google.com:19302"
                },
                {
                   "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
@@ -330,7 +330,7 @@ class RtcPeerHelper {
    onRemoteFail: ((this: RtcPeerHelper) => void) | null;
 
    /**
-   * set of 'getters' & some 'stters' for private variables
+   * set of 'getters' & some 'setters' for private variables
    */
    get localCallParticipation(): CallParticipation {
       return this._localCallParticipation;

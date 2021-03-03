@@ -10,6 +10,7 @@ var EntryPoints = pkg.default;
 
 var logger = new EntryPoints.LoggerFactory().createLogger(EntryPoints.ELoggerType.Server);
 var Person = EntryPoints.Person;
+var Facility = EntryPoints.Facility;
 var CallOffer = EntryPoints.CallOffer;
 var CallAnswer = EntryPoints.CallAnswer;
 var CallIceCandidate = EntryPoints.CallIceCandidate;  
@@ -33,7 +34,11 @@ async function facilitiesFor (facilityIds) {
 
    for (let id of facilityIds) {
       const facility = await facilityModel.findOne().where('externalId').eq(id).exec();
-      facilities.push(facility);
+      facilities.push(new Facility(facility._id,
+         facility.externalId,
+         facility.name,
+         facility.thumbnailUrl,
+         facility.homepageUrl));
    }
    return facilities;
 }
@@ -129,7 +134,8 @@ function userFacilitiesFor (req, facilities) {
 
    var myFacilityData = new UserFacilities(req.sessionID,
       new Person(null, req.user.externalId, req.user.name, null, req.user.thumbnailUrl, null),
-      current, facilities);
+      current,
+      facilities);
 
    return JSON.stringify(myFacilityData);
 }
@@ -147,16 +153,6 @@ router.post('/api/keepalive', function (req, res) {
 router.post('/api/sessiontest', function (req, res) {
    if (req.user && req.user.externalId) {
       res.send({session: true});
-   } else {
-      res.send({ session: false });
-   }
-});
-
-// API to test if the client app has a valid session
-router.post('/api/logout', function (req, res) {
-   if (req.user) {
-      req.logout();
-      res.send({ session: true });
    } else {
       res.send({ session: false });
    }

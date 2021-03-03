@@ -30,11 +30,12 @@ import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
 
 // This app, this component
+import { ILoginProvider, ILoginData } from './LoginInterfaces';
+import { MemberLoginData, MemberLoginProvider } from './LoginMember';
 import { ParticipantBanner, ParticipantSmall } from './participant';
 import { RemoteConnectionStatus, MasterConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
 import { LoginFb } from './loginfb';
-import { LoginMc } from './loginmc';
 import { PeerConnection } from './PeerConnection';
 import { StoredMeetingState } from './localstore';
 import { MasterClock, RemoteClock } from './clockpanel';
@@ -133,12 +134,11 @@ interface IMemberPageState {
    isLoggedIn: boolean;
    pageData: UserFacilities;
    rtc: PeerConnection;
-   meetCode: string;
-   name: string;
-   isValidMeetCode: boolean;
-   isValidName: boolean;
-   isReadyToLogInWithMeetCode: boolean;
-   loginMc: LoginMc;
+   isDataReady: boolean;
+   meetCodeCopy: string;
+   nameCopy: string;
+   memberLoginData: MemberLoginData;
+   memberLoginProvider: MemberLoginProvider;
    intervalId: any;
 }
 
@@ -160,27 +160,22 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
          new Array<Facility>());
 
       this.pageData = this.defaultPageData;
+      let memberLoginData = new MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
 
       this.state = {
          isLoggedIn: false,
          pageData: this.pageData,
          rtc: null,
-         isReadyToLogInWithMeetCode: false,
-         meetCode: this.lastUserData.loadMeetingId(),
-         name: this.lastUserData.loadName(),
-         isValidMeetCode: false,
-         isValidName: false,
-         loginMc: new LoginMc({
-            autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
-            onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this),
-            name: this.lastUserData.loadName(),
-            meetCode: this.lastUserData.loadMeetingId()
-         }),
+         isDataReady: false,
+         meetCodeCopy: memberLoginData.meetCode,
+         nameCopy: memberLoginData.name,
+         memberLoginData: memberLoginData,
+         memberLoginProvider: new MemberLoginProvider(),
          intervalId : null
       };
    }
 
-   componentDidMount() {
+   componentDidMount() : void {
       // pre-load images that indicate a connection error, as they won't load later.
       const imgR = new Image();
       imgR.src = "./circle-black-red-128x128.png";
@@ -190,21 +185,24 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
       var self = this;
 
       // Initialise meeting code API
-      this.state.loginMc.loadAPI();
+      this.state.memberLoginProvider.load();
+      this.state.memberLoginData.onDataReadiness = this.onDataReadiness.bind(this);
+      this.state.memberLoginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
+      this.state.memberLoginProvider.onLoginResult = this.onLoginResult.bind(this);
 
       // Keep alive to server every 25 seconds
       let intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
       this.setState({ intervalId: intervalId });
    }
 
-   componentWillUnmount() {
+   componentWillUnmount() : void {
       if (this.state.intervalId) {
          clearInterval(this.state.intervalId);
          this.setState({ intervalId: null });
       }
    }
 
-   onClockInterval() {
+   onClockInterval() : void {
       axios.post('/api/keepalive', { params: {} })
          .then((response) => {
          })
@@ -213,17 +211,33 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
          });
    }
 
-   handleMeetCodeChange(ev: any) {
-      this.state.loginMc.handleMeetCodeChange(ev);
-      this.setState({ meetCode: this.state.loginMc.getMeetCode() });
+   handleMeetCodeChange(ev: Event): void {
+      var casting : any = ev.target;
+      this.state.memberLoginData.meetCode = casting.value;
+      this.setState({ meetCodeCopy: casting.value });
    }
 
-   handleNameChange(ev: any) {
-      this.state.loginMc.handleNameChange(ev);
-      this.setState({ name: this.state.loginMc.getName() });
+   handleNameChange(ev: Event) : void {
+      var casting: any = ev.target;
+      this.state.memberLoginData.name = casting.value;
+      this.setState({ nameCopy: casting.value });
    }
 
-   onLoginStatusChangeMc(isLoggedIn) {
+   onDataReadiness(isReady: boolean): void {
+      if (isReady) {
+         // If the data is OK, we can log in provided the subsystem is ready
+         this.state.memberLoginProvider.setLoginData(this.state.memberLoginData);
+      } else {
+         // but we can unconditionallt not log in if the data is wrong
+         this.setState({ isDataReady: false });
+      }
+   }
+
+   onLoginReadiness(isReady: boolean): void {
+      this.setState({ isDataReady: isReady });
+   }
+
+   onLoginResult(isLoggedIn: boolean) : void {
 
       var self = this;
 
@@ -257,18 +271,6 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
       }
    }
 
-   onLoginReadinessChangeMc(isReady) {
-      this.setState({
-         isReadyToLogInWithMeetCode: isReady,
-         isValidMeetCode: this.state.loginMc.isValidMeetCode(),
-         isValidName: this.state.loginMc.isValidName()
-      });
-      if (isReady) {
-         this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
-         this.lastUserData.saveName(this.state.loginMc.getName());
-      }
-   }
-
    render() {
       if (!this.state.isLoggedIn) {
          return (
@@ -296,17 +298,17 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            <Form.Group controlId="formMeetingCode">
                               <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={fieldBSepStyle}
                                  onChange={this.handleMeetCodeChange.bind(this)}
-                                 isValid={this.state.isValidMeetCode}
-                                 value={this.state.meetCode} />
+                                 isValid={this.state.memberLoginData.isValidMeetCode()}
+                                 value={this.state.meetCodeCopy} />
                            </Form.Group>
                            <Form.Group controlId="formName">
                               <Form.Control type="text" placeholder="Enter your display name." maxLength={30} style={fieldBSepStyle}
                                  onChange={this.handleNameChange.bind(this)}
-                                 isValid={this.state.isValidName}
-                                 value={this.state.name} />
+                                 isValid={this.state.memberLoginData.isValidName()}
+                                 value={this.state.nameCopy} />
                            </Form.Group>
-                           <Button variant="secondary" disabled={!this.state.isReadyToLogInWithMeetCode}
-                              onClick={this.state.loginMc.logIn.bind(this.state.loginMc)}>Join with a meeting code...
+                           <Button variant="secondary" disabled={!this.state.isDataReady}
+                              onClick={this.state.memberLoginProvider.login.bind(this.state.memberLoginProvider)}>Join with a meeting code...
                            </Button>
                         </Col>
                         <Col className="d-none d-md-block">
@@ -351,7 +353,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="right">
-                              <Dropdown.Item onClick={this.state.loginMc.logOut}>Sign Out...</Dropdown.Item>
+                              <Dropdown.Item onClick={this.state.memberLoginProvider.logout.bind(this.state.memberLoginProvider)}>Sign Out...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
