@@ -5835,14 +5835,18 @@ class UserFacilities {
      * Method that serializes to JSON
      */
     toJSON() {
+        let facilities = new Array(this._facilities.length);
+        for (var i = 0; i < this._facilities.length; i++) {
+            facilities[i] = this._facilities[i].toJSON();
+        }
         return {
             __type: UserFacilities.__type,
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _sessionId: this._sessionId,
-                _person: this._person,
-                _currentFacility: this._currentFacility,
-                _facilities: this._facilities
+                _person: this._person.toJSON(),
+                _currentFacility: this._currentFacility.toJSON(),
+                _facilities: facilities
             }
         };
     }

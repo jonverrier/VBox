@@ -53,7 +53,10 @@
     <TypeScriptCompile Include="dev\leaderpanel.tsx" />
     <TypeScriptCompile Include="dev\LocalStore.tsx" />
     <TypeScriptCompile Include="dev\loginfb.tsx" />
+    <TypeScriptCompile Include="dev\LoginInterfaces.tsx" />
     <TypeScriptCompile Include="dev\loginmc.tsx" />
+    <TypeScriptCompile Include="dev\LoginMeetingCode.tsx" />
+    <TypeScriptCompile Include="dev\LoginMember.tsx" />
     <TypeScriptCompile Include="dev\media.tsx" />
     <TypeScriptCompile Include="dev\participant.tsx" />
     <TypeScriptCompile Include="dev\PeerInterfaces.tsx" />

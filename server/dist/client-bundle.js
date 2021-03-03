@@ -52993,6 +52993,209 @@ function warning(condition, message) {
 
 /***/ }),
 
+/***/ "./dev/LoginMeetingCode.tsx":
+/*!**********************************!*\
+  !*** ./dev/LoginMeetingCode.tsx ***!
+  \**********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Component to support Login via a meeting code
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LoginMeetingCode = void 0;
+const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
+// This app, this component
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+const meetCodelength = 10;
+class LoginMeetingCode {
+    constructor(meetCode) {
+        this._isTimerPending = false;
+        this._isValidMeetCode = false;
+        this._meetCode = meetCode;
+        this.validateMeetCode();
+    }
+    /**
+    * set of 'getters' & 'setters' for private variables
+    */
+    get meetCode() {
+        return this._meetCode;
+    }
+    set meetCode(newMeetCode) {
+        this._meetCode = newMeetCode;
+        this.validateMeetCode();
+    }
+    magicNumber() {
+        return LoginMeetingCode._meetCodeMagicNumber;
+    }
+    isValid() {
+        if (this.isValidMeetCode() && !this._isTimerPending)
+            return true;
+        else
+            return false;
+    }
+    isValidMeetCode() {
+        return this._isValidMeetCode;
+    }
+    validateMeetCode() {
+        var self = this;
+        // make at most one call per 500ms to the server to check for a valid meet code
+        if (!self._isTimerPending) {
+            self._isTimerPending = true;
+            setTimeout(function () {
+                self._isTimerPending = false;
+                axios_1.default.get('/api/isvalidmc', { params: { meetingId: encodeURIComponent(self._meetCode) } })
+                    .then(function (response) {
+                    self._isValidMeetCode = response.data ? true : false;
+                    if (self.onDataReadiness)
+                        self.onDataReadiness(self.isValid());
+                })
+                    .catch(function (error) {
+                    if (self.onDataReadiness)
+                        self.onDataReadiness(self.isValid());
+                });
+            }, 500);
+        }
+    }
+}
+exports.LoginMeetingCode = LoginMeetingCode;
+LoginMeetingCode._meetCodeMagicNumber = 0xdbb0641fa; // pasted from 
+
+
+/***/ }),
+
+/***/ "./dev/LoginMember.tsx":
+/*!*****************************!*\
+  !*** ./dev/LoginMember.tsx ***!
+  \*****************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Component to support Login via a meeting code
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MemberLoginProvider = exports.MemberLoginData = void 0;
+const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
+// This app, this component
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+const LoginMeetingCode_1 = __webpack_require__(/*! ./LoginMeetingCode */ "./dev/LoginMeetingCode.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class MemberLoginData extends LoginMeetingCode_1.LoginMeetingCode {
+    constructor(meetCode, name) {
+        super(meetCode);
+        super.onDataReadiness = this.onDataReadinessInner.bind(this);
+        this.name = name;
+    }
+    /**
+    * set of 'getters' & 'setters' for private variables
+    */
+    get name() {
+        return this._name;
+    }
+    set name(name) {
+        this._name = name;
+    }
+    magicNumber() {
+        return MemberLoginData._memberMagicNumber;
+    }
+    // Hook for data readiness changes from superclass
+    onDataReadinessInner(isSuccessful) {
+        if (this.onDataReadiness) {
+            this.onDataReadiness(this.isValid());
+        }
+    }
+    isValid() {
+        if (super.isValid()
+            && this.isValidName())
+            return true;
+        else
+            return false;
+    }
+    isValidName() {
+        return this._name.length > 0;
+    }
+}
+exports.MemberLoginData = MemberLoginData;
+MemberLoginData._memberMagicNumber = 0x4203a0d3; // pasted from
+function assertTrue(condition, msg) {
+    if (!condition) {
+        logger.logError('MemberLoginProvider', 'assertTrue', msg, condition);
+        throw new Error(msg);
+    }
+}
+class MemberLoginProvider {
+    constructor() {
+        this._loginData = undefined;
+    }
+    load() {
+        return; // Nothing to do on load for this provider
+    }
+    setLoginData(loginData) {
+        assertTrue(loginData.magicNumber() === MemberLoginData._memberMagicNumber, 'Invalid magic number from ILoginData.');
+        var casting = loginData;
+        this._loginData = casting;
+        if (this._loginData.isValid()) {
+            // as soon as vald data is provided, we can log in. 
+            if (this.onLoginReadiness)
+                this.onLoginReadiness(true);
+        }
+        else {
+            if (this.onLoginReadiness)
+                this.onLoginReadiness(false);
+        }
+    }
+    login(fromUserClick) {
+        var self = this;
+        axios_1.default.get('/auth/local', {
+            params: {
+                meetingId: encodeURIComponent(this._loginData.meetCode),
+                name: encodeURIComponent(this._loginData.name)
+            }
+        })
+            .then(function (response) {
+            if (response.data) {
+                if (self.onLoginResult)
+                    self.onLoginResult(true);
+                // if we are not already on a validated path, redirect 
+                if (!(location.pathname.includes('member'))) {
+                    window.location.href = "member";
+                }
+            }
+            else {
+                if (self.onLoginResult)
+                    self.onLoginResult(false);
+            }
+        })
+            .catch(function (error) {
+            if (self.onLoginResult)
+                self.onLoginResult(false);
+        });
+    }
+    logout() {
+        axios_1.default.post('/auth/logout', { params: { null: null } })
+            .then((response) => {
+            window.location.href = "/";
+        })
+            .catch((e) => {
+            logger.logError('LoginMc', 'logOut', 'Error:', e);
+            window.location.href = "/";
+        });
+    }
+}
+exports.MemberLoginProvider = MemberLoginProvider;
+
+
+/***/ }),
+
 /***/ "./dev/PeerConnection.tsx":
 /*!********************************!*\
   !*** ./dev/PeerConnection.tsx ***!
@@ -53444,10 +53647,10 @@ class RtcConfigFactory {
             case ERtcConfigurationType.StunOnly:
                 let stunConfiguration = {
                     iceServers: [{
-                            "urls": "stun:stun.l.google.com:19302?transport=tcp"
+                            "urls": "stun:stun.l.google.com:19302"
                         },
                         {
-                            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+                            "urls": "stun:stun1.l.google.com:19302"
                         }]
                 };
                 return stunConfiguration;
@@ -53465,10 +53668,10 @@ class RtcConfigFactory {
             default:
                 let defaultConfiguration = {
                     iceServers: [{
-                            "urls": "stun:stun.l.google.com:19302?transport=tcp"
+                            "urls": "stun:stun.l.google.com:19302"
                         },
                         {
-                            "urls": "stun:stun1.l.google.com:19302?transport=tcp"
+                            "urls": "stun:stun1.l.google.com:19302"
                         },
                         {
                             "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
@@ -53600,7 +53803,7 @@ class RtcPeerHelper {
         this._iceQueue = new Queue_1.Queue();
     }
     /**
-    * set of 'getters' & some 'stters' for private variables
+    * set of 'getters' & some 'setters' for private variables
     */
     get localCallParticipation() {
         return this._localCallParticipation;
@@ -54257,12 +54460,11 @@ const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/L
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ../../core/dev/Facility */ "../core/dev/Facility.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities */ "../core/dev/UserFacilities.tsx");
-// This app, this component
+const LoginMember_1 = __webpack_require__(/*! ./LoginMember */ "./dev/LoginMember.tsx");
 const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
 const callpanel_1 = __webpack_require__(/*! ./callpanel */ "./dev/callpanel.tsx");
 const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
 const loginfb_1 = __webpack_require__(/*! ./loginfb */ "./dev/loginfb.tsx");
-const loginmc_1 = __webpack_require__(/*! ./loginmc */ "./dev/loginmc.tsx");
 const PeerConnection_1 = __webpack_require__(/*! ./PeerConnection */ "./dev/PeerConnection.tsx");
 const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
 const clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./dev/clockpanel.tsx");
@@ -54342,21 +54544,16 @@ class MemberPage extends React.Component {
         this.lastUserData = new localstore_1.StoredMeetingState();
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), new Array());
         this.pageData = this.defaultPageData;
+        let memberLoginData = new LoginMember_1.MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
         this.state = {
             isLoggedIn: false,
             pageData: this.pageData,
             rtc: null,
-            isReadyToLogInWithMeetCode: false,
-            meetCode: this.lastUserData.loadMeetingId(),
-            name: this.lastUserData.loadName(),
-            isValidMeetCode: false,
-            isValidName: false,
-            loginMc: new loginmc_1.LoginMc({
-                autoLogin: false, onLoginStatusChange: this.onLoginStatusChangeMc.bind(this),
-                onLoginReadinessChange: this.onLoginReadinessChangeMc.bind(this),
-                name: this.lastUserData.loadName(),
-                meetCode: this.lastUserData.loadMeetingId()
-            }),
+            isDataReady: false,
+            meetCodeCopy: memberLoginData.meetCode,
+            nameCopy: memberLoginData.name,
+            memberLoginData: memberLoginData,
+            memberLoginProvider: new LoginMember_1.MemberLoginProvider(),
             intervalId: null
         };
     }
@@ -54368,7 +54565,10 @@ class MemberPage extends React.Component {
         imgA.src = "./circle-black-yellow-128x128.png";
         var self = this;
         // Initialise meeting code API
-        this.state.loginMc.loadAPI();
+        this.state.memberLoginProvider.load();
+        this.state.memberLoginData.onDataReadiness = this.onDataReadiness.bind(this);
+        this.state.memberLoginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
+        this.state.memberLoginProvider.onLoginResult = this.onLoginResult.bind(this);
         // Keep alive to server every 25 seconds
         let intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
         this.setState({ intervalId: intervalId });
@@ -54388,14 +54588,29 @@ class MemberPage extends React.Component {
         });
     }
     handleMeetCodeChange(ev) {
-        this.state.loginMc.handleMeetCodeChange(ev);
-        this.setState({ meetCode: this.state.loginMc.getMeetCode() });
+        var casting = ev.target;
+        this.state.memberLoginData.meetCode = casting.value;
+        this.setState({ meetCodeCopy: casting.value });
     }
     handleNameChange(ev) {
-        this.state.loginMc.handleNameChange(ev);
-        this.setState({ name: this.state.loginMc.getName() });
+        var casting = ev.target;
+        this.state.memberLoginData.name = casting.value;
+        this.setState({ nameCopy: casting.value });
     }
-    onLoginStatusChangeMc(isLoggedIn) {
+    onDataReadiness(isReady) {
+        if (isReady) {
+            // If the data is OK, we can log in provided the subsystem is ready
+            this.state.memberLoginProvider.setLoginData(this.state.memberLoginData);
+        }
+        else {
+            // but we can unconditionallt not log in if the data is wrong
+            this.setState({ isDataReady: false });
+        }
+    }
+    onLoginReadiness(isReady) {
+        this.setState({ isDataReady: isReady });
+    }
+    onLoginResult(isLoggedIn) {
         var self = this;
         if (isLoggedIn) {
             // Make a request for user data to populate the home page 
@@ -54423,17 +54638,6 @@ class MemberPage extends React.Component {
             });
         }
     }
-    onLoginReadinessChangeMc(isReady) {
-        this.setState({
-            isReadyToLogInWithMeetCode: isReady,
-            isValidMeetCode: this.state.loginMc.isValidMeetCode(),
-            isValidName: this.state.loginMc.isValidName()
-        });
-        if (isReady) {
-            this.lastUserData.saveMeetingId(this.state.loginMc.getMeetCode());
-            this.lastUserData.saveName(this.state.loginMc.getName());
-        }
-    }
     render() {
         if (!this.state.isLoggedIn) {
             return (React.createElement("div", { className: "loginpage" },
@@ -54452,10 +54656,10 @@ class MemberPage extends React.Component {
                             React.createElement(Col_1.default, { className: "d-none d-md-block" }),
                             React.createElement(Col_1.default, null,
                                 React.createElement(Form_1.default.Group, { controlId: "formMeetingCode" },
-                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: 10, style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.isValidMeetCode, value: this.state.meetCode })),
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: 10, style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.memberLoginData.isValidMeetCode(), value: this.state.meetCodeCopy })),
                                 React.createElement(Form_1.default.Group, { controlId: "formName" },
-                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: 30, style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.isValidName, value: this.state.name })),
-                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isReadyToLogInWithMeetCode, onClick: this.state.loginMc.logIn.bind(this.state.loginMc) }, "Join with a meeting code...")),
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: 30, style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.memberLoginData.isValidName(), value: this.state.nameCopy })),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isDataReady, onClick: this.state.memberLoginProvider.login.bind(this.state.memberLoginProvider) }, "Join with a meeting code...")),
                             React.createElement(Col_1.default, { className: "d-none d-md-block" }))))));
         }
         else {
@@ -54482,7 +54686,7 @@ class MemberPage extends React.Component {
                                     React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginMc.logOut }, "Sign Out...")))))),
+                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.memberLoginProvider.logout.bind(this.state.memberLoginProvider) }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
@@ -55846,108 +56050,6 @@ class LoginFb {
     }
 }
 exports.LoginFb = LoginFb;
-
-
-/***/ }),
-
-/***/ "./dev/loginmc.tsx":
-/*!*************************!*\
-  !*** ./dev/loginmc.tsx ***!
-  \*************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-// Component to support Login via a meeting code
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LoginMc = void 0;
-const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
-const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
-class LoginMc {
-    constructor(props) {
-        this.state = { isLoggedIn: false, meetCode: props.meetCode, name: props.name, isValidMeetCode: false, isTimerPending: false };
-        this.props = props;
-    }
-    loadAPI() {
-        this.checkMeetCode();
-    }
-    logIn() {
-        var self = this;
-        axios_1.default.get('/auth/local', { params: { meetingId: encodeURIComponent(this.state.meetCode), name: encodeURIComponent(this.state.name) } })
-            .then(function (response) {
-            if (response.data) {
-                self.props.onLoginStatusChange(true);
-                // if we are not already on a validated path, redirect 
-                if (!(location.pathname.includes('member'))) {
-                    window.location.href = "member";
-                }
-            }
-            else {
-                self.props.onLoginStatusChange(false);
-            }
-        })
-            .catch(function (error) {
-            self.props.onLoginStatusChange(false);
-        });
-    }
-    logOut() {
-        axios_1.default.post('/auth/logout', { params: { null: null } })
-            .then((response) => {
-            window.location.href = "/";
-        })
-            .catch((e) => {
-            logger.logError('LoginMc', 'logOut', 'Error:', e);
-            window.location.href = "/";
-        });
-    }
-    checkMeetCode() {
-        var self = this;
-        // make at most one call per second to the server to check for a valid meet code
-        if (!this.state.isTimerPending) {
-            this.state.isTimerPending = true;
-            setTimeout(function () {
-                self.state.isTimerPending = false;
-                axios_1.default.get('/api/isvalidmc', { params: { meetingId: encodeURIComponent(self.state.meetCode) } })
-                    .then(function (response) {
-                    self.state.isValidMeetCode = response.data ? true : false;
-                    self.props.onLoginReadinessChange(self.isLoginReady());
-                })
-                    .catch(function (error) {
-                    self.props.onLoginReadinessChange(self.isLoginReady());
-                });
-            }, 1000);
-        }
-    }
-    handleMeetCodeChange(ev) {
-        this.state.meetCode = ev.target.value;
-        this.checkMeetCode();
-    }
-    handleNameChange(ev) {
-        this.state.name = ev.target.value;
-        this.props.onLoginReadinessChange(this.isLoginReady());
-    }
-    isValidName() {
-        return this.state.name.length > 0;
-    }
-    isValidMeetCode() {
-        return this.state.isValidMeetCode;
-    }
-    isLoginReady() {
-        return this.state.name.length > 0 && this.state.isValidMeetCode;
-    }
-    getMeetCode() {
-        return this.state.meetCode;
-    }
-    getName() {
-        return this.state.name;
-    }
-}
-exports.LoginMc = LoginMc;
 
 
 /***/ }),
@@ -58207,14 +58309,18 @@ class UserFacilities {
      * Method that serializes to JSON
      */
     toJSON() {
+        let facilities = new Array(this._facilities.length);
+        for (var i = 0; i < this._facilities.length; i++) {
+            facilities[i] = this._facilities[i].toJSON();
+        }
         return {
             __type: UserFacilities.__type,
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _sessionId: this._sessionId,
-                _person: this._person,
-                _currentFacility: this._currentFacility,
-                _facilities: this._facilities
+                _person: this._person.toJSON(),
+                _currentFacility: this._currentFacility.toJSON(),
+                _facilities: facilities
             }
         };
     }
