@@ -5332,15 +5332,18 @@ var LoggerEntryPoints = {
 /*!**********************************!*\
   !*** ./dev/LoggerClientWrap.tsx ***!
   \**********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
-/*jslint white: false, indent: 3, maxerr: 1000 */
-/*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ClientLoggerWrap = void 0;
+// external components
+const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 var logging = __webpack_require__(/*! loglevel */ "./node_modules/loglevel/lib/loglevel.js");
 logging.setLevel("info");
 class ClientLoggerWrap {
@@ -5351,9 +5354,9 @@ class ClientLoggerWrap {
     logError(fromClass, fromMethod, info, objAsJSON) {
         const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "");
         this.logger.error('Error:' + msg);
-        //axios.post('/api/error', { params: { message: encodeURIComponent(msg) } })
-        //   .then((response) => {
-        //   });
+        axios_1.default.post('/api/error', { params: { message: encodeURIComponent(msg) } })
+            .then((response) => {
+        });
     }
     logInfo(fromClass, fromMethod, info, objAsJSON) {
         this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : ""));

@@ -1,18 +1,20 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// Component to support Login via a meeting code
+// LoginInterfaces - defines abstract interfaces for LoginProvider, LoginData, ...
+// LoginMeetingCode - helper class to encapsulate validating a meeting code
+// LonginMember - login classes to log members in with just meeting code and name
+// LoginOauth - login via Oath, currently facebook.
 
-// extranla components
-import * as React from 'react';
+// external components
 import axios from 'axios';
 
 // This app, this component
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { ILoginProvider, ILoginData } from './LoginInterfaces';
-import { LoginMeetingCode } from './LoginMeetingCode';
+import { LoginMeetCodeData } from './LoginMeetingCode';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
-export class MemberLoginData extends LoginMeetingCode {
+export class MemberLoginData extends LoginMeetCodeData {
    static readonly _memberMagicNumber: number = 0x4203a0d3; // pasted from
    // https://onlinehextools.com/generate-random-hex-numbers
 
@@ -105,7 +107,7 @@ export class MemberLoginProvider implements ILoginProvider {
       }
    }
 
-   login(fromUserClick: boolean): void {
+   login(fromUserClick?: boolean): void {
       var self = this;
 
       axios.get('/auth/local', {
@@ -134,13 +136,18 @@ export class MemberLoginProvider implements ILoginProvider {
          });
    }
 
+   testLogin(): boolean {
+      // No notion of a pre-login with member-based login, as need to get session established with server
+      return false; 
+   }
+
    logout(): void {
       axios.post('/auth/logout', { params: { null: null } })
          .then((response) => {
             window.location.href = "/";
          })
          .catch((e) => {
-            logger.logError('LoginMc', 'logOut', 'Error:', e);
+            logger.logError('MemberLoginProvider', 'logout', 'Error:', e);
             window.location.href = "/";
          });
    }

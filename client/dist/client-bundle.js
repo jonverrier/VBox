@@ -52993,6 +52993,34 @@ function warning(condition, message) {
 
 /***/ }),
 
+/***/ "./dev/ClientUrl.tsx":
+/*!***************************!*\
+  !*** ./dev/ClientUrl.tsx ***!
+  \***************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ClientUrl = void 0;
+class ClientUrl {
+    constructor(url) {
+        // instantiate a new URL with the settings defined above
+        this.url = new URL(url);
+    }
+    queryParam(key) {
+        let search = (this.url).search;
+        let params = (this.url).searchParams;
+        let value = params.get(key);
+        return value;
+    }
+}
+exports.ClientUrl = ClientUrl;
+
+
+/***/ }),
+
 /***/ "./dev/LoginMeetingCode.tsx":
 /*!**********************************!*\
   !*** ./dev/LoginMeetingCode.tsx ***!
@@ -53002,18 +53030,22 @@ function warning(condition, message) {
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Component to support Login via a meeting code
+// LoginInterfaces - defines abstract interfaces for LoginProvider, LoginData, ...
+// LoginMeetingCode - helper class to encapsulate validating a meeting code
+// LonginMember - login classes to log members in with just meeting code and name
+// LoginOauth - login via Oath, currently facebook.
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LoginMeetingCode = void 0;
+exports.LoginMeetCodeData = void 0;
+// external components
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 // This app, this component
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 const meetCodelength = 10;
-class LoginMeetingCode {
+class LoginMeetCodeData {
     constructor(meetCode) {
         this._isTimerPending = false;
         this._isValidMeetCode = false;
@@ -53031,7 +53063,7 @@ class LoginMeetingCode {
         this.validateMeetCode();
     }
     magicNumber() {
-        return LoginMeetingCode._meetCodeMagicNumber;
+        return LoginMeetCodeData._meetCodeMagicNumber;
     }
     isValid() {
         if (this.isValidMeetCode() && !this._isTimerPending)
@@ -53063,8 +53095,8 @@ class LoginMeetingCode {
         }
     }
 }
-exports.LoginMeetingCode = LoginMeetingCode;
-LoginMeetingCode._meetCodeMagicNumber = 0xdbb0641fa; // pasted from 
+exports.LoginMeetCodeData = LoginMeetCodeData;
+LoginMeetCodeData._meetCodeMagicNumber = 0xdbb0641fa; // pasted from 
 
 
 /***/ }),
@@ -53078,18 +53110,22 @@ LoginMeetingCode._meetCodeMagicNumber = 0xdbb0641fa; // pasted from
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Component to support Login via a meeting code
+// LoginInterfaces - defines abstract interfaces for LoginProvider, LoginData, ...
+// LoginMeetingCode - helper class to encapsulate validating a meeting code
+// LonginMember - login classes to log members in with just meeting code and name
+// LoginOauth - login via Oath, currently facebook.
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MemberLoginProvider = exports.MemberLoginData = void 0;
+// external components
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 // This app, this component
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
 const LoginMeetingCode_1 = __webpack_require__(/*! ./LoginMeetingCode */ "./dev/LoginMeetingCode.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
-class MemberLoginData extends LoginMeetingCode_1.LoginMeetingCode {
+class MemberLoginData extends LoginMeetingCode_1.LoginMeetCodeData {
     constructor(meetCode, name) {
         super(meetCode);
         super.onDataReadiness = this.onDataReadinessInner.bind(this);
@@ -53180,18 +53216,116 @@ class MemberLoginProvider {
                 self.onLoginResult(false);
         });
     }
+    testLogin() {
+        // No notion of a pre-login with member-based login, as need to get session established with server
+        return false;
+    }
     logout() {
         axios_1.default.post('/auth/logout', { params: { null: null } })
             .then((response) => {
             window.location.href = "/";
         })
             .catch((e) => {
-            logger.logError('LoginMc', 'logOut', 'Error:', e);
+            logger.logError('MemberLoginProvider', 'logout', 'Error:', e);
             window.location.href = "/";
         });
     }
 }
 exports.MemberLoginProvider = MemberLoginProvider;
+
+
+/***/ }),
+
+/***/ "./dev/LoginOauth.tsx":
+/*!****************************!*\
+  !*** ./dev/LoginOauth.tsx ***!
+  \****************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// LoginInterfaces - defines abstract interfaces for LoginProvider, LoginData, ...
+// LoginMeetingCode - helper class to encapsulate validating a meeting code
+// LonginMember - login classes to log members in with just meeting code and name
+// LoginOauth - login via Oath, currently facebook. 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LoginOauthProvider = void 0;
+// external components
+const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
+// This app, this component
+const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
+const LoginMeetingCode_1 = __webpack_require__(/*! ./LoginMeetingCode */ "./dev/LoginMeetingCode.tsx");
+const ClientUrl_1 = __webpack_require__(/*! ./ClientUrl */ "./dev/ClientUrl.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+function assertTrue(condition, msg) {
+    if (!condition) {
+        logger.logError('OauthLoginProvider', 'assertTrue', msg, condition);
+        throw new Error(msg);
+    }
+}
+class LoginOauthProvider {
+    constructor() {
+        this._loginData = undefined;
+    }
+    load() {
+        return; // Nothing to do on load for this provider
+    }
+    setLoginData(loginData) {
+        assertTrue(loginData.magicNumber() === LoginMeetingCode_1.LoginMeetCodeData._meetCodeMagicNumber, 'Invalid magic number from ILoginData.');
+        var casting = loginData;
+        this._loginData = casting;
+        if (this._loginData.isValid()) {
+            // as soon as vald data is provided, we can log in. 
+            // Note that this would be different if we locad local Facebook SDK - have to load it first. 
+            if (this.onLoginReadiness)
+                this.onLoginReadiness(true);
+        }
+        else {
+            if (this.onLoginReadiness)
+                this.onLoginReadiness(false);
+        }
+    }
+    login(fromUserClick) {
+        // pull meeting id from URL - if its the same as we sent, we are logged in. 
+        // else we need to redirect to server login 
+        let url = new ClientUrl_1.ClientUrl(document.location.toString());
+        if (url.queryParam('meetingId') === this._loginData.meetCode) {
+            if (this.onLoginResult)
+                this.onLoginResult(true);
+            return;
+        }
+        else {
+            window.location.href = '/auth/facebook?meetingId=' + encodeURIComponent(this._loginData.meetCode);
+        }
+    }
+    testLogin() {
+        // pull meeting id from URL - if its the same as we sent, we are logged in. 
+        // else we need to redirect to server login 
+        let url = new ClientUrl_1.ClientUrl(document.location.toString());
+        if (url.queryParam('meetingId') === this._loginData.meetCode) {
+            if (this.onLoginResult)
+                this.onLoginResult(true);
+            return true;
+        }
+        else
+            return false;
+    }
+    logout() {
+        axios_1.default.post('/auth/logout', { params: { null: null } })
+            .then((response) => {
+            window.location.href = "/";
+        })
+            .catch((e) => {
+            logger.logError('OauthLoginProvider', 'logout', 'Error:', e);
+            window.location.href = "/";
+        });
+    }
+}
+exports.LoginOauthProvider = LoginOauthProvider;
 
 
 /***/ }),
@@ -54150,25 +54284,16 @@ class SignalReciever {
         this._lastSequenceNo = 0;
         this._retries = 0;
         this._types = new Types_1.TypeRegistry();
+        // These two get set later on 
+        this._participation = undefined;
+        this._events = undefined;
     }
     connect(participation) {
         this._participation = participation;
         this.reConnect(participation);
     }
     isConnected() {
-        return this._events != null;
-    }
-    reConnect(participation) {
-        if (this._events) {
-            this._events.close();
-        }
-        // Send our own details & subscribe to more
-        const sourceUrl = '/callevents/?callParticipation='
-            + encodeURIComponent(JSON.stringify(this._participation))
-            + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this._lastSequenceNo));
-        this._events = new EventSource(sourceUrl);
-        this._events.onmessage = this.onServerData.bind(this);
-        this._events.onerror = this.onServerError.bind(this);
+        return (this._events != null) && (this._retries === 0);
     }
     onServerData(ev) {
         this._retries = 0;
@@ -54184,6 +54309,22 @@ class SignalReciever {
         this._events.close();
         this.connectLater(3000);
         this._retries++;
+    }
+    onServerOpen(ev) {
+        logger.logInfo(SignalReciever.className, 'onServerOpen', "event:", ev);
+    }
+    reConnect(participation) {
+        if (this._events) {
+            this._events.close();
+        }
+        // Send our own details & subscribe to more
+        const sourceUrl = '/callevents/?callParticipation='
+            + encodeURIComponent(JSON.stringify(this._participation))
+            + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this._lastSequenceNo));
+        this._events = new EventSource(sourceUrl);
+        this._events.onmessage = this.onServerData.bind(this);
+        this._events.onerror = this.onServerError.bind(this);
+        this._events.onopen = this.onServerOpen.bind(this);
     }
     sleep(time) {
         return new Promise(resolve => setTimeout(resolve, time));
@@ -54461,10 +54602,11 @@ const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/P
 const Facility_1 = __webpack_require__(/*! ../../core/dev/Facility */ "../core/dev/Facility.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities */ "../core/dev/UserFacilities.tsx");
 const LoginMember_1 = __webpack_require__(/*! ./LoginMember */ "./dev/LoginMember.tsx");
+const LoginOauth_1 = __webpack_require__(/*! ./LoginOauth */ "./dev/LoginOauth.tsx");
+const LoginMeetingCode_1 = __webpack_require__(/*! ./LoginMeetingCode */ "./dev/LoginMeetingCode.tsx");
 const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
 const callpanel_1 = __webpack_require__(/*! ./callpanel */ "./dev/callpanel.tsx");
 const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
-const loginfb_1 = __webpack_require__(/*! ./loginfb */ "./dev/loginfb.tsx");
 const PeerConnection_1 = __webpack_require__(/*! ./PeerConnection */ "./dev/PeerConnection.tsx");
 const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
 const clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./dev/clockpanel.tsx");
@@ -54544,16 +54686,16 @@ class MemberPage extends React.Component {
         this.lastUserData = new localstore_1.StoredMeetingState();
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), new Array());
         this.pageData = this.defaultPageData;
-        let memberLoginData = new LoginMember_1.MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
+        let loginData = new LoginMember_1.MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
         this.state = {
             isLoggedIn: false,
             pageData: this.pageData,
             rtc: null,
             isDataReady: false,
-            meetCodeCopy: memberLoginData.meetCode,
-            nameCopy: memberLoginData.name,
-            memberLoginData: memberLoginData,
-            memberLoginProvider: new LoginMember_1.MemberLoginProvider(),
+            meetCodeCopy: loginData.meetCode,
+            nameCopy: loginData.name,
+            loginData: loginData,
+            loginProvider: new LoginMember_1.MemberLoginProvider(),
             intervalId: null
         };
     }
@@ -54563,15 +54705,14 @@ class MemberPage extends React.Component {
         imgR.src = "./circle-black-red-128x128.png";
         const imgA = new Image();
         imgA.src = "./circle-black-yellow-128x128.png";
-        var self = this;
         // Initialise meeting code API
-        this.state.memberLoginProvider.load();
-        this.state.memberLoginData.onDataReadiness = this.onDataReadiness.bind(this);
-        this.state.memberLoginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
-        this.state.memberLoginProvider.onLoginResult = this.onLoginResult.bind(this);
-        // Keep alive to server every 25 seconds
-        let intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
-        this.setState({ intervalId: intervalId });
+        this.state.loginProvider.load();
+        this.state.loginData.onDataReadiness = this.onDataReadiness.bind(this);
+        this.state.loginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
+        this.state.loginProvider.onLoginResult = this.onLoginResult.bind(this);
+        // probe to see if we are already logged in
+        this.state.loginProvider.setLoginData(this.state.loginData);
+        this.state.loginProvider.testLogin();
     }
     componentWillUnmount() {
         if (this.state.intervalId) {
@@ -54589,21 +54730,21 @@ class MemberPage extends React.Component {
     }
     handleMeetCodeChange(ev) {
         var casting = ev.target;
-        this.state.memberLoginData.meetCode = casting.value;
+        this.state.loginData.meetCode = casting.value;
         this.setState({ meetCodeCopy: casting.value });
     }
     handleNameChange(ev) {
         var casting = ev.target;
-        this.state.memberLoginData.name = casting.value;
+        this.state.loginData.name = casting.value;
         this.setState({ nameCopy: casting.value });
     }
     onDataReadiness(isReady) {
         if (isReady) {
-            // If the data is OK, we can log in provided the subsystem is ready
-            this.state.memberLoginProvider.setLoginData(this.state.memberLoginData);
+            // If the data is OK, we can log in provided the subsystem is ready. we set the data, then it tells is if it ready via callback. 
+            this.state.loginProvider.setLoginData(this.state.loginData);
         }
         else {
-            // but we can unconditionallt not log in if the data is wrong
+            // but we can unconditionally not log in if the data is wrong
             this.setState({ isDataReady: false });
         }
     }
@@ -54628,14 +54769,23 @@ class MemberPage extends React.Component {
                     personThumbnailUrl: self.pageData.person.thumbnailUrl
                 });
                 rtc.connect();
-                self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+                // Keep alive to server every 25 seconds
+                let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
+                self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc, intervalId: intervalId });
                 self.forceUpdate();
             })
                 .catch(function (error) {
                 // handle error by setting state back to no user logged in
                 self.pageData = self.defaultPageData;
-                self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+                if (self.state.intervalId)
+                    clearInterval(self.state.intervalId);
+                self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null });
             });
+        }
+        else {
+            if (this.state.intervalId)
+                clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
         }
     }
     render() {
@@ -54656,10 +54806,10 @@ class MemberPage extends React.Component {
                             React.createElement(Col_1.default, { className: "d-none d-md-block" }),
                             React.createElement(Col_1.default, null,
                                 React.createElement(Form_1.default.Group, { controlId: "formMeetingCode" },
-                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: 10, style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.memberLoginData.isValidMeetCode(), value: this.state.meetCodeCopy })),
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: 10, style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.loginData.isValidMeetCode(), value: this.state.meetCodeCopy })),
                                 React.createElement(Form_1.default.Group, { controlId: "formName" },
-                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: 30, style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.memberLoginData.isValidName(), value: this.state.nameCopy })),
-                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isDataReady, onClick: this.state.memberLoginProvider.login.bind(this.state.memberLoginProvider) }, "Join with a meeting code...")),
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter your display name.", maxLength: 30, style: fieldBSepStyle, onChange: this.handleNameChange.bind(this), isValid: this.state.loginData.isValidName(), value: this.state.nameCopy })),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isDataReady, onClick: this.state.loginProvider.login.bind(this.state.loginProvider) }, "Join with a meeting code...")),
                             React.createElement(Col_1.default, { className: "d-none d-md-block" }))))));
         }
         else {
@@ -54686,7 +54836,7 @@ class MemberPage extends React.Component {
                                     React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.memberLoginProvider.logout.bind(this.state.memberLoginProvider) }, "Sign Out...")))))),
+                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginProvider.logout.bind(this.state.loginProvider) }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
@@ -54703,18 +54853,21 @@ exports.MemberPage = MemberPage;
 class CoachPage extends React.Component {
     constructor(props) {
         super(props);
+        this.lastUserData = new localstore_1.StoredMeetingState();
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new Facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png', null), null);
         this.pageData = this.defaultPageData;
+        let loginData = new LoginMeetingCode_1.LoginMeetCodeData(this.lastUserData.loadMeetingId());
         this.state = {
             isLoggedIn: false,
             isLeader: true,
             haveAccess: false,
             pageData: this.pageData,
             rtc: null,
-            loginFb: new loginfb_1.LoginFb({
-                autoLogin: true, onLoginStatusChange: this.onLoginStatusChange.bind(this)
-            }),
-            openClockSpec: false,
+            isDataReady: false,
+            meetCodeCopy: loginData.meetCode,
+            loginData: loginData,
+            loginProvider: new LoginOauth_1.LoginOauthProvider(),
+            allowEdit: false,
             intervalId: null
         };
     }
@@ -54724,11 +54877,14 @@ class CoachPage extends React.Component {
         imgR.src = "./circle-black-red-128x128.png";
         const imgA = new Image();
         imgA.src = "./circle-black-yellow-128x128.png";
-        // Initialise the facebook API for this page
-        this.state.loginFb.loadAPI();
-        // Keep alive to server every 25 seconds
-        let intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
-        this.setState({ intervalId: intervalId });
+        // Initialise the login API for this page
+        this.state.loginProvider.load();
+        this.state.loginData.onDataReadiness = this.onDataReadiness.bind(this);
+        this.state.loginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
+        this.state.loginProvider.onLoginResult = this.onLoginResult.bind(this);
+        // probe to see if we are already logged in
+        this.state.loginProvider.setLoginData(this.state.loginData);
+        this.state.loginProvider.testLogin();
     }
     componentWillUnmount() {
         if (this.state.intervalId) {
@@ -54752,7 +54908,25 @@ class CoachPage extends React.Component {
         var self = this;
         this.setState({ isLeader: isLeader });
     }
-    onLoginStatusChange(isLoggedIn) {
+    handleMeetCodeChange(ev) {
+        var casting = ev.target;
+        this.state.loginData.meetCode = casting.value;
+        this.setState({ meetCodeCopy: casting.value });
+    }
+    onDataReadiness(isReady) {
+        if (isReady) {
+            // If the data is OK, we can log in provided the subsystem is ready. we set the data, then it tells is if it ready via callback. 
+            this.state.loginProvider.setLoginData(this.state.loginData);
+        }
+        else {
+            // but we can unconditionally not log in if the data is wrong
+            this.setState({ isDataReady: false });
+        }
+    }
+    onLoginReadiness(isReady) {
+        this.setState({ isDataReady: isReady });
+    }
+    onLoginResult(isLoggedIn) {
         var self = this;
         // Make a request for user data to populate the home page 
         if (isLoggedIn) {
@@ -54771,7 +54945,9 @@ class CoachPage extends React.Component {
                         personThumbnailUrl: self.pageData.person.thumbnailUrl
                     });
                     rtc.connect();
-                    self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+                    // Keep alive to server every 25 seconds
+                    let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
+                    self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc, intervalId: intervalId });
                 }
                 else {
                     // handle error by setting state back to no user logged in
@@ -54781,14 +54957,18 @@ class CoachPage extends React.Component {
             })
                 .catch(function (error) {
                 // handle error by setting state back to no user logged in
+                if (self.state.intervalId)
+                    clearInterval(self.state.intervalId);
                 self.pageData = self.defaultPageData;
-                self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+                self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null });
             });
         }
         else {
             // handle error by setting state back to no user logged in
+            if (this.state.intervalId)
+                clearInterval(this.state.intervalId);
             self.pageData = self.defaultPageData;
-            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+            self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null });
         }
     }
     render() {
@@ -54805,7 +54985,7 @@ class CoachPage extends React.Component {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.loginFb.logInFromClick.bind(this.state.loginFb) }, "Coaches login with Facebook...")))));
+                        React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.loginProvider.login.bind(this.state.loginProvider) }, "Coaches login with Facebook...")))));
         }
         else {
             return (React.createElement("div", { className: "coachpage" },
@@ -54831,7 +55011,7 @@ class CoachPage extends React.Component {
                                     React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginFb.logOut }, "Sign Out...")))))),
+                                    React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginProvider.logout }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: thinStyle },
@@ -55083,7 +55263,7 @@ class RemoteConnectionStatus extends React.Component {
         };
     }
     componentDidMount() {
-        var interval = setInterval(this.onInterval.bind(this), 200);
+        var interval = setInterval(this.onInterval.bind(this), 5000); // Refresh every 5 seconds
     }
     componentWillUnmount() {
         if (this.state.intervalId) {
@@ -55920,136 +56100,6 @@ class StoredWorkoutState {
     ;
 }
 exports.StoredWorkoutState = StoredWorkoutState;
-
-
-/***/ }),
-
-/***/ "./dev/loginfb.tsx":
-/*!*************************!*\
-  !*** ./dev/loginfb.tsx ***!
-  \*************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LoginFb = void 0;
-const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
-const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
-class LoginFb {
-    constructor(props) {
-        this.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-        this.props = props;
-    }
-    loadAPI() {
-        var self = this;
-        window.fbAsyncInit = function () {
-            window.FB.init({
-                appId: '1420468678202442',
-                cookie: true,
-                status: true,
-                xfbml: false,
-                version: 'v9.0' // use version 9
-            });
-            // If enabled, and the user is logged in already, 
-            // this will automatically redirect the page to the users home page.
-            if (self.props.autoLogin)
-                self.logIn(false);
-        };
-        // Load the SDK asynchronously
-        (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id))
-                return;
-            js = d.createElement(s);
-            js.id = id;
-            js.src = "//connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-        this.testSession();
-    }
-    logInFromClick() {
-        this.logIn(true);
-    }
-    logIn(redirect) {
-        var self = this;
-        window.FB.login(self.processFBLoginResponse(redirect), { scope: 'public_profile' });
-    }
-    logOut() {
-        axios_1.default.post('/auth/logout', { params: { null: null } })
-            .then((response) => {
-            window.location.href = "/";
-        })
-            .catch((e) => {
-            logger.logError('LoginFb', 'logOut', 'Error:', e);
-            window.location.href = "/";
-        });
-    }
-    testSession() {
-        axios_1.default.post('/api/sessiontest', { params: { null: null } })
-            .then((response) => {
-            if (response.data && !response.data.session) {
-                window.location.href = "auth/facebook";
-            }
-        })
-            .catch((e) => {
-            logger.logError('LoginFb', 'testSession', 'Error:', e);
-        });
-    }
-    getUserData(redirect, accessToken) {
-        var self = this;
-        window.FB.api('/me', { fields: 'id, name' }, function (response) {
-            if (response && response.name) {
-                var name = response.name;
-                var thumbnailUrl = 'https://graph.facebook.com/' + response.id.toString() + '/picture';
-                self.processUserData(redirect, name, thumbnailUrl, accessToken);
-            }
-            else {
-                self.processUserData(redirect, 'Unknown', 'person-w-128x128.png', null);
-            }
-        });
-    }
-    processUserData(redirect, name, url, token) {
-        var self = this;
-        self.state = ({ isLoggedIn: true, thumbnailUrl: url, name: name, userAccessToken: token });
-        self.props.onLoginStatusChange(true);
-    }
-    processFBLoginData(redirect, response) {
-        var self = this;
-        if (response.status === 'connected') {
-            self.getUserData(false, response.authResponse.accessToken);
-        }
-        else if (response.status === 'not_authorized') {
-            self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-            self.props.onLoginStatusChange(false);
-        }
-        else {
-            self.state = { isLoggedIn: false, thumbnailUrl: null, name: null, userAccessToken: null };
-            // TODO - cannot work out why local host does not work for FB API, this is a hack. 
-            if (location.hostname.includes('localhost')) {
-                logger.logInfo('LoginComponent', 'loginCallback', 'Faking login on localhost.', null);
-                self.state = { isLoggedIn: false, name: 'Fake Name', thumbnailUrl: 'person-w-128x128.png', userAccessToken: 'fake_token' };
-                self.processUserData(false, self.state.name, self.state.thumbnailUrl, self.state.userAccessToken);
-            }
-            else {
-                if (redirect)
-                    window.location.href = "auth/facebook";
-            }
-        }
-    }
-    processFBLoginResponse(redirect) {
-        var self = this;
-        window.FB.getLoginStatus(function (response) {
-            self.processFBLoginData(redirect, response);
-        }, redirect);
-    }
-}
-exports.LoginFb = LoginFb;
 
 
 /***/ }),
@@ -57806,15 +57856,18 @@ var LoggerEntryPoints = {
 /*!****************************************!*\
   !*** ../core/dev/LoggerClientWrap.tsx ***!
   \****************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 
-/*jslint white: false, indent: 3, maxerr: 1000 */
-/*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ClientLoggerWrap = void 0;
+// external components
+const axios_1 = __importDefault(__webpack_require__(/*! axios */ "../core/node_modules/axios/index.js"));
 var logging = __webpack_require__(/*! loglevel */ "../core/node_modules/loglevel/lib/loglevel.js");
 logging.setLevel("info");
 class ClientLoggerWrap {
@@ -57825,9 +57878,9 @@ class ClientLoggerWrap {
     logError(fromClass, fromMethod, info, objAsJSON) {
         const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "");
         this.logger.error('Error:' + msg);
-        //axios.post('/api/error', { params: { message: encodeURIComponent(msg) } })
-        //   .then((response) => {
-        //   });
+        axios_1.default.post('/api/error', { params: { message: encodeURIComponent(msg) } })
+            .then((response) => {
+        });
     }
     logInfo(fromClass, fromMethod, info, objAsJSON) {
         this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : ""));

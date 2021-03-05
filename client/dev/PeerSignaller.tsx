@@ -84,6 +84,10 @@ export class SignalReciever implements IPeerSignalReciever {
       this._lastSequenceNo = 0;
       this._retries = 0;
       this._types = new TypeRegistry();
+
+      // These two get set later on 
+      this._participation = undefined;
+      this._events = undefined;
    }
 
    connect(participation: CallParticipation) {
@@ -92,28 +96,13 @@ export class SignalReciever implements IPeerSignalReciever {
    }
 
    isConnected(): boolean {
-      return this._events != null;
+      return (this._events != null) && (this._retries === 0);
    }
 
    // Override this for data from notifications 
    onRemoteData: ((this: IPeerSignalReciever, ev: IStreamable) => any) | null;
 
-   private reConnect(participation: CallParticipation): void {
-
-      if (this._events) {
-         this._events.close();
-      }
-
-      // Send our own details & subscribe to more
-      const sourceUrl = '/callevents/?callParticipation='
-         + encodeURIComponent(JSON.stringify(this._participation))
-         + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this._lastSequenceNo));
-      this._events = new EventSource(sourceUrl);
-      this._events.onmessage = this.onServerData.bind(this);
-      this._events.onerror = this.onServerError.bind(this);
-   }
-
-   private onServerData(ev: Event): void {
+   onServerData(ev: Event): void {
 
       this._retries = 0;
 
@@ -127,12 +116,33 @@ export class SignalReciever implements IPeerSignalReciever {
       this._lastSequenceNo = remoteCallData.sequenceNo;
    }
 
-   private onServerError(ev) {
+   onServerError(ev: Event): void {
 
       logger.logInfo(SignalReciever.className, 'onServerError', "event, retries:", { ev: ev, retries: this._retries });
       this._events.close();
       this.connectLater(3000);
       this._retries++;
+   }
+
+   onServerOpen(ev: Event): void {
+
+      logger.logInfo(SignalReciever.className, 'onServerOpen', "event:", ev);
+   }
+
+   private reConnect(participation: CallParticipation): void {
+
+      if (this._events) {
+         this._events.close();
+      }
+
+      // Send our own details & subscribe to more
+      const sourceUrl = '/callevents/?callParticipation='
+         + encodeURIComponent(JSON.stringify(this._participation))
+         + '&sequenceNo=' + encodeURIComponent(JSON.stringify(this._lastSequenceNo));
+      this._events = new EventSource(sourceUrl);
+      this._events.onmessage = this.onServerData.bind (this);
+      this._events.onerror = this.onServerError.bind(this);
+      this._events.onopen = this.onServerOpen.bind(this);
    }
 
    private sleep(time) {

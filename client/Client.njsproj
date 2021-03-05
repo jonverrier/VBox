@@ -54,9 +54,9 @@
     <TypeScriptCompile Include="dev\LocalStore.tsx" />
     <TypeScriptCompile Include="dev\loginfb.tsx" />
     <TypeScriptCompile Include="dev\LoginInterfaces.tsx" />
-    <TypeScriptCompile Include="dev\loginmc.tsx" />
     <TypeScriptCompile Include="dev\LoginMeetingCode.tsx" />
     <TypeScriptCompile Include="dev\LoginMember.tsx" />
+    <TypeScriptCompile Include="dev\LoginOauth.tsx" />
     <TypeScriptCompile Include="dev\media.tsx" />
     <TypeScriptCompile Include="dev\participant.tsx" />
     <TypeScriptCompile Include="dev\PeerInterfaces.tsx" />
@@ -66,6 +66,7 @@
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
     <TypeScriptCompile Include="dev\PeerConnection.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />
+    <TypeScriptCompile Include="dev\ClientUrl.tsx" />
     <TypeScriptCompile Include="dev\whiteboardpanel.tsx" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />

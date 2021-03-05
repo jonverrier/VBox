@@ -33,7 +33,7 @@
       "build": "ncp ../client/dist dist && ncp ../core/dist dist "
    },
    "devDependencies": {
-      "chai": "^4.2.0",
+      "chai": "^4.3.3",
       "copyfile": "^0.1.2",
       "mocha": "^8.2.1",
       "ncp": "^2.0.0"
