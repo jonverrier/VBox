@@ -30,20 +30,18 @@ import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
 
 // This app, this component
-import { ILoginProvider, ILoginData } from './LoginInterfaces';
 import { MemberLoginData, MemberLoginProvider } from './LoginMember';
 import { LoginOauthProvider } from './LoginOauth';
 import { LoginMeetCodeData } from './LoginMeetingCode';
-import { ParticipantBanner, ParticipantSmall } from './participant';
-import { RemoteConnectionStatus, MasterConnectionStatus } from './callpanel';
-import { RemotePeople } from './peoplepanel';
-import { LoginFb } from './loginfb';
+import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
+import { RemoteConnectionStatus, MasterConnectionStatus } from './CallPanelUI';
 import { PeerConnection } from './PeerConnection';
-import { StoredMeetingState } from './localstore';
+import { StoredMeetingState } from './LocalStore';
+import { LeaderResolve } from './LeaderResolveUI';
+import { Media } from './Media';
+import { RemotePeople } from './peoplepanel';
 import { MasterClock, RemoteClock } from './clockpanel';
 import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
-import { LeaderResolve } from './leaderpanel';
-import { Media } from './media';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 

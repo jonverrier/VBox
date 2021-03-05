@@ -17,7 +17,7 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person'
 
 import { RunnableClock } from './RunnableClock';
-import { StoredWorkoutState } from './localstore';
+import { StoredWorkoutState } from './LocalStore';
 import { PeerConnection } from './PeerConnection';
 
 const thinStyle: CSS.Properties = {

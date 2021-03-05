@@ -16,7 +16,7 @@ import * as CSS from 'csstype';
 // This app
 import { Person } from '../../core/dev/Person';
 import { EThreeStateSwitchEnum } from '../../core/dev/Enum';
-import { ParticipantSmall, ParticipantCaption } from './participant';
+import { ParticipantSmall, ParticipantCaption } from './ParticipantUI';
 import { PeerConnection } from './PeerConnection';
 
 const thinStyle: CSS.Properties = {
