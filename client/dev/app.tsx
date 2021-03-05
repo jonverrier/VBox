@@ -32,6 +32,8 @@ import { UserFacilities } from '../../core/dev/UserFacilities';
 // This app, this component
 import { ILoginProvider, ILoginData } from './LoginInterfaces';
 import { MemberLoginData, MemberLoginProvider } from './LoginMember';
+import { LoginOauthProvider } from './LoginOauth';
+import { LoginMeetCodeData } from './LoginMeetingCode';
 import { ParticipantBanner, ParticipantSmall } from './participant';
 import { RemoteConnectionStatus, MasterConnectionStatus } from './callpanel';
 import { RemotePeople } from './peoplepanel';
@@ -137,8 +139,8 @@ interface IMemberPageState {
    isDataReady: boolean;
    meetCodeCopy: string;
    nameCopy: string;
-   memberLoginData: MemberLoginData;
-   memberLoginProvider: MemberLoginProvider;
+   loginData: MemberLoginData;
+   loginProvider: MemberLoginProvider;
    intervalId: any;
 }
 
@@ -160,17 +162,17 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
          new Array<Facility>());
 
       this.pageData = this.defaultPageData;
-      let memberLoginData = new MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
+      let loginData = new MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
 
       this.state = {
          isLoggedIn: false,
          pageData: this.pageData,
          rtc: null,
          isDataReady: false,
-         meetCodeCopy: memberLoginData.meetCode,
-         nameCopy: memberLoginData.name,
-         memberLoginData: memberLoginData,
-         memberLoginProvider: new MemberLoginProvider(),
+         meetCodeCopy: loginData.meetCode,
+         nameCopy: loginData.name,
+         loginData: loginData,
+         loginProvider: new MemberLoginProvider(),
          intervalId : null
       };
    }
@@ -182,17 +184,15 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
       const imgA = new Image();
       imgA.src = "./circle-black-yellow-128x128.png";
 
-      var self = this;
-
       // Initialise meeting code API
-      this.state.memberLoginProvider.load();
-      this.state.memberLoginData.onDataReadiness = this.onDataReadiness.bind(this);
-      this.state.memberLoginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
-      this.state.memberLoginProvider.onLoginResult = this.onLoginResult.bind(this);
+      this.state.loginProvider.load();
+      this.state.loginData.onDataReadiness = this.onDataReadiness.bind(this);
+      this.state.loginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
+      this.state.loginProvider.onLoginResult = this.onLoginResult.bind(this);
 
-      // Keep alive to server every 25 seconds
-      let intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
-      this.setState({ intervalId: intervalId });
+      // probe to see if we are already logged in
+      this.state.loginProvider.setLoginData(this.state.loginData);
+      this.state.loginProvider.testLogin();
    }
 
    componentWillUnmount() : void {
@@ -213,22 +213,22 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
    handleMeetCodeChange(ev: Event): void {
       var casting : any = ev.target;
-      this.state.memberLoginData.meetCode = casting.value;
+      this.state.loginData.meetCode = casting.value;
       this.setState({ meetCodeCopy: casting.value });
    }
 
    handleNameChange(ev: Event) : void {
       var casting: any = ev.target;
-      this.state.memberLoginData.name = casting.value;
+      this.state.loginData.name = casting.value;
       this.setState({ nameCopy: casting.value });
    }
 
    onDataReadiness(isReady: boolean): void {
       if (isReady) {
-         // If the data is OK, we can log in provided the subsystem is ready
-         this.state.memberLoginProvider.setLoginData(this.state.memberLoginData);
+         // If the data is OK, we can log in provided the subsystem is ready. we set the data, then it tells is if it ready via callback. 
+         this.state.loginProvider.setLoginData(this.state.loginData);
       } else {
-         // but we can unconditionallt not log in if the data is wrong
+         // but we can unconditionally not log in if the data is wrong
          this.setState({ isDataReady: false });
       }
    }
@@ -260,14 +260,22 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                });
                rtc.connect();
 
-               self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+               // Keep alive to server every 25 seconds
+               let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
+               self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc, intervalId: intervalId  });
                self.forceUpdate();
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
                self.pageData = self.defaultPageData;
-               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+               if (self.state.intervalId)
+                  clearInterval(self.state.intervalId);
+               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null });
             });
+      } else {
+         if (this.state.intervalId)
+            clearInterval(this.state.intervalId);
+         this.setState({ intervalId: null });
       }
    }
 
@@ -298,17 +306,17 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            <Form.Group controlId="formMeetingCode">
                               <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={fieldBSepStyle}
                                  onChange={this.handleMeetCodeChange.bind(this)}
-                                 isValid={this.state.memberLoginData.isValidMeetCode()}
+                                 isValid={this.state.loginData.isValidMeetCode()}
                                  value={this.state.meetCodeCopy} />
                            </Form.Group>
                            <Form.Group controlId="formName">
                               <Form.Control type="text" placeholder="Enter your display name." maxLength={30} style={fieldBSepStyle}
                                  onChange={this.handleNameChange.bind(this)}
-                                 isValid={this.state.memberLoginData.isValidName()}
+                                 isValid={this.state.loginData.isValidName()}
                                  value={this.state.nameCopy} />
                            </Form.Group>
                            <Button variant="secondary" disabled={!this.state.isDataReady}
-                              onClick={this.state.memberLoginProvider.login.bind(this.state.memberLoginProvider)}>Join with a meeting code...
+                              onClick={this.state.loginProvider.login.bind(this.state.loginProvider)}>Join with a meeting code...
                            </Button>
                         </Col>
                         <Col className="d-none d-md-block">
@@ -353,7 +361,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="right">
-                              <Dropdown.Item onClick={this.state.memberLoginProvider.logout.bind(this.state.memberLoginProvider)}>Sign Out...</Dropdown.Item>
+                              <Dropdown.Item onClick={this.state.loginProvider.logout.bind(this.state.loginProvider)}>Sign Out...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
@@ -388,8 +396,11 @@ interface ICoachPageState {
    haveAccess: boolean;
    pageData: UserFacilities;
    rtc: PeerConnection;
-   loginFb: LoginFb;
-   openClockSpec: boolean;
+   isDataReady: boolean;
+   meetCodeCopy: string;
+   loginData: LoginMeetCodeData;
+   loginProvider: LoginOauthProvider;
+   allowEdit: boolean;
    intervalId: any;
 }
 
@@ -398,9 +409,12 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    //member variables
    pageData: UserFacilities;
    defaultPageData: UserFacilities;
+   lastUserData: StoredMeetingState;
 
    constructor(props: ICoachPageProps) {
       super(props);
+
+      this.lastUserData = new StoredMeetingState();
 
       this.defaultPageData = new UserFacilities(null,
          new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
@@ -408,44 +422,50 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          null);
 
       this.pageData = this.defaultPageData;
+      let loginData = new LoginMeetCodeData (this.lastUserData.loadMeetingId());
 
       this.state = {
          isLoggedIn: false,
-         isLeader: true, // we are leader until someone beats us in 'glareResolve' exchange
-         haveAccess: false, //  Canny access mic or speaker until users does something. 
+         isLeader: true,    // we are leader until someone beats us in 'glareResolve' exchange
+         haveAccess: false, // Cannot access mic or speaker until user does something. 
          pageData: this.pageData,
          rtc: null,
-         loginFb: new LoginFb({
-            autoLogin: true, onLoginStatusChange: this.onLoginStatusChange.bind(this)
-         }),
-         openClockSpec: false,
+         isDataReady: false,
+         meetCodeCopy: loginData.meetCode,
+         loginData: loginData,
+         loginProvider: new LoginOauthProvider(),
+         allowEdit: false,
          intervalId: null
       };
    }
 
-   componentDidMount() {
+   componentDidMount(): void {
+
       // pre-load images that indicate a connection error, as they won't load later.
       const imgR = new Image();
       imgR.src = "./circle-black-red-128x128.png";
       const imgA = new Image();
       imgA.src = "./circle-black-yellow-128x128.png";
 
-      // Initialise the facebook API for this page
-      this.state.loginFb.loadAPI();
+      // Initialise the login API for this page
+      this.state.loginProvider.load();
+      this.state.loginData.onDataReadiness = this.onDataReadiness.bind(this);
+      this.state.loginProvider.onLoginReadiness = this.onLoginReadiness.bind(this);
+      this.state.loginProvider.onLoginResult = this.onLoginResult.bind(this);
 
-      // Keep alive to server every 25 seconds
-      let intervalId = setInterval(this.onClockInterval.bind(this), 25000 + Math.random());
-      this.setState({ intervalId: intervalId });
+      // probe to see if we are already logged in
+      this.state.loginProvider.setLoginData(this.state.loginData);
+      this.state.loginProvider.testLogin();
    }
 
-   componentWillUnmount() {
+   componentWillUnmount() : void {
       if (this.state.intervalId) {
          clearInterval(this.state.intervalId);
          this.setState({ intervalId: null });
       }
    }
 
-   onClockInterval() {
+   onClockInterval() : void {
       axios.post('/api/keepalive', { params: {} })
          .then((response) => {
          })
@@ -454,17 +474,37 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          });
    }
 
-   onAccessChange(haveAccess) {
+   onAccessChange(haveAccess: boolean) : void {
       var self = this;
       this.setState({ haveAccess: haveAccess });
    }
 
-   onLeaderChange (isLeader) {
+   onLeaderChange (isLeader: boolean) : void {
       var self = this;
       this.setState({isLeader: isLeader});
    }
 
-   onLoginStatusChange(isLoggedIn) {
+   handleMeetCodeChange(ev: Event): void {
+      var casting: any = ev.target;
+      this.state.loginData.meetCode = casting.value;
+      this.setState({ meetCodeCopy: casting.value });
+   }
+
+   onDataReadiness(isReady: boolean): void {
+      if (isReady) {
+         // If the data is OK, we can log in provided the subsystem is ready. we set the data, then it tells is if it ready via callback. 
+         this.state.loginProvider.setLoginData(this.state.loginData);
+      } else {
+         // but we can unconditionally not log in if the data is wrong
+         this.setState({ isDataReady: false });
+      }
+   }
+
+   onLoginReadiness(isReady: boolean): void {
+      this.setState({ isDataReady: isReady });
+   }
+
+   onLoginResult (isLoggedIn: boolean) : void {
       var self = this;
 
       // Make a request for user data to populate the home page 
@@ -487,7 +527,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   });
                   rtc.connect ();
 
-                  self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc });
+                  // Keep alive to server every 25 seconds
+                  let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
+                  self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc, intervalId: intervalId});
                } else {
                   // handle error by setting state back to no user logged in
                   self.pageData = self.defaultPageData;
@@ -496,13 +538,17 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
+               if (self.state.intervalId)
+                  clearInterval(self.state.intervalId);
                self.pageData = self.defaultPageData;
-               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null});
             });
       } else {
          // handle error by setting state back to no user logged in
+         if (this.state.intervalId)
+            clearInterval(this.state.intervalId);
          self.pageData = self.defaultPageData;
-         self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null});
+         self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null});
       }
    }
 
@@ -526,7 +572,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to UltraBox. Sign in below to get access to your class.
                      </p>
-                     <Button variant="secondary" onClick={this.state.loginFb.logInFromClick.bind(this.state.loginFb)}>Coaches login with Facebook...</Button>
+                     <Button variant="secondary" onClick={this.state.loginProvider.login.bind(this.state.loginProvider)}>Coaches login with Facebook...</Button>
                   </Jumbotron>
                </Container>
             </div>
@@ -565,7 +611,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="right">
-                              <Dropdown.Item onClick={this.state.loginFb.logOut}>Sign Out...</Dropdown.Item>
+                              <Dropdown.Item onClick={this.state.loginProvider.logout}>Sign Out...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
@@ -599,7 +645,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 interface ILandingPageProps {
 }
 
-interface ILoginPageState {
+interface ILandingPageState {
 
    email: string;
    isValidEmail: boolean;
@@ -608,7 +654,7 @@ interface ILoginPageState {
    isMobileFormFactor: boolean;
 }
 
-export class LandingPage extends React.Component<ILandingPageProps, ILoginPageState> {
+export class LandingPage extends React.Component<ILandingPageProps, ILandingPageState> {
    //member variables - shared across instances, although for this class we have only one anyway
    media: Media;
 

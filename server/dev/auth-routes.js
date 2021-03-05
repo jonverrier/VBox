@@ -13,7 +13,14 @@ var facilityCoachModel = require("./facilityperson-model.js").facilityCoachModel
 
 const authRouter = express.Router();
 
-authRouter.get("/auth/facebook", passport.authenticate("Facebook"));
+authRouter.get("/auth/facebook", (req, res, next) => {
+
+   // extract and save meeting Id in session - we sent it back again later in the URL so the client knows there has been a round trip
+   var meetingId = decodeURIComponent(req.query.meetingId);
+   req.session.meetingId = meetingId;
+
+   return passport.authenticate("Facebook")(req, res, next);
+});
 
 authRouter.get("/auth/local", passport.authenticate("Local", {
    successRedirect: "/successmc",
@@ -21,18 +28,14 @@ authRouter.get("/auth/local", passport.authenticate("Local", {
 }));
 
 authRouter.post('/data_deletionfb', (req, res, next) => {
-   console.log(req.body); // {}
-   console.log(req.query); // {}
 
    // TODO - do we need to do anything more
    // we don't actually hold any user data 
 
-   res.send({ url: "https://ultrabox.herokuapp.com/deleted", confirmation_code: 'UB100'});
+   res.send({ url: "https://ultrabox.herokuapp.com/datadeleted", confirmation_code: 'UB100'});
 });
 
 authRouter.get('/data_deletionfb', (req, res, next) => {
-   console.log(req.body); // {}
-   console.log(req.query); // {}
 
    // TODO - do we need to do anything more
    // we don't actually hold any user data 
@@ -73,10 +76,15 @@ authRouter.get("/failfb", (req, res) => {
 });
 
 authRouter.get("/successfb", (req, res) => {
+
    facilityCoachModel.findOne().where('personId').eq(req.user.externalId).exec(function (err, facilityCoach) {
 
+      // Extract meeting id from session - we put it there before redirect to facebook.
+      var meetingId = req.session.meetingId;
+      // req.session.meetingId = {};
+
       if (facilityCoach)
-         res.redirect("coach");
+         res.redirect("coach" + '?meetingId=' + meetingId);
       else
          res.redirect("member");
    });

@@ -8,6 +8,8 @@ var TypeRegistry = EntryPoints.TypeRegistry;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
 var SignalMessage = EntryPoints.SignalMessage;
 
+var logger = new EntryPoints.LoggerFactory().createLogger(EntryPoints.ELoggerType.Server);
+
 // Model for signalMessage
 var SignalMessageModel = require("./signalmessage-model.js");
 
@@ -32,15 +34,23 @@ function eventFeed(req, res, next) {
    const headers = {
       'Content-Type': 'text/event-stream',
       'Connection': 'keep-alive',
-      'Cache-Control': 'no-cache'
+      'Cache-Control': 'no-cache',
+      'transfer-encoding': 'chunked'
    };
+
    res.writeHead(200, headers);
+   res.flush();
 
    // Client passes call participant data as query 
    var types = new TypeRegistry();
    var callParticipation = types.reviveFromJSON(decodeURIComponent(req.query.callParticipation));
 
+   logger.logInfo('event-source', 'eventFeed', 'Subscription from :', callParticipation);
+
    if (!facilityMap.has(callParticipation.facilityId)) {
+
+      logger.logInfo('event-source', 'eventFeed', 'new map :', callParticipation.facilityId);
+
       facilityMap.set(callParticipation.facilityId, new Array());
 
       // sets a keep alive going, specific to the facility
@@ -56,7 +66,7 @@ function eventFeed(req, res, next) {
    if (clientSequenceNo !== 0 && clientSequenceNo < sequence) {
 
       // Client is rejoining after a connection drop & needs to be brought back up to date
-      // Normally would filter results for the right targey in the query, but mongoose does not allow $or on strings, so we manually filter in the callback
+      // Normally would filter results for the right target in the query, but mongoose does not allow $or on strings, so we manually filter in the callback
       // Assume performance OK as its only signalling mssages being replayed & volume should not be too high. 
       // Marked with TODO for high volume cases (setting up calls for 10s of facilities concurrently ...)
       // sessionId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionId } ] },       // Null (broadcast) or targeted to the client
@@ -73,8 +83,10 @@ function eventFeed(req, res, next) {
                if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
                && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
                   for (let message of messages) {
-                     if (message.facilityId === callParticipation.facilityId)
+                     if (message.facilityId === callParticipation.facilityId) {
                         subscribers[i].response.write('data:' + JSON.stringify(SignalMessage.fromStored(message)) + '\n\n');
+                        subscribers[i].response.flush();
+                     }
                   }
                }
             }
@@ -91,6 +103,8 @@ function eventFeed(req, res, next) {
    // avoiding the disconnected one
    req.on('close', () => {
       var subscribers = facilityMap.get(callParticipation.facilityId);
+
+      logger.logInfo('event-source', 'eventFeed', 'Closing subscription for:', callParticipation.facilityId);
 
       for (var i = 0; i < subscribers.length; i++)
          if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
@@ -109,8 +123,12 @@ function broadcastKeepAlive(facilityId) {
    // new SignalMessageModel(SignalMessage.toStored(message)).save(); 
 
    var subscribers = facilityMap.get(facilityId);
-   for (var i = 0; i < subscribers.length; i++)
+   for (var i = 0; i < subscribers.length; i++) {
+      logger.logInfo('event-source', 'broadcastKeepAlive', 'Writing to :', subscribers[i].callParticipation);
+      logger.logInfo('event-source', 'broadcastKeepAlive', 'Writing :', JSON.stringify(message));
       subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
+      subscribers[i].response.flush();
+   }
 }
 
 // broadcast a new subscriber
@@ -125,7 +143,10 @@ function broadcastNewParticipation(callParticipation) {
       // filter out 'new participation' messages so we don't send back to the same new joiner
       if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
          && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId)) {
+         logger.logInfo('event-source', 'broadcastNewParticipation', 'Writing to :', subscribers[i].callParticipation);
+         logger.logInfo('event-source', 'broadcastNewParticipation', 'Writing :', JSON.stringify(message));
          subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
+         subscribers[i].response.flush();
       }
    }
 }

@@ -1,7 +1,7 @@
-/*jslint white: false, indent: 3, maxerr: 1000 */
-/*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
 
+// external components
+import axios from 'axios';
 var logging = require('loglevel');
 
 logging.setLevel("info");
@@ -20,9 +20,9 @@ export class ClientLoggerWrap {
       const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "");
       this.logger.error('Error:' + msg);
 
-      //axios.post('/api/error', { params: { message: encodeURIComponent(msg) } })
-      //   .then((response) => {
-      //   });
+      axios.post('/api/error', { params: { message: encodeURIComponent(msg) } })
+         .then((response) => {
+         });
    }
 
    logInfo(fromClass: string, fromMethod: string, info: string, objAsJSON: string) : void {

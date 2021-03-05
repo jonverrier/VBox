@@ -1,8 +1,10 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// Component to support Login via a meeting code
+// LoginInterfaces - defines abstract interfaces for LoginProvider, LoginData, ...
+// LoginMeetingCode - helper class to encapsulate validating a meeting code
+// LonginMember - login classes to log members in with just meeting code and name
+// LoginOauth - login via Oath, currently facebook.
 
-// extranla components
-import * as React from 'react';
+// external components
 import axios from 'axios';
 
 // This app, this component
@@ -13,7 +15,7 @@ var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
 const meetCodelength: number = 10;
 
-export class LoginMeetingCode implements ILoginData {
+export class LoginMeetCodeData implements ILoginData {
    static readonly _meetCodeMagicNumber: number = 0xdbb0641fa; // pasted from 
    // https://onlinehextools.com/generate-random-hex-numbershttps://onlinehextools.com/generate-random-hex-numbers
 
@@ -42,11 +44,11 @@ export class LoginMeetingCode implements ILoginData {
     }
 
    magicNumber(): number {
-      return LoginMeetingCode._meetCodeMagicNumber;
+      return LoginMeetCodeData._meetCodeMagicNumber;
    }
 
    // Override this for notification from data validation 
-   onDataReadiness: ((this: LoginMeetingCode, isSuccessful: boolean) => void) | null;
+   onDataReadiness: ((this: LoginMeetCodeData, isSuccessful: boolean) => void) | null;
 
    isValid(): boolean {
 

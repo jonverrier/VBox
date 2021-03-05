@@ -31,8 +31,7 @@
    "scripts": {
       "build-master": "cd core && npm run build && cd ../client && npm run build && cd ../server && npm run build"
    },
-   "devDependencies": {
-   },
+   "devDependencies": {},
    "repository": {
       "type": "git",
       "url": "https://github.com/jonverrier/vbox.git"

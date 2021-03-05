@@ -9,6 +9,7 @@ var passport = require('passport');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+//const cors = require('cors');
 var session = require('express-session');
 var connectMongo = require('connect-mongo')(session);
 
@@ -56,7 +57,7 @@ app.use(function (req, res, next) {
 // Use versionator & compression for staic files
 app.version = currentVersion;
 app.use(versionator.middleware);
-//app.use(compression());
+app.use(compression());
 
 // Allow files from ../public and ../dist to be used 
 app.use(express.static(path.join(__dirname, '../public')));
@@ -74,6 +75,7 @@ if (inDevelopment) {
 app.set('port', process.env.PORT || 3000);
 
 // configure Session data & dependencies
+//app.use(cors());
 app.use(cookieParser());    // Required to use sessions, below
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded

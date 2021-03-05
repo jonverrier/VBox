@@ -77,7 +77,7 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
    }
 
    componentDidMount() {
-      var interval = setInterval(this.onInterval.bind(this), 200);
+      var interval = setInterval(this.onInterval.bind(this), 5000); // Refresh every 5 seconds
    }
 
    componentWillUnmount() {
