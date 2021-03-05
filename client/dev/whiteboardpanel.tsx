@@ -16,7 +16,7 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
 import { PeerConnection } from './PeerConnection';
-import { StoredWorkoutState } from './localstore';
+import { StoredWorkoutState } from './LocalStore';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',

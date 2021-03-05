@@ -52993,6 +52993,256 @@ function warning(condition, message) {
 
 /***/ }),
 
+/***/ "./dev/CallPanelUI.tsx":
+/*!*****************************!*\
+  !*** ./dev/CallPanelUI.tsx ***!
+  \*****************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// References:
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MasterConnectionStatus = exports.RemoteConnectionStatus = void 0;
+const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+const Button_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js"));
+const ButtonGroup_1 = __importDefault(__webpack_require__(/*! react-bootstrap/ButtonGroup */ "./node_modules/react-bootstrap/esm/ButtonGroup.js"));
+const Dropdown_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js"));
+// This app
+const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const Enum_1 = __webpack_require__(/*! ../../core/dev/Enum */ "../core/dev/Enum.tsx");
+const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
+const thinStyle = {
+    margin: '0px', padding: '0px'
+};
+const thinishStyle = {
+    padding: '2px'
+};
+function overallStatusFromTwo(one, two) {
+    if (one && two) {
+        return Enum_1.EThreeStateSwitchEnum.On;
+    }
+    else if (!one && !two) {
+        return Enum_1.EThreeStateSwitchEnum.Off;
+    }
+    else {
+        return Enum_1.EThreeStateSwitchEnum.Indeterminate;
+    }
+}
+function overallStatusFromOne(one) {
+    if (one) {
+        return Enum_1.EThreeStateSwitchEnum.On;
+    }
+    else {
+        return Enum_1.EThreeStateSwitchEnum.Off;
+    }
+}
+function participant(status, name, okText, issueText, small) {
+    if (small) {
+        if (status === Enum_1.EThreeStateSwitchEnum.On)
+            return React.createElement(ParticipantUI_1.ParticipantSmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+        else if (status === Enum_1.EThreeStateSwitchEnum.Off)
+            return React.createElement(ParticipantUI_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+        else
+            return React.createElement(ParticipantUI_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-grey-128x128.png' });
+    }
+    else {
+        if (status === Enum_1.EThreeStateSwitchEnum.On)
+            return React.createElement(ParticipantUI_1.ParticipantCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
+        else if (status === Enum_1.EThreeStateSwitchEnum.Off)
+            return React.createElement(ParticipantUI_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+        else
+            return React.createElement(ParticipantUI_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-grey-128x128.png' });
+    }
+}
+class RemoteConnectionStatus extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            overallStatus: Enum_1.EThreeStateSwitchEnum.Indeterminate,
+            serverStatus: false,
+            coachStatus: false,
+            intervalId: undefined
+        };
+    }
+    componentDidMount() {
+        var interval = setInterval(this.onInterval.bind(this), 5000); // Refresh every 5 seconds
+    }
+    componentWillUnmount() {
+        if (this.state.intervalId) {
+            clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
+        }
+    }
+    onInterval() {
+        const serverStatus = this.props.peers.isConnectedToServer();
+        const coachStatus = this.props.peers.isConnectedToLeader();
+        var overallStatus = overallStatusFromTwo(serverStatus, coachStatus);
+        this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
+    }
+    render() {
+        return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.overallStatus()),
+            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+            this.detailedStatusList()));
+    }
+    overallStatus() {
+        var isCoach = false;
+        var isServer = false;
+        var issueString = undefined;
+        if (!this.state.serverStatus)
+            isServer = true;
+        if (this.state.coachStatus)
+            isCoach = true;
+        if (isServer && isCoach)
+            issueString = 'Sorry, cannot connect to Web or to Coach.';
+        else if (isServer)
+            issueString = 'Sorry, cannot connect to Web.';
+        else
+            issueString = 'Sorry, cannot connect to Coach.';
+        return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
+    }
+    detailedStatusList() {
+        return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.coachStatus), "Coach", "Connected to Coach.", "Sorry, cannot connect to Coach.", false))));
+    }
+}
+exports.RemoteConnectionStatus = RemoteConnectionStatus;
+class MasterConnectionStatus extends React.Component {
+    constructor(props) {
+        super(props);
+        if (props.peers)
+            props.peers.addRemoteDataListener(this.onData.bind(this));
+        var members = new Array();
+        var memberStatuses = new Array();
+        this.state = {
+            overallStatus: Enum_1.EThreeStateSwitchEnum.Indeterminate,
+            serverStatus: false,
+            members: members,
+            memberStatuses: memberStatuses,
+            intervalId: null
+        };
+    }
+    componentDidMount() {
+        var interval = setInterval(this.onInterval.bind(this), 5000);
+    }
+    componentWillUnmount() {
+        if (this.state.intervalId) {
+            clearInterval(this.state.intervalId);
+            this.setState({ intervalId: null });
+        }
+    }
+    UNSAFE_componentWillReceiveProps(nextProps) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
+            nextProps.rtc.addremotedatalistener(this.onData.bind(this));
+        }
+    }
+    onData(ev) {
+        if (ev.type === Person_1.Person.__type) {
+            var members = this.state.members;
+            members.push(ev);
+            var memberStatuses = this.state.memberStatuses;
+            var memberStatus = this.props.peers.isConnectedToMember(ev.name);
+            memberStatuses.push(memberStatus);
+            this.setState({ members: members, memberStatuses: memberStatuses });
+        }
+    }
+    onInterval() {
+        // First build up the overall status & get the status for the server link
+        const serverStatus = this.props.peers.isConnectedToServer();
+        var worstLinkStatus = true;
+        for (var i = 0; i < this.state.members.length && worstLinkStatus === true; i++) {
+            if (!this.props.peers.isConnectedToMember(this.state.members[i].name)) {
+                worstLinkStatus = false;
+            }
+        }
+        // Then in a second pass, get all the link statuses
+        // Could do all in one pass but not likely to be a relevant gain
+        var memberStatuses = this.state.memberStatuses;
+        for (var i = 0; i < this.state.members.length; i++) {
+            memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name);
+        }
+        this.setState({
+            overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
+            serverStatus: serverStatus,
+            memberStatuses: memberStatuses
+        });
+    }
+    render() {
+        return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
+            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.overallStatus()),
+            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
+            this.detailedStatusList()));
+    }
+    overallStatus() {
+        var isMember = false;
+        var isServer = false;
+        var issueString = null;
+        if (!this.state.serverStatus)
+            isServer = true;
+        for (var i = 0; i < this.state.members.length; i++) {
+            if (!this.props.peers.isConnectedToMember(this.state.members[i].name))
+                isMember = true;
+        }
+        if (isServer && isMember)
+            issueString = 'Sorry, cannot connect to Web or to a Member.';
+        else if (isServer)
+            issueString = 'Sorry, cannot connect to Web.';
+        else
+            issueString = 'Sorry, cannot connect to a Member.';
+        return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
+    }
+    detailedStatusList() {
+        if (this.state.members.length === 0) {
+            return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+                React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
+                React.createElement(Dropdown_1.default.Divider, null),
+                React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(Enum_1.EThreeStateSwitchEnum.Indeterminate, 'No-one else is connected.', 'No-one else is connected.', 'No-one else is connected.', false)),
+                ")"));
+        }
+        var items = new Array();
+        for (var i = 0; i < this.state.members.length; i++) {
+            var item = { key: i, name: this.state.members[i].name, status: this.state.memberStatuses[i] };
+            items.push(item);
+        }
+        return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
+            React.createElement(Dropdown_1.default.Divider, null),
+            items.map((item) => React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle }, participant(overallStatusFromOne(item.status), item.name, 'Connected to Member.', 'Sorry, cannot connect to Member.', false)))));
+    }
+}
+exports.MasterConnectionStatus = MasterConnectionStatus;
+
+
+/***/ }),
+
 /***/ "./dev/ClientUrl.tsx":
 /*!***************************!*\
   !*** ./dev/ClientUrl.tsx ***!
@@ -53017,6 +53267,288 @@ class ClientUrl {
     }
 }
 exports.ClientUrl = ClientUrl;
+
+
+/***/ }),
+
+/***/ "./dev/LeaderResolveUI.tsx":
+/*!*********************************!*\
+  !*** ./dev/LeaderResolveUI.tsx ***!
+  \*********************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LeaderResolve = void 0;
+// External components
+const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+const Alert_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Alert */ "./node_modules/react-bootstrap/esm/Alert.js"));
+const Nav_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Nav */ "./node_modules/react-bootstrap/esm/Nav.js"));
+const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const Call_1 = __webpack_require__(/*! ../../core/dev/Call */ "../core/dev/Call.tsx");
+const thinStyle = {
+    margin: '0px', padding: '0px',
+};
+const alertStyle = {
+    margin: '0px'
+};
+class LeaderResolve extends React.Component {
+    //member variables
+    constructor(props) {
+        super(props);
+        // Store a resolve object as early as possible to avoid race conditions when we send CallLeaderResolve to each other.
+        // This ensures we have one before we hook data updates
+        var resolve = new Call_1.CallLeaderResolve();
+        this.state = { isLeader: true, myLeaderResolve: resolve };
+        if (this.props.peers) {
+            this.props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
+        }
+    }
+    componentDidMount() {
+    }
+    componentWillUnmount() {
+    }
+    UNSAFE_componentWillReceiveProps(nextProps) {
+        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
+            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
+        }
+    }
+    onRemoteData(ev) {
+        // By convention, new joiners broadcast a 'Person' object
+        if (ev.type === Person_1.Person.__type) {
+            // Send them our CallLeaderResolve 
+            this.forceUpdate(() => {
+                this.props.peers.broadcast(this.state.myLeaderResolve);
+            });
+        }
+        // If we recieve a CallLeaderResolve that beats us, we are not leader.
+        if (ev.type === Call_1.CallLeaderResolve.__type) {
+            if (!this.state.myLeaderResolve.isWinnerVs(ev)) {
+                this.setState({ isLeader: false });
+                if (this.props.onLeaderChange)
+                    this.props.onLeaderChange(false);
+            }
+        }
+    }
+    render() {
+        if (this.state.isLeader) {
+            return (React.createElement("div", { style: thinStyle }));
+        }
+        else {
+            return (React.createElement("div", { style: thinStyle },
+                React.createElement(Alert_1.default, { style: alertStyle, key: 'notLeaderId', variant: 'secondary' },
+                    "It looks like another coach is leading this session. Please click below to go back to the home page.",
+                    React.createElement(Nav_1.default.Item, null,
+                        React.createElement(Nav_1.default.Link, { href: "/", eventKey: "reJoinId" }, "Rejoin")))));
+        }
+    }
+}
+exports.LeaderResolve = LeaderResolve;
+
+
+/***/ }),
+
+/***/ "./dev/LocalStore.tsx":
+/*!****************************!*\
+  !*** ./dev/LocalStore.tsx ***!
+  \****************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StoredWorkoutState = exports.StoredMeetingState = exports.LocalStore = void 0;
+//==============================//
+// LocalStore class
+//==============================//
+class LocalStore {
+    /**
+     * Initialises repository
+     */
+    constructor() {
+    }
+    /**
+     *
+     * saveValue
+     * @param key - key to use to look up data
+     * @param value - value to save
+     */
+    saveValue(key, value) {
+        if (window.localStorage)
+            window.localStorage.setItem(key, value.toString());
+    }
+    ;
+    /**
+     *
+     * loadValue
+     * @param key - key to use to look up data
+     */
+    loadValue(key) {
+        if (window.localStorage)
+            return window.localStorage.getItem(key);
+        else
+            return null;
+    }
+    ;
+    /**
+     *
+     * clearValue
+     * @param key - key to use to look up data
+     */
+    clearValue(key) {
+        if (window.localStorage)
+            window.localStorage.removeItem(key);
+    }
+}
+exports.LocalStore = LocalStore;
+const lastMeetingId = "lastMeetingId";
+const lastNameId = "lastName";
+const lastWorkoutId = "lastWorkout";
+const lastClockId = "lastClock";
+const lastClockStateId = "lastClockState";
+//==============================//
+// StoredMeetingState class
+//==============================//
+class StoredMeetingState {
+    constructor() {
+        this._store = new LocalStore();
+    }
+    /**
+     *
+     * saveMeetingId
+     * @param meetingId - value to save
+     */
+    saveMeetingId(meetingId) {
+        this._store.saveValue(lastMeetingId, meetingId);
+    }
+    ;
+    /**
+     *
+     * loadMeetingId
+     */
+    loadMeetingId() {
+        var ret = this._store.loadValue(lastMeetingId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveName
+     * @param meetingId - value to save
+     */
+    saveName(meetingId) {
+        this._store.saveValue(lastNameId, meetingId);
+    }
+    ;
+    /**
+     *
+     * loadName
+     */
+    loadName() {
+        var ret = this._store.loadValue(lastNameId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+}
+exports.StoredMeetingState = StoredMeetingState;
+//==============================//
+// StoredWorkoutState class
+//==============================//
+class StoredWorkoutState {
+    constructor() {
+        this._store = new LocalStore();
+    }
+    /**
+     *
+     * saveWorkout
+     * @param workout - value to save
+     */
+    saveWorkout(workout) {
+        this._store.saveValue(lastWorkoutId, workout);
+    }
+    ;
+    /**
+     *
+     * loadWorkout
+     */
+    loadWorkout() {
+        var ret = this._store.loadValue(lastWorkoutId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveClockSpec
+     * @param clock - value to save
+     */
+    saveClockSpec(clock) {
+        this._store.saveValue(lastClockId, clock);
+    }
+    ;
+    /**
+     *
+     * loadClockSpec
+     */
+    loadClockSpec() {
+        var ret = this._store.loadValue(lastClockId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveClockState
+     * @param clock - value to save
+     */
+    saveClockState(clock) {
+        this._store.saveValue(lastClockStateId, clock);
+    }
+    ;
+    /**
+     *
+     * loadClockState
+     */
+    loadClockState() {
+        var ret = this._store.loadValue(lastClockStateId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+}
+exports.StoredWorkoutState = StoredWorkoutState;
 
 
 /***/ }),
@@ -53326,6 +53858,176 @@ class LoginOauthProvider {
     }
 }
 exports.LoginOauthProvider = LoginOauthProvider;
+
+
+/***/ }),
+
+/***/ "./dev/Media.tsx":
+/*!***********************!*\
+  !*** ./dev/Media.tsx ***!
+  \***********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021  */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Media = void 0;
+//==============================//
+// Media class
+//==============================//
+class Media {
+    /**
+     * Initialises repository
+     */
+    constructor() {
+        this.listeners = new Array();
+        this.isMobileFormFactorQuery = window.matchMedia("(max-width: 767px)");
+        this.isMobileFormFactorQuery.addListener(this.onMobileFormFactorChange.bind(this));
+    }
+    /**
+     *
+     * isSmallFormFactor - provides a one-time response
+     * if the display is at or below mobile form factor boundary.
+     */
+    isSmallFormFactor() {
+        if (this.isMobileFormFactorQuery.matches) { // If media query matches
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    /**
+      *
+      * onSmallFormFactorChange - local hook on mobile form factor changes.
+      */
+    onMobileFormFactorChange() {
+        var matches = false;
+        if (this.isMobileFormFactorQuery.matches) { // If media query matches
+            matches = true;
+        }
+        for (var i = 0; i < this.listeners.length; i++) {
+            this.listeners[i](matches);
+        }
+    }
+    /**
+      *
+      * addMobileFormFactorChangeListener - hook on external listeners to be fired if the display transitions across mobile form factor boundary.
+      */
+    addMobileFormFactorChangeListener(fn) {
+        this.listeners.push(fn);
+    }
+}
+exports.Media = Media;
+
+
+/***/ }),
+
+/***/ "./dev/ParticipantUI.tsx":
+/*!*******************************!*\
+  !*** ./dev/ParticipantUI.tsx ***!
+  \*******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ParticipantSmall = exports.ParticipantCaption = exports.ParticipantNoImage = exports.Participant = exports.ParticipantBanner = void 0;
+/*! Copyright TXPCo, 2020, 2021 */
+const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+const Container_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js"));
+const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
+const Col_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js"));
+const Image_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Image */ "./node_modules/react-bootstrap/esm/Image.js"));
+const bannerRowStyle = {
+    lineHeight: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
+};
+const partyImageStyle = {
+    marginLeft: '0px', marginRight: '0px',
+    paddingLeft: '4px', paddingRight: '2px',
+    paddingTop: '0px', paddingBottom: '0px',
+    marginTop: '8px', marginBottom: '8px',
+    display: 'inline-block'
+};
+const partySmallImageStyle = {
+    marginLeft: '0px', marginRight: '0px', paddingLeft: '2px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '2px', marginBottom: '2px'
+};
+const partyNameStyle = {
+    fontSize: '14px',
+    margin: '0px', paddingLeft: '4px',
+    paddingRight: '4px', paddingTop: '0px',
+    paddingBottom: '0px', wordBreak: 'break-all',
+    display: 'inline-block'
+};
+const partyBannerNameStyle = {
+    fontSize: '32px',
+    margin: '0px', paddingLeft: '4px',
+    paddingRight: '4px', paddingTop: '0px',
+    paddingBottom: '0px', alignItems: 'center',
+    display: 'inline-block'
+};
+const partyRowStyle = {
+    lineHeight: '14px',
+    margin: '0px',
+    paddingLeft: '4px',
+    paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px',
+    alignItems: 'left',
+    display: 'inline-block'
+};
+const thinStyle = {
+    margin: '0px', padding: '0px'
+};
+const ParticipantBanner = (props) => (React.createElement("div", null,
+    React.createElement(Container_1.default, { fluid: true, style: thinStyle },
+        React.createElement(Row_1.default, { style: bannerRowStyle },
+            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
+            React.createElement("p", { style: partyBannerNameStyle }, props.name)))));
+exports.ParticipantBanner = ParticipantBanner;
+const Participant = (props) => (React.createElement("div", null,
+    React.createElement(Container_1.default, { style: thinStyle },
+        React.createElement(Row_1.default, { style: partyRowStyle },
+            React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
+                React.createElement("p", { style: partyNameStyle }, props.name))))));
+exports.Participant = Participant;
+const ParticipantNoImage = (props) => (React.createElement("div", null,
+    React.createElement(Container_1.default, { style: thinStyle },
+        React.createElement(Row_1.default, { style: partyRowStyle },
+            React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement("p", { style: partyNameStyle }, props.name))))));
+exports.ParticipantNoImage = ParticipantNoImage;
+const ParticipantCaption = (props) => (React.createElement("div", null,
+    React.createElement(Container_1.default, { style: thinStyle },
+        React.createElement(Row_1.default, { style: partyRowStyle },
+            React.createElement(Col_1.default, { style: thinStyle },
+                React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.caption, title: props.caption, height: '32px' }),
+                React.createElement("p", { style: partyNameStyle }, props.name))))));
+exports.ParticipantCaption = ParticipantCaption;
+const ParticipantSmall = (props) => (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }));
+exports.ParticipantSmall = ParticipantSmall;
 
 
 /***/ }),
@@ -54601,18 +55303,19 @@ const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/L
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ../../core/dev/Facility */ "../core/dev/Facility.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities */ "../core/dev/UserFacilities.tsx");
+// This app, this component
 const LoginMember_1 = __webpack_require__(/*! ./LoginMember */ "./dev/LoginMember.tsx");
 const LoginOauth_1 = __webpack_require__(/*! ./LoginOauth */ "./dev/LoginOauth.tsx");
 const LoginMeetingCode_1 = __webpack_require__(/*! ./LoginMeetingCode */ "./dev/LoginMeetingCode.tsx");
-const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
-const callpanel_1 = __webpack_require__(/*! ./callpanel */ "./dev/callpanel.tsx");
-const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
+const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
+const CallPanelUI_1 = __webpack_require__(/*! ./CallPanelUI */ "./dev/CallPanelUI.tsx");
 const PeerConnection_1 = __webpack_require__(/*! ./PeerConnection */ "./dev/PeerConnection.tsx");
-const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
+const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
+const LeaderResolveUI_1 = __webpack_require__(/*! ./LeaderResolveUI */ "./dev/LeaderResolveUI.tsx");
+const Media_1 = __webpack_require__(/*! ./Media */ "./dev/Media.tsx");
+const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
 const clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./dev/clockpanel.tsx");
 const whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./dev/whiteboardpanel.tsx");
-const leaderpanel_1 = __webpack_require__(/*! ./leaderpanel */ "./dev/leaderpanel.tsx");
-const media_1 = __webpack_require__(/*! ./media */ "./dev/media.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 const jumbotronStyle = {
     paddingLeft: '10px',
@@ -54683,7 +55386,7 @@ const footerElementStyle = {
 class MemberPage extends React.Component {
     constructor(props) {
         super(props);
-        this.lastUserData = new localstore_1.StoredMeetingState();
+        this.lastUserData = new LocalStore_1.StoredMeetingState();
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), new Array());
         this.pageData = this.defaultPageData;
         let loginData = new LoginMember_1.MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
@@ -54797,7 +55500,7 @@ class MemberPage extends React.Component {
                     React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(participant_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                        React.createElement(ParticipantUI_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
@@ -54824,16 +55527,16 @@ class MemberPage extends React.Component {
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(callpanel_1.RemoteConnectionStatus, { peers: this.state.rtc }, " "),
+                            React.createElement(CallPanelUI_1.RemoteConnectionStatus, { peers: this.state.rtc }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginProvider.logout.bind(this.state.loginProvider) }, "Sign Out...")))))),
@@ -54853,7 +55556,7 @@ exports.MemberPage = MemberPage;
 class CoachPage extends React.Component {
     constructor(props) {
         super(props);
-        this.lastUserData = new localstore_1.StoredMeetingState();
+        this.lastUserData = new LocalStore_1.StoredMeetingState();
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new Facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png', null), null);
         this.pageData = this.defaultPageData;
         let loginData = new LoginMeetingCode_1.LoginMeetCodeData(this.lastUserData.loadMeetingId());
@@ -54980,7 +55683,7 @@ class CoachPage extends React.Component {
                     React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
                 React.createElement(Navbar_1.default, { style: facilityNavStyle },
                     React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                        React.createElement(participant_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                        React.createElement(ParticipantUI_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
@@ -54999,23 +55702,23 @@ class CoachPage extends React.Component {
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(callpanel_1.MasterConnectionStatus, { peers: this.state.rtc }),
+                            React.createElement(CallPanelUI_1.MasterConnectionStatus, { peers: this.state.rtc }),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(participant_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginProvider.logout }, "Sign Out...")))))),
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: thinStyle },
-                            React.createElement(leaderpanel_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), peers: this.state.rtc }, " "))),
+                            React.createElement(LeaderResolveUI_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), peers: this.state.rtc }, " "))),
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peers: this.state.rtc }, " ")),
@@ -55039,7 +55742,7 @@ class LandingPage extends React.Component {
             isMobileFormFactor: true // Assume mobile first !
         };
         // Can have a single media object across all instances
-        this.media = new media_1.Media();
+        this.media = new Media_1.Media();
         this.media.addMobileFormFactorChangeListener(this.onMobileFormFactorChange.bind(this));
     }
     componentDidMount() {
@@ -55096,7 +55799,7 @@ class LandingPage extends React.Component {
                 React.createElement("link", { rel: "shortcut icon", href: "weightlifter-b-128x128.png", type: "image/png" })),
             React.createElement(Navbar_1.default, { style: facilityNavStyle },
                 React.createElement(Navbar_1.default.Brand, { href: "/", style: navbarBrandStyle },
-                    React.createElement(participant_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
+                    React.createElement(ParticipantUI_1.ParticipantBanner, { name: "UltraBox", thumbnailUrl: "weightlifter-w-128x128.png" }))),
             React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                 React.createElement("audio", { className: "audio-element", loop: true },
                     React.createElement("source", { src: "15-Minute-Timer.mp3" })),
@@ -55178,256 +55881,6 @@ if (document !== undefined && document.getElementById !== undefined) {
 
 /***/ }),
 
-/***/ "./dev/callpanel.tsx":
-/*!***************************!*\
-  !*** ./dev/callpanel.tsx ***!
-  \***************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-// References:
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
-// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MasterConnectionStatus = exports.RemoteConnectionStatus = void 0;
-const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const Button_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js"));
-const ButtonGroup_1 = __importDefault(__webpack_require__(/*! react-bootstrap/ButtonGroup */ "./node_modules/react-bootstrap/esm/ButtonGroup.js"));
-const Dropdown_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Dropdown */ "./node_modules/react-bootstrap/esm/Dropdown.js"));
-// This app
-const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const Enum_1 = __webpack_require__(/*! ../../core/dev/Enum */ "../core/dev/Enum.tsx");
-const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
-const thinStyle = {
-    margin: '0px', padding: '0px'
-};
-const thinishStyle = {
-    padding: '2px'
-};
-function overallStatusFromTwo(one, two) {
-    if (one && two) {
-        return Enum_1.EThreeStateSwitchEnum.On;
-    }
-    else if (!one && !two) {
-        return Enum_1.EThreeStateSwitchEnum.Off;
-    }
-    else {
-        return Enum_1.EThreeStateSwitchEnum.Indeterminate;
-    }
-}
-function overallStatusFromOne(one) {
-    if (one) {
-        return Enum_1.EThreeStateSwitchEnum.On;
-    }
-    else {
-        return Enum_1.EThreeStateSwitchEnum.Off;
-    }
-}
-function participant(status, name, okText, issueText, small) {
-    if (small) {
-        if (status === Enum_1.EThreeStateSwitchEnum.On)
-            return React.createElement(participant_1.ParticipantSmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-        else if (status === Enum_1.EThreeStateSwitchEnum.Off)
-            return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
-        else
-            return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-grey-128x128.png' });
-    }
-    else {
-        if (status === Enum_1.EThreeStateSwitchEnum.On)
-            return React.createElement(participant_1.ParticipantCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-        else if (status === Enum_1.EThreeStateSwitchEnum.Off)
-            return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
-        else
-            return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-grey-128x128.png' });
-    }
-}
-class RemoteConnectionStatus extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            overallStatus: Enum_1.EThreeStateSwitchEnum.Indeterminate,
-            serverStatus: false,
-            coachStatus: false,
-            intervalId: undefined
-        };
-    }
-    componentDidMount() {
-        var interval = setInterval(this.onInterval.bind(this), 5000); // Refresh every 5 seconds
-    }
-    componentWillUnmount() {
-        if (this.state.intervalId) {
-            clearInterval(this.state.intervalId);
-            this.setState({ intervalId: null });
-        }
-    }
-    onInterval() {
-        const serverStatus = this.props.peers.isConnectedToServer();
-        const coachStatus = this.props.peers.isConnectedToLeader();
-        var overallStatus = overallStatusFromTwo(serverStatus, coachStatus);
-        this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
-    }
-    render() {
-        return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.overallStatus()),
-            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-            this.detailedStatusList()));
-    }
-    overallStatus() {
-        var isCoach = false;
-        var isServer = false;
-        var issueString = undefined;
-        if (!this.state.serverStatus)
-            isServer = true;
-        if (this.state.coachStatus)
-            isCoach = true;
-        if (isServer && isCoach)
-            issueString = 'Sorry, cannot connect to Web or to Coach.';
-        else if (isServer)
-            issueString = 'Sorry, cannot connect to Web.';
-        else
-            issueString = 'Sorry, cannot connect to Coach.';
-        return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
-    }
-    detailedStatusList() {
-        return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.coachStatus), "Coach", "Connected to Coach.", "Sorry, cannot connect to Coach.", false))));
-    }
-}
-exports.RemoteConnectionStatus = RemoteConnectionStatus;
-class MasterConnectionStatus extends React.Component {
-    constructor(props) {
-        super(props);
-        if (props.peers)
-            props.peers.addRemoteDataListener(this.onData.bind(this));
-        var members = new Array();
-        var memberStatuses = new Array();
-        this.state = {
-            overallStatus: Enum_1.EThreeStateSwitchEnum.Indeterminate,
-            serverStatus: false,
-            members: members,
-            memberStatuses: memberStatuses,
-            intervalId: null
-        };
-    }
-    componentDidMount() {
-        var interval = setInterval(this.onInterval.bind(this), 5000);
-    }
-    componentWillUnmount() {
-        if (this.state.intervalId) {
-            clearInterval(this.state.intervalId);
-            this.setState({ intervalId: null });
-        }
-    }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onData.bind(this));
-        }
-    }
-    onData(ev) {
-        if (ev.type === Person_1.Person.__type) {
-            var members = this.state.members;
-            members.push(ev);
-            var memberStatuses = this.state.memberStatuses;
-            var memberStatus = this.props.peers.isConnectedToMember(ev.name);
-            memberStatuses.push(memberStatus);
-            this.setState({ members: members, memberStatuses: memberStatuses });
-        }
-    }
-    onInterval() {
-        // First build up the overall status & get the status for the server link
-        const serverStatus = this.props.peers.isConnectedToServer();
-        var worstLinkStatus = true;
-        for (var i = 0; i < this.state.members.length && worstLinkStatus === true; i++) {
-            if (!this.props.peers.isConnectedToMember(this.state.members[i].name)) {
-                worstLinkStatus = false;
-            }
-        }
-        // Then in a second pass, get all the link statuses
-        // Could do all in one pass but not likely to be a relevant gain
-        var memberStatuses = this.state.memberStatuses;
-        for (var i = 0; i < this.state.members.length; i++) {
-            memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name);
-        }
-        this.setState({
-            overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
-            serverStatus: serverStatus,
-            memberStatuses: memberStatuses
-        });
-    }
-    render() {
-        return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.overallStatus()),
-            React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-            this.detailedStatusList()));
-    }
-    overallStatus() {
-        var isMember = false;
-        var isServer = false;
-        var issueString = null;
-        if (!this.state.serverStatus)
-            isServer = true;
-        for (var i = 0; i < this.state.members.length; i++) {
-            if (!this.props.peers.isConnectedToMember(this.state.members[i].name))
-                isMember = true;
-        }
-        if (isServer && isMember)
-            issueString = 'Sorry, cannot connect to Web or to a Member.';
-        else if (isServer)
-            issueString = 'Sorry, cannot connect to Web.';
-        else
-            issueString = 'Sorry, cannot connect to a Member.';
-        return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
-    }
-    detailedStatusList() {
-        if (this.state.members.length === 0) {
-            return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-                React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
-                React.createElement(Dropdown_1.default.Divider, null),
-                React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(Enum_1.EThreeStateSwitchEnum.Indeterminate, 'No-one else is connected.', 'No-one else is connected.', 'No-one else is connected.', false)),
-                ")"));
-        }
-        var items = new Array();
-        for (var i = 0; i < this.state.members.length; i++) {
-            var item = { key: i, name: this.state.members[i].name, status: this.state.memberStatuses[i] };
-            items.push(item);
-        }
-        return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
-            React.createElement(Dropdown_1.default.Divider, null),
-            items.map((item) => React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle }, participant(overallStatusFromOne(item.status), item.name, 'Connected to Member.', 'Sorry, cannot connect to Member.', false)))));
-    }
-}
-exports.MasterConnectionStatus = MasterConnectionStatus;
-
-
-/***/ }),
-
 /***/ "./dev/clockpanel.tsx":
 /*!****************************!*\
   !*** ./dev/clockpanel.tsx ***!
@@ -55473,7 +55926,7 @@ const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/d
 const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
-const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
+const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -55610,7 +56063,7 @@ exports.RemoteClock = RemoteClock;
 class MasterClock extends React.Component {
     constructor(props) {
         super(props);
-        this.storedWorkoutState = new localstore_1.StoredWorkoutState();
+        this.storedWorkoutState = new LocalStore_1.StoredWorkoutState();
         // Use cached copy of the workout clock if there is one
         var storedClockSpec = this.storedWorkoutState.loadClockSpec();
         var clockSpec;
@@ -55843,458 +56296,6 @@ exports.MasterClock = MasterClock;
 
 /***/ }),
 
-/***/ "./dev/leaderpanel.tsx":
-/*!*****************************!*\
-  !*** ./dev/leaderpanel.tsx ***!
-  \*****************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LeaderResolve = void 0;
-// External components
-const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const Alert_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Alert */ "./node_modules/react-bootstrap/esm/Alert.js"));
-const Nav_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Nav */ "./node_modules/react-bootstrap/esm/Nav.js"));
-const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const Call_1 = __webpack_require__(/*! ../../core/dev/Call */ "../core/dev/Call.tsx");
-const thinStyle = {
-    margin: '0px', padding: '0px',
-};
-const alertStyle = {
-    margin: '0px'
-};
-class LeaderResolve extends React.Component {
-    //member variables
-    constructor(props) {
-        super(props);
-        // Store a resolve object as early as possible to avoid race conditions when we send CallLeaderResolve to each other.
-        // This ensures we have one before we hook data updates
-        var resolve = new Call_1.CallLeaderResolve();
-        this.state = { isLeader: true, myLeaderResolve: resolve };
-        if (this.props.peers) {
-            this.props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
-        }
-    }
-    componentDidMount() {
-    }
-    componentWillUnmount() {
-    }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
-    }
-    onRemoteData(ev) {
-        // By convention, new joiners broadcast a 'Person' object
-        if (ev.type === Person_1.Person.__type) {
-            // Send them our CallLeaderResolve 
-            this.forceUpdate(() => {
-                this.props.peers.broadcast(this.state.myLeaderResolve);
-            });
-        }
-        // If we recieve a CallLeaderResolve that beats us, we are not leader.
-        if (ev.type === Call_1.CallLeaderResolve.__type) {
-            if (!this.state.myLeaderResolve.isWinnerVs(ev)) {
-                this.setState({ isLeader: false });
-                if (this.props.onLeaderChange)
-                    this.props.onLeaderChange(false);
-            }
-        }
-    }
-    render() {
-        if (this.state.isLeader) {
-            return (React.createElement("div", { style: thinStyle }));
-        }
-        else {
-            return (React.createElement("div", { style: thinStyle },
-                React.createElement(Alert_1.default, { style: alertStyle, key: 'notLeaderId', variant: 'secondary' },
-                    "It looks like another coach is leading this session. Please click below to go back to the home page.",
-                    React.createElement(Nav_1.default.Item, null,
-                        React.createElement(Nav_1.default.Link, { href: "/", eventKey: "reJoinId" }, "Rejoin")))));
-        }
-    }
-}
-exports.LeaderResolve = LeaderResolve;
-
-
-/***/ }),
-
-/***/ "./dev/localstore.tsx":
-/*!****************************!*\
-  !*** ./dev/localstore.tsx ***!
-  \****************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.StoredWorkoutState = exports.StoredMeetingState = exports.LocalStore = void 0;
-//==============================//
-// LocalStore class
-//==============================//
-class LocalStore {
-    /**
-     * Initialises repository
-     */
-    constructor() {
-    }
-    /**
-     *
-     * saveValue
-     * @param key - key to use to look up data
-     * @param value - value to save
-     */
-    saveValue(key, value) {
-        if (window.localStorage)
-            window.localStorage.setItem(key, value.toString());
-    }
-    ;
-    /**
-     *
-     * loadValue
-     * @param key - key to use to look up data
-     */
-    loadValue(key) {
-        if (window.localStorage)
-            return window.localStorage.getItem(key);
-        else
-            return null;
-    }
-    ;
-    /**
-     *
-     * clearValue
-     * @param key - key to use to look up data
-     */
-    clearValue(key) {
-        if (window.localStorage)
-            window.localStorage.removeItem(key);
-    }
-}
-exports.LocalStore = LocalStore;
-const lastMeetingId = "lastMeetingId";
-const lastNameId = "lastName";
-const lastWorkoutId = "lastWorkout";
-const lastClockId = "lastClock";
-const lastClockStateId = "lastClockState";
-//==============================//
-// StoredMeetingState class
-//==============================//
-class StoredMeetingState {
-    constructor() {
-        this._store = new LocalStore();
-    }
-    /**
-     *
-     * saveMeetingId
-     * @param meetingId - value to save
-     */
-    saveMeetingId(meetingId) {
-        this._store.saveValue(lastMeetingId, meetingId);
-    }
-    ;
-    /**
-     *
-     * loadMeetingId
-     */
-    loadMeetingId() {
-        var ret = this._store.loadValue(lastMeetingId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-    /**
-     *
-     * saveName
-     * @param meetingId - value to save
-     */
-    saveName(meetingId) {
-        this._store.saveValue(lastNameId, meetingId);
-    }
-    ;
-    /**
-     *
-     * loadName
-     */
-    loadName() {
-        var ret = this._store.loadValue(lastNameId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-}
-exports.StoredMeetingState = StoredMeetingState;
-//==============================//
-// StoredWorkoutState class
-//==============================//
-class StoredWorkoutState {
-    constructor() {
-        this._store = new LocalStore();
-    }
-    /**
-     *
-     * saveWorkout
-     * @param workout - value to save
-     */
-    saveWorkout(workout) {
-        this._store.saveValue(lastWorkoutId, workout);
-    }
-    ;
-    /**
-     *
-     * loadWorkout
-     */
-    loadWorkout() {
-        var ret = this._store.loadValue(lastWorkoutId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-    /**
-     *
-     * saveClockSpec
-     * @param clock - value to save
-     */
-    saveClockSpec(clock) {
-        this._store.saveValue(lastClockId, clock);
-    }
-    ;
-    /**
-     *
-     * loadClockSpec
-     */
-    loadClockSpec() {
-        var ret = this._store.loadValue(lastClockId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-    /**
-     *
-     * saveClockState
-     * @param clock - value to save
-     */
-    saveClockState(clock) {
-        this._store.saveValue(lastClockStateId, clock);
-    }
-    ;
-    /**
-     *
-     * loadClockState
-     */
-    loadClockState() {
-        var ret = this._store.loadValue(lastClockStateId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-}
-exports.StoredWorkoutState = StoredWorkoutState;
-
-
-/***/ }),
-
-/***/ "./dev/media.tsx":
-/*!***********************!*\
-  !*** ./dev/media.tsx ***!
-  \***********************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021  */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Media = void 0;
-//==============================//
-// Media class
-//==============================//
-class Media {
-    /**
-     * Initialises repository
-     */
-    constructor() {
-        this.listeners = new Array();
-        this.isMobileFormFactorQuery = window.matchMedia("(max-width: 767px)");
-        this.isMobileFormFactorQuery.addListener(this.onMobileFormFactorChange.bind(this));
-    }
-    /**
-     *
-     * isSmallFormFactor - provides a one-time response
-     * if the display is at or below mobile form factor boundary.
-     */
-    isSmallFormFactor() {
-        if (this.isMobileFormFactorQuery.matches) { // If media query matches
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    /**
-      *
-      * onSmallFormFactorChange - local hook on mobile form factor changes.
-      */
-    onMobileFormFactorChange() {
-        var matches = false;
-        if (this.isMobileFormFactorQuery.matches) { // If media query matches
-            matches = true;
-        }
-        for (var i = 0; i < this.listeners.length; i++) {
-            this.listeners[i](matches);
-        }
-    }
-    /**
-      *
-      * addMobileFormFactorChangeListener - hook on external listeners to be fired if the display transitions across mobile form factor boundary.
-      */
-    addMobileFormFactorChangeListener(fn) {
-        this.listeners.push(fn);
-    }
-}
-exports.Media = Media;
-
-
-/***/ }),
-
-/***/ "./dev/participant.tsx":
-/*!*****************************!*\
-  !*** ./dev/participant.tsx ***!
-  \*****************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ParticipantSmall = exports.ParticipantCaption = exports.ParticipantNoImage = exports.Participant = exports.ParticipantBanner = void 0;
-/*! Copyright TXPCo, 2020, 2021 */
-const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const Container_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Container */ "./node_modules/react-bootstrap/esm/Container.js"));
-const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
-const Col_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js"));
-const Image_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Image */ "./node_modules/react-bootstrap/esm/Image.js"));
-const bannerRowStyle = {
-    lineHeight: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center'
-};
-const partyImageStyle = {
-    marginLeft: '0px', marginRight: '0px',
-    paddingLeft: '4px', paddingRight: '2px',
-    paddingTop: '0px', paddingBottom: '0px',
-    marginTop: '8px', marginBottom: '8px',
-    display: 'inline-block'
-};
-const partySmallImageStyle = {
-    marginLeft: '0px', marginRight: '0px', paddingLeft: '2px', paddingRight: '2px', paddingTop: '0px', paddingBottom: '0px', marginTop: '2px', marginBottom: '2px'
-};
-const partyNameStyle = {
-    fontSize: '14px',
-    margin: '0px', paddingLeft: '4px',
-    paddingRight: '4px', paddingTop: '0px',
-    paddingBottom: '0px', wordBreak: 'break-all',
-    display: 'inline-block'
-};
-const partyBannerNameStyle = {
-    fontSize: '32px',
-    margin: '0px', paddingLeft: '4px',
-    paddingRight: '4px', paddingTop: '0px',
-    paddingBottom: '0px', alignItems: 'center',
-    display: 'inline-block'
-};
-const partyRowStyle = {
-    lineHeight: '14px',
-    margin: '0px',
-    paddingLeft: '4px',
-    paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px',
-    alignItems: 'left',
-    display: 'inline-block'
-};
-const thinStyle = {
-    margin: '0px', padding: '0px'
-};
-const ParticipantBanner = (props) => (React.createElement("div", null,
-    React.createElement(Container_1.default, { fluid: true, style: thinStyle },
-        React.createElement(Row_1.default, { style: bannerRowStyle },
-            React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
-            React.createElement("p", { style: partyBannerNameStyle }, props.name)))));
-exports.ParticipantBanner = ParticipantBanner;
-const Participant = (props) => (React.createElement("div", null,
-    React.createElement(Container_1.default, { style: thinStyle },
-        React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement(Col_1.default, { style: thinStyle },
-                React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }),
-                React.createElement("p", { style: partyNameStyle }, props.name))))));
-exports.Participant = Participant;
-const ParticipantNoImage = (props) => (React.createElement("div", null,
-    React.createElement(Container_1.default, { style: thinStyle },
-        React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement(Col_1.default, { style: thinStyle },
-                React.createElement("p", { style: partyNameStyle }, props.name))))));
-exports.ParticipantNoImage = ParticipantNoImage;
-const ParticipantCaption = (props) => (React.createElement("div", null,
-    React.createElement(Container_1.default, { style: thinStyle },
-        React.createElement(Row_1.default, { style: partyRowStyle },
-            React.createElement(Col_1.default, { style: thinStyle },
-                React.createElement(Image_1.default, { style: partyImageStyle, src: props.thumbnailUrl, alt: props.caption, title: props.caption, height: '32px' }),
-                React.createElement("p", { style: partyNameStyle }, props.name))))));
-exports.ParticipantCaption = ParticipantCaption;
-const ParticipantSmall = (props) => (React.createElement(Image_1.default, { style: partySmallImageStyle, src: props.thumbnailUrl, alt: props.name, title: props.name, height: '32px' }));
-exports.ParticipantSmall = ParticipantSmall;
-
-
-/***/ }),
-
 /***/ "./dev/peoplepanel.tsx":
 /*!*****************************!*\
   !*** ./dev/peoplepanel.tsx ***!
@@ -56336,7 +56337,7 @@ const React = __importStar(__webpack_require__(/*! react */ "./node_modules/reac
 const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
 // This app
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const participant_1 = __webpack_require__(/*! ./participant */ "./dev/participant.tsx");
+const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
 class RemotePeople extends React.Component {
     constructor(props) {
         super(props);
@@ -56368,12 +56369,12 @@ class RemotePeople extends React.Component {
         });
         if (this.state.people.length === 0) {
             return (React.createElement(Row_1.default, null,
-                React.createElement(participant_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
+                React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
         }
         else {
             return (React.createElement("div", null,
                 items.map((item) => React.createElement(Row_1.default, { key: item.key },
-                    React.createElement(participant_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl }))),
+                    React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl }))),
                 "  "));
         }
     }
@@ -56426,7 +56427,7 @@ const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./no
 const Dates_1 = __webpack_require__(/*! ../../core/dev/Dates */ "../core/dev/Dates.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Whiteboard_1 = __webpack_require__(/*! ../../core/dev/Whiteboard */ "../core/dev/Whiteboard.tsx");
-const localstore_1 = __webpack_require__(/*! ./localstore */ "./dev/localstore.tsx");
+const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -56502,7 +56503,7 @@ class MasterWhiteboard extends React.Component {
         if (props.peers) {
             props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
         }
-        this.storedWorkoutState = new localstore_1.StoredWorkoutState();
+        this.storedWorkoutState = new LocalStore_1.StoredWorkoutState();
         var workout;
         // Use cached copy of the workout if there is one
         var storedWorkout = this.storedWorkoutState.loadWorkout();
