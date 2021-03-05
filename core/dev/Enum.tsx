@@ -2,8 +2,9 @@
 /*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
 
-export enum ThreeStateRagEnum { 'Red', 'Amber', 'Green' };
-export enum FourStateRagEnum { 'Red', 'Amber', 'Green', 'Indeterminate' };
+export enum EThreeStateSwitchEnum { 'On', 'Off', 'Indeterminate' };
+export enum EThreeStateRagEnum { 'Red', 'Amber', 'Green' };
+export enum EFourStateRagEnum { 'Red', 'Amber', 'Green', 'Indeterminate' };
 
 
 

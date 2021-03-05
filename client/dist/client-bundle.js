@@ -55230,33 +55230,47 @@ const thinishStyle = {
     padding: '2px'
 };
 function overallStatusFromTwo(one, two) {
-    var overallStatus = null;
-    if (!one || !two) {
-        // Red if either one is red
-        return false;
+    if (one && two) {
+        return Enum_1.EThreeStateSwitchEnum.On;
     }
-    else
-        return true;
+    else if (!one && !two) {
+        return Enum_1.EThreeStateSwitchEnum.Off;
+    }
+    else {
+        return Enum_1.EThreeStateSwitchEnum.Indeterminate;
+    }
+}
+function overallStatusFromOne(one) {
+    if (one) {
+        return Enum_1.EThreeStateSwitchEnum.On;
+    }
+    else {
+        return Enum_1.EThreeStateSwitchEnum.Off;
+    }
 }
 function participant(status, name, okText, issueText, small) {
     if (small) {
-        if (status)
+        if (status === Enum_1.EThreeStateSwitchEnum.On)
             return React.createElement(participant_1.ParticipantSmall, { name: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-        else
+        else if (status === Enum_1.EThreeStateSwitchEnum.Off)
             return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+        else
+            return React.createElement(participant_1.ParticipantSmall, { name: issueText, thumbnailUrl: 'circle-black-grey-128x128.png' });
     }
     else {
-        if (status)
+        if (status === Enum_1.EThreeStateSwitchEnum.On)
             return React.createElement(participant_1.ParticipantCaption, { name: name, caption: okText, thumbnailUrl: 'circle-black-green-128x128.png' });
-        else
+        else if (status === Enum_1.EThreeStateSwitchEnum.Off)
             return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-red-128x128.png' });
+        else
+            return React.createElement(participant_1.ParticipantCaption, { name: name, caption: issueText, thumbnailUrl: 'circle-black-grey-128x128.png' });
     }
 }
 class RemoteConnectionStatus extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            overallStatus: false,
+            overallStatus: Enum_1.EThreeStateSwitchEnum.Indeterminate,
             serverStatus: false,
             coachStatus: false,
             intervalId: undefined
@@ -55279,11 +55293,11 @@ class RemoteConnectionStatus extends React.Component {
     }
     render() {
         return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.topButton()),
+            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.overallStatus()),
             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-            this.menu()));
+            this.detailedStatusList()));
     }
-    topButton() {
+    overallStatus() {
         var isCoach = false;
         var isServer = false;
         var issueString = undefined;
@@ -55292,17 +55306,17 @@ class RemoteConnectionStatus extends React.Component {
         if (this.state.coachStatus)
             isCoach = true;
         if (isServer && isCoach)
-            issueString = 'Not connected to web or to coach.';
+            issueString = 'Sorry, cannot connect to Web or to Coach.';
         else if (isServer)
-            issueString = 'Not connected to web.';
+            issueString = 'Sorry, cannot connect to Web.';
         else
-            issueString = 'Not connected to web coach.';
-        return participant(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
+            issueString = 'Sorry, cannot connect to Coach.';
+        return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
     }
-    menu() {
+    detailedStatusList() {
         return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false))));
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.coachStatus), "Coach", "Connected to Coach.", "Sorry, cannot connect to Coach.", false))));
     }
 }
 exports.RemoteConnectionStatus = RemoteConnectionStatus;
@@ -55314,16 +55328,15 @@ class MasterConnectionStatus extends React.Component {
         var members = new Array();
         var memberStatuses = new Array();
         this.state = {
-            overallStatus: Enum_1.FourStateRagEnum.Indeterminate,
-            serverStatus: Enum_1.FourStateRagEnum.Indeterminate,
-            overallLinkStatus: Enum_1.FourStateRagEnum.Indeterminate,
+            overallStatus: Enum_1.EThreeStateSwitchEnum.Indeterminate,
+            serverStatus: false,
             members: members,
             memberStatuses: memberStatuses,
             intervalId: null
         };
     }
     componentDidMount() {
-        var interval = setInterval(this.onInterval.bind(this), 200);
+        var interval = setInterval(this.onInterval.bind(this), 5000);
     }
     componentWillUnmount() {
         if (this.state.intervalId) {
@@ -55341,65 +55354,73 @@ class MasterConnectionStatus extends React.Component {
             var members = this.state.members;
             members.push(ev);
             var memberStatuses = this.state.memberStatuses;
-            var memberStatus = this.props.peers.isConnectedToMember(ev.name) ? Enum_1.FourStateRagEnum.Green : Enum_1.FourStateRagEnum.Red;
+            var memberStatus = this.props.peers.isConnectedToMember(ev.name);
             memberStatuses.push(memberStatus);
             this.setState({ members: members, memberStatuses: memberStatuses });
         }
     }
     onInterval() {
         // First build up the overall status & get the status for the server link
-        const serverStatus = this.props.peers.isConnectedToServer;
-        var worstLinkStatus = Enum_1.FourStateRagEnum.Green;
-        for (var i = 0; i < this.state.members.length && worstLinkStatus === Enum_1.FourStateRagEnum.Green; i++) {
+        const serverStatus = this.props.peers.isConnectedToServer();
+        var worstLinkStatus = true;
+        for (var i = 0; i < this.state.members.length && worstLinkStatus === true; i++) {
             if (!this.props.peers.isConnectedToMember(this.state.members[i].name)) {
-                worstLinkStatus = Enum_1.FourStateRagEnum.Red;
+                worstLinkStatus = false;
             }
         }
         // Then in a second pass, get all the link statuses
         // Could do all in one pass but not likely to be a relevant gain
         var memberStatuses = this.state.memberStatuses;
         for (var i = 0; i < this.state.members.length; i++) {
-            memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name) ? Enum_1.FourStateRagEnum.Green : Enum_1.FourStateRagEnum.Red;
+            memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name);
         }
         this.setState({
             overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
             serverStatus: serverStatus,
-            overallLinkStatus: worstLinkStatus,
             memberStatuses: memberStatuses
         });
     }
     render() {
         return (React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-call-status" },
-            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.topButton()),
+            React.createElement(Button_1.default, { variant: "secondary", style: thinStyle }, this.overallStatus()),
             React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "call-status-split", size: "sm" }),
-            this.menu()));
+            this.detailedStatusList()));
     }
-    topButton() {
+    overallStatus() {
         var isMember = false;
         var isServer = false;
         var issueString = null;
-        if (this.state.serverStatus != Enum_1.FourStateRagEnum.Green)
+        if (!this.state.serverStatus)
             isServer = true;
-        if (this.state.overallLinkStatus != Enum_1.FourStateRagEnum.Green)
-            isMember = true;
+        for (var i = 0; i < this.state.members.length; i++) {
+            if (!this.props.peers.isConnectedToMember(this.state.members[i].name))
+                isMember = true;
+        }
         if (isServer && isMember)
-            issueString = 'Not connected to web or to a member.';
+            issueString = 'Sorry, cannot connect to Web or to a Member.';
         else if (isServer)
-            issueString = 'Not connected to web.';
+            issueString = 'Sorry, cannot connect to Web.';
         else
-            issueString = 'Not connected to a meember.';
-        return participant(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
+            issueString = 'Sorry, cannot connect to a Member.';
+        return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
     }
-    menu() {
+    detailedStatusList() {
+        if (this.state.members.length === 0) {
+            return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
+                React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
+                React.createElement(Dropdown_1.default.Divider, null),
+                React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(Enum_1.EThreeStateSwitchEnum.Indeterminate, 'No-one else is connected.', 'No-one else is connected.', 'No-one else is connected.', false)),
+                ")"));
+        }
         var items = new Array();
         for (var i = 0; i < this.state.members.length; i++) {
             var item = { key: i, name: this.state.members[i].name, status: this.state.memberStatuses[i] };
             items.push(item);
         }
         return (React.createElement(Dropdown_1.default.Menu, { align: "right" },
-            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)),
+            React.createElement(Dropdown_1.default.ItemText, { style: thinishStyle }, participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)),
             React.createElement(Dropdown_1.default.Divider, null),
-            items.map((item) => React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle }, participant(item.status, item.name, 'Connection OK', 'Not connected to Member', false)))));
+            items.map((item) => React.createElement(Dropdown_1.default.ItemText, { key: item.key, style: thinishStyle }, participant(overallStatusFromOne(item.status), item.name, 'Connected to Member.', 'Sorry, cannot connect to Member.', false)))));
     }
 }
 exports.MasterConnectionStatus = MasterConnectionStatus;
@@ -56460,7 +56481,6 @@ const whiteboardElementBodyStyle = {
     fontSize: '20px',
     backgroundImage: 'url("board.png")',
     backgroundRepeat: 'repeat',
-    minHeight: '100%',
     minWidth: '240px', maxWidth: '*',
     whiteSpace: 'pre-wrap'
 };
@@ -57272,21 +57292,28 @@ exports.DateWithDays = DateWithDays;
 /*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.FourStateRagEnum = exports.ThreeStateRagEnum = void 0;
-var ThreeStateRagEnum;
-(function (ThreeStateRagEnum) {
-    ThreeStateRagEnum[ThreeStateRagEnum["Red"] = 0] = "Red";
-    ThreeStateRagEnum[ThreeStateRagEnum["Amber"] = 1] = "Amber";
-    ThreeStateRagEnum[ThreeStateRagEnum["Green"] = 2] = "Green";
-})(ThreeStateRagEnum = exports.ThreeStateRagEnum || (exports.ThreeStateRagEnum = {}));
+exports.EFourStateRagEnum = exports.EThreeStateRagEnum = exports.EThreeStateSwitchEnum = void 0;
+var EThreeStateSwitchEnum;
+(function (EThreeStateSwitchEnum) {
+    EThreeStateSwitchEnum[EThreeStateSwitchEnum["On"] = 0] = "On";
+    EThreeStateSwitchEnum[EThreeStateSwitchEnum["Off"] = 1] = "Off";
+    EThreeStateSwitchEnum[EThreeStateSwitchEnum["Indeterminate"] = 2] = "Indeterminate";
+})(EThreeStateSwitchEnum = exports.EThreeStateSwitchEnum || (exports.EThreeStateSwitchEnum = {}));
 ;
-var FourStateRagEnum;
-(function (FourStateRagEnum) {
-    FourStateRagEnum[FourStateRagEnum["Red"] = 0] = "Red";
-    FourStateRagEnum[FourStateRagEnum["Amber"] = 1] = "Amber";
-    FourStateRagEnum[FourStateRagEnum["Green"] = 2] = "Green";
-    FourStateRagEnum[FourStateRagEnum["Indeterminate"] = 3] = "Indeterminate";
-})(FourStateRagEnum = exports.FourStateRagEnum || (exports.FourStateRagEnum = {}));
+var EThreeStateRagEnum;
+(function (EThreeStateRagEnum) {
+    EThreeStateRagEnum[EThreeStateRagEnum["Red"] = 0] = "Red";
+    EThreeStateRagEnum[EThreeStateRagEnum["Amber"] = 1] = "Amber";
+    EThreeStateRagEnum[EThreeStateRagEnum["Green"] = 2] = "Green";
+})(EThreeStateRagEnum = exports.EThreeStateRagEnum || (exports.EThreeStateRagEnum = {}));
+;
+var EFourStateRagEnum;
+(function (EFourStateRagEnum) {
+    EFourStateRagEnum[EFourStateRagEnum["Red"] = 0] = "Red";
+    EFourStateRagEnum[EFourStateRagEnum["Amber"] = 1] = "Amber";
+    EFourStateRagEnum[EFourStateRagEnum["Green"] = 2] = "Green";
+    EFourStateRagEnum[EFourStateRagEnum["Indeterminate"] = 3] = "Indeterminate";
+})(EFourStateRagEnum = exports.EFourStateRagEnum || (exports.EFourStateRagEnum = {}));
 ;
 
 

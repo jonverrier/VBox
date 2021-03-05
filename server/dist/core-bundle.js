@@ -4768,6 +4768,45 @@ exports.DateWithDays = DateWithDays;
 
 /***/ }),
 
+/***/ "./dev/Enum.tsx":
+/*!**********************!*\
+  !*** ./dev/Enum.tsx ***!
+  \**********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*jslint white: false, indent: 3, maxerr: 1000 */
+/*global exports*/
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EFourStateRagEnum = exports.EThreeStateRagEnum = exports.EThreeStateSwitchEnum = void 0;
+var EThreeStateSwitchEnum;
+(function (EThreeStateSwitchEnum) {
+    EThreeStateSwitchEnum[EThreeStateSwitchEnum["On"] = 0] = "On";
+    EThreeStateSwitchEnum[EThreeStateSwitchEnum["Off"] = 1] = "Off";
+    EThreeStateSwitchEnum[EThreeStateSwitchEnum["Indeterminate"] = 2] = "Indeterminate";
+})(EThreeStateSwitchEnum = exports.EThreeStateSwitchEnum || (exports.EThreeStateSwitchEnum = {}));
+;
+var EThreeStateRagEnum;
+(function (EThreeStateRagEnum) {
+    EThreeStateRagEnum[EThreeStateRagEnum["Red"] = 0] = "Red";
+    EThreeStateRagEnum[EThreeStateRagEnum["Amber"] = 1] = "Amber";
+    EThreeStateRagEnum[EThreeStateRagEnum["Green"] = 2] = "Green";
+})(EThreeStateRagEnum = exports.EThreeStateRagEnum || (exports.EThreeStateRagEnum = {}));
+;
+var EFourStateRagEnum;
+(function (EFourStateRagEnum) {
+    EFourStateRagEnum[EFourStateRagEnum["Red"] = 0] = "Red";
+    EFourStateRagEnum[EFourStateRagEnum["Amber"] = 1] = "Amber";
+    EFourStateRagEnum[EFourStateRagEnum["Green"] = 2] = "Green";
+    EFourStateRagEnum[EFourStateRagEnum["Indeterminate"] = 3] = "Indeterminate";
+})(EFourStateRagEnum = exports.EFourStateRagEnum || (exports.EFourStateRagEnum = {}));
+;
+
+
+/***/ }),
+
 /***/ "./dev/Equals.tsx":
 /*!************************!*\
   !*** ./dev/Equals.tsx ***!
@@ -6202,6 +6241,7 @@ const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/UserFacilities.tsx");
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
+const Enum_1 = __webpack_require__(/*! ./Enum */ "./dev/Enum.tsx");
 var EntryPoints = {
     LoggerFactory: Logger_1.LoggerFactory,
     ELoggerType: Logger_1.ELoggerType,
@@ -6229,7 +6269,10 @@ var EntryPoints = {
     EGymClockAction: GymClock_1.EGymClockAction,
     GymClockSpec: GymClock_1.GymClockSpec,
     GymClockAction: GymClock_1.GymClockAction,
-    GymClockState: GymClock_1.GymClockState
+    GymClockState: GymClock_1.GymClockState,
+    EThreeStateSwitchEnum: Enum_1.EThreeStateSwitchEnum,
+    EThreeStateRagEnum: Enum_1.EThreeStateRagEnum,
+    EFourStateRagEnum: Enum_1.EFourStateRagEnum
 };
 exports.default = EntryPoints;
 

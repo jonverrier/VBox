@@ -15,7 +15,7 @@ import * as CSS from 'csstype';
 
 // This app
 import { Person } from '../../core/dev/Person';
-import { FourStateRagEnum } from '../../core/dev/Enum';
+import { EThreeStateSwitchEnum } from '../../core/dev/Enum';
 import { ParticipantSmall, ParticipantCaption } from './participant';
 import { PeerConnection } from './PeerConnection';
 
@@ -32,34 +32,51 @@ export interface IRemoteConnectionProps {
 }
 
 interface IRemoteConnectionStatusState {
-   overallStatus: boolean;
+   overallStatus: EThreeStateSwitchEnum;
    serverStatus: boolean;
    coachStatus: boolean;
    intervalId: NodeJS.Timeout;
 }
 
-function overallStatusFromTwo(one: boolean, two: boolean): boolean {
-   var overallStatus: any = null;
+function overallStatusFromTwo(one: boolean, two: boolean): EThreeStateSwitchEnum {
 
-   if (!one || !two ) {
-       // Red if either one is red
-      return false;
+   if (one && two) {
+      return EThreeStateSwitchEnum.On;
    }
-   else
-      return true;
+   else if (!one && !two) {
+      return EThreeStateSwitchEnum.Off;
+   } else {
+      return EThreeStateSwitchEnum.Indeterminate;
+   }
 }
 
-function participant(status: boolean, name: string, okText: string, issueText: string, small: boolean): JSX.Element {
+function overallStatusFromOne(one: boolean): EThreeStateSwitchEnum {
+
+   if (one ) {
+      return EThreeStateSwitchEnum.On;
+   }
+   else {
+      return EThreeStateSwitchEnum.Off;
+   } 
+}
+
+function participant(status: EThreeStateSwitchEnum, name: string, okText: string, issueText: string, small: boolean): JSX.Element {
    if (small) {
-      if (status) 
+      if (status === EThreeStateSwitchEnum.On)
          return <ParticipantSmall name={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
       else
+      if (status === EThreeStateSwitchEnum.Off)
          return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
+      else
+         return <ParticipantSmall name={issueText} thumbnailUrl={'circle-black-grey-128x128.png'} />;
    } else {
-      if (status) 
+      if (status === EThreeStateSwitchEnum.On)
          return <ParticipantCaption name={name} caption={okText} thumbnailUrl={'circle-black-green-128x128.png'} />;
       else
+      if (status === EThreeStateSwitchEnum.Off)
          return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-red-128x128.png'} />;
+      else
+         return <ParticipantCaption name={name} caption={issueText} thumbnailUrl={'circle-black-grey-128x128.png'} />;
    }
 }
 
@@ -69,28 +86,28 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
       super(props);
 
       this.state = {
-         overallStatus: false,
+         overallStatus: EThreeStateSwitchEnum.Indeterminate,
          serverStatus: false,
          coachStatus: false,
          intervalId: undefined
       };
    }
 
-   componentDidMount() {
+   componentDidMount() : void {
       var interval = setInterval(this.onInterval.bind(this), 5000); // Refresh every 5 seconds
    }
 
-   componentWillUnmount() {
+   componentWillUnmount() : void  {
       if (this.state.intervalId) {
          clearInterval(this.state.intervalId);
          this.setState({ intervalId: null });
       }
    }
 
-   onInterval() {
+   onInterval() : void {
       const serverStatus: boolean = this.props.peers.isConnectedToServer();
       const coachStatus: boolean = this.props.peers.isConnectedToLeader();
-      var overallStatus: boolean = overallStatusFromTwo(serverStatus, coachStatus);
+      var overallStatus: EThreeStateSwitchEnum = overallStatusFromTwo(serverStatus, coachStatus);
 
       this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
    }
@@ -99,15 +116,15 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
       return (
             <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
                <Button variant="secondary" style={thinStyle}>
-                  { this.topButton() } 
+                  { this.overallStatus() } 
                </Button>
             <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
             </Dropdown.Toggle>
-            { this.menu()}
+            { this.detailedStatusList ()}
             </Dropdown>);
    }
 
-   topButton() {
+   overallStatus() {
       var isCoach: boolean = false;
       var isServer: boolean = false;
       var issueString: string = undefined;
@@ -118,24 +135,24 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
          isCoach = true;
 
       if (isServer && isCoach)
-         issueString = 'Not connected to web or to coach.'
+         issueString = 'Sorry, cannot connect to Web or to Coach.'
       else
       if (isServer)
-         issueString = 'Not connected to web.'
+         issueString = 'Sorry, cannot connect to Web.'
       else
-         issueString = 'Not connected to web coach.'
+         issueString = 'Sorry, cannot connect to Coach.'
 
-      return participant(this.state.overallStatus, null, 'Web and coach connection OK.', issueString, true);
+      return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
    }
 
-   menu() {
+   detailedStatusList () {
       return (
          <Dropdown.Menu align="right">
             <Dropdown.ItemText style={thinishStyle}>
-               {participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)}
+               {participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)}
             </Dropdown.ItemText>
             <Dropdown.ItemText style={thinishStyle}>
-               {participant(this.state.coachStatus, "Coach", "Coach connection OK.", "Coach connection issues.", false)}
+               {participant(overallStatusFromOne(this.state.coachStatus), "Coach", "Connected to Coach.", "Sorry, cannot connect to Coach.", false)}
             </Dropdown.ItemText>
          </Dropdown.Menu >
       );
@@ -147,11 +164,10 @@ export interface IMasterConnectionProps {
 }
 
 interface IMasterConnectionStatusState {
-   overallStatus: any;
-   serverStatus: any;
-   overallLinkStatus: any;
+   overallStatus: EThreeStateSwitchEnum;
+   serverStatus: boolean;
    members: Array<Person>;
-   memberStatuses: Array<FourStateRagEnum>;
+   memberStatuses: Array<boolean>;
    intervalId: number;
 }
 
@@ -167,20 +183,19 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       var memberStatuses = new Array();
 
       this.state = {
-         overallStatus: FourStateRagEnum.Indeterminate,
-         serverStatus: FourStateRagEnum.Indeterminate,
-         overallLinkStatus: FourStateRagEnum.Indeterminate,
+         overallStatus: EThreeStateSwitchEnum.Indeterminate,
+         serverStatus: false,
          members: members,
          memberStatuses: memberStatuses, 
          intervalId: null
       };
    }
 
-   componentDidMount() {
-      var interval = setInterval(this.onInterval.bind(this), 200);
+   componentDidMount() : void {
+      var interval = setInterval(this.onInterval.bind(this), 5000);
    }
 
-   componentWillUnmount() {
+   componentWillUnmount() : void {
       if (this.state.intervalId) {
          clearInterval(this.state.intervalId);
          this.setState({ intervalId: null });
@@ -200,22 +215,22 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
          members.push(ev);
 
          var memberStatuses = this.state.memberStatuses;
-         var memberStatus = this.props.peers.isConnectedToMember(ev.name) ? FourStateRagEnum.Green : FourStateRagEnum.Red;
+         var memberStatus: boolean = this.props.peers.isConnectedToMember(ev.name);
          memberStatuses.push(memberStatus);
 
          this.setState({ members: members, memberStatuses: memberStatuses});
       }
    }
 
-   onInterval() {
+   onInterval() : void {
 
       // First build up the overall status & get the status for the server link
-      const serverStatus: any = this.props.peers.isConnectedToServer;
-      var worstLinkStatus: any = FourStateRagEnum.Green;
+      const serverStatus: boolean = this.props.peers.isConnectedToServer();
+      var worstLinkStatus: boolean = true;
 
-      for (var i: number = 0; i < this.state.members.length && worstLinkStatus === FourStateRagEnum.Green; i++) {
+      for (var i: number = 0; i < this.state.members.length && worstLinkStatus === true; i++) {
          if (! this.props.peers.isConnectedToMember (this.state.members[i].name)) {
-            worstLinkStatus = FourStateRagEnum.Red;
+            worstLinkStatus = false;
          }
       }
 
@@ -224,13 +239,12 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       var memberStatuses = this.state.memberStatuses;
 
       for (var i: number = 0; i < this.state.members.length; i++) {
-         memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name) ? FourStateRagEnum.Green : FourStateRagEnum.Red;
+         memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name);
       }
 
       this.setState({
          overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
          serverStatus: serverStatus,
-         overallLinkStatus: worstLinkStatus,
          memberStatuses: memberStatuses
       });
    }
@@ -239,36 +253,52 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       return (
          <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
             <Button variant="secondary" style={thinStyle}>
-               {this.topButton()}
+               {this.overallStatus()}
             </Button>
             <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
             </Dropdown.Toggle>
-            { this.menu()}
+            { this.detailedStatusList() }
          </Dropdown>);
    }
 
-   topButton() {
+   overallStatus() {
       var isMember: boolean = false;
       var isServer: boolean = false;
       var issueString: string = null;
 
-      if (this.state.serverStatus != FourStateRagEnum.Green)
+      if (!this.state.serverStatus)
          isServer = true;
-      if (this.state.overallLinkStatus != FourStateRagEnum.Green)
-         isMember = true;
+
+      for (var i: number = 0; i < this.state.members.length; i++) {
+         if (!this.props.peers.isConnectedToMember(this.state.members[i].name))
+            isMember = true;
+      }
 
       if (isServer && isMember)
-         issueString = 'Not connected to web or to a member.'
+         issueString = 'Sorry, cannot connect to Web or to a Member.';
       else
       if (isServer)
-         issueString = 'Not connected to web.'
+         issueString = 'Sorry, cannot connect to Web.';
       else
-         issueString = 'Not connected to a meember.'
+         issueString = 'Sorry, cannot connect to a Member.';
 
-      return participant(this.state.overallStatus, null, 'Web and member connections OK.', issueString, true);
+      return participant(this.state.overallStatus, null, 'All connections Ok.', issueString, true);
    }
 
-   menu() {
+   detailedStatusList() {
+
+      if (this.state.members.length === 0) {
+         return (<Dropdown.Menu align="right">
+            <Dropdown.ItemText style={thinishStyle}>
+               {participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)}
+            </Dropdown.ItemText>
+            <Dropdown.Divider />
+            <Dropdown.ItemText style={thinishStyle}>
+               {participant(EThreeStateSwitchEnum.Indeterminate, 'No-one else is connected.', 'No-one else is connected.', 'No-one else is connected.', false)}
+            </Dropdown.ItemText>)
+         </Dropdown.Menu >);
+      }
+      
       var items: Array<any> = new Array();
 
       for (var i = 0; i < this.state.members.length; i++) {
@@ -279,11 +309,11 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       return (
          <Dropdown.Menu align="right">
             <Dropdown.ItemText style={thinishStyle}>
-               {participant(this.state.serverStatus, "Web", "Web connection OK.", "Web connection issues.", false)}
+               {participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)}
             </Dropdown.ItemText>
             <Dropdown.Divider />
                {items.map((item) => <Dropdown.ItemText key={item.key} style={thinishStyle}>
-                  {participant(item.status, item.name, 'Connection OK', 'Not connected to Member', false)}
+                  {participant(overallStatusFromOne(item.status), item.name, 'Connected to Member.', 'Sorry, cannot connect to Member.', false)}
             </Dropdown.ItemText>)
             }
          </Dropdown.Menu >
