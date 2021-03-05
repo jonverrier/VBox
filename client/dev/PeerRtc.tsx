@@ -116,13 +116,13 @@ export class RtcConfigFactory {
                },
                {
                   "urls": "stun:stun1.l.google.com:19302"
-               },
+               } /* 2021/3/5 - this leads to log timeouts ... ,
                {
                   "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
                   username: 'ubuntu',
                   credential: '1wtutona'
-               }
-               ]
+               }*/
+               ] 
             };
             return defaultConfiguration;
       }
