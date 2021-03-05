@@ -80,7 +80,6 @@ const whiteboardElementBodyStyle: CSS.Properties = {
    fontSize: '20px',
    backgroundImage: 'url("board.png")',
    backgroundRepeat: 'repeat',
-   minHeight: '100%',
    minWidth: '240px', maxWidth: '*',
    whiteSpace: 'pre-wrap'
 };

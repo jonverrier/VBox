@@ -11,6 +11,7 @@ import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
+import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum} from './Enum';
 
 var EntryPoints = {
    LoggerFactory: LoggerFactory,
@@ -39,8 +40,10 @@ var EntryPoints = {
    EGymClockAction: EGymClockAction,
    GymClockSpec: GymClockSpec,
    GymClockAction: GymClockAction,
-   GymClockState: GymClockState
-
+   GymClockState: GymClockState,
+   EThreeStateSwitchEnum: EThreeStateSwitchEnum,
+   EThreeStateRagEnum: EThreeStateRagEnum,
+   EFourStateRagEnum: EFourStateRagEnum
 };
 
 export default EntryPoints;
