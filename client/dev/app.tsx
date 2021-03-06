@@ -249,8 +249,8 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                self.pageData = UserFacilities.revive(response.data);
 
                // Initialise WebRTC and connect
-               self.state.peers.connect(self.pageData.sessionId,
-                  self.pageData.currentFacility.externalId,
+               self.state.peers.connect(self.pageData.currentFacility.externalId,
+                  self.pageData.sessionId,
                   self.pageData.person.externalId,
                   self.pageData.person.name,
                   self.pageData.person.thumbnailUrl);
@@ -514,8 +514,8 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   self.pageData = UserFacilities.revive(response.data);
 
                   // Initialise WebRTC and connect
-                  self.state.peers.connect(self.pageData.sessionId,
-                     self.pageData.currentFacility.externalId,
+                  self.state.peers.connect(self.pageData.currentFacility.externalId,
+                     self.pageData.sessionId,
                      self.pageData.person.externalId,
                      self.pageData.person.name,
                      self.pageData.person.thumbnailUrl);
