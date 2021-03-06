@@ -23,7 +23,7 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 
 // This app, this component
-import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache } from './PeerInterfaces'
+import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache, IPeerSignalReciever } from './PeerInterfaces'
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -45,7 +45,8 @@ export class PeerFactory {
       remoteCallParticipation: CallParticipation,
       person: Person,
       nameCache: PeerNameCache,
-      signaller: IPeerSignalSender): IPeerCaller {
+      signaller: IPeerSignalSender,
+      signalReciever: IPeerSignalReciever): IPeerCaller {
 
       switch (connectionType) {
          case EPeerConnectionType.RtcCaller:
@@ -64,7 +65,8 @@ export class PeerFactory {
       remoteCallParticipation: CallParticipation,
       person: Person,
       nameCache: PeerNameCache,
-      signaller: IPeerSignalSender): IPeerReciever {
+      signaller: IPeerSignalSender,
+      signalReciever: IPeerSignalReciever): IPeerReciever {
 
       switch (connectionType) {
          case EPeerConnectionType.RtcReciever:
@@ -173,7 +175,7 @@ export class PeerCallerRtc implements IPeerCaller {
 
    placeCall(): void {
 
-      this.peerHelp.createConnection(EPeerConnectionType.RtcCaller, "Celler");
+      this.peerHelp.createConnection(EPeerConnectionType.RtcCaller, "Caller");
    }
 
    handleAnswer(answer: CallAnswer): void {

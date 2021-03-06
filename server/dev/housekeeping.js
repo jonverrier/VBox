@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Model for signalMessage
-var SignalMessageModel = require("../server/signalmessage-model.js");
+var SignalMessageModel = require("./signalmessage-model.js");
 var PersonModel = require("./person-model.js");
 var FacilityMemberModel = require("./facilityperson-model.js").facilityMemberModel;
 
@@ -71,7 +71,7 @@ const connect = async () => {
 
       var now = new Date();
       var limit = new Date();
-      limit.setTime(now.getTime() - 1000 * 60 * 60 * 24); // Archive anything over a day old. 
+      limit.setTime(now.getTime() - 1000 * 60 * 60 * 24 * 7); // Archive anything over a 7 day old. 
 
       if (deleteMode) {
          switch (target) {

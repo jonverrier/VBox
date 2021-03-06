@@ -49,7 +49,8 @@ export interface IPeerSignalSender {
 
    sendOffer(offer: CallOffer): Promise<string> ;
    sendAnswer(answer: CallAnswer): Promise<string>;
-   sendIceCandidate(iceCandidate: CallIceCandidate): Promise<string> ;
+   sendIceCandidate(iceCandidate: CallIceCandidate): Promise<string>;
+   sendData(callData: IStreamable): Promise<string>;
 }
 
 export interface IPeerSignalReciever {

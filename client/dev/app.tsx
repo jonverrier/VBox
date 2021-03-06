@@ -133,7 +133,7 @@ interface IMemberPageProps {
 interface IMemberPageState {
    isLoggedIn: boolean;
    pageData: UserFacilities;
-   rtc: PeerConnection;
+   peers: PeerConnection;
    isDataReady: boolean;
    meetCodeCopy: string;
    nameCopy: string;
@@ -161,11 +161,12 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
       this.pageData = this.defaultPageData;
       let loginData = new MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
+      let peers = new PeerConnection(true); // Member nodes are edge only, coaches are full hubs
 
       this.state = {
          isLoggedIn: false,
          pageData: this.pageData,
-         rtc: null,
+         peers: peers,
          isDataReady: false,
          meetCodeCopy: loginData.meetCode,
          nameCopy: loginData.name,
@@ -248,19 +249,15 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                self.pageData = UserFacilities.revive(response.data);
 
                // Initialise WebRTC and connect
-               var rtc = new PeerConnection({
-                  isEdgeOnly: true, // Member nodes are edge only, coaches are full hubs
-                  sessionId: self.pageData.sessionId,
-                  facilityId: self.pageData.currentFacility.externalId,
-                  personId: self.pageData.person.externalId,
-                  personName: self.pageData.person.name,
-                  personThumbnailUrl: self.pageData.person.thumbnailUrl
-               });
-               rtc.connect();
+               self.state.peers.connect(self.pageData.sessionId,
+                  self.pageData.currentFacility.externalId,
+                  self.pageData.person.externalId,
+                  self.pageData.person.name,
+                  self.pageData.person.thumbnailUrl);
 
                // Keep alive to server every 25 seconds
                let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-               self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc, intervalId: intervalId  });
+               self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId  });
                self.forceUpdate();
             })
             .catch(function (error) {
@@ -268,7 +265,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                self.pageData = self.defaultPageData;
                if (self.state.intervalId)
                   clearInterval(self.state.intervalId);
-               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null });
+               self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null });
             });
       } else {
          if (this.state.intervalId)
@@ -351,7 +348,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <RemoteConnectionStatus peers={this.state.rtc}> </RemoteConnectionStatus>
+                        <RemoteConnectionStatus peers={this.state.peers}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
                               <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
@@ -369,12 +366,12 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <RemoteWhiteboard rtc={this.state.rtc}> </RemoteWhiteboard>
+                        <RemoteWhiteboard rtc={this.state.peers}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <RemoteClock peers={this.state.rtc}/>
+                        <RemoteClock peers={this.state.peers}/>
                         <br />
-                        <RemotePeople peers={this.state.rtc}> </RemotePeople>
+                        <RemotePeople peers={this.state.peers}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>
@@ -393,7 +390,7 @@ interface ICoachPageState {
    isLeader: boolean;
    haveAccess: boolean;
    pageData: UserFacilities;
-   rtc: PeerConnection;
+   peers: PeerConnection;
    isDataReady: boolean;
    meetCodeCopy: string;
    loginData: LoginMeetCodeData;
@@ -422,12 +419,14 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       this.pageData = this.defaultPageData;
       let loginData = new LoginMeetCodeData (this.lastUserData.loadMeetingId());
 
+      let peers = new PeerConnection(false); // Member nodes are edge only, coaches are full hubs
+
       this.state = {
          isLoggedIn: false,
          isLeader: true,    // we are leader until someone beats us in 'glareResolve' exchange
          haveAccess: false, // Cannot access mic or speaker until user does something. 
          pageData: this.pageData,
-         rtc: null,
+         peers: peers,
          isDataReady: false,
          meetCodeCopy: loginData.meetCode,
          loginData: loginData,
@@ -515,23 +514,19 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   self.pageData = UserFacilities.revive(response.data);
 
                   // Initialise WebRTC and connect
-                  var rtc = new PeerConnection({
-                     isEdgeOnly: false, // Member nodes are edge only, coaches are full hubs
-                     sessionId: self.pageData.sessionId,
-                     facilityId: self.pageData.currentFacility.externalId,
-                     personId: self.pageData.person.externalId,
-                     personName: self.pageData.person.name,
-                     personThumbnailUrl: self.pageData.person.thumbnailUrl
-                  });
-                  rtc.connect ();
+                  self.state.peers.connect(self.pageData.sessionId,
+                     self.pageData.currentFacility.externalId,
+                     self.pageData.person.externalId,
+                     self.pageData.person.name,
+                     self.pageData.person.thumbnailUrl);
 
                   // Keep alive to server every 25 seconds
                   let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-                  self.setState({ isLoggedIn: true, pageData: self.pageData, rtc: rtc, intervalId: intervalId});
+                  self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId});
                } else {
                   // handle error by setting state back to no user logged in
                   self.pageData = self.defaultPageData;
-                  self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null });
+                  self.setState({ isLoggedIn: false, pageData: self.pageData});
                }
             })
             .catch(function (error) {
@@ -539,14 +534,14 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                if (self.state.intervalId)
                   clearInterval(self.state.intervalId);
                self.pageData = self.defaultPageData;
-               self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null});
+               self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null});
             });
       } else {
          // handle error by setting state back to no user logged in
          if (this.state.intervalId)
             clearInterval(this.state.intervalId);
          self.pageData = self.defaultPageData;
-         self.setState({ isLoggedIn: false, pageData: self.pageData, rtc: null, intervalId: null});
+         self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null});
       }
    }
 
@@ -601,7 +596,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <MasterConnectionStatus peers={this.state.rtc} />
+                        <MasterConnectionStatus peers={this.state.peers} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
                               <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
@@ -619,17 +614,17 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={thinStyle}>
-                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} peers={this.state.rtc}> </LeaderResolve>
+                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} peers={this.state.peers}> </LeaderResolve>
                      </Col>
                   </Row>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <MasterWhiteboard allowEdit={this.state.isLeader} peers={this.state.rtc}> </MasterWhiteboard>                        
+                        <MasterWhiteboard allowEdit={this.state.isLeader} peers={this.state.peers}> </MasterWhiteboard>                        
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.rtc}> </MasterClock>
+                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.peers}> </MasterClock>
                         <br />
-                        <RemotePeople peers={this.state.rtc}> </RemotePeople>
+                        <RemotePeople peers={this.state.peers}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>

@@ -62,6 +62,7 @@
     <TypeScriptCompile Include="dev\PeerLink.tsx" />
     <TypeScriptCompile Include="dev\PeerRtc.tsx" />
     <TypeScriptCompile Include="dev\PeerSignaller.tsx" />
+    <TypeScriptCompile Include="dev\PeerWeb.tsx" />
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
     <TypeScriptCompile Include="dev\PeerConnection.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />

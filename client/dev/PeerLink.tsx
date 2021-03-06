@@ -16,7 +16,7 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 
 // This app, this component
-import { EPeerConnectionType, IPeerCaller, IPeerReciever,  PeerNameCache, IPeerSignalSender } from './PeerInterfaces';
+import { EPeerConnectionType, IPeerCaller, IPeerReciever,  PeerNameCache, IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 import { PeerFactory } from './PeerRtc';
 
 function uuidPart(): string {
@@ -41,14 +41,15 @@ export class PeerLink {
 
    // Override this to get data from the link
    onRemoteData: ((this: PeerLink, ev: IStreamable) => any) | null;
-   onRemoteFail: ((this: PeerLink) => void) | null;
+   onRemoteFail: ((this: PeerLink, link: PeerLink) => void) | null;
 
    constructor(outbound: boolean,
       localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
       nameCache: PeerNameCache,
-      signalSender: IPeerSignalSender) {
+      signalSender: IPeerSignalSender,
+      signalReciever: IPeerSignalReciever) {
 
       this._outbound = outbound;
       this._localCallParticipation = localCallParticipation;
@@ -63,7 +64,8 @@ export class PeerLink {
             remoteCallParticipation,
             person,
             nameCache,
-            signalSender);
+            signalSender,
+            signalReciever);
 
          this._peerCaller.onRemoteData = this.onRemoteDataInner.bind(this);
          this._peerCaller.onRemoteFail = this.onRemoteFailInner.bind(this);
@@ -75,7 +77,8 @@ export class PeerLink {
             remoteCallParticipation,
             person,
             nameCache,
-            signalSender);
+            signalSender,
+            signalReciever);
 
          this._peerReciever.onRemoteData = this.onRemoteDataInner.bind(this);
          this._peerReciever.onRemoteFail = this.onRemoteFailInner.bind(this);
@@ -166,7 +169,7 @@ export class PeerLink {
 
    private onRemoteFailInner(): void {
       if (this.onRemoteFail)
-         this.onRemoteFail();
+         this.onRemoteFail(this);
    }
 }
 

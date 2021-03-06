@@ -68,6 +68,20 @@ export class SignalSender implements IPeerSignalSender {
             });
       });
    }
+
+   sendData(callData: IStreamable): Promise<string> {
+      return new Promise((resolve, reject) => {
+         axios.post('/api/peerdata', { params: { callData: callData } })
+            .then((response) => {
+               logger.logInfo(SignalSender.className, 'sendData', "Post Ok", null);
+               resolve('');
+            })
+            .catch(function (error) {
+               logger.logError(SignalSender.className, 'sendData', 'error:', error);
+               reject(error.toString());
+            });
+      });
+   }
 }
 
 export class SignalReciever implements IPeerSignalReciever {

@@ -27,15 +27,6 @@ function uuid(): string {
 
 var logger = new LoggerFactory().createLogger (ELoggerType.Client, true);
 
-export interface IPeerConnectionProps {
-   facilityId: string;
-   sessionId: string;
-   personId: string;
-   personName: string;
-   personThumbnailUrl: string;
-   isEdgeOnly: boolean; // If this is set, does not set up links with new participants - we are reciever only
-}
-
 export class PeerConnection {
 
    // member variables
@@ -49,23 +40,16 @@ export class PeerConnection {
    private _signalReciever: IPeerSignalReciever;
    private static className: string = 'PeerConnection';
 
-   constructor(props: IPeerConnectionProps) {
+   constructor(isEdge: boolean) { // If isEdge is set, does not set up links with new participants - we are reciever only
       this._localCallParticipation = null;
       this._links = new Array();
       this._datalisteners = new Array();
-      this._isEdgeOnly = props.isEdgeOnly;
       this._nameCache = new PeerNameCache();
       this._signalSender = new SignalSender();
       this._signalReciever = new SignalReciever();
       this._signalReciever.onRemoteData = this.onServerEvent.bind(this);
+      this._isEdgeOnly = isEdge;
 
-      // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
-      this._localCallParticipation = new CallParticipation(null, props.facilityId, props.personId, !this._isEdgeOnly, props.sessionId, uuid());
-
-      // Store data on the Person who is running the app - used in data handshake & exchange
-      this._person = new Person(null, props.personId, props.personName, null, props.personThumbnailUrl, null);
-
-      // This is a deliberate no-op - just allows easier debugging by having a variable to hover over. 
       logger.logInfo(PeerConnection.className, 'constructor', 'Browser:', adapter.browserDetails);
    }
 
@@ -73,7 +57,19 @@ export class PeerConnection {
       this._datalisteners.push(fn);
    };
 
-   connect(): void {
+   connect(facilityId: string,
+      sessionId: string,
+      personId: string,
+      personName: string,
+      personThumbnailUrl: string): void {
+
+      // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
+      this._localCallParticipation = new CallParticipation(null, facilityId, personId, !this._isEdgeOnly, sessionId, uuid());
+
+      // Store data on the Person who is running the app - used in data handshake & exchange
+      this._person = new Person(null, personId, personName, null, personThumbnailUrl, null);
+
+      // and connect to the server - which sends our participation details for others
       this._signalReciever.connect(this._localCallParticipation);
    }
 
@@ -136,6 +132,9 @@ export class PeerConnection {
             break;
          case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
             break;
+         case "CallData":
+            // TODO - forward to listener
+            break;
          default:
             logger.logInfo(PeerConnection.className, 'onServerEvent', "data:", data);
             break;
@@ -148,12 +147,18 @@ export class PeerConnection {
       if (this._isEdgeOnly && !remoteParticipation.isCandidateLeader)
          return;
 
+      // if we are an edge node and already have a leader, and this is another leader - dont respond.
+      if (this._isEdgeOnly && remoteParticipation.isCandidateLeader && 
+         this.isConnectedToLeader())
+         return;
+
       var link = new PeerLink(true,
          this._localCallParticipation,
          remoteParticipation,
          this._person,
          this._nameCache,
-         this._signalSender);
+         this._signalSender,
+         this._signalReciever);
 
       // Hooks to pass up data
       link.onRemoteData = (ev) => {
@@ -164,10 +169,17 @@ export class PeerConnection {
          }
       };
 
+      // Hook link failre - if the peer connect fails, connect via web
+      link.onRemoteFail = this.onLinkFail.bind(this);
+
       this._links.push(link);
 
       // place the call after setting up 'links' to avoid a race condition
       link.placeCall();
+   }
+
+   private onLinkFail(link: PeerLink): void {
+      // TODO - fall back to a web link here
    }
 
    private setupRecieverLink(remoteParticipation: CallParticipation): PeerLink {
@@ -177,7 +189,8 @@ export class PeerConnection {
          remoteParticipation,
          this._person,
          this._nameCache,
-         this._signalSender);
+         this._signalSender,
+         this._signalReciever);
 
       // Hooks to pass up data
       link.onRemoteData = (ev) => {
