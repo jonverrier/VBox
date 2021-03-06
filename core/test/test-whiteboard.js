@@ -3,7 +3,7 @@
 
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
-var TypeRegistry = EntryPoints.TypeRegistry;
+var StreamableTypes = EntryPoints.StreamableTypes;
 var WhiteboardElement = EntryPoints.WhiteboardElement;
 var Whiteboard = EntryPoints.Whiteboard;
 
@@ -31,7 +31,7 @@ describe("WhiteboardElement", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(element1);
 
       var obj = types.reviveFromJSON(output);
@@ -63,7 +63,7 @@ describe("Whiteboard", function () {
    
    it("Needs to save and restore to/from JSON", function () {
       
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(whiteboard1);
       var obj = types.reviveFromJSON(output);
 

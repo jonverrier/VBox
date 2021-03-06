@@ -4202,13 +4202,14 @@ module.exports = {
 /*!**********************!*\
   !*** ./dev/Call.tsx ***!
   \**********************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
+exports.CallData = exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 //==============================//
 // CallParticipation class
 //==============================//
@@ -4723,6 +4724,92 @@ class CallKeepAlive {
 }
 exports.CallKeepAlive = CallKeepAlive;
 CallKeepAlive.__type = "CallKeepAlive";
+//==============================//
+// CallData class
+//==============================//
+class CallData {
+    /**
+     * Create a CallData object - used when webRTC fails & data is shipped via server
+     * @param _id - Mongo-DB assigned ID
+     * @param from - CallParticipation
+     * @param to - CallParticipation
+     * @param data - the data payload
+     */
+    constructor(_id = null, from, to, data) {
+        this._id = _id;
+        this._from = from;
+        this._to = to;
+        this._data = data;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get id() {
+        return this._id;
+    }
+    get from() {
+        return this._from;
+    }
+    get to() {
+        return this._to;
+    }
+    get data() {
+        return this._data;
+    }
+    get type() {
+        return CallData.__type;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return ((this._id === rhs._id) &&
+            (this._from.equals(rhs._from)) &&
+            (this._to.equals(rhs._to)) &&
+            (this._data === rhs._data));
+    }
+    ;
+    /**
+     * Method that serializes to JSON
+     */
+    toJSON() {
+        return {
+            __type: CallData.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _id: this._id,
+                _from: this._from,
+                _to: this._to,
+                _data: JSON.stringify(this._data)
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revive from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return CallData.reviveDb(data.attributes);
+        return CallData.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revive from
+    */
+    static reviveDb(data) {
+        var types = new StreamableTypes_1.StreamableTypes();
+        return new CallData(data._id, CallParticipation.revive(data._from), CallParticipation.revive(data._to), types.reviveFromJSON(data._data));
+    }
+    ;
+}
+exports.CallData = CallData;
+CallData.__type = "CallData";
 
 
 /***/ }),
@@ -5618,7 +5705,7 @@ exports.QueueAny = QueueAny;
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SignalMessage = void 0;
-const Types_1 = __webpack_require__(/*! ./Types */ "./dev/Types.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 //==============================//
 // SignalMessage class
 //==============================//
@@ -5713,7 +5800,7 @@ class SignalMessage {
     * @param data - the JSON data to revove from
     */
     static reviveDb(data) {
-        var types = new Types_1.TypeRegistry();
+        var types = new StreamableTypes_1.StreamableTypes();
         return new SignalMessage(data._id, data._facilityId, data._sessionId, data._sessionSubId, data._sequenceNo, types.reviveFromJSON(data._data));
     }
     ;
@@ -5729,7 +5816,7 @@ class SignalMessage {
      * @param signalMessageIn - the object to transform
      */
     static fromStored(signalMessageIn) {
-        var types = new Types_1.TypeRegistry();
+        var types = new StreamableTypes_1.StreamableTypes();
         return new SignalMessage(signalMessageIn._id, signalMessageIn._facilityId, signalMessageIn._sessionId, signalMessageIn._sessionSubId, signalMessageIn._sequenceNo, types.reviveFromJSON(signalMessageIn._data));
     }
 }
@@ -5739,16 +5826,16 @@ SignalMessage.__type = "SignalMessage";
 
 /***/ }),
 
-/***/ "./dev/Types.tsx":
-/*!***********************!*\
-  !*** ./dev/Types.tsx ***!
-  \***********************/
+/***/ "./dev/StreamableTypes.tsx":
+/*!*********************************!*\
+  !*** ./dev/StreamableTypes.tsx ***!
+  \*********************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TypeRegistry = void 0;
+exports.StreamableTypes = void 0;
 /*! Copyright TXPCo, 2020, 2021 */
 const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ./Facility */ "./dev/Facility.tsx");
@@ -5758,11 +5845,11 @@ const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/User
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 //==============================//
-// TypeRegistry class
+// StreamableTypes class
 //==============================//
-class TypeRegistry {
+class StreamableTypes {
     /**
-     * Creates a TypeRegistry for use in streaming objects to and from JSON
+     * Creates a StreamableTypes for use in streaming objects to and from JSON
      */
     constructor() {
         // Registry of types
@@ -5775,6 +5862,7 @@ class TypeRegistry {
         this._types.CallIceCandidate = Call_1.CallIceCandidate;
         this._types.CallLeaderResolve = Call_1.CallLeaderResolve;
         this._types.CallKeepAlive = Call_1.CallKeepAlive;
+        this._types.CallData = Call_1.CallData;
         this._types.SignalMessage = Signal_1.SignalMessage;
         this._types.UserFacilities = UserFacilities_1.UserFacilities;
         this._types.Whiteboard = Whiteboard_1.Whiteboard;
@@ -5803,7 +5891,7 @@ class TypeRegistry {
     }
     ;
 }
-exports.TypeRegistry = TypeRegistry;
+exports.StreamableTypes = StreamableTypes;
 
 
 /***/ }),
@@ -6233,7 +6321,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
 const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ./Facility */ "./dev/Facility.tsx");
-const Types_1 = __webpack_require__(/*! ./Types */ "./dev/Types.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 const Dates_1 = __webpack_require__(/*! ./Dates */ "./dev/Dates.tsx");
 const Queue_1 = __webpack_require__(/*! ./Queue */ "./dev/Queue.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
@@ -6245,7 +6333,7 @@ const Enum_1 = __webpack_require__(/*! ./Enum */ "./dev/Enum.tsx");
 var EntryPoints = {
     LoggerFactory: Logger_1.LoggerFactory,
     ELoggerType: Logger_1.ELoggerType,
-    TypeRegistry: Types_1.TypeRegistry,
+    StreamableTypes: StreamableTypes_1.StreamableTypes,
     Person: Person_1.Person,
     Facility: Facility_1.Facility,
     DateWithDays: Dates_1.DateWithDays,
@@ -6259,6 +6347,7 @@ var EntryPoints = {
     CallIceCandidate: Call_1.CallIceCandidate,
     CallLeaderResolve: Call_1.CallLeaderResolve,
     CallKeepAlive: Call_1.CallKeepAlive,
+    CallData: Call_1.CallData,
     SignalMessage: Signal_1.SignalMessage,
     UserFacilities: UserFacilities_1.UserFacilities,
     Whiteboard: Whiteboard_1.Whiteboard,

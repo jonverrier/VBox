@@ -53159,11 +53159,6 @@ class MasterConnectionStatus extends React.Component {
             this.setState({ intervalId: null });
         }
     }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onData.bind(this));
-        }
-    }
     onData(ev) {
         if (ev.type === Person_1.Person.__type) {
             var members = this.state.members;
@@ -53331,11 +53326,6 @@ class LeaderResolve extends React.Component {
     componentDidMount() {
     }
     componentWillUnmount() {
-    }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
     }
     onRemoteData(ev) {
         // By convention, new joiners broadcast a 'Person' object
@@ -54453,7 +54443,7 @@ exports.PeerRecieverRtc = exports.PeerCallerRtc = exports.RtcConfigFactory = exp
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Queue_1 = __webpack_require__(/*! ../../core/dev/Queue */ "../core/dev/Queue.tsx");
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ../../core/dev/StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 const Call_1 = __webpack_require__(/*! ../../core/dev/Call */ "../core/dev/Call.tsx");
 // This app, this component
 const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
@@ -54642,7 +54632,7 @@ class RtcPeerHelper {
         this._localPerson = person;
         this._nameCache = nameCache;
         this._signaller = signaller;
-        this._types = new Types_1.TypeRegistry();
+        this._types = new StreamableTypes_1.StreamableTypes();
         this._isChannelConnected = false;
         this._sendChannel = null;
         this._recieveChannel = null;
@@ -54945,7 +54935,7 @@ exports.SignalReciever = exports.SignalSender = void 0;
 const axios_1 = __importDefault(__webpack_require__(/*! axios */ "./node_modules/axios/index.js"));
 // This app, other components 
 const Logger_1 = __webpack_require__(/*! ../../core/dev/Logger */ "../core/dev/Logger.tsx");
-const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ../../core/dev/StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 class SignalSender {
     constructor() {
@@ -55010,7 +55000,7 @@ class SignalReciever {
     constructor() {
         this._lastSequenceNo = 0;
         this._retries = 0;
-        this._types = new Types_1.TypeRegistry();
+        this._types = new StreamableTypes_1.StreamableTypes();
         // These two get set later on 
         this._participation = undefined;
         this._events = undefined;
@@ -55934,7 +55924,7 @@ const Collapse_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Colla
 const Button_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js"));
 const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./node_modules/@primer/octicons-react/dist/index.esm.js");
 const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
-const Types_1 = __webpack_require__(/*! ../../core/dev/Types */ "../core/dev/Types.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ../../core/dev/StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
 const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
@@ -56015,11 +56005,6 @@ class RemoteClock extends React.Component {
         // Stop data display from master
         this.setState({ isMounted: false });
     }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
-    }
     onRemoteData(ev) {
         if (ev.type === GymClock_1.GymClockSpec.__type) {
             // we are sent a clock spec as soon as we connect
@@ -56079,7 +56064,7 @@ class MasterClock extends React.Component {
         var storedClockSpec = this.storedWorkoutState.loadClockSpec();
         var clockSpec;
         if (storedClockSpec && storedClockSpec.length > 0) {
-            var types = new Types_1.TypeRegistry();
+            var types = new StreamableTypes_1.StreamableTypes();
             var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
             clockSpec = new GymClock_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum, selectMusic(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum));
         }
@@ -56090,7 +56075,7 @@ class MasterClock extends React.Component {
         var storedClockState = this.storedWorkoutState.loadClockState();
         var clockState;
         if (storedClockState && storedClockState.length > 0) {
-            var types = new Types_1.TypeRegistry();
+            var types = new StreamableTypes_1.StreamableTypes();
             var loadedClockState = types.reviveFromJSON(storedClockState);
             clockState = new GymClock_1.GymClockState(loadedClockState.stateEnum, loadedClockState.secondsIn);
         }
@@ -56112,11 +56097,6 @@ class MasterClock extends React.Component {
         }
         // Scynch our clock up to the state we load
         clock.loadFromState(clockState, this.onTick.bind(this));
-    }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
     }
     onRemoteData(ev) {
         // By convention, new joiners broadcast a 'Person' object
@@ -56358,11 +56338,6 @@ class RemotePeople extends React.Component {
         var people = new Array();
         this.state = { people: people };
     }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
-    }
     onRemoteData(ev) {
         if (ev.type === Person_1.Person.__type) {
             var person = ev;
@@ -56536,11 +56511,6 @@ class MasterWhiteboard extends React.Component {
     }
     componentWillUnmount() {
     }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
-    }
     onRemoteData(ev) {
         var ev2 = ev;
         // By convention, new joiners broadcast a 'Person' object
@@ -56670,11 +56640,6 @@ class RemoteWhiteboard extends React.Component {
             resultsValue: new Whiteboard_1.WhiteboardElement(10, initialBoardText)
         };
     }
-    UNSAFE_componentWillReceiveProps(nextProps) {
-        if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-            nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-        }
-    }
     onRemoteData(ev) {
         if (ev.type === Whiteboard_1.Whiteboard.__type) {
             var whiteboard = ev;
@@ -56726,13 +56691,14 @@ class RemoteWhiteboardElement extends React.Component {
 /*!****************************!*\
   !*** ../core/dev/Call.tsx ***!
   \****************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
+exports.CallData = exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 //==============================//
 // CallParticipation class
 //==============================//
@@ -57247,6 +57213,92 @@ class CallKeepAlive {
 }
 exports.CallKeepAlive = CallKeepAlive;
 CallKeepAlive.__type = "CallKeepAlive";
+//==============================//
+// CallData class
+//==============================//
+class CallData {
+    /**
+     * Create a CallData object - used when webRTC fails & data is shipped via server
+     * @param _id - Mongo-DB assigned ID
+     * @param from - CallParticipation
+     * @param to - CallParticipation
+     * @param data - the data payload
+     */
+    constructor(_id = null, from, to, data) {
+        this._id = _id;
+        this._from = from;
+        this._to = to;
+        this._data = data;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get id() {
+        return this._id;
+    }
+    get from() {
+        return this._from;
+    }
+    get to() {
+        return this._to;
+    }
+    get data() {
+        return this._data;
+    }
+    get type() {
+        return CallData.__type;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return ((this._id === rhs._id) &&
+            (this._from.equals(rhs._from)) &&
+            (this._to.equals(rhs._to)) &&
+            (this._data === rhs._data));
+    }
+    ;
+    /**
+     * Method that serializes to JSON
+     */
+    toJSON() {
+        return {
+            __type: CallData.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _id: this._id,
+                _from: this._from,
+                _to: this._to,
+                _data: JSON.stringify(this._data)
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revive from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return CallData.reviveDb(data.attributes);
+        return CallData.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revive from
+    */
+    static reviveDb(data) {
+        var types = new StreamableTypes_1.StreamableTypes();
+        return new CallData(data._id, CallParticipation.revive(data._from), CallParticipation.revive(data._to), types.reviveFromJSON(data._data));
+    }
+    ;
+}
+exports.CallData = CallData;
+CallData.__type = "CallData";
 
 
 /***/ }),
@@ -58142,7 +58194,7 @@ exports.QueueAny = QueueAny;
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SignalMessage = void 0;
-const Types_1 = __webpack_require__(/*! ./Types */ "../core/dev/Types.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 //==============================//
 // SignalMessage class
 //==============================//
@@ -58237,7 +58289,7 @@ class SignalMessage {
     * @param data - the JSON data to revove from
     */
     static reviveDb(data) {
-        var types = new Types_1.TypeRegistry();
+        var types = new StreamableTypes_1.StreamableTypes();
         return new SignalMessage(data._id, data._facilityId, data._sessionId, data._sessionSubId, data._sequenceNo, types.reviveFromJSON(data._data));
     }
     ;
@@ -58253,7 +58305,7 @@ class SignalMessage {
      * @param signalMessageIn - the object to transform
      */
     static fromStored(signalMessageIn) {
-        var types = new Types_1.TypeRegistry();
+        var types = new StreamableTypes_1.StreamableTypes();
         return new SignalMessage(signalMessageIn._id, signalMessageIn._facilityId, signalMessageIn._sessionId, signalMessageIn._sessionSubId, signalMessageIn._sequenceNo, types.reviveFromJSON(signalMessageIn._data));
     }
 }
@@ -58263,16 +58315,16 @@ SignalMessage.__type = "SignalMessage";
 
 /***/ }),
 
-/***/ "../core/dev/Types.tsx":
-/*!*****************************!*\
-  !*** ../core/dev/Types.tsx ***!
-  \*****************************/
+/***/ "../core/dev/StreamableTypes.tsx":
+/*!***************************************!*\
+  !*** ../core/dev/StreamableTypes.tsx ***!
+  \***************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TypeRegistry = void 0;
+exports.StreamableTypes = void 0;
 /*! Copyright TXPCo, 2020, 2021 */
 const Person_1 = __webpack_require__(/*! ./Person */ "../core/dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ./Facility */ "../core/dev/Facility.tsx");
@@ -58282,11 +58334,11 @@ const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "../core/de
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "../core/dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "../core/dev/GymClock.tsx");
 //==============================//
-// TypeRegistry class
+// StreamableTypes class
 //==============================//
-class TypeRegistry {
+class StreamableTypes {
     /**
-     * Creates a TypeRegistry for use in streaming objects to and from JSON
+     * Creates a StreamableTypes for use in streaming objects to and from JSON
      */
     constructor() {
         // Registry of types
@@ -58299,6 +58351,7 @@ class TypeRegistry {
         this._types.CallIceCandidate = Call_1.CallIceCandidate;
         this._types.CallLeaderResolve = Call_1.CallLeaderResolve;
         this._types.CallKeepAlive = Call_1.CallKeepAlive;
+        this._types.CallData = Call_1.CallData;
         this._types.SignalMessage = Signal_1.SignalMessage;
         this._types.UserFacilities = UserFacilities_1.UserFacilities;
         this._types.Whiteboard = Whiteboard_1.Whiteboard;
@@ -58327,7 +58380,7 @@ class TypeRegistry {
     }
     ;
 }
-exports.TypeRegistry = TypeRegistry;
+exports.StreamableTypes = StreamableTypes;
 
 
 /***/ }),

@@ -171,12 +171,6 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    componentWillUnmount() {
    }
 
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-      }
-   }
-
    onRemoteData(ev: IStreamable) {
       var ev2 = ev as Person;
 
@@ -387,12 +381,6 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
          resultsValue: new WhiteboardElement(10, initialBoardText)
       };
 
-   }
-
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-      }
    }
 
    onRemoteData(ev: IStreamable) {

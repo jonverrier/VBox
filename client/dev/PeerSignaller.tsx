@@ -13,7 +13,7 @@ import axios from 'axios';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable';
-import { TypeRegistry } from '../../core/dev/Types';
+import { StreamableTypes } from '../../core/dev/StreamableTypes';
 
 // This app, this component
 import { IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
@@ -90,14 +90,14 @@ export class SignalReciever implements IPeerSignalReciever {
    private _lastSequenceNo: number;
    private _retries: number;
    private _participation: CallParticipation;
-   private _types: TypeRegistry;
+   private _types: StreamableTypes;
 
    private static className: string = 'SignalReciever';
 
    constructor() {
       this._lastSequenceNo = 0;
       this._retries = 0;
-      this._types = new TypeRegistry();
+      this._types = new StreamableTypes();
 
       // These two get set later on 
       this._participation = undefined;

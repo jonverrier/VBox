@@ -10,7 +10,7 @@ var CallAnswer = EntryPoints.CallAnswer;
 var CallIceCandidate = EntryPoints.CallIceCandidate;
 var CallLeaderResolve = EntryPoints.CallLeaderResolve;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
-var TypeRegistry = EntryPoints.TypeRegistry;
+var StreamableTypes = EntryPoints.StreamableTypes;
 var SignalMessage = EntryPoints.SignalMessage;
 
 var expect = require("chai").expect;
@@ -52,7 +52,7 @@ describe("SignalMessage", function () {
 
    it("Needs to save and restore to/from JSON and database format with a CallParticipation", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(signalMessageParticipant);
 
       var obj = types.reviveFromJSON(output);
@@ -65,7 +65,7 @@ describe("SignalMessage", function () {
 
    it("Needs to save and restore to/from JSON and database format with a CallKeepAlive", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(signalMessageKeepAlive);
 
       var obj = types.reviveFromJSON(output);
@@ -77,7 +77,7 @@ describe("SignalMessage", function () {
 
    it("Needs to save and restore to/from JSON and database format with a CallIce", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(signalMessageIce);
 
       var obj = types.reviveFromJSON(output);
@@ -89,7 +89,7 @@ describe("SignalMessage", function () {
 
    it("Needs to save and restore to/from JSON and database format with a CallOffer", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(signalMessageOffer);
 
       var obj = types.reviveFromJSON(output);
@@ -101,7 +101,7 @@ describe("SignalMessage", function () {
 
    it("Needs to save and restore to/from JSON and database format with a CallAnswer", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(signalMessageAnswer);
 
       var obj = types.reviveFromJSON(output);

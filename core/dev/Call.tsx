@@ -1,6 +1,7 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
 import { IStreamableFor } from './Streamable';
+import { StreamableTypes } from './StreamableTypes';
 
 //==============================//
 // CallParticipation class
@@ -622,5 +623,109 @@ export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
    static reviveDb(data: any): CallKeepAlive {
 
       return new CallKeepAlive(data._id);
+   };
+}
+
+//==============================//
+// CallData class
+//==============================//
+export class CallData implements IStreamableFor<CallData> {
+
+   private _id: any;
+   private _from: CallParticipation;
+   private _to: CallParticipation;
+   private _data: any;
+
+   static readonly __type = "CallData";
+
+   /**
+    * Create a CallData object - used when webRTC fails & data is shipped via server
+    * @param _id - Mongo-DB assigned ID
+    * @param from - CallParticipation
+    * @param to - CallParticipation
+    * @param data - the data payload 
+    */
+   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, data: any) {
+
+      this._id = _id;
+      this._from = from;
+      this._to = to;
+      this._data = data;
+   }
+
+   /**
+   * set of 'getters' for private variables
+   */
+   get id(): any {
+      return this._id;
+   }
+   get from(): CallParticipation {
+      return this._from;
+   }
+   get to(): CallParticipation {
+      return this._to;
+   }
+   get data(): any {
+      return this._data;
+   }
+   get type(): string {
+      return CallData.__type;
+   }
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   equals(rhs: CallData): boolean {
+
+      return ((this._id === rhs._id) &&
+         (this._from.equals(rhs._from)) &&
+         (this._to.equals(rhs._to)) &&
+         (this._data === rhs._data));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   toJSON(): Object {
+
+      return {
+         __type: CallData.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            _from: this._from,
+            _to: this._to,
+            _data: JSON.stringify(this._data)
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   static revive(data: any): CallData {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallData.reviveDb(data.attributes);
+
+      return CallData.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   static reviveDb(data: any): CallData {
+
+      var types = new StreamableTypes();
+
+      return new CallData(data._id,
+         CallParticipation.revive(data._from),
+         CallParticipation.revive(data._to),
+         types.reviveFromJSON(data._data));
    };
 }

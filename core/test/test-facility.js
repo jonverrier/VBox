@@ -4,7 +4,7 @@
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
 var Facility = EntryPoints.Facility;
-var TypeRegistry = EntryPoints.TypeRegistry;
+var StreamableTypes = EntryPoints.StreamableTypes;
 
 var expect = require("chai").expect;
 
@@ -35,7 +35,7 @@ describe("Facility", function () {
    
    it("Needs to save and restore to/from JSON", function () {
       
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(facility1);
       var obj = types.reviveFromJSON(output);
 

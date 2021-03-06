@@ -12,7 +12,7 @@ import { TriangleDownIcon, PlayIcon, StopIcon } from '@primer/octicons-react'
 import * as CSS from 'csstype';
 
 import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockState, GymClockAction } from '../../core/dev/GymClock';
-import { TypeRegistry } from '../../core/dev/Types'
+import { StreamableTypes } from '../../core/dev/StreamableTypes'
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person'
 
@@ -130,12 +130,6 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
       this.setState({ isMounted: false });
    }
 
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-      }
-   }
-
    onRemoteData(ev: IStreamable) {
 
       if (ev.type === GymClockSpec.__type) {
@@ -227,7 +221,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       var clockSpec : GymClockSpec;
 
       if (storedClockSpec && storedClockSpec.length > 0) {
-         var types = new TypeRegistry()
+         var types = new StreamableTypes()
          var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
          clockSpec = new GymClockSpec(loadedClockSpec.durationEnum,
                                       loadedClockSpec.musicEnum,
@@ -244,7 +238,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       var clockState : GymClockState;
 
       if (storedClockState && storedClockState.length > 0) {
-         var types = new TypeRegistry()
+         var types = new StreamableTypes()
          var loadedClockState = types.reviveFromJSON(storedClockState);
          clockState = new GymClockState(loadedClockState.stateEnum,
                                         loadedClockState.secondsIn);
@@ -270,12 +264,6 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
 
       // Scynch our clock up to the state we load
       clock.loadFromState(clockState, this.onTick.bind(this));
-   }
-
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.rtc))) {
-         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-      }
    }
 
    onRemoteData(ev: IStreamable) {
