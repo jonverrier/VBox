@@ -54,12 +54,6 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
    componentWillUnmount() {
    }
 
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-      }
-   }
-
    onRemoteData(ev: IStreamable) {
       // By convention, new joiners broadcast a 'Person' object
       if (ev.type === Person.__type) {

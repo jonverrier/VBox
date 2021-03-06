@@ -11,7 +11,7 @@ var EGymClockState = EntryPoints.EGymClockState;
 var GymClockSpec = EntryPoints.GymClockSpec;
 var GymClockAction = EntryPoints.GymClockAction;
 var GymClockState = EntryPoints.GymClockState;
-var TypeRegistry = EntryPoints.TypeRegistry;
+var StreamableTypes = EntryPoints.StreamableTypes;
 
 var expect = require("chai").expect;
 
@@ -39,7 +39,7 @@ describe("GymClockSpec", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(spec1);
 
       var obj = types.reviveFromJSON(output);
@@ -69,7 +69,7 @@ describe("GymClockAction", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(action1);
 
       var obj = types.reviveFromJSON(output);
@@ -100,7 +100,7 @@ describe("GymClockState", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(state1);
 
       var obj = types.reviveFromJSON(output);

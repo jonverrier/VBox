@@ -18,7 +18,7 @@ import axios from 'axios';
 import { Person } from '../../core/dev/Person';
 import { Queue } from '../../core/dev/Queue';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { TypeRegistry } from '../../core/dev/Types';
+import { StreamableTypes } from '../../core/dev/StreamableTypes';
 import { IStreamable } from '../../core/dev/Streamable';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 
@@ -296,7 +296,7 @@ class RtcPeerHelper {
    private _isIceConnected: boolean;
    private _nameCache: PeerNameCache;
    private _signaller: IPeerSignalSender;
-   private _types: TypeRegistry;
+   private _types: StreamableTypes;
    private static className: string = 'RtcPeerHelper';
 
    private _connection: RTCPeerConnection;
@@ -317,7 +317,7 @@ class RtcPeerHelper {
       this._localPerson = person;
       this._nameCache = nameCache;
       this._signaller = signaller;
-      this._types = new TypeRegistry();
+      this._types = new StreamableTypes();
 
       this._isChannelConnected = false;
       this._sendChannel = null;

@@ -33,12 +33,6 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
       this.state = { people: people }
    }
 
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-         nextProps.rtc.addremotedatalistener(this.onRemoteData.bind(this));
-      }
-   }
-
    onRemoteData(ev: IStreamable) {
 
       if (ev.type === Person.__type) {

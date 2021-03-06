@@ -71,7 +71,7 @@
     <TypeScriptCompile Include="dev\Queue.tsx" />
     <TypeScriptCompile Include="dev\Signal.tsx" />
     <TypeScriptCompile Include="dev\Streamable.tsx" />
-    <TypeScriptCompile Include="dev\Types.tsx" />
+    <TypeScriptCompile Include="dev\StreamableTypes.tsx" />
     <TypeScriptCompile Include="dev\UserFacilities.tsx" />
     <TypeScriptCompile Include="dev\Whiteboard.tsx" />
   </ItemGroup>

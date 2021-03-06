@@ -2,21 +2,21 @@
 /*! Copyright TXPCo, 2020, 2021 */
 import { Person } from './Person';
 import { Facility } from './Facility';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive } from './Call'
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
 import { GymClockSpec, GymClockAction, GymClockState } from './GymClock'
 
 //==============================//
-// TypeRegistry class
+// StreamableTypes class
 //==============================//
-export class TypeRegistry {
+export class StreamableTypes {
 
    private _types: any;
 
    /**
-    * Creates a TypeRegistry for use in streaming objects to and from JSON
+    * Creates a StreamableTypes for use in streaming objects to and from JSON
     */
    constructor() {
 
@@ -30,6 +30,7 @@ export class TypeRegistry {
       this._types.CallIceCandidate = CallIceCandidate;
       this._types.CallLeaderResolve = CallLeaderResolve;
       this._types.CallKeepAlive = CallKeepAlive;
+      this._types.CallData = CallData;
       this._types.SignalMessage = SignalMessage;
       this._types.UserFacilities = UserFacilities;
       this._types.Whiteboard = Whiteboard;

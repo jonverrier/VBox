@@ -202,12 +202,6 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       }
    }
 
-   UNSAFE_componentWillReceiveProps(nextProps) {
-      if (nextProps.rtc && (!(nextProps.rtc === this.props.peers))) {
-         nextProps.rtc.addremotedatalistener(this.onData.bind(this));
-      }
-   }
-
    onData(ev: Person) {
       if (ev.type === Person.__type) {
 

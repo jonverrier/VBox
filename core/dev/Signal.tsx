@@ -3,9 +3,8 @@
 /*global exports*/
 /*! Copyright TXPCo, 2020, 2021 */
 
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive } from './Call';
-import { TypeRegistry } from './Types';
-
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive , CallData} from './Call';
+import { StreamableTypes } from './StreamableTypes';
 import { IStreamableFor } from './Streamable';
 
 //==============================//
@@ -119,7 +118,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
    */
    static reviveDb(data: any): SignalMessage {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
 
       return new SignalMessage(data._id,
                                data._facilityId,
@@ -147,7 +146,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
     * @param signalMessageIn - the object to transform
     */
    static fromStored(signalMessageIn: SignalMessage): SignalMessage {
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
 
       return new SignalMessage(signalMessageIn._id,
          signalMessageIn._facilityId,

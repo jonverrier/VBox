@@ -3,10 +3,10 @@
 import { LoggerFactory, ELoggerType } from './Logger';
 import { Person } from './Person';
 import { Facility } from './Facility';
-import { TypeRegistry } from './Types';
+import { StreamableTypes } from './StreamableTypes';
 import { DateWithDays } from './Dates'
 import { Queue, QueueString, QueueNumber, QueueAny } from './Queue'
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive } from './Call'
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
@@ -16,7 +16,7 @@ import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum} from './E
 var EntryPoints = {
    LoggerFactory: LoggerFactory,
    ELoggerType: ELoggerType,
-   TypeRegistry: TypeRegistry,
+   StreamableTypes: StreamableTypes,
    Person: Person,
    Facility: Facility,
    DateWithDays: DateWithDays,
@@ -30,6 +30,7 @@ var EntryPoints = {
    CallIceCandidate: CallIceCandidate,
    CallLeaderResolve: CallLeaderResolve,
    CallKeepAlive: CallKeepAlive,
+   CallData: CallData,
    SignalMessage: SignalMessage,
    UserFacilities: UserFacilities,
    Whiteboard: Whiteboard,

@@ -9,8 +9,9 @@ var CallOffer = EntryPoints.CallOffer;
 var CallAnswer = EntryPoints.CallAnswer;
 var CallIceCandidate = EntryPoints.CallIceCandidate;
 var CallLeaderResolve = EntryPoints.CallLeaderResolve;
+var CallData = EntryPoints.CallData;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
-var TypeRegistry = EntryPoints.TypeRegistry;
+var StreamableTypes = EntryPoints.StreamableTypes;
 
 var expect = require("chai").expect;
 
@@ -40,7 +41,7 @@ describe("CallParticipation", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(callParticipation1);
 
       var obj = types.reviveFromJSON(output);
@@ -76,7 +77,7 @@ describe("CallOffer", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(offer1);
 
       var obj = types.reviveFromJSON(output);
@@ -112,7 +113,7 @@ describe("CallAnswer", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(answer1);
 
       var obj = types.reviveFromJSON(output);
@@ -150,7 +151,7 @@ describe("CallIceCandidate", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(ice1);
 
       var obj = types.reviveFromJSON(output);
@@ -160,7 +161,7 @@ describe("CallIceCandidate", function () {
 
    it("Needs to save and restore to/from JSON with a null ICE", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(iceNull);
 
       var obj = types.reviveFromJSON(output);
@@ -192,7 +193,7 @@ describe("CallLeaderResolve", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(resolve1);
 
       var obj = types.reviveFromJSON(output);
@@ -221,7 +222,7 @@ describe("CallKeepAlive", function () {
 
    it("Needs to save and restore to/from JSON", function () {
 
-      var types = new TypeRegistry();
+      var types = new StreamableTypes();
       var output = JSON.stringify(keep1);
 
       var obj = types.reviveFromJSON(output);
@@ -230,3 +231,76 @@ describe("CallKeepAlive", function () {
    });
 });
 
+describe("CallOffer", function () {
+   var callerFrom, callerTo;
+   var offer1, offer2;
+
+   beforeEach(function () {
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
+      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
+      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(offer1).to.equal(offer1);
+      expect(offer1).to.not.equal(offer2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(offer1._id).to.equal("id");
+      expect(offer1.from.equals(callerFrom)).to.equal(true);
+      expect(offer1.to.equals(callerTo)).to.equal(true);
+      expect(offer1.offer).to.equal("offer1");
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new StreamableTypes();
+      var output = JSON.stringify(offer1);
+
+      var obj = types.reviveFromJSON(output);
+
+      expect(offer1.equals(obj)).to.equal(true);
+   });
+});
+
+describe("CallData", function () {
+   var callerFrom, callerTo;
+   var data1, data2;
+
+   beforeEach(function () {
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123");
+      data1 = new CallData("id", callerFrom, callerTo, "data1");
+      data2 = new CallData("id", callerTo, callerFrom, "data2");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(data1).to.equal(data1);
+      expect(data1).to.not.equal(data2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(data1._id).to.equal("id");
+      expect(data1.from.equals(callerFrom)).to.equal(true);
+      expect(data1.to.equals(callerTo)).to.equal(true);
+      expect(data1.data).to.equal("data1");
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new StreamableTypes();
+      var output = JSON.stringify(data1);
+
+      var obj = types.reviveFromJSON(output);
+      console.log(JSON.stringify(data1));
+      console.log(JSON.stringify(obj));
+
+      expect(data1.equals(obj)).to.equal(true);
+   });
+});

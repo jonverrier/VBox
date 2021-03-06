@@ -4,7 +4,7 @@
 // Core logic classes
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
-var TypeRegistry = EntryPoints.TypeRegistry;
+var StreamableTypes = EntryPoints.StreamableTypes;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
 var SignalMessage = EntryPoints.SignalMessage;
 
@@ -42,7 +42,7 @@ function eventFeed(req, res, next) {
    res.flush();
 
    // Client passes call participant data as query 
-   var types = new TypeRegistry();
+   var types = new StreamableTypes();
    var callParticipation = types.reviveFromJSON(decodeURIComponent(req.query.callParticipation));
 
    logger.logInfo('event-source', 'eventFeed', 'Subscription from :', callParticipation);
