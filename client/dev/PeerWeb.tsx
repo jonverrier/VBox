@@ -287,7 +287,7 @@ export class WebPeerHelper {
       WebPeerHelper._recipents = new Array<CallParticipation>();
 
       // Send our copt
-      signaller.sendData(outbound); // TODO - need a class to encapsulate the data 
+      signaller.sendData(outbound); // TODO - need a class to encapsulate the data, CallBatchedData
    }
 
    private onRecieveMessage(ev: Event) {
