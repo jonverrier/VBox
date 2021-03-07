@@ -4208,8 +4208,13 @@ module.exports = {
 
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CallData = exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = void 0;
+exports.CallData = exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = exports.ETransportType = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+var ETransportType;
+(function (ETransportType) {
+    ETransportType[ETransportType["Rtc"] = 0] = "Rtc";
+    ETransportType[ETransportType["Web"] = 1] = "Web";
+})(ETransportType = exports.ETransportType || (exports.ETransportType = {}));
 //==============================//
 // CallParticipation class
 //==============================//
@@ -4330,12 +4335,14 @@ class CallOffer {
      * @param from - CallParticipation
      * @param to - CallParticipation
      * @param offer - the WebRTC Offer
+     * @param transport = transport type (Web or RTC)
      */
-    constructor(_id = null, from, to, offer) {
+    constructor(_id = null, from, to, offer, transport) {
         this._id = _id;
         this._from = from;
         this._to = to;
         this._offer = offer;
+        this._transport = transport;
     }
     /**
     * set of 'getters' for private variables
@@ -4352,6 +4359,9 @@ class CallOffer {
     get offer() {
         return this._offer;
     }
+    get transport() {
+        return this._transport;
+    }
     get type() {
         return CallOffer.__type;
     }
@@ -4364,7 +4374,8 @@ class CallOffer {
         return ((this._id === rhs._id) &&
             (this._from.equals(rhs._from)) &&
             (this._to.equals(rhs._to)) &&
-            (this._offer === rhs._offer));
+            (this._offer === rhs._offer) &&
+            (this._transport === rhs._transport));
     }
     ;
     /**
@@ -4378,7 +4389,8 @@ class CallOffer {
                 _id: this._id,
                 _from: this._from,
                 _to: this._to,
-                _offer: this._offer
+                _offer: this._offer,
+                _transport: this.transport
             }
         };
     }
@@ -4399,7 +4411,7 @@ class CallOffer {
     * @param data - the JSON data to revive from
     */
     static reviveDb(data) {
-        return new CallOffer(data._id, CallParticipation.revive(data._from), CallParticipation.revive(data._to), data._offer);
+        return new CallOffer(data._id, CallParticipation.revive(data._from), CallParticipation.revive(data._to), data._offer, data._transport);
     }
     ;
 }
@@ -4415,12 +4427,14 @@ class CallAnswer {
      * @param from - CallParticipation
      * @param to - CallParticipation
      * @param answer - the WebRTC Offer
+     * @param transport = transport type (Web or RTC)
      */
-    constructor(_id = null, from, to, answer) {
+    constructor(_id = null, from, to, answer, transport) {
         this._id = _id;
         this._from = from;
         this._to = to;
         this._answer = answer;
+        this._transport = transport;
     }
     /**
     * set of 'getters' for private variables
@@ -4437,6 +4451,9 @@ class CallAnswer {
     get answer() {
         return this._answer;
     }
+    get transport() {
+        return this._transport;
+    }
     get type() {
         return CallAnswer.__type;
     }
@@ -4449,7 +4466,8 @@ class CallAnswer {
         return ((this._id === rhs._id) &&
             (this._from.equals(rhs._from)) &&
             (this._to.equals(rhs._to)) &&
-            (this._answer === rhs._answer));
+            (this._answer === rhs._answer) &&
+            (this._transport === rhs._transport));
     }
     ;
     /**
@@ -4463,7 +4481,8 @@ class CallAnswer {
                 _id: this._id,
                 _from: this._from,
                 _to: this._to,
-                _answer: this._answer
+                _answer: this._answer,
+                _transport: this._transport
             }
         };
     }
@@ -4484,7 +4503,7 @@ class CallAnswer {
     * @param data - the JSON data to revive from
     */
     static reviveDb(data) {
-        return new CallAnswer(data._id, CallParticipation.revive(data._from), CallParticipation.revive(data._to), data._answer);
+        return new CallAnswer(data._id, CallParticipation.revive(data._from), CallParticipation.revive(data._to), data._answer, data._transport);
     }
     ;
 }
@@ -6341,6 +6360,7 @@ var EntryPoints = {
     QueueString: Queue_1.QueueString,
     QueueNumber: Queue_1.QueueNumber,
     QueueAny: Queue_1.QueueAny,
+    ETransportType: Call_1.ETransportType,
     CallParticipation: Call_1.CallParticipation,
     CallOffer: Call_1.CallOffer,
     CallAnswer: Call_1.CallAnswer,

@@ -8,14 +8,15 @@ import adapter from 'webrtc-adapter'; // Google shim library
  
 // This app, external components
 import { Person } from '../../core/dev/Person';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 
 // This app, this component
 import { PeerNameCache, IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 import { PeerLink } from './PeerLink';
-import { SignalSender, SignalReciever} from './PeerSignaller';
+import { SignalSender, SignalReciever } from './PeerSignaller';
+import { WebPeerHelper } from './PeerWeb';
 
 function uuidPart(): string {
    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
@@ -103,6 +104,7 @@ export class PeerConnection {
       for (var i = 0; i < self._links.length; i++) {
          self._links[i].send(obj);
       }
+      WebPeerHelper.drainSendQueue(this._signalSender);
    }
 
    private onServerEvent(data: IStreamable): void {
@@ -141,7 +143,7 @@ export class PeerConnection {
       }
    }
 
-   private onParticipant(remoteParticipation: CallParticipation) {
+   private onParticipant(remoteParticipation: CallParticipation) : void {
 
       // If we are an edge node, and the caller is not a leader, dont respond.
       if (this._isEdgeOnly && !remoteParticipation.isCandidateLeader)
@@ -151,8 +153,14 @@ export class PeerConnection {
       if (this._isEdgeOnly && remoteParticipation.isCandidateLeader && 
          this.isConnectedToLeader())
          return;
+      
+      this.createCallerLink(remoteParticipation, ETransportType.Rtc);
+   }
+
+   private createCallerLink(remoteParticipation: CallParticipation, transport: ETransportType): PeerLink {
 
       var link = new PeerLink(true,
+         transport,
          this._localCallParticipation,
          remoteParticipation,
          this._person,
@@ -169,22 +177,36 @@ export class PeerConnection {
          }
       };
 
-      // Hook link failre - if the peer connect fails, connect via web
+      // Hook link failure - if the peer connect fails, connect via web
       link.onRemoteFail = this.onLinkFail.bind(this);
 
       this._links.push(link);
 
       // place the call after setting up 'links' to avoid a race condition
       link.placeCall();
+
+      return link;
    }
 
    private onLinkFail(link: PeerLink): void {
-      // TODO - fall back to a web link here
+      var found: boolean = false;
+
+      for (var i = 0; i < this._links.length && !found; i++) {
+         if (this._links[i] === link) {
+            this._links.splice(i);
+            found = true;
+         }
+      }
+
+      if (link.isOutbound) {
+         this.createCallerLink(link.remoteCallParticipation, ETransportType.Web);
+      }
    }
 
-   private setupRecieverLink(remoteParticipation: CallParticipation): PeerLink {
+   private createRecieverLink(remoteParticipation: CallParticipation, transport: ETransportType): PeerLink {
 
       var link = new PeerLink(false,
+         transport,
          this._localCallParticipation,
          remoteParticipation,
          this._person,
@@ -200,6 +222,9 @@ export class PeerConnection {
             }
          }
       };
+
+      // Hook link failure - if the peer connect fails, connect via web
+      link.onRemoteFail = this.onLinkFail.bind(this);
 
       this._links.push(link);
 
@@ -211,7 +236,7 @@ export class PeerConnection {
 
       // This loop removes glare, when we may be trying to set up calls with each other.
       for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteOffer.from)) {
+         if (self._links[i].remoteCallParticipation.equals(remoteOffer.from)) {
             // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
             // The recipient with the greater glareResolve makes the winning offer 
             if (self._localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
@@ -223,7 +248,7 @@ export class PeerConnection {
       }
 
       // Setup links befoe answering the call to remove race conditions from asynchronous arrival
-      let link = this.setupRecieverLink(remoteOffer.from);
+      let link = this.createRecieverLink(remoteOffer.from, remoteOffer.transport);
       link.answerCall(remoteOffer);
    }
 
@@ -232,7 +257,7 @@ export class PeerConnection {
       var found = false;
 
       for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteAnswer.from)) {
+         if (self._links[i].remoteCallParticipation.equals(remoteAnswer.from)) {
             self._links[i].handleAnswer(remoteAnswer);
             found = true;
             break;
@@ -247,13 +272,13 @@ export class PeerConnection {
       var found : boolean = false;
 
       for (var i = 0; i < self._links.length && !found; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteIceCandidate.from)) {
+         if (self._links[i].remoteCallParticipation.equals(remoteIceCandidate.from)) {
             found = true;
          }
       }
 
       if (!found) {
-         this.setupRecieverLink(remoteIceCandidate.from);
+         this.createRecieverLink(remoteIceCandidate.from, ETransportType.Rtc);
       }
 
       found = false;
@@ -262,7 +287,7 @@ export class PeerConnection {
       // incoming messages still pending
       // So fail silently if we get unexpected Ice candidate messages 
       for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteIceCandidate.from)) {
+         if (self._links[i].remoteCallParticipation.equals(remoteIceCandidate.from)) {
             if (remoteIceCandidate.outbound) { 
                self._links[i].handleIceCandidate(remoteIceCandidate);
             }

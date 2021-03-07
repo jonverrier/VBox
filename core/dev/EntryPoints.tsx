@@ -6,7 +6,7 @@ import { Facility } from './Facility';
 import { StreamableTypes } from './StreamableTypes';
 import { DateWithDays } from './Dates'
 import { Queue, QueueString, QueueNumber, QueueAny } from './Queue'
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData } from './Call'
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
@@ -24,6 +24,7 @@ var EntryPoints = {
    QueueString: QueueString,
    QueueNumber: QueueNumber,
    QueueAny: QueueAny,
+   ETransportType: ETransportType,
    CallParticipation: CallParticipation,
    CallOffer: CallOffer,
    CallAnswer: CallAnswer,

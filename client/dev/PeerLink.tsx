@@ -11,13 +11,13 @@ import * as React from 'react';
  
 // This app, external components
 import { Person } from '../../core/dev/Person';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 
 // This app, this component
 import { EPeerConnectionType, IPeerCaller, IPeerReciever,  PeerNameCache, IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
-import { PeerFactory } from './PeerRtc';
+import { PeerFactory } from './PeerFactory';
 
 function uuidPart(): string {
    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
@@ -32,6 +32,7 @@ var logger = new LoggerFactory().createLogger (ELoggerType.Client, true);
 export class PeerLink {
    // member variables
    private _outbound: boolean;
+   private _transport: ETransportType;
    private _localCallParticipation: CallParticipation;
    private _remoteCallParticipation: CallParticipation;
    private _person: Person;
@@ -44,6 +45,7 @@ export class PeerLink {
    onRemoteFail: ((this: PeerLink, link: PeerLink) => void) | null;
 
    constructor(outbound: boolean,
+      transport: ETransportType,
       localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
       person: Person,
@@ -55,11 +57,13 @@ export class PeerLink {
       this._localCallParticipation = localCallParticipation;
       this._remoteCallParticipation = remoteCallParticipation;
       this._person = person;
+      this._transport = transport;
 
       let factory = new PeerFactory();
       if (outbound) {
 
-         this._peerCaller = factory.createCallerConnection(EPeerConnectionType.RtcCaller,
+         this._peerCaller = factory.createCallerConnection(EPeerConnectionType.Caller,
+            transport,
             localCallParticipation,
             remoteCallParticipation,
             person,
@@ -72,7 +76,8 @@ export class PeerLink {
 
       } else {
 
-         this._peerReciever = factory.createRecieverConnection(EPeerConnectionType.RtcReciever,
+         this._peerReciever = factory.createRecieverConnection(EPeerConnectionType.Reciever,
+            transport,
             localCallParticipation,
             remoteCallParticipation,
             person,
@@ -85,8 +90,12 @@ export class PeerLink {
       }
    }
 
-   remoteCallParticipation(): CallParticipation {
+   get remoteCallParticipation(): CallParticipation {
       return this._remoteCallParticipation;
+   }
+
+   get isOutbound(): boolean {
+      return this._outbound;
    }
 
    placeCall(): void {

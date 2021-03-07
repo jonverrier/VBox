@@ -12,8 +12,8 @@ import { CallOffer, CallAnswer, CallIceCandidate, CallParticipation } from '../.
 import { IStreamable } from '../../core/dev/Streamable'
 
 export enum EPeerConnectionType {
-   RtcCaller,
-   RtcReciever
+   Caller,
+   Reciever
 }
 
 export interface IPeer {

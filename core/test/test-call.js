@@ -3,6 +3,7 @@
 
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
+var ETransportType = EntryPoints.ETransportType;
 var CallParticipation = EntryPoints.CallParticipation;
 var CallParticipation = EntryPoints.CallParticipation;
 var CallOffer = EntryPoints.CallOffer;
@@ -57,8 +58,8 @@ describe("CallOffer", function () {
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
-      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
-      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
+      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1", ETransportType.Rtc);
+      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2", ETransportType.Rtc);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -73,6 +74,7 @@ describe("CallOffer", function () {
       expect(offer1.from.equals(callerFrom)).to.equal(true);
       expect(offer1.to.equals(callerTo)).to.equal(true);
       expect(offer1.offer).to.equal("offer1");
+      expect(offer1.transport).to.equal(ETransportType.Rtc);
    });
 
    it("Needs to save and restore to/from JSON", function () {
@@ -93,8 +95,8 @@ describe("CallAnswer", function () {
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", false, "123");
-      answer1 = new CallAnswer("id", callerFrom, callerTo, "answer1");
-      answer2 = new CallAnswer("id", callerTo, callerFrom, "answer2");
+      answer1 = new CallAnswer("id", callerFrom, callerTo, "answer1", ETransportType.Rtc);
+      answer2 = new CallAnswer("id", callerTo, callerFrom, "answer2", ETransportType.Rtc);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -238,8 +240,8 @@ describe("CallOffer", function () {
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
-      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
-      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
+      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1", ETransportType.Rtc);
+      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2", ETransportType.Rtc);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -254,6 +256,7 @@ describe("CallOffer", function () {
       expect(offer1.from.equals(callerFrom)).to.equal(true);
       expect(offer1.to.equals(callerTo)).to.equal(true);
       expect(offer1.offer).to.equal("offer1");
+      expect(offer1.transport).to.equal(ETransportType.Rtc);
    });
 
    it("Needs to save and restore to/from JSON", function () {
@@ -298,8 +301,6 @@ describe("CallData", function () {
       var output = JSON.stringify(data1);
 
       var obj = types.reviveFromJSON(output);
-      console.log(JSON.stringify(data1));
-      console.log(JSON.stringify(obj));
 
       expect(data1.equals(obj)).to.equal(true);
    });

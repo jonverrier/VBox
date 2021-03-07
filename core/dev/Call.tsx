@@ -3,6 +3,11 @@
 import { IStreamableFor } from './Streamable';
 import { StreamableTypes } from './StreamableTypes';
 
+export enum ETransportType {
+   Rtc,
+   Web
+}
+
 //==============================//
 // CallParticipation class
 //==============================//
@@ -152,6 +157,7 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _offer: any;
+   private _transport: ETransportType;
 
    static readonly __type = "CallOffer";
 
@@ -161,13 +167,15 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param offer - the WebRTC Offer 
+    * @param transport = transport type (Web or RTC)
     */
-   constructor(_id: any=null, from: CallParticipation, to: CallParticipation, offer: any) {
+   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, offer: any, transport: ETransportType) {
 
       this._id = _id;
       this._from = from;
       this._to = to;
       this._offer = offer;
+      this._transport = transport;
    }
 
    /**
@@ -185,6 +193,9 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
    get offer(): any {
       return this._offer;
    }
+   get transport(): ETransportType {
+      return this._transport;
+   }
    get type(): string {
       return CallOffer.__type;
    }
@@ -199,7 +210,8 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
       return ((this._id === rhs._id) &&
          (this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
-         (this._offer === rhs._offer));
+         (this._offer === rhs._offer) &&
+         (this._transport === rhs._transport));
    };
 
    /**
@@ -214,7 +226,8 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
             _id: this._id,
             _from: this._from,
             _to: this._to,
-            _offer: this._offer
+            _offer: this._offer,
+            _transport: this.transport
          }
       };
    };
@@ -241,7 +254,8 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
       return new CallOffer(data._id,
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
-         data._offer);
+         data._offer,
+         data._transport);
    };
 }
 
@@ -254,6 +268,7 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _answer: any;
+   private _transport: ETransportType;
 
    static readonly __type = "CallAnswer";
 
@@ -263,13 +278,15 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param answer - the WebRTC Offer 
+    * @param transport = transport type (Web or RTC)
     */
-   constructor(_id: any=null, from: CallParticipation, to: CallParticipation, answer: any) {
+   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, answer: any, transport: ETransportType) {
 
       this._id = _id;
       this._from = from;
       this._to = to;
       this._answer = answer;
+      this._transport = transport;
    }
 
    /**
@@ -287,6 +304,9 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    get answer(): any {
       return this._answer;
    }
+   get transport(): ETransportType {
+      return this._transport;
+   }
    get type(): string {
       return CallAnswer.__type;
    }
@@ -301,7 +321,8 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
       return ((this._id === rhs._id) &&
          (this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
-         (this._answer === rhs._answer));
+         (this._answer === rhs._answer) &&
+         (this._transport === rhs._transport));
    };
 
    /**
@@ -316,7 +337,8 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
             _id: this._id,
             _from: this._from,
             _to: this._to,
-            _answer: this._answer
+            _answer: this._answer,
+            _transport: this._transport
          }
       };
    };
@@ -343,7 +365,8 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
       return new CallAnswer(data._id,
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
-         data._answer);
+         data._answer,
+         data._transport);
    };
 }
 
