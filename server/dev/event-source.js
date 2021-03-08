@@ -152,8 +152,10 @@ function deliverOne(item, store) {
    var subscribers = facilityMap.get(item.to.facilityId);
    for (var i = 0; i < subscribers.length; i++)
       if (subscribers[i].callParticipation.sessionId === item.to.sessionId
-         && subscribers[i].callParticipation.sessionSubId === item.to.sessionSubId)
+         && subscribers[i].callParticipation.sessionSubId === item.to.sessionSubId) {
          subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
+         subscribers[i].response.flush();
+      }
 }
 
 // Deliver a new WebRTC offer
