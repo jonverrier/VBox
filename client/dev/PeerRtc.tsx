@@ -1,10 +1,12 @@
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
-// PeerConnection : overall orchestration & interface to the UI. 
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
 // PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
 // PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
-// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // RTC References:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
@@ -20,7 +22,7 @@ import { Queue } from '../../core/dev/Queue';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { StreamableTypes } from '../../core/dev/StreamableTypes';
 import { IStreamable } from '../../core/dev/Streamable';
-import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from '../../core/dev/Call';
 
 // This app, this component
 import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache, IPeerSignalReciever } from './PeerInterfaces'
@@ -148,6 +150,11 @@ export class PeerCallerRtc implements IPeerCaller {
       this.peerHelp.handleIceCandidate(ice);
    }
 
+   handleRemoteData(data: CallData) : void {
+      // No-op - we dont expect to recieve data from fallback channel
+      // TODO - make an assert() fail??
+   }
+
    send(obj: IStreamable): void {
       this.peerHelp.send(obj);
    }
@@ -222,6 +229,11 @@ export class PeerRecieverRtc implements IPeerReciever {
 
    handleIceCandidate(ice: CallIceCandidate): void {
       this.peerHelp.handleIceCandidate(ice);
+   }
+
+   handleRemoteData(data: CallData): void {
+      // No-op - we dont expect to recieve data from fallback channel
+      // TODO - make an assert() fail??
    }
 
    send(obj: IStreamable): void {

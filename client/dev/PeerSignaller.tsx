@@ -1,17 +1,19 @@
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
 // PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
 // PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
 // PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
-// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // External components
 import axios from 'axios';
 
 // This app, other components 
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallDataBatched } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable';
 import { StreamableTypes } from '../../core/dev/StreamableTypes';
 
@@ -69,9 +71,9 @@ export class SignalSender implements IPeerSignalSender {
       });
    }
 
-   sendData(callData: IStreamable): Promise<string> {
+   sendData(callDataBatched: CallDataBatched): Promise<string> {
       return new Promise((resolve, reject) => {
-         axios.post('/api/peerdata', { params: { callData: callData } })
+         axios.post('/api/data', { params: { callDataBatched: callDataBatched } })
             .then((response) => {
                logger.logInfo(SignalSender.className, 'sendData', "Post Ok", null);
                resolve('');

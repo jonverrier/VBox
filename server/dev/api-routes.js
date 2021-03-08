@@ -13,7 +13,8 @@ var Person = EntryPoints.Person;
 var Facility = EntryPoints.Facility;
 var CallOffer = EntryPoints.CallOffer;
 var CallAnswer = EntryPoints.CallAnswer;
-var CallIceCandidate = EntryPoints.CallIceCandidate;  
+var CallIceCandidate = EntryPoints.CallIceCandidate;
+var CallDataBatched = EntryPoints.CallDataBatched;
 var UserFacilities = EntryPoints.UserFacilities;
 
 // Used to get data for the users home page 
@@ -28,6 +29,7 @@ var eventFeed = require('./event-source.js').eventFeed;
 var deliverNewOffer = require('./event-source.js').deliverNewOffer;
 var deliverNewAnswer = require('./event-source.js').deliverNewAnswer;
 var deliverNewIceCandidate = require('./event-source.js').deliverNewIceCandidate;
+var deliverNewDataBatch = require('./event-source.js').deliverNewDataBatch;
 
 async function facilitiesFor (facilityIds) {
    var facilities = new Array();
@@ -229,6 +231,23 @@ router.post('/api/icecandidate', function (req, res) {
 
       // This pushes the notice of a new ICE candidate over server-sent event channel
       deliverNewIceCandidate(callIceCandidate);
+
+      res.send('OK');
+
+   } else {
+      res.send(null);
+   }
+});
+
+// API when a participant has a new ICE candidate
+router.post('/api/data', function (req, res) {
+   if (req.user && req.user.externalId) {
+
+      // Client passes callDataBatched in the query string
+      var callDataBatched = CallDataBatched.revive(req.body.params.callDataBatched);
+
+      // This pushes data over server-sent event channel, used as fallback when RTC does not work
+      deliverNewDataBatch (callDataBatched);
 
       res.send('OK');
 

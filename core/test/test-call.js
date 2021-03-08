@@ -11,6 +11,7 @@ var CallAnswer = EntryPoints.CallAnswer;
 var CallIceCandidate = EntryPoints.CallIceCandidate;
 var CallLeaderResolve = EntryPoints.CallLeaderResolve;
 var CallData = EntryPoints.CallData;
+var CallDataBatched = EntryPoints.CallDataBatched;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
 var StreamableTypes = EntryPoints.StreamableTypes;
 
@@ -302,6 +303,45 @@ describe("CallData", function () {
 
       var obj = types.reviveFromJSON(output);
 
+      expect(data1.equals(obj)).to.equal(true);
+   });
+});
+
+describe("CallDataBatched", function () {
+   var callerFrom, callerTo, arr;
+   var data1, data2;
+
+   beforeEach(function () {
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
+      arr = new Array();
+      arr.push(callerTo);
+      arr.push(callerFrom);
+
+      data1 = new CallDataBatched("id", callerFrom, arr, "data1");
+      data2 = new CallDataBatched("id", callerTo, arr, "data2");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(data1).to.equal(data1);
+      expect(data1).to.not.equal(data2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(data1._id).to.equal("id");
+      expect(data1.from.equals(callerFrom)).to.equal(true);
+      expect(data1.to === arr).to.equal(true);
+      expect(data1.data).to.equal("data1");
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new StreamableTypes();
+      var output = JSON.stringify(data1);
+
+      var obj = types.reviveFromJSON(output);
       expect(data1.equals(obj)).to.equal(true);
    });
 });

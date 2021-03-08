@@ -1,17 +1,19 @@
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
 // PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
 // PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
 // PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
-// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // External libraries
 import * as React from 'react';
  
 // This app, external components
 import { Person } from '../../core/dev/Person';
-import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 
@@ -130,6 +132,18 @@ export class PeerLink {
       } else {
          if (this._peerReciever)
             this._peerReciever.handleIceCandidate(ice);
+         // else silent fail
+      }
+   }
+
+   handleRemoteData (data: CallData): void {
+      if (this._outbound) {
+         if (this._peerCaller)
+            this._peerCaller.handleRemoteData(data);
+         // else silent fail
+      } else {
+         if (this._peerReciever)
+            this._peerReciever.handleRemoteData(data);
          // else silent fail
       }
    }

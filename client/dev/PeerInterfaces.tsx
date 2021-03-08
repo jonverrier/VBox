@@ -1,14 +1,16 @@
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
 // PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
 // PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
 // PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
-// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // This app, external components
 import { Person } from '../../core/dev/Person';
-import { CallOffer, CallAnswer, CallIceCandidate, CallParticipation } from '../../core/dev/Call';
+import { CallOffer, CallAnswer, CallIceCandidate, CallParticipation, CallData } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable'
 
 export enum EPeerConnectionType {
@@ -28,6 +30,7 @@ export interface IPeer {
    send(data: IStreamable): void;
 
    handleIceCandidate(ice: CallIceCandidate): void;
+   handleRemoteData(data: CallData);
    onRemoteData(data: IStreamable): void;
    onRemoteFail(): void;
    close(): void;

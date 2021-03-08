@@ -57,8 +57,9 @@
     <Folder Include="test\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="dev\ArrayHook.tsx" />
     <TypeScriptCompile Include="dev\Call.tsx" />
-    <TypeScriptCompile Include="dev\Dates.tsx" />
+    <TypeScriptCompile Include="dev\DateHook.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />
     <TypeScriptCompile Include="dev\Enum.tsx" />
     <TypeScriptCompile Include="dev\Equals.tsx" />

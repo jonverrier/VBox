@@ -4198,6 +4198,65 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./dev/ArrayHook.tsx":
+/*!***************************!*\
+  !*** ./dev/ArrayHook.tsx ***!
+  \***************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Hooks the Array class so it has an 'equals' method.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ArrayHook = void 0;
+class ArrayHook {
+    constructor() {
+    }
+    static initialise() {
+        if (ArrayHook.initialised)
+            return;
+        ArrayHook.initialised = true;
+        // Warn if overriding existing method
+        if (Array.prototype.equals)
+            console.warn("Warning: possible duplicate definition of Array.prototype.equals.");
+        // attach the .equals method to Array's prototype to call it on any array
+        Array.prototype.equals = function (array) {
+            // if the other array is a falsy value, return
+            if (!array)
+                return false;
+            // compare lengths - can save a lot of time 
+            if (this.length != array.length)
+                return false;
+            for (var i = 0, l = this.length; i < l; i++) {
+                // Check if we have nested arrays
+                if (this[i] instanceof Array && array[i] instanceof Array) {
+                    // recurse into the nested arrays
+                    if (!this[i].equals(array[i]))
+                        return false;
+                }
+                else if (this[i].equals) {
+                    // If the objects have an equals method, use it
+                    return (this[i].equals(array[i]));
+                }
+                else if (this[i] != array[i]) {
+                    // Warning - two different object instances will never be equal: {x:20} != {x:20}
+                    return false;
+                }
+            }
+            return true;
+        };
+        // Hide method from for-in loops
+        Object.defineProperty(Array.prototype, "equals", { enumerable: false });
+    }
+}
+exports.ArrayHook = ArrayHook;
+ArrayHook.initialised = false;
+ArrayHook.initialise();
+
+
+/***/ }),
+
 /***/ "./dev/Call.tsx":
 /*!**********************!*\
   !*** ./dev/Call.tsx ***!
@@ -4208,7 +4267,7 @@ module.exports = {
 
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CallData = exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = exports.ETransportType = void 0;
+exports.CallDataBatched = exports.CallData = exports.CallKeepAlive = exports.CallLeaderResolve = exports.CallIceCandidate = exports.CallAnswer = exports.CallOffer = exports.CallParticipation = exports.ETransportType = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 var ETransportType;
 (function (ETransportType) {
@@ -4829,47 +4888,137 @@ class CallData {
 }
 exports.CallData = CallData;
 CallData.__type = "CallData";
+//==============================//
+// CallDataBatched class
+//==============================//
+class CallDataBatched {
+    /**
+     * Create a CallDataBatched object - used when webRTC fails & data is shipped via server
+     * This class is used when data is to be delivered to possibly multiple participants
+     * @param _id - Mongo-DB assigned ID
+     * @param from - CallParticipation
+     * @param to - CallParticipation - for this version, its an array.
+     * @param data - the data payload
+     */
+    constructor(_id = null, from, to, data) {
+        this._id = _id;
+        this._from = from;
+        this._to = to;
+        this._data = data;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get id() {
+        return this._id;
+    }
+    get from() {
+        return this._from;
+    }
+    get to() {
+        return this._to;
+    }
+    get data() {
+        return this._data;
+    }
+    get type() {
+        return CallData.__type;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return ((this._id === rhs._id) &&
+            (this._from.equals(rhs._from)) &&
+            (this._to.equals(rhs._to)) && // Uses the equals method from ArrayHook
+            this.data === rhs.data);
+    }
+    ;
+    /**
+     * Method that serializes to JSON
+     */
+    toJSON() {
+        return {
+            __type: CallDataBatched.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _id: this._id,
+                _from: this._from,
+                _to: this._to,
+                _data: JSON.stringify(this._data)
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revive from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return CallDataBatched.reviveDb(data.attributes);
+        return CallDataBatched.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revive from
+    */
+    static reviveDb(data) {
+        // revive the list of targets
+        let revivedParticipations = new Array(data._to ? data._to.length : 0);
+        for (var i = 0; data._to && i < data._to.length; i++) {
+            revivedParticipations[i] = CallParticipation.revive(data._to[i]);
+        }
+        var types = new StreamableTypes_1.StreamableTypes();
+        return new CallDataBatched(data._id, CallParticipation.revive(data._from), revivedParticipations, types.reviveFromJSON(data._data));
+    }
+    ;
+}
+exports.CallDataBatched = CallDataBatched;
+CallDataBatched.__type = "CallDataBatched";
 
 
 /***/ }),
 
-/***/ "./dev/Dates.tsx":
-/*!***********************!*\
-  !*** ./dev/Dates.tsx ***!
-  \***********************/
+/***/ "./dev/DateHook.tsx":
+/*!**************************!*\
+  !*** ./dev/DateHook.tsx ***!
+  \**************************/
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
-/*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DateWithDays = void 0;
-class DateWithDays {
-    constructor(...args) {
-        if (args.length === 0) {
-            this.date = new Date();
-        }
-        else if (args.length === 1) {
-            this.date = new Date(args[0]);
-        }
-        else {
-            this.date = new Date(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-        }
+exports.DateHook = void 0;
+/*! Copyright TXPCo, 2020, 2021 */
+class DateHook {
+    constructor() {
     }
-    /**
-     * Function returns the day of the week in a text format.
-     */
-    getWeekDay() {
+    static initialise() {
+        if (DateHook.initialised)
+            return;
+        DateHook.initialised = true;
         //Create an array containing each day, starting with Sunday.
-        var weekdays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
-        //Use the getDay() method to get the day.
-        var day = this.date.getDay();
-        // Return the element that corresponds to that index.
-        return weekdays[day];
+        DateHook.weekdays = new Array("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday");
+        // Warn if overriding existing method
+        if (Date.prototype.getWeekDay)
+            console.warn("Warning: possible duplicate definition of Date.prototype.getWeekDay.");
+        // attach the .getWeekDay method to Date's prototype to call it on any Date
+        Date.prototype.getWeekDay = function () {
+            //Use the getDay() method to get the day.
+            var day = this.getDay();
+            // Return the element that corresponds to that index.
+            return DateHook.weekdays[day];
+        };
     }
-    ;
 }
-exports.DateWithDays = DateWithDays;
+exports.DateHook = DateHook;
+DateHook.initialised = false;
+DateHook.initialise();
 
 
 /***/ }),
@@ -5882,6 +6031,7 @@ class StreamableTypes {
         this._types.CallLeaderResolve = Call_1.CallLeaderResolve;
         this._types.CallKeepAlive = Call_1.CallKeepAlive;
         this._types.CallData = Call_1.CallData;
+        this._types.CallDataBatched = Call_1.CallDataBatched;
         this._types.SignalMessage = Signal_1.SignalMessage;
         this._types.UserFacilities = UserFacilities_1.UserFacilities;
         this._types.Whiteboard = Whiteboard_1.Whiteboard;
@@ -6338,10 +6488,11 @@ var exports = __webpack_exports__;
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
+const ArrayHook_1 = __webpack_require__(/*! ./ArrayHook */ "./dev/ArrayHook.tsx");
 const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
 const Facility_1 = __webpack_require__(/*! ./Facility */ "./dev/Facility.tsx");
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
-const Dates_1 = __webpack_require__(/*! ./Dates */ "./dev/Dates.tsx");
+const DateHook_1 = __webpack_require__(/*! ./DateHook */ "./dev/DateHook.tsx");
 const Queue_1 = __webpack_require__(/*! ./Queue */ "./dev/Queue.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
@@ -6355,7 +6506,6 @@ var EntryPoints = {
     StreamableTypes: StreamableTypes_1.StreamableTypes,
     Person: Person_1.Person,
     Facility: Facility_1.Facility,
-    DateWithDays: Dates_1.DateWithDays,
     Queue: Queue_1.Queue,
     QueueString: Queue_1.QueueString,
     QueueNumber: Queue_1.QueueNumber,
@@ -6368,6 +6518,7 @@ var EntryPoints = {
     CallLeaderResolve: Call_1.CallLeaderResolve,
     CallKeepAlive: Call_1.CallKeepAlive,
     CallData: Call_1.CallData,
+    CallDataBatched: Call_1.CallDataBatched,
     SignalMessage: Signal_1.SignalMessage,
     UserFacilities: UserFacilities_1.UserFacilities,
     Whiteboard: Whiteboard_1.Whiteboard,
@@ -6383,6 +6534,8 @@ var EntryPoints = {
     EThreeStateRagEnum: Enum_1.EThreeStateRagEnum,
     EFourStateRagEnum: Enum_1.EFourStateRagEnum
 };
+ArrayHook_1.ArrayHook.initialise();
+DateHook_1.DateHook.initialise();
 exports.default = EntryPoints;
 
 })();

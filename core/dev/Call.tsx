@@ -752,3 +752,114 @@ export class CallData implements IStreamableFor<CallData> {
          types.reviveFromJSON(data._data));
    };
 }
+
+//==============================//
+// CallDataBatched class
+//==============================//
+export class CallDataBatched implements IStreamableFor<CallDataBatched> {
+
+   private _id: any;
+   private _from: CallParticipation;
+   private _to: Array<CallParticipation>;
+   private _data: any;
+
+   static readonly __type = "CallDataBatched";
+
+   /**
+    * Create a CallDataBatched object - used when webRTC fails & data is shipped via server
+    * This class is used when data is to be delivered to possibly multiple participants
+    * @param _id - Mongo-DB assigned ID
+    * @param from - CallParticipation
+    * @param to - CallParticipation - for this version, its an array.
+    * @param data - the data payload 
+    */
+   constructor(_id: any = null, from: CallParticipation, to: Array<CallParticipation>, data: any) {
+
+      this._id = _id;
+      this._from = from;
+      this._to = to;
+      this._data = data;
+   }
+
+   /**
+   * set of 'getters' for private variables
+   */
+   get id(): any {
+      return this._id;
+   }
+   get from(): CallParticipation {
+      return this._from;
+   }
+   get to(): Array<CallParticipation> {
+      return this._to;
+   }
+   get data(): any {
+      return this._data;
+   }
+   get type(): string {
+      return CallData.__type;
+   }
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   equals(rhs: CallDataBatched): boolean {
+
+      return ((this._id === rhs._id) &&
+         (this._from.equals(rhs._from)) &&
+         ((this._to as any).equals(rhs._to)) && // Uses the equals method from ArrayHook
+         this.data === rhs.data); 
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   toJSON(): Object {
+
+      return {
+         __type: CallDataBatched.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            _from: this._from,
+            _to: this._to,
+            _data: JSON.stringify(this._data)
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   static revive(data: any): CallDataBatched {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallDataBatched.reviveDb(data.attributes);
+
+      return CallDataBatched.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   static reviveDb(data: any): CallDataBatched {
+
+      // revive the list of targets
+      let revivedParticipations = new Array<CallParticipation>(data._to ? data._to.length: 0);
+      for (var i = 0; data._to && i < data._to.length; i++) {
+         revivedParticipations[i] = CallParticipation.revive(data._to[i]);
+      }
+
+      var types = new StreamableTypes();
+
+      return new CallDataBatched(data._id,
+         CallParticipation.revive(data._from),
+         revivedParticipations,
+         types.reviveFromJSON(data._data));
+   };
+}

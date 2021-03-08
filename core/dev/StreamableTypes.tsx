@@ -2,7 +2,7 @@
 /*! Copyright TXPCo, 2020, 2021 */
 import { Person } from './Person';
 import { Facility } from './Facility';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData } from './Call'
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
@@ -31,6 +31,7 @@ export class StreamableTypes {
       this._types.CallLeaderResolve = CallLeaderResolve;
       this._types.CallKeepAlive = CallKeepAlive;
       this._types.CallData = CallData;
+      this._types.CallDataBatched = CallDataBatched;
       this._types.SignalMessage = SignalMessage;
       this._types.UserFacilities = UserFacilities;
       this._types.Whiteboard = Whiteboard;

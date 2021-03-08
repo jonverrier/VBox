@@ -28,6 +28,8 @@ import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { Person } from '../../core/dev/Person';
 import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
+import { DateHook } from '../../core/dev/DateHook';
+import { ArrayHook } from '../../core/dev/ArrayHook';
 
 // This app, this component
 import { MemberLoginData, MemberLoginProvider } from './LoginMember';
@@ -859,6 +861,10 @@ export class Footer extends React.Component {
          </div>);
    }
 }
+
+// Call static members that hook into java library
+DateHook.initialise();
+ArrayHook.initialise();
 
 // This allows code to be loaded in node.js for tests, even if we dont run actual React methods
 if (document !== undefined && document.getElementById !== undefined) {

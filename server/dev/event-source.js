@@ -6,6 +6,7 @@ var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
 var StreamableTypes = EntryPoints.StreamableTypes;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
+var CallData = EntryPoints.CallData;
 var SignalMessage = EntryPoints.SignalMessage;
 
 var logger = new EntryPoints.LoggerFactory().createLogger(EntryPoints.ELoggerType.Server);
@@ -152,10 +153,11 @@ function broadcastNewParticipation(callParticipation) {
 }
 
 // Deliver a new WebRTC item
-function deliverOne(item) {
+function deliverOne(item, store) {
    const message = new SignalMessage(null, item.to.facilityId, item.to.sessionId, item.to.sessionSubId, sequence, item);
    sequence = sequence + 1;
-   new SignalMessageModel(SignalMessage.toStored(message)).save(); 
+   if (store)
+      new SignalMessageModel(SignalMessage.toStored(message)).save(); 
 
    var subscribers = facilityMap.get(item.to.facilityId);
    for (var i = 0; i < subscribers.length; i++)
@@ -166,17 +168,25 @@ function deliverOne(item) {
 
 // Deliver a new WebRTC offer
 function deliverNewOffer (callOffer) {
-   deliverOne(callOffer);
+   deliverOne(callOffer, true);
 }
 
 // Deliver a new WebRTC answer
 function deliverNewAnswer(callAnswer) {
-   deliverOne(callAnswer);
+   deliverOne(callAnswer, true);
 }
 
 // Deliver a new WebRTC ICE candidate
 function deliverNewIceCandidate(callIceCandidate) {
-   deliverOne(callIceCandidate);
+   deliverOne(callIceCandidate, true);
+}
+
+function deliverNewDataBatch(callDataBatched) {
+   // deliver items individually as SSN from the single API batch we were sent
+   for (var i = 0; callDataBatched.to && i < callDataBatched.to.length; i++) {
+      var callData = new CallData(null, callDataBatched.from, callDataBatched.to[i], callDataBatched.data);
+      deliverOne(callData, false);
+   }
 }
 
 module.exports.initialise = initialise;
@@ -185,3 +195,4 @@ module.exports.broadcastNewParticipation = broadcastNewParticipation;
 module.exports.deliverNewOffer = deliverNewOffer;
 module.exports.deliverNewAnswer = deliverNewAnswer;
 module.exports.deliverNewIceCandidate = deliverNewIceCandidate;
+module.exports.deliverNewDataBatch = deliverNewDataBatch;
