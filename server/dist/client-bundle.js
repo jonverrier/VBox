@@ -55332,11 +55332,17 @@ class WebPeerHelper {
     }
     handleAnswer(answer) {
         this._isChannelConnected = true;
+        // Send the local person to start the application handshake
+        this.send(this._localPerson);
+        WebPeerHelper.drainSendQueue(this._signaller);
     }
     answerCall(remoteOffer) {
         let answer = new Call_1.CallAnswer(null, this._localCallParticipation, this._remoteCallParticipation, "Web", Call_1.ETransportType.Web);
         this._signaller.sendAnswer(answer);
         this._isChannelConnected = true;
+        // Send the local person to start the application handshake
+        this.send(this._localPerson);
+        WebPeerHelper.drainSendQueue(this._signaller);
     }
     close() {
         // TODO
@@ -55385,25 +55391,20 @@ class WebPeerHelper {
         }
     }
     onRecieveMessage(data) {
-        // Too noisy to keep this on 
-        // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
-        var remoteCallData = data;
+        logger.logInfo(WebPeerHelper.className, 'onRecieveMessage', "message:", data.data);
+        var remoteCallData = data.data;
         // Store the person we are talking to - allows tracking in the UI later
         if (remoteCallData.type === Person_1.Person.__type) {
             var person = remoteCallData;
             // Store a unique derivation of name in case a person join multiple times
             this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
             if (this.onRemoteData) {
-                var ev = new Event('remotecalldata');
-                ev.data = remoteCallData;
-                this.onRemoteData(ev);
+                this.onRemoteData(remoteCallData);
             }
         }
         else {
             if (this.onRemoteData) {
-                var ev = new Event('remotecalldata');
-                ev.data = remoteCallData;
-                this.onRemoteData(ev);
+                this.onRemoteData(remoteCallData);
             }
         }
     }

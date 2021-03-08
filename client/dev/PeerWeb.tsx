@@ -223,8 +223,8 @@ export class WebPeerHelper {
       this._isChannelConnected = false;
    }
 
-   // Override these for notifications - TODO - see top of file
-   onRemoteData: ((this: WebPeerHelper, ev: Event) => void) | null;
+   // Override these for notifications 
+   onRemoteData: ((this: WebPeerHelper, ev: IStreamable) => void) | null;
    onRemoteFail: ((this: WebPeerHelper) => void) | null;
 
    /**
@@ -256,12 +256,20 @@ export class WebPeerHelper {
 
    handleAnswer(answer: CallAnswer): void {
       this._isChannelConnected = true;
+
+      // Send the local person to start the application handshake
+      this.send(this._localPerson);
+      WebPeerHelper.drainSendQueue(this._signaller);
    }
 
    answerCall(remoteOffer: CallOffer): void {
       let answer = new CallAnswer (null, this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
       this._signaller.sendAnswer(answer);
       this._isChannelConnected = true;
+
+      // Send the local person to start the application handshake
+      this.send(this._localPerson);
+      WebPeerHelper.drainSendQueue(this._signaller);
    }
 
    close(): void {
@@ -322,10 +330,10 @@ export class WebPeerHelper {
    }
 
    private onRecieveMessage(data: CallData) {
-      // Too noisy to keep this on 
-      // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+ 
+      logger.logInfo(WebPeerHelper.className, 'onRecieveMessage', "message:", data.data);
 
-      var remoteCallData = data;
+      var remoteCallData = data.data;
 
       // Store the person we are talking to - allows tracking in the UI later
       if (remoteCallData.type === Person.__type) {
@@ -340,16 +348,12 @@ export class WebPeerHelper {
             person.lastAuthCode);
 
          if (this.onRemoteData) {
-            var ev: Event = new Event('remotecalldata');
-            (ev as any).data = remoteCallData;
-            this.onRemoteData(ev);
+            this.onRemoteData(remoteCallData);
          }
       } else {
 
          if (this.onRemoteData) {
-            var ev: Event = new Event('remotecalldata');
-            (ev as any).data = remoteCallData;
-            this.onRemoteData(ev);
+            this.onRemoteData(remoteCallData);
          }
       }
    }
