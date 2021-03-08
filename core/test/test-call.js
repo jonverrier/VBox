@@ -3,6 +3,7 @@
 
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
+var ETransportType = EntryPoints.ETransportType;
 var CallParticipation = EntryPoints.CallParticipation;
 var CallParticipation = EntryPoints.CallParticipation;
 var CallOffer = EntryPoints.CallOffer;
@@ -10,6 +11,7 @@ var CallAnswer = EntryPoints.CallAnswer;
 var CallIceCandidate = EntryPoints.CallIceCandidate;
 var CallLeaderResolve = EntryPoints.CallLeaderResolve;
 var CallData = EntryPoints.CallData;
+var CallDataBatched = EntryPoints.CallDataBatched;
 var CallKeepAlive = EntryPoints.CallKeepAlive;
 var StreamableTypes = EntryPoints.StreamableTypes;
 
@@ -57,8 +59,8 @@ describe("CallOffer", function () {
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
-      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
-      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
+      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1", ETransportType.Rtc);
+      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2", ETransportType.Rtc);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -73,6 +75,7 @@ describe("CallOffer", function () {
       expect(offer1.from.equals(callerFrom)).to.equal(true);
       expect(offer1.to.equals(callerTo)).to.equal(true);
       expect(offer1.offer).to.equal("offer1");
+      expect(offer1.transport).to.equal(ETransportType.Rtc);
    });
 
    it("Needs to save and restore to/from JSON", function () {
@@ -93,8 +96,8 @@ describe("CallAnswer", function () {
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", false, "123");
-      answer1 = new CallAnswer("id", callerFrom, callerTo, "answer1");
-      answer2 = new CallAnswer("id", callerTo, callerFrom, "answer2");
+      answer1 = new CallAnswer("id", callerFrom, callerTo, "answer1", ETransportType.Rtc);
+      answer2 = new CallAnswer("id", callerTo, callerFrom, "answer2", ETransportType.Rtc);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -238,8 +241,8 @@ describe("CallOffer", function () {
    beforeEach(function () {
       callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
       callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
-      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1");
-      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2");
+      offer1 = new CallOffer("id", callerFrom, callerTo, "offer1", ETransportType.Rtc);
+      offer2 = new CallOffer("id", callerTo, callerFrom, "offer2", ETransportType.Rtc);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -254,6 +257,7 @@ describe("CallOffer", function () {
       expect(offer1.from.equals(callerFrom)).to.equal(true);
       expect(offer1.to.equals(callerTo)).to.equal(true);
       expect(offer1.offer).to.equal("offer1");
+      expect(offer1.transport).to.equal(ETransportType.Rtc);
    });
 
    it("Needs to save and restore to/from JSON", function () {
@@ -298,9 +302,46 @@ describe("CallData", function () {
       var output = JSON.stringify(data1);
 
       var obj = types.reviveFromJSON(output);
-      console.log(JSON.stringify(data1));
-      console.log(JSON.stringify(obj));
 
+      expect(data1.equals(obj)).to.equal(true);
+   });
+});
+
+describe("CallDataBatched", function () {
+   var callerFrom, callerTo, arr;
+   var data1, data2;
+
+   beforeEach(function () {
+      callerFrom = new CallParticipation("id", "facility", "person", false, "123", "xx");
+      callerTo = new CallParticipation("id", "12345", "agag", false, "123", "yy");
+      arr = new Array();
+      arr.push(callerTo);
+      arr.push(callerFrom);
+
+      data1 = new CallDataBatched("id", callerFrom, arr, "data1");
+      data2 = new CallDataBatched("id", callerTo, arr, "data2");
+   });
+
+   it("Needs to compare for equality and inequality", function () {
+
+      expect(data1).to.equal(data1);
+      expect(data1).to.not.equal(data2);
+   });
+
+   it("Needs to correctly store attributes", function () {
+
+      expect(data1._id).to.equal("id");
+      expect(data1.from.equals(callerFrom)).to.equal(true);
+      expect(data1.to === arr).to.equal(true);
+      expect(data1.data).to.equal("data1");
+   });
+
+   it("Needs to save and restore to/from JSON", function () {
+
+      var types = new StreamableTypes();
+      var output = JSON.stringify(data1);
+
+      var obj = types.reviveFromJSON(output);
       expect(data1.equals(obj)).to.equal(true);
    });
 });

@@ -3,6 +3,11 @@
 import { IStreamableFor } from './Streamable';
 import { StreamableTypes } from './StreamableTypes';
 
+export enum ETransportType {
+   Rtc,
+   Web
+}
+
 //==============================//
 // CallParticipation class
 //==============================//
@@ -152,6 +157,7 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _offer: any;
+   private _transport: ETransportType;
 
    static readonly __type = "CallOffer";
 
@@ -161,13 +167,15 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param offer - the WebRTC Offer 
+    * @param transport = transport type (Web or RTC)
     */
-   constructor(_id: any=null, from: CallParticipation, to: CallParticipation, offer: any) {
+   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, offer: any, transport: ETransportType) {
 
       this._id = _id;
       this._from = from;
       this._to = to;
       this._offer = offer;
+      this._transport = transport;
    }
 
    /**
@@ -185,6 +193,9 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
    get offer(): any {
       return this._offer;
    }
+   get transport(): ETransportType {
+      return this._transport;
+   }
    get type(): string {
       return CallOffer.__type;
    }
@@ -199,7 +210,8 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
       return ((this._id === rhs._id) &&
          (this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
-         (this._offer === rhs._offer));
+         (this._offer === rhs._offer) &&
+         (this._transport === rhs._transport));
    };
 
    /**
@@ -214,7 +226,8 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
             _id: this._id,
             _from: this._from,
             _to: this._to,
-            _offer: this._offer
+            _offer: this._offer,
+            _transport: this.transport
          }
       };
    };
@@ -241,7 +254,8 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
       return new CallOffer(data._id,
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
-         data._offer);
+         data._offer,
+         data._transport);
    };
 }
 
@@ -254,6 +268,7 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _answer: any;
+   private _transport: ETransportType;
 
    static readonly __type = "CallAnswer";
 
@@ -263,13 +278,15 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param answer - the WebRTC Offer 
+    * @param transport = transport type (Web or RTC)
     */
-   constructor(_id: any=null, from: CallParticipation, to: CallParticipation, answer: any) {
+   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, answer: any, transport: ETransportType) {
 
       this._id = _id;
       this._from = from;
       this._to = to;
       this._answer = answer;
+      this._transport = transport;
    }
 
    /**
@@ -287,6 +304,9 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    get answer(): any {
       return this._answer;
    }
+   get transport(): ETransportType {
+      return this._transport;
+   }
    get type(): string {
       return CallAnswer.__type;
    }
@@ -301,7 +321,8 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
       return ((this._id === rhs._id) &&
          (this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
-         (this._answer === rhs._answer));
+         (this._answer === rhs._answer) &&
+         (this._transport === rhs._transport));
    };
 
    /**
@@ -316,7 +337,8 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
             _id: this._id,
             _from: this._from,
             _to: this._to,
-            _answer: this._answer
+            _answer: this._answer,
+            _transport: this._transport
          }
       };
    };
@@ -343,7 +365,8 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
       return new CallAnswer(data._id,
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
-         data._answer);
+         data._answer,
+         data._transport);
    };
 }
 
@@ -726,6 +749,117 @@ export class CallData implements IStreamableFor<CallData> {
       return new CallData(data._id,
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
+         types.reviveFromJSON(data._data));
+   };
+}
+
+//==============================//
+// CallDataBatched class
+//==============================//
+export class CallDataBatched implements IStreamableFor<CallDataBatched> {
+
+   private _id: any;
+   private _from: CallParticipation;
+   private _to: Array<CallParticipation>;
+   private _data: any;
+
+   static readonly __type = "CallDataBatched";
+
+   /**
+    * Create a CallDataBatched object - used when webRTC fails & data is shipped via server
+    * This class is used when data is to be delivered to possibly multiple participants
+    * @param _id - Mongo-DB assigned ID
+    * @param from - CallParticipation
+    * @param to - CallParticipation - for this version, its an array.
+    * @param data - the data payload 
+    */
+   constructor(_id: any = null, from: CallParticipation, to: Array<CallParticipation>, data: any) {
+
+      this._id = _id;
+      this._from = from;
+      this._to = to;
+      this._data = data;
+   }
+
+   /**
+   * set of 'getters' for private variables
+   */
+   get id(): any {
+      return this._id;
+   }
+   get from(): CallParticipation {
+      return this._from;
+   }
+   get to(): Array<CallParticipation> {
+      return this._to;
+   }
+   get data(): any {
+      return this._data;
+   }
+   get type(): string {
+      return CallData.__type;
+   }
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   equals(rhs: CallDataBatched): boolean {
+
+      return ((this._id === rhs._id) &&
+         (this._from.equals(rhs._from)) &&
+         ((this._to as any).equals(rhs._to)) && // Uses the equals method from ArrayHook
+         this.data === rhs.data); 
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   toJSON(): Object {
+
+      return {
+         __type: CallDataBatched.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            _from: this._from,
+            _to: this._to,
+            _data: JSON.stringify(this._data)
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   static revive(data: any): CallDataBatched {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return CallDataBatched.reviveDb(data.attributes);
+
+      return CallDataBatched.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   static reviveDb(data: any): CallDataBatched {
+
+      // revive the list of targets
+      let revivedParticipations = new Array<CallParticipation>(data._to ? data._to.length: 0);
+      for (var i = 0; data._to && i < data._to.length; i++) {
+         revivedParticipations[i] = CallParticipation.revive(data._to[i]);
+      }
+
+      var types = new StreamableTypes();
+
+      return new CallDataBatched(data._id,
+         CallParticipation.revive(data._from),
+         revivedParticipations,
          types.reviveFromJSON(data._data));
    };
 }

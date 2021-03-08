@@ -1,12 +1,13 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
 import { LoggerFactory, ELoggerType } from './Logger';
+import { ArrayHook } from './ArrayHook';
 import { Person } from './Person';
 import { Facility } from './Facility';
 import { StreamableTypes } from './StreamableTypes';
-import { DateWithDays } from './Dates'
+import { DateHook } from './DateHook'
 import { Queue, QueueString, QueueNumber, QueueAny } from './Queue'
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData } from './Call'
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
@@ -19,11 +20,11 @@ var EntryPoints = {
    StreamableTypes: StreamableTypes,
    Person: Person,
    Facility: Facility,
-   DateWithDays: DateWithDays,
    Queue: Queue,
    QueueString: QueueString,
    QueueNumber: QueueNumber,
    QueueAny: QueueAny,
+   ETransportType: ETransportType,
    CallParticipation: CallParticipation,
    CallOffer: CallOffer,
    CallAnswer: CallAnswer,
@@ -31,6 +32,7 @@ var EntryPoints = {
    CallLeaderResolve: CallLeaderResolve,
    CallKeepAlive: CallKeepAlive,
    CallData: CallData,
+   CallDataBatched: CallDataBatched,
    SignalMessage: SignalMessage,
    UserFacilities: UserFacilities,
    Whiteboard: Whiteboard,
@@ -46,6 +48,9 @@ var EntryPoints = {
    EThreeStateRagEnum: EThreeStateRagEnum,
    EFourStateRagEnum: EFourStateRagEnum
 };
+
+ArrayHook.initialise();
+DateHook.initialise();
 
 export default EntryPoints;
 

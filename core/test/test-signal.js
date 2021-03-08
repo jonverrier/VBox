@@ -3,6 +3,7 @@
 
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
+var ETransportType = EntryPoints.ETransportType;
 var CallParticipation = EntryPoints.CallParticipation;
 var CallParticipation = EntryPoints.CallParticipation;
 var CallOffer = EntryPoints.CallOffer;
@@ -23,8 +24,8 @@ describe("SignalMessage", function () {
       callParticipation = new CallParticipation("id", "facilityId", "personId", "sessionId");
       callKeepAlive = new CallKeepAlive("id");
       callIce = new CallIceCandidate("id", callParticipation, callParticipation, "ice1", true);
-      callOffer = new CallOffer("id", callParticipation, callParticipation, "offer1");
-      callAnswer = new CallAnswer("id", callParticipation, callParticipation, "answer1");
+      callOffer = new CallOffer("id", callParticipation, callParticipation, "offer1", ETransportType.Rtc);
+      callAnswer = new CallAnswer("id", callParticipation, callParticipation, "answer1", ETransportType.Rtc);
 
       signalMessageParticipant = new SignalMessage("id", "facility1", "12345", "6789", 0, callParticipation);
       signalMessage2 = new SignalMessage("id", "facility1", "12345", "6789", 1, callParticipation);

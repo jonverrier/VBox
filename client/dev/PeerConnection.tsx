@@ -1,5 +1,12 @@
 /*! Copyright TXPCo, 2020, 2021 */
-//
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // External libraries
 import * as React from 'react';
@@ -8,14 +15,15 @@ import adapter from 'webrtc-adapter'; // Google shim library
  
 // This app, external components
 import { Person } from '../../core/dev/Person';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from '../../core/dev/Call';
 import { IStreamable } from '../../core/dev/Streamable';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 
 // This app, this component
 import { PeerNameCache, IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 import { PeerLink } from './PeerLink';
-import { SignalSender, SignalReciever} from './PeerSignaller';
+import { SignalSender, SignalReciever } from './PeerSignaller';
+import { WebPeerHelper } from './PeerWeb';
 
 function uuidPart(): string {
    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
@@ -103,6 +111,7 @@ export class PeerConnection {
       for (var i = 0; i < self._links.length; i++) {
          self._links[i].send(obj);
       }
+      WebPeerHelper.drainSendQueue(this._signalSender);
    }
 
    private onServerEvent(data: IStreamable): void {
@@ -133,7 +142,8 @@ export class PeerConnection {
          case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.
             break;
          case "CallData":
-            // TODO - forward to listener
+            let callData: CallData = casting;
+            this.onRemoteData(callData);
             break;
          default:
             logger.logInfo(PeerConnection.className, 'onServerEvent', "data:", data);
@@ -141,7 +151,7 @@ export class PeerConnection {
       }
    }
 
-   private onParticipant(remoteParticipation: CallParticipation) {
+   private onParticipant(remoteParticipation: CallParticipation) : void {
 
       // If we are an edge node, and the caller is not a leader, dont respond.
       if (this._isEdgeOnly && !remoteParticipation.isCandidateLeader)
@@ -151,8 +161,14 @@ export class PeerConnection {
       if (this._isEdgeOnly && remoteParticipation.isCandidateLeader && 
          this.isConnectedToLeader())
          return;
+      
+      this.createCallerLink(remoteParticipation, ETransportType.Rtc);
+   }
+
+   private createCallerLink(remoteParticipation: CallParticipation, transport: ETransportType): PeerLink {
 
       var link = new PeerLink(true,
+         transport,
          this._localCallParticipation,
          remoteParticipation,
          this._person,
@@ -169,22 +185,36 @@ export class PeerConnection {
          }
       };
 
-      // Hook link failre - if the peer connect fails, connect via web
+      // Hook link failure - if the peer connect fails, connect via web
       link.onRemoteFail = this.onLinkFail.bind(this);
 
       this._links.push(link);
 
       // place the call after setting up 'links' to avoid a race condition
       link.placeCall();
+
+      return link;
    }
 
    private onLinkFail(link: PeerLink): void {
-      // TODO - fall back to a web link here
+      var found: boolean = false;
+
+      for (var i = 0; i < this._links.length && !found; i++) {
+         if (this._links[i] === link) {
+            this._links.splice(i);
+            found = true;
+         }
+      }
+
+      if (link.isOutbound) {
+         this.createCallerLink(link.remoteCallParticipation, ETransportType.Web);
+      }
    }
 
-   private setupRecieverLink(remoteParticipation: CallParticipation): PeerLink {
+   private createRecieverLink(remoteParticipation: CallParticipation, transport: ETransportType): PeerLink {
 
       var link = new PeerLink(false,
+         transport,
          this._localCallParticipation,
          remoteParticipation,
          this._person,
@@ -200,6 +230,9 @@ export class PeerConnection {
             }
          }
       };
+
+      // Hook link failure - if the peer connect fails, connect via web
+      link.onRemoteFail = this.onLinkFail.bind(this);
 
       this._links.push(link);
 
@@ -207,15 +240,14 @@ export class PeerConnection {
    }
 
    private onOffer(remoteOffer: CallOffer) : void {
-      var self = this;
 
       // This loop removes glare, when we may be trying to set up calls with each other.
-      for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteOffer.from)) {
+      for (var i = 0; i < this._links.length; i++) {
+         if (this._links[i].remoteCallParticipation.equals(remoteOffer.from)) {
             // If the server restarts, other clients will try to reconect, resulting race conditions for the offer 
             // The recipient with the greater glareResolve makes the winning offer 
-            if (self._localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
-               self._links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
+            if (this._localCallParticipation.glareResolve < remoteOffer.from.glareResolve) {
+               this._links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
             } else {
                return;               // if we win, they will answer our offer, we do nothing more 
             }
@@ -223,17 +255,16 @@ export class PeerConnection {
       }
 
       // Setup links befoe answering the call to remove race conditions from asynchronous arrival
-      let link = this.setupRecieverLink(remoteOffer.from);
+      let link = this.createRecieverLink(remoteOffer.from, remoteOffer.transport);
       link.answerCall(remoteOffer);
    }
 
    private onAnswer(remoteAnswer: CallAnswer) : void {
-      var self = this;
       var found = false;
 
-      for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteAnswer.from)) {
-            self._links[i].handleAnswer(remoteAnswer);
+      for (var i = 0; i < this._links.length; i++) {
+         if (this._links[i].remoteCallParticipation.equals(remoteAnswer.from)) {
+            this._links[i].handleAnswer(remoteAnswer);
             found = true;
             break;
          }
@@ -243,17 +274,16 @@ export class PeerConnection {
    }
 
    private onRemoteIceCandidate(remoteIceCandidate: CallIceCandidate) : void {
-      var self = this;
       var found : boolean = false;
 
-      for (var i = 0; i < self._links.length && !found; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteIceCandidate.from)) {
+      for (var i = 0; i < this._links.length && !found; i++) {
+         if (this._links[i].remoteCallParticipation.equals(remoteIceCandidate.from)) {
             found = true;
          }
       }
 
       if (!found) {
-         this.setupRecieverLink(remoteIceCandidate.from);
+         this.createRecieverLink(remoteIceCandidate.from, ETransportType.Rtc);
       }
 
       found = false;
@@ -261,10 +291,10 @@ export class PeerConnection {
       // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
       // incoming messages still pending
       // So fail silently if we get unexpected Ice candidate messages 
-      for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation().equals(remoteIceCandidate.from)) {
+      for (var i = 0; i < this._links.length; i++) {
+         if (this._links[i].remoteCallParticipation.equals(remoteIceCandidate.from)) {
             if (remoteIceCandidate.outbound) { 
-               self._links[i].handleIceCandidate(remoteIceCandidate);
+               this._links[i].handleIceCandidate(remoteIceCandidate);
             }
             found = true;
             break;
@@ -272,8 +302,22 @@ export class PeerConnection {
       }
       if (!found) {
          logger.logError(PeerConnection.className, 'onRemoteIceCandidate', "Remote:", remoteIceCandidate);
-         logger.logError(PeerConnection.className, 'onRemoteIceCandidate', "Links:", self._links);
+         logger.logError(PeerConnection.className, 'onRemoteIceCandidate', "Links:", this._links);
       }
+   }
+
+   private onRemoteData (callData: CallData): void {
+      var found = false;
+
+      for (var i = 0; i < this._links.length; i++) {
+         if (this._links[i].remoteCallParticipation.equals(callData.from)) {
+            this._links[i].handleRemoteData (callData);
+            found = true;
+            break;
+         }
+      }
+      if (!found)
+         logger.logError(PeerConnection.className, 'onRemoteData', "cannot find target:", callData);
    }
 }
 

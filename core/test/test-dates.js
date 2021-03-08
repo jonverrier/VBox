@@ -3,7 +3,6 @@
 
 var pkg = require ('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
-var DateWithDays = EntryPoints.DateWithDays;
 
 var expect = require("chai").expect;
 
@@ -12,7 +11,7 @@ describe("DateWithDays", function () {
   
    
    it("Needs to return a weekday", function () {
-      let date = new DateWithDays("2021-02-22");
+      let date = new Date ("2021-02-22");
       expect(date.getWeekDay()).to.equal("Monday");
    });
    

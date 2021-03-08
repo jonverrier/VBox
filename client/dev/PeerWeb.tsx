@@ -1,10 +1,12 @@
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the Peer architecture:
-// PeerConnection : overall orchestration & interface to the UI. 
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
 // PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
 // PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
-// PeerRtc - contains concrete implementations of PeerCaller and PeerSender. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // RTC References:
 // https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
@@ -20,7 +22,7 @@ import { Queue } from '../../core/dev/Queue';
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { StreamableTypes } from '../../core/dev/StreamableTypes';
 import { IStreamable } from '../../core/dev/Streamable';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate } from '../../core/dev/Call';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData, CallDataBatched } from '../../core/dev/Call';
 
 // This app, this component
 import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache } from './PeerInterfaces'
@@ -80,6 +82,10 @@ export class PeerCallerWeb implements IPeerCaller {
 
    handleIceCandidate(ice: CallIceCandidate): void {
       // No-op for web connection
+   }
+
+   handleRemoteData(data: CallData): void {
+      this.peerHelp.handleRemoteData(data);
    }
 
    send(obj: IStreamable): void {
@@ -156,6 +162,10 @@ export class PeerRecieverWeb implements IPeerReciever {
       // No-op for web connection
    }
 
+   handleRemoteData(data: CallData): void {
+      this.peerHelp.handleRemoteData(data);
+   }
+
    send(obj: IStreamable): void {
       this.peerHelp.send(obj);
    }
@@ -179,7 +189,7 @@ export class PeerRecieverWeb implements IPeerReciever {
    }
 }
 
-class WebPeerHelper {
+export class WebPeerHelper {
 
    // member variables
    private _localCallParticipation: CallParticipation;
@@ -192,7 +202,10 @@ class WebPeerHelper {
    private _types: StreamableTypes;
    private static className: string = 'WebPeerHelper';
 
-   private _sendQueue: Queue<IStreamable>;
+   private static _sendQueue: Queue<IStreamable> = new Queue<IStreamable> ();
+   private static _dataForBatch: IStreamable = null;
+   private static _recipents: Array<CallParticipation> = new Array<CallParticipation>();
+   private static _sender: CallParticipation = null;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
@@ -210,8 +223,8 @@ class WebPeerHelper {
       this._isChannelConnected = false;
    }
 
-   // Override these for notifications - TODO - see top of file
-   onRemoteData: ((this: WebPeerHelper, ev: Event) => void) | null;
+   // Override these for notifications 
+   onRemoteData: ((this: WebPeerHelper, ev: IStreamable) => void) | null;
    onRemoteFail: ((this: WebPeerHelper) => void) | null;
 
    /**
@@ -236,17 +249,27 @@ class WebPeerHelper {
    // Connection handling
    //////////
 
-
-   placeCall (): void {
-      // no-op
+   placeCall(): void {
+      let offer = new CallOffer(null, this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
+      this._signaller.sendOffer(offer);
    }
 
    handleAnswer(answer: CallAnswer): void {
-       // no-op
+      this._isChannelConnected = true;
+
+      // Send the local person to start the application handshake
+      this.send(this._localPerson);
+      WebPeerHelper.drainSendQueue(this._signaller);
    }
 
    answerCall(remoteOffer: CallOffer): void {
-      // no-op
+      let answer = new CallAnswer (null, this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
+      this._signaller.sendAnswer(answer);
+      this._isChannelConnected = true;
+
+      // Send the local person to start the application handshake
+      this.send(this._localPerson);
+      WebPeerHelper.drainSendQueue(this._signaller);
    }
 
    close(): void {
@@ -254,20 +277,67 @@ class WebPeerHelper {
    }
 
    send(obj: IStreamable) : void {
-      // TODO - send logic goes here
+
+      if (!WebPeerHelper._dataForBatch) {
+         // first call - just save the item and pass back control
+         WebPeerHelper._dataForBatch = obj;
+         WebPeerHelper._sender = this._localCallParticipation;
+         WebPeerHelper._recipents.push(this._remoteCallParticipation);
+
+         return;
+      } else {
+         if (obj === WebPeerHelper._dataForBatch && this._localCallParticipation === WebPeerHelper._sender) {
+            // This case is a repeated re-send of the same item to different recipieents -> save the recipients
+            WebPeerHelper._recipents.push(this._remoteCallParticipation);
+         }
+         else {
+            // This case we have a new item being sent - flush the queue and restart
+            WebPeerHelper.drainSendQueue(this._signaller);
+
+            // Then save the new item and pass back control
+            WebPeerHelper._dataForBatch = obj;
+            WebPeerHelper._sender = this._localCallParticipation;
+            WebPeerHelper._recipents.push(this._remoteCallParticipation);
+         }
+         WebPeerHelper._dataForBatch = obj;
+      }
    }
 
-   private onRecieveMessage(ev: Event) {
-      // Too noisy to keep this on 
-      // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
 
-      var ev2: any = ev;
+   handleRemoteData(data: CallData): void {
+      this.onRecieveMessage (data);
+   }
 
-      var remoteCallData = this._types.reviveFromJSON(ev2.data);
+   static drainSendQueue(signaller: IPeerSignalSender) {
+
+      if (WebPeerHelper._dataForBatch) {
+         // Take a copy of the data to send as the send is anychronous & if new items come in we need to correctly accumulate them
+         let callData = new CallDataBatched(null, WebPeerHelper._sender, WebPeerHelper._recipents.map((x) => x), WebPeerHelper._dataForBatch);
+
+         // Reset accumulated data
+         WebPeerHelper._dataForBatch = null;
+         WebPeerHelper._sender = null;
+         WebPeerHelper._recipents = new Array<CallParticipation>();
+
+         // Send our data.
+         // we put it on a queue first as new data can arrive and get re-queued while we are sending to the server
+         WebPeerHelper._sendQueue.enqueue(callData);
+      }
+
+      while (!WebPeerHelper._sendQueue.isEmpty()) {
+         signaller.sendData(WebPeerHelper._sendQueue.dequeue());
+      }
+   }
+
+   private onRecieveMessage(data: CallData) {
+ 
+      logger.logInfo(WebPeerHelper.className, 'onRecieveMessage', "message:", data.data);
+
+      var remoteCallData = data.data;
 
       // Store the person we are talking to - allows tracking in the UI later
       if (remoteCallData.type === Person.__type) {
-         var person: Person = remoteCallData;
+         var person: Person = remoteCallData as any;
 
          // Store a unique derivation of name in case a person join multiple times
          this._remotePerson = new Person(person.id,
@@ -278,7 +348,7 @@ class WebPeerHelper {
             person.lastAuthCode);
 
          if (this.onRemoteData) {
-            this.onRemoteData(this._remotePerson as any);
+            this.onRemoteData(remoteCallData);
          }
       } else {
 

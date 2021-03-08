@@ -11,7 +11,6 @@ import { TriangleDownIcon } from '@primer/octicons-react'
 
 import * as CSS from 'csstype';
 
-import { DateWithDays } from '../../core/dev/Dates';
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
@@ -221,7 +220,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
          <div style={whiteboardStyle}>
             <Row style={thinStyle}>
                <Col style={whiteboardHeaderStyle}>
-                  {new DateWithDays().getWeekDay()}
+                  {((new Date()) as any).getWeekDay() /* Uses the extra method in DateHook */}
                </Col>
             </Row>
             <Row style={thinStyle}>
@@ -405,7 +404,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
          <div style={whiteboardStyle}>
             <Row style={thinStyle}>
                <Col style={whiteboardHeaderStyle}>
-                  {new DateWithDays().getWeekDay()}
+                  {((new Date()) as any).getWeekDay() /* Uses the extra method in DateHook */}
                </Col>
             </Row>
             <Row style={thinStyle}>
