@@ -16,8 +16,11 @@ export class ClientLoggerWrap {
       this.logger = logging;
    }
 
-   logError (fromClass: string, fromMethod: string, info: string, objAsJSON: string) : void {
-      const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "");
+   logError(fromClass: string, fromMethod: string, info: string, objAsJSON: string): void {
+      let date = new Date();
+      let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + ':' + date.getMilliseconds();
+
+      const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "") + ' at:' + timeString;
       this.logger.error('Error:' + msg);
 
       axios.post('/api/error', { params: { message: encodeURIComponent(msg) } })
@@ -25,8 +28,10 @@ export class ClientLoggerWrap {
          });
    }
 
-   logInfo(fromClass: string, fromMethod: string, info: string, objAsJSON: string) : void {
-      this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : ""));
+   logInfo(fromClass: string, fromMethod: string, info: string, objAsJSON: string): void {
+      let date = new Date();
+      let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + ':' + date.getMilliseconds();
+      this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "") + ' at:' + timeString);
    }
 }
 

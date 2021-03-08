@@ -46,11 +46,7 @@ function eventFeed(req, res, next) {
    var types = new StreamableTypes();
    var callParticipation = types.reviveFromJSON(decodeURIComponent(req.query.callParticipation));
 
-   logger.logInfo('event-source', 'eventFeed', 'Subscription from :', callParticipation);
-
    if (!facilityMap.has(callParticipation.facilityId)) {
-
-      logger.logInfo('event-source', 'eventFeed', 'new map :', callParticipation.facilityId);
 
       facilityMap.set(callParticipation.facilityId, new Array());
 
@@ -105,8 +101,6 @@ function eventFeed(req, res, next) {
    req.on('close', () => {
       var subscribers = facilityMap.get(callParticipation.facilityId);
 
-      logger.logInfo('event-source', 'eventFeed', 'Closing subscription for:', callParticipation.facilityId);
-
       for (var i = 0; i < subscribers.length; i++)
          if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
             && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
@@ -125,8 +119,6 @@ function broadcastKeepAlive(facilityId) {
 
    var subscribers = facilityMap.get(facilityId);
    for (var i = 0; i < subscribers.length; i++) {
-      logger.logInfo('event-source', 'broadcastKeepAlive', 'Writing to :', subscribers[i].callParticipation);
-      logger.logInfo('event-source', 'broadcastKeepAlive', 'Writing :', JSON.stringify(message));
       subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
       subscribers[i].response.flush();
    }
@@ -144,8 +136,6 @@ function broadcastNewParticipation(callParticipation) {
       // filter out 'new participation' messages so we don't send back to the same new joiner
       if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
          && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId)) {
-         logger.logInfo('event-source', 'broadcastNewParticipation', 'Writing to :', subscribers[i].callParticipation);
-         logger.logInfo('event-source', 'broadcastNewParticipation', 'Writing :', JSON.stringify(message));
          subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
          subscribers[i].response.flush();
       }
@@ -167,17 +157,20 @@ function deliverOne(item, store) {
 }
 
 // Deliver a new WebRTC offer
-function deliverNewOffer (callOffer) {
+function deliverNewOffer(callOffer) {
+   logger.logInfo('event-source', 'deliverNewOffer', 'Offer:', callOffer);
    deliverOne(callOffer, true);
 }
 
 // Deliver a new WebRTC answer
 function deliverNewAnswer(callAnswer) {
+   logger.logInfo('event-source', 'deliverNewAnswer', 'Answer:', callAnswer);
    deliverOne(callAnswer, true);
 }
 
 // Deliver a new WebRTC ICE candidate
 function deliverNewIceCandidate(callIceCandidate) {
+   logger.logInfo('event-source', 'deliverNewIceCandidate', 'Ice:', callIceCandidate);
    deliverOne(callIceCandidate, true);
 }
 
@@ -185,6 +178,7 @@ function deliverNewDataBatch(callDataBatched) {
    // deliver items individually as SSN from the single API batch we were sent
    for (var i = 0; callDataBatched.to && i < callDataBatched.to.length; i++) {
       var callData = new CallData(null, callDataBatched.from, callDataBatched.to[i], callDataBatched.data);
+      logger.logInfo('event-source', 'deliverNewDataBatch', 'data:', callData);
       deliverOne(callData, false);
    }
 }

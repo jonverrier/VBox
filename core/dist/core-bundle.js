@@ -4283,7 +4283,7 @@ class CallParticipation {
      * @param _id - Mongo-DB assigned ID
      * @param facilityId - ID for the facility hosting the call
      * @param personId - iD for the call participant
-     * @param isCandidateLeader - true of the person is a possible call leader
+     * @param isCandidateLeader - true if the person is a possible call leader
      * @param sessionId - iD for the call session (in case same person joins > once)
      * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
      * @param glareResolve - if provided, a number to use for the glareResolution test. By design, don't reset this
@@ -5646,14 +5646,18 @@ class ClientLoggerWrap {
         this.logger = logging;
     }
     logError(fromClass, fromMethod, info, objAsJSON) {
-        const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "");
+        let date = new Date();
+        let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + ':' + date.getMilliseconds();
+        const msg = ' ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "") + ' at:' + timeString;
         this.logger.error('Error:' + msg);
         axios_1.default.post('/api/error', { params: { message: encodeURIComponent(msg) } })
             .then((response) => {
         });
     }
     logInfo(fromClass, fromMethod, info, objAsJSON) {
-        this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : ""));
+        let date = new Date();
+        let timeString = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + ':' + date.getMilliseconds();
+        this.logger.info('Info: ' + fromClass + "." + fromMethod + ": " + info + (objAsJSON ? objAsJSON : "") + ' at:' + timeString);
     }
 }
 exports.ClientLoggerWrap = ClientLoggerWrap;
