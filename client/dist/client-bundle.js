@@ -56050,7 +56050,13 @@ class CoachPage extends React.Component {
                     React.createElement(Jumbotron_1.default, { style: { background: 'gray', color: 'white' } },
                         React.createElement("h1", null, "Welcome!"),
                         React.createElement("p", null, "Welcome to UltraBox. Sign in below to get access to your class."),
-                        React.createElement(Button_1.default, { variant: "secondary", onClick: this.state.loginProvider.login.bind(this.state.loginProvider) }, "Coaches login with Facebook...")))));
+                        React.createElement(Row_1.default, { className: "align-items-center" },
+                            React.createElement(Col_1.default, { className: "d-none d-md-block" }),
+                            React.createElement(Col_1.default, null,
+                                React.createElement(Form_1.default.Group, { controlId: "formMeetingCode" },
+                                    React.createElement(Form_1.default.Control, { type: "text", placeholder: "Enter meeting code.", maxLength: 10, style: fieldBSepStyle, onChange: this.handleMeetCodeChange.bind(this), isValid: this.state.loginData.isValidMeetCode(), value: this.state.meetCodeCopy })),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.isDataReady, onClick: this.state.loginProvider.login.bind(this.state.loginProvider) }, "Coaches login with Facebook...")),
+                            React.createElement(Col_1.default, { className: "d-none d-md-block" }))))));
         }
         else {
             return (React.createElement("div", { className: "coachpage" },

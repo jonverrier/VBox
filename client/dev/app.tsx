@@ -567,7 +567,22 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <p>
                         Welcome to UltraBox. Sign in below to get access to your class.
                      </p>
-                     <Button variant="secondary" onClick={this.state.loginProvider.login.bind(this.state.loginProvider)}>Coaches login with Facebook...</Button>
+                     <Row className="align-items-center">
+                        <Col className="d-none d-md-block">
+                        </Col>
+                        <Col>
+                           <Form.Group controlId="formMeetingCode">
+                              <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={fieldBSepStyle}
+                                 onChange={this.handleMeetCodeChange.bind(this)}
+                                 isValid={this.state.loginData.isValidMeetCode()}
+                                 value={this.state.meetCodeCopy} />
+                           </Form.Group>
+                           <Button variant="secondary" disabled={!this.state.isDataReady}
+                              onClick={this.state.loginProvider.login.bind(this.state.loginProvider)}>Coaches login with Facebook...</Button>
+                        </Col>
+                        <Col className="d-none d-md-block">
+                        </Col>
+                     </Row>
                   </Jumbotron>
                </Container>
             </div>
