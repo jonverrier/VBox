@@ -35,7 +35,15 @@ export class MemberLoginData extends LoginMeetCodeData {
    }
 
    set name(name: string) {
+      var wasValid: boolean = this.isValid();
       this._name = name;
+      var isValidNow: boolean = this.isValid();
+
+      if (wasValid != isValidNow) {
+         if (this.onDataReadiness) {
+            this.onDataReadiness(isValidNow);
+         }
+      }
    }
 
    magicNumber(): number {

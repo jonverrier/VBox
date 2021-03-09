@@ -42,6 +42,7 @@
     <Content Include="test\test-call.js" />
     <Content Include="test\test-clock.js" />
     <Content Include="test\test-dates.js" />
+    <Content Include="test\test-document.js" />
     <Content Include="test\test-facility.js" />
     <Content Include="test\test-person.js" />
     <Content Include="test\test-queue.js" />
@@ -65,6 +66,10 @@
     <TypeScriptCompile Include="dev\Equals.tsx" />
     <TypeScriptCompile Include="dev\Facility.tsx" />
     <TypeScriptCompile Include="dev\GymClock.tsx" />
+    <TypeScriptCompile Include="dev\LiveChannnel.tsx" />
+    <TypeScriptCompile Include="dev\LiveCommand.tsx" />
+    <TypeScriptCompile Include="dev\LiveInterfaces.tsx" />
+    <TypeScriptCompile Include="dev\LiveWorkout.tsx" />
     <TypeScriptCompile Include="dev\Logger.tsx" />
     <TypeScriptCompile Include="dev\LoggerClientWrap.tsx" />
     <TypeScriptCompile Include="dev\LoggerServerWrap.tsx" />

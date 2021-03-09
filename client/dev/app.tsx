@@ -240,7 +240,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
    onLoginResult(isLoggedIn: boolean) : void {
 
-      var self = this;
+      var self = this as MemberPage;
 
       if (isLoggedIn) {
          // Make a request for user data to populate the home page 
@@ -260,6 +260,10 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
                self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId  });
                self.forceUpdate();
+
+               // Save valid credentials for pre-population next time
+               self.lastUserData.saveMeetingId(self.state.loginData.meetCode);
+               self.lastUserData.saveName(self.state.loginData.name);
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
@@ -503,7 +507,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    }
 
    onLoginResult (isLoggedIn: boolean) : void {
-      var self = this;
+      var self = this as CoachPage;
 
       // Make a request for user data to populate the home page 
       if (isLoggedIn) {
@@ -522,7 +526,11 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
                   // Keep alive to server every 25 seconds
                   let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-                  self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId});
+                  self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId });
+
+                  // Save valid credentials for pre-population next time
+                  self.lastUserData.saveMeetingId(self.state.loginData.meetCode);
+
                } else {
                   // handle error by setting state back to no user logged in
                   self.pageData = self.defaultPageData;
