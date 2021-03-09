@@ -331,8 +331,6 @@ export class WebPeerHelper {
 
    private onRecieveMessage(data: CallData) {
  
-      logger.logInfo(WebPeerHelper.className, 'onRecieveMessage', "message:", data.data);
-
       var remoteCallData = data.data;
 
       // Store the person we are talking to - allows tracking in the UI later

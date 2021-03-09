@@ -136,7 +136,7 @@ export class PeerConnection {
             break;
          case "CallIceCandidate":
             let iceCandidate: CallIceCandidate = casting;
-            logger.logInfo(PeerConnection.className, 'onServerEvent', "CallIceCandidate", iceCandidate.ice);
+            logger.logInfo(PeerConnection.className, 'onServerEvent', "CallIceCandidate" , iceCandidate.ice);
             this.onRemoteIceCandidate(iceCandidate);
             break;
          case "CallKeepAlive": // Nothing - don't log as it creates noise in the log.

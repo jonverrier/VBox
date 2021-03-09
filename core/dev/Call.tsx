@@ -28,7 +28,7 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
     * @param _id - Mongo-DB assigned ID
     * @param facilityId - ID for the facility hosting the call
     * @param personId - iD for the call participant 
-    * @param isCandidateLeader - true of the person is a possible call leader
+    * @param isCandidateLeader - true if the person is a possible call leader
     * @param sessionId - iD for the call session (in case same person joins > once)
     * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
     * @param glareResolve - if provided, a number to use for the glareResolution test. By design, don't reset this 
