@@ -45,17 +45,17 @@ function eventFeed(req, res, next) {
    var types = new StreamableTypes();
    var callParticipation = types.reviveFromJSON(decodeURIComponent(req.query.callParticipation));
 
-   if (!facilityMap.has(callParticipation.facilityId)) {
+   if (!facilityMap.has(callParticipation.meetingId)) {
 
-      facilityMap.set(callParticipation.facilityId, new Array());
+      facilityMap.set(callParticipation.meetingId, new Array());
 
       // sets a keep alive going, specific to the facility
       setInterval(() => {
-         broadcastKeepAlive(callParticipation.facilityId);
+         broadcastKeepAlive(callParticipation.meetingId);
       }, 1000 * 30, null);
    } 
 
-   facilityMap.get(callParticipation.facilityId).push({ callParticipation: callParticipation, response: res });
+   facilityMap.get(callParticipation.meetingId).push({ callParticipation: callParticipation, response: res });
 
    var clientSequenceNo = types.reviveFromJSON(decodeURIComponent(req.query.sequenceNo));
 
@@ -65,21 +65,23 @@ function eventFeed(req, res, next) {
       // Normally would filter results for the right target in the query, but mongoose does not allow $or on strings, so we manually filter in the callback
       // Assume performance OK as its only signalling mssages being replayed & volume should not be too high. 
       // Marked with TODO for high volume cases (setting up calls for 10s of facilities concurrently ...)
-      // sessionId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionId } ] },       // Null (broadcast) or targeted to the client
+      // meetingId: { $or: [{ $eq: null }, { $eq: callParticipation.meetingId } ] },       // Null (broadcast) or targeted to the client
       // sessionSubId: { $or: [{ $eq: null }, { $eq: callParticipation.sessionSubId } ] }, // Null (broadcast) or targeted to the client
-      // facilityId: { facilityId } // Same facility as client
+      // meetingId: { meetingId } // Same facility as client
       
       SignalMessageModel.find({
             sequenceNo: { $gt: clientSequenceNo },       // Sequence numbers the client has not recieved                                
          },    
          function(err, messages) {
-            var subscribers = facilityMap.get(callParticipation.facilityId);
+            var subscribers = facilityMap.get(callParticipation.meetingId);
 
+            // Outer loop iterates over subscribers in the meeting
             for (var i = 0; i < subscribers.length; i++) {
-               if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
+               if (subscribers[i].callParticipation.meetingId === callParticipation.meetingId
                && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
                   for (let message of messages) {
-                     if (message.facilityId === callParticipation.facilityId) {
+                     // wherever the messages is for the meeting, we sent it
+                     if (message.meetingId === callParticipation.meetingId) {
                         subscribers[i].response.write('data:' + JSON.stringify(SignalMessage.fromStored(message)) + '\n\n');
                         subscribers[i].response.flush();
                      }
@@ -90,7 +92,7 @@ function eventFeed(req, res, next) {
    }
 
    // send a keep alive back to the joiner so they see the channel is working
-   broadcastKeepAlive(callParticipation.facilityId);
+   broadcastKeepAlive(callParticipation.meetingId);
 
    // This pushes the notice of the new participant over server-sent event channel
    broadcastNewParticipation(callParticipation);
@@ -98,10 +100,10 @@ function eventFeed(req, res, next) {
    // When client closes connection we update the subscriber list
    // avoiding the disconnected one
    req.on('close', () => {
-      var subscribers = facilityMap.get(callParticipation.facilityId);
+      var subscribers = facilityMap.get(callParticipation.meetingId);
 
       for (var i = 0; i < subscribers.length; i++)
-         if (subscribers[i].callParticipation.sessionId === callParticipation.sessionId
+         if (subscribers[i].callParticipation.meetingId === callParticipation.meetingId
             && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId) {
             subscribers.splice(i, 1);
             break;
@@ -110,13 +112,13 @@ function eventFeed(req, res, next) {
 }
 
 // broadcast a keep alive message - required on Heroku
-function broadcastKeepAlive(facilityId) {
-   const message = new SignalMessage(null, facilityId, null, null, sequence, new CallKeepAlive(sequence));
+function broadcastKeepAlive(meetingId) {
+   const message = new SignalMessage(null, meetingId, null, sequence, new CallKeepAlive(sequence));
    // Dont bother saving keep alive messages to the replay log - no functional purpose. 
    // sequence = sequence + 1;
    // new SignalMessageModel(SignalMessage.toStored(message)).save(); 
 
-   var subscribers = facilityMap.get(facilityId);
+   var subscribers = facilityMap.get(meetingId);
    for (var i = 0; i < subscribers.length; i++) {
       subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
       subscribers[i].response.flush();
@@ -126,14 +128,14 @@ function broadcastKeepAlive(facilityId) {
 // broadcast a new subscriber
 function broadcastNewParticipation(callParticipation) {
 
-   const message = new SignalMessage(null, callParticipation.facilityId, null, null, sequence, callParticipation);
+   const message = new SignalMessage(null, callParticipation.meetingId, null, sequence, callParticipation);
    sequence = sequence + 1;
    new SignalMessageModel(SignalMessage.toStored(message)).save(); 
 
-   var subscribers = facilityMap.get(callParticipation.facilityId);
+   var subscribers = facilityMap.get(callParticipation.meetingId);
    for (var i = 0; i < subscribers.length; i++) {
       // filter out 'new participation' messages so we don't send back to the same new joiner
-      if (!(subscribers[i].callParticipation.sessionId === callParticipation.sessionId
+      if (!(subscribers[i].callParticipation.meetingId === callParticipation.meetingId
          && subscribers[i].callParticipation.sessionSubId === callParticipation.sessionSubId)) {
          subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
          subscribers[i].response.flush();
@@ -143,14 +145,14 @@ function broadcastNewParticipation(callParticipation) {
 
 // Deliver a new WebRTC item
 function deliverOne(item, store) {
-   const message = new SignalMessage(null, item.to.facilityId, item.to.sessionId, item.to.sessionSubId, sequence, item);
+   const message = new SignalMessage(null, item.to.meetingId, item.to.sessionSubId, sequence, item);
    sequence = sequence + 1;
    if (store)
       new SignalMessageModel(SignalMessage.toStored(message)).save(); 
 
-   var subscribers = facilityMap.get(item.to.facilityId);
+   var subscribers = facilityMap.get(item.to.meetingId);
    for (var i = 0; i < subscribers.length; i++)
-      if (subscribers[i].callParticipation.sessionId === item.to.sessionId
+      if (subscribers[i].callParticipation.meetingId === item.to.meetingId
          && subscribers[i].callParticipation.sessionSubId === item.to.sessionSubId) {
          subscribers[i].response.write('data:' + JSON.stringify(message) + '\n\n');
          subscribers[i].response.flush();
@@ -159,27 +161,27 @@ function deliverOne(item, store) {
 
 // Deliver a new WebRTC offer
 function deliverNewOffer(callOffer) {
-   logger.logInfo('event-source', 'deliverNewOffer', 'Offer:', callOffer);
+   // logger.logInfo('event-source', 'deliverNewOffer', 'Offer:', callOffer);
    deliverOne(callOffer, true);
 }
 
 // Deliver a new WebRTC answer
 function deliverNewAnswer(callAnswer) {
-   logger.logInfo('event-source', 'deliverNewAnswer', 'Answer:', callAnswer);
+   // logger.logInfo('event-source', 'deliverNewAnswer', 'Answer:', callAnswer);
    deliverOne(callAnswer, true);
 }
 
 // Deliver a new WebRTC ICE candidate
 function deliverNewIceCandidate(callIceCandidate) {
-   logger.logInfo('event-source', 'deliverNewIceCandidate', 'Ice:', callIceCandidate);
+   // logger.logInfo('event-source', 'deliverNewIceCandidate', 'Ice:', callIceCandidate);
    deliverOne(callIceCandidate, true);
 }
 
 function deliverNewDataBatch(callDataBatched) {
    // deliver items individually as SSN from the single API batch we were sent
    for (var i = 0; callDataBatched.to && i < callDataBatched.to.length; i++) {
-      var callData = new CallData(null, callDataBatched.from, callDataBatched.to[i], callDataBatched.data);
-      logger.logInfo('event-source', 'deliverNewDataBatch', 'data:', callData);
+      var callData = new CallData(callDataBatched.from, callDataBatched.to[i], callDataBatched.data);
+      // logger.logInfo('event-source', 'deliverNewDataBatch', 'data:', callData);
       deliverOne(callData, false);
    }
 }

@@ -13,8 +13,7 @@ import { IStreamableFor } from './Streamable';
 export class SignalMessage implements IStreamableFor<SignalMessage>  {
 
    private _id: any;
-   private _facilityId : string;
-   private _sessionId: string;
+   private _meetingId : string;
    private _sessionSubId: string;
    private _sequenceNo: number;
    private _data: any;
@@ -24,17 +23,15 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
   /**
    * Create a SignalMessage object 
    * @param _id - Mongo-DB assigned ID
-   * @param facilityId - ID for the facility hosting the call*
-   * @param sessionId - iD for the call session (in case same person joins > once)
+   * @param meetingId - ID for the meetingl*
    * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
    * @param sequenceNo - message sequence number, climbs nomintonicaly up from 0
    * @param data - data as an object. This is transformed to and from JSON for transport, must be registered with Type infrastructure
    */
-   constructor (_id, facilityId, sessionId, sessionSubId, sequenceNo, data) {
+   constructor(_id, _meetingId, sessionSubId, sequenceNo, data) {
 
       this._id = _id;
-      this._facilityId = facilityId;
-      this._sessionId = sessionId;
+      this._meetingId = _meetingId;
       this._sessionSubId = sessionSubId;
       this._sequenceNo = sequenceNo;
       this._data = data;
@@ -46,11 +43,8 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
    get id(): any {
       return this._id;
    }
-   get facilityId(): string {
-      return this._facilityId;
-   }
-   get sessionId(): string {
-      return this._sessionId;
+   get meetingId(): string {
+      return this._meetingId;
    }
    get sessionSubId(): string {
       return this._sessionSubId;
@@ -73,8 +67,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
    equals(rhs: SignalMessage) : boolean {
 
       return (this._id === rhs._id &&
-         (this._facilityId === rhs._facilityId) &&
-         (this._sessionId === rhs._sessionId) &&
+         (this._meetingId === rhs._meetingId) &&
          (this._sessionSubId === rhs._sessionSubId) &&
          (this._sequenceNo === rhs._sequenceNo) &&
          this._data.equals (rhs._data)); 
@@ -90,8 +83,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _id: this._id,
-            _facilityId: this._facilityId,
-            _sessionId: this._sessionId,
+            _meetingId: this._meetingId,
             _sessionSubId: this._sessionSubId,
             _sequenceNo: this._sequenceNo,
             _data: JSON.stringify (this._data)
@@ -121,8 +113,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
       var types = new StreamableTypes();
 
       return new SignalMessage(data._id,
-                               data._facilityId,
-                               data._sessionId,
+                               data._meetingId,
                                data._sessionSubId,
                                data._sequenceNo,
                                types.reviveFromJSON(data._data));
@@ -134,8 +125,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
     */
    static toStored(signalMessageIn: SignalMessage): SignalMessage {
       return new SignalMessage(signalMessageIn._id,
-         signalMessageIn._facilityId,
-         signalMessageIn._sessionId,
+         signalMessageIn._meetingId,
          signalMessageIn._sessionSubId,
          signalMessageIn._sequenceNo,
          JSON.stringify(signalMessageIn._data));
@@ -149,8 +139,7 @@ export class SignalMessage implements IStreamableFor<SignalMessage>  {
       var types = new StreamableTypes();
 
       return new SignalMessage(signalMessageIn._id,
-         signalMessageIn._facilityId,
-         signalMessageIn._sessionId,
+         signalMessageIn._meetingId,
          signalMessageIn._sessionSubId,
          signalMessageIn._sequenceNo,
          types.reviveFromJSON(signalMessageIn._data));

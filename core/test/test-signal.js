@@ -20,19 +20,19 @@ describe("SignalMessage", function () {
    var callParticipation, callKeepAlive, callIce, callOffer, callAnswer,
       signalMessageParticipant, signalMessage2, signalMessageKeepAlive, signalMessageIce, signalMessageOffer, signalMessageAnswer;
 
-   beforeEach(function () {
-      callParticipation = new CallParticipation("id", "facilityId", "personId", "sessionId");
-      callKeepAlive = new CallKeepAlive("id");
-      callIce = new CallIceCandidate("id", callParticipation, callParticipation, "ice1", true);
-      callOffer = new CallOffer("id", callParticipation, callParticipation, "offer1", ETransportType.Rtc);
-      callAnswer = new CallAnswer("id", callParticipation, callParticipation, "answer1", ETransportType.Rtc);
+   beforeEach(function () {;
+      callParticipation = new CallParticipation("1234567890", "sess1", true);
+      callKeepAlive = new CallKeepAlive(1);
+      callIce = new CallIceCandidate(callParticipation, callParticipation, "ice1", true);
+      callOffer = new CallOffer(callParticipation, callParticipation, "offer1", ETransportType.Rtc);
+      callAnswer = new CallAnswer(callParticipation, callParticipation, "answer1", ETransportType.Rtc);
 
-      signalMessageParticipant = new SignalMessage("id", "facility1", "12345", "6789", 0, callParticipation);
-      signalMessage2 = new SignalMessage("id", "facility1", "12345", "6789", 1, callParticipation);
-      signalMessageKeepAlive = new SignalMessage("id", "facility1", "12345", "6789", 1, callKeepAlive);
-      signalMessageIce = new SignalMessage("id", "facility1", "12345", "6789", 1, callIce);
-      signalMessageOffer = new SignalMessage("id", "facility1", "12345", "6789", 1, callOffer);
-      signalMessageAnswer = new SignalMessage("id", "facility1", "12345", "6789", 1, callAnswer);
+      signalMessageParticipant = new SignalMessage("id", "meeting1", "12345", 0, callParticipation);
+      signalMessage2 = new SignalMessage("id", "meeting1", "12345", 1, callParticipation);
+      signalMessageKeepAlive = new SignalMessage("id", "meeting1", 1, "6789", callKeepAlive);
+      signalMessageIce = new SignalMessage("id", "meeting1", "6789", 1, callIce);
+      signalMessageOffer = new SignalMessage("id", "meeting1", "6789", 1, callOffer);
+      signalMessageAnswer = new SignalMessage("id", "meeting1", "6789", 1, callAnswer);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -44,9 +44,8 @@ describe("SignalMessage", function () {
    it("Needs to correctly store attributes", function () {
 
       expect(signalMessageParticipant._id).to.equal("id");
-      expect(signalMessageParticipant.facilityId).to.equal("facility1");
-      expect(signalMessageParticipant.sessionId).to.equal("12345");
-      expect(signalMessageParticipant.sessionSubId).to.equal("6789");
+      expect(signalMessageParticipant.meetingId).to.equal("meeting1");
+      expect(signalMessageParticipant.sessionSubId).to.equal("12345");
       expect(signalMessageParticipant.sequenceNo).to.equal(0);
       expect(signalMessageParticipant.data.equals(callParticipation)).to.equal(true);
    });

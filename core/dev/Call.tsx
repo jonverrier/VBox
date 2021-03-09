@@ -13,11 +13,8 @@ export enum ETransportType {
 //==============================//
 export class CallParticipation implements IStreamableFor<CallParticipation> {
    
-   private _id: any;
-   private _facilityId: string;
-   private _personId: string;
+   private _meetingId: string;
    private _isCandidateLeader: boolean;
-   private _sessionId: string;
    private _sessionSubId: string;
    private _glareResolve: number;
 
@@ -25,28 +22,20 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
 
    /**
     * Create a CallParticipation object
-    * @param _id - Mongo-DB assigned ID
-    * @param facilityId - ID for the facility hosting the call
-    * @param personId - iD for the call participant 
+    * @param meetingId - ID for the facility hosting the call
     * @param isCandidateLeader - true if the person is a possible call leader
-    * @param sessionId - iD for the call session (in case same person joins > once)
     * @param sessionSubId - iD for the call session (in case same person joins > once from same browser)
     * @param glareResolve - if provided, a number to use for the glareResolution test. By design, don't reset this 
     *    - same CallParticipation should keep the same glareResolve throughout its lifetime
     */
-   constructor(_id: any=null,
-      facilityId: string,
-      personId: string,
-      isCandidateLeader: boolean,
-      sessionId: string,
+   constructor (
+      meetingId: string,
       sessionSubId: string,
+      isCandidateLeader: boolean,
       glareResolve: number= Math.random()) {
 
-      this._id = _id;
-      this._facilityId = facilityId;
-      this._personId = personId;
+      this._meetingId = meetingId;
       this._isCandidateLeader = isCandidateLeader;
-      this._sessionId = sessionId;
       this._sessionSubId = sessionSubId;
       if (glareResolve)
          this._glareResolve = glareResolve;
@@ -57,20 +46,11 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
    /**
    * set of 'getters' for private variables
    */
-   get id(): any {
-      return this._id;
-   }
-   get facilityId(): string {
-      return this._facilityId;
-   }
-   get personId(): string {
-      return this._personId;
+   get meetingId(): string {
+      return this._meetingId;
    }
    get isCandidateLeader(): boolean {
       return this._isCandidateLeader;
-   }
-   get sessionId(): string {
-      return this._sessionId;
    }
    get sessionSubId(): string {
       return this._sessionSubId;
@@ -89,12 +69,9 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
     */
    equals(rhs: CallParticipation) : boolean{
 
-      return ((this._id === rhs._id) &&
-         (this._facilityId === rhs._facilityId) &&
-         (this._personId === rhs._personId) &&
-         (this._isCandidateLeader === rhs._isCandidateLeader) &&
-         (this._sessionId === rhs._sessionId) && 
+      return ((this._meetingId === rhs._meetingId) &&
          (this._sessionSubId === rhs._sessionSubId) &&
+         (this._isCandidateLeader === rhs._isCandidateLeader) &&
          (this._glareResolve.toPrecision(10) === rhs._glareResolve.toPrecision(10)));
    };
 
@@ -107,12 +84,9 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
          __type: CallParticipation.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
-            _facilityId: this._facilityId,
-            _personId: this._personId,
-            _isCandidateLeader: this._isCandidateLeader,
-            _sessionId: this._sessionId,
+            _meetingId: this._meetingId,
             _sessionSubId: this._sessionSubId,
+            _isCandidateLeader: this._isCandidateLeader,
             _glareResolve: this._glareResolve
          }
       };
@@ -138,12 +112,9 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
    static reviveDb(data: any): CallParticipation {
 
       return new CallParticipation (
-         data._id,
-         data._facilityId,
-         data._personId,
-         data._isCandidateLeader,
-         data._sessionId,
+         data._meetingId,
          data._sessionSubId,
+         data._isCandidateLeader,
          data._glareResolve);
    };
 }
@@ -153,7 +124,6 @@ export class CallParticipation implements IStreamableFor<CallParticipation> {
 //==============================//
 export class CallOffer implements IStreamableFor<CallOffer>  {
 
-   private _id: any;
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _offer: any;
@@ -163,15 +133,13 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
 
    /**
     * Create a CallOffer object
-    * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param offer - the WebRTC Offer 
     * @param transport = transport type (Web or RTC)
     */
-   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, offer: any, transport: ETransportType) {
+   constructor(from: CallParticipation, to: CallParticipation, offer: any, transport: ETransportType) {
 
-      this._id = _id;
       this._from = from;
       this._to = to;
       this._offer = offer;
@@ -181,9 +149,6 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
    /**
    * set of 'getters' for private variables
    */
-   get id(): any {
-      return this._id;
-   }
    get from(): CallParticipation {
       return this._from;
    }
@@ -207,8 +172,7 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
     */
    equals(rhs: CallOffer): boolean {
 
-      return ((this._id === rhs._id) &&
-         (this._from.equals(rhs._from)) &&
+      return ((this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
          (this._offer === rhs._offer) &&
          (this._transport === rhs._transport));
@@ -223,7 +187,6 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
          __type: CallOffer.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
             _from: this._from,
             _to: this._to,
             _offer: this._offer,
@@ -251,7 +214,7 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
    */
    static reviveDb(data: any): CallOffer {
 
-      return new CallOffer(data._id,
+      return new CallOffer(
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
          data._offer,
@@ -264,7 +227,6 @@ export class CallOffer implements IStreamableFor<CallOffer>  {
 //==============================//
 export class CallAnswer implements IStreamableFor<CallAnswer> {
 
-   private _id: any;
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _answer: any;
@@ -273,16 +235,14 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    static readonly __type = "CallAnswer";
 
    /**
-    * Create a CallOffer object
-    * @param _id - Mongo-DB assigned ID
+    * Create a CallAnswer object
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param answer - the WebRTC Offer 
     * @param transport = transport type (Web or RTC)
     */
-   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, answer: any, transport: ETransportType) {
+   constructor(from: CallParticipation, to: CallParticipation, answer: any, transport: ETransportType) {
 
-      this._id = _id;
       this._from = from;
       this._to = to;
       this._answer = answer;
@@ -292,9 +252,6 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    /**
    * set of 'getters' for private variables
    */
-   get id(): any {
-      return this._id;
-   }
    get from(): CallParticipation {
       return this._from;
    }
@@ -318,8 +275,7 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
     */
    equals(rhs: CallAnswer): boolean {
 
-      return ((this._id === rhs._id) &&
-         (this._from.equals(rhs._from)) &&
+      return ((this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
          (this._answer === rhs._answer) &&
          (this._transport === rhs._transport));
@@ -334,7 +290,6 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
          __type: CallAnswer.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
             _from: this._from,
             _to: this._to,
             _answer: this._answer,
@@ -362,7 +317,7 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
    */
    static reviveDb(data: any): CallAnswer {
 
-      return new CallAnswer(data._id,
+      return new CallAnswer(
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
          data._answer,
@@ -375,7 +330,6 @@ export class CallAnswer implements IStreamableFor<CallAnswer> {
 //==============================//
 export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
 
-   private _id: any;
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _ice: any;
@@ -385,15 +339,13 @@ export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
 
    /**
     * Create a CallIceCandidate object
-    * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param ice - the WebRTC ice, may be null
     * @param outbound - TRUE if this is from an outbound (Offer) connection
     */
-   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, ice: any, outbound: boolean) {
+   constructor(from: CallParticipation, to: CallParticipation, ice: any, outbound: boolean) {
 
-      this._id = _id;
       this._from = from;
       this._to = to;
       this._ice = ice;
@@ -403,9 +355,6 @@ export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
    /**
    * set of 'getters' for private variables
    */
-   get id(): any {
-      return this._id;
-   }
    get from(): CallParticipation {
       return this._from;
    }
@@ -429,8 +378,7 @@ export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
     */
    equals(rhs: CallIceCandidate): boolean {
 
-      return ((this._id === rhs._id) &&
-         (this._from.equals(rhs._from)) &&
+      return ((this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
          (this._ice === rhs._ice) &&
          (this._outbound === rhs._outbound));
@@ -445,7 +393,6 @@ export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
          __type: CallIceCandidate.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
             _from: this._from,
             _to: this._to,
             _ice: this._ice,
@@ -473,7 +420,7 @@ export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
    */
    static reviveDb(data: any): CallIceCandidate {
 
-      return new CallIceCandidate(data._id,
+      return new CallIceCandidate(
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
          data._ice,
@@ -487,7 +434,6 @@ export class CallIceCandidate implements IStreamableFor<CallIceCandidate>  {
 //==============================//
 export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
 
-   private _id: any; 
    private _glareDate: Date; 
    private _glareResolve: number; 
 
@@ -500,10 +446,8 @@ export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
     * @param glareResolve - if provided, a number to use for the glareResolution test. By design, don't reset this
     *    - same CallParticipation should keep the same glareResolve throughout its lifetime
     */
-   constructor (_id: any=null,
-      glareDate: Date = new Date(), glareResolve: number = Math.random()) {
+   constructor (glareDate: Date = new Date(), glareResolve: number = Math.random()) {
 
-      this._id = _id;
       this._glareDate = glareDate;
       this._glareResolve = glareResolve;
    }
@@ -511,9 +455,6 @@ export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
    /**
    * set of 'getters' for private variables
    */
-   get id(): string {
-      return this._id;
-   }
    get type(): string {
       return CallLeaderResolve.__type;
    }
@@ -525,8 +466,7 @@ export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
     */
    equals(rhs: CallLeaderResolve) : boolean {
 
-      return ((this._id === rhs._id) &&
-         this._glareDate.getTime() === rhs._glareDate.getTime() &&
+      return (this._glareDate.getTime() === rhs._glareDate.getTime() &&
          this._glareResolve.toPrecision(10) === rhs._glareResolve.toPrecision(10));
    };
 
@@ -552,7 +492,6 @@ export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
          __type: CallLeaderResolve.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
             _glareDate: this._glareDate,
             _glareResolve: this._glareResolve
          }
@@ -578,7 +517,7 @@ export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
    */
    static reviveDb(data: any): CallLeaderResolve {
 
-      return new CallLeaderResolve(data._id, new Date(data._glareDate), Number (data._glareResolve));
+      return new CallLeaderResolve(new Date(data._glareDate), Number (data._glareResolve));
    };
 }
 
@@ -586,18 +525,24 @@ export class CallLeaderResolve implements IStreamableFor<CallLeaderResolve>  {
 // CallKeepAlive class
 //==============================//
 export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
-   private _id: string;
+   private _sequenceNo: number;
 
    static readonly __type = "CallKeepAlive";
 
    /**
     * Create a CallKeepAlive object
     */
-   constructor (_id: string) {
+   constructor(sequenceNo: number=0) {
 
-      this._id = _id;
+      this._sequenceNo = sequenceNo;
    }
 
+   /**
+   * set of 'getters' for private variables
+   */
+   get sequenceNo(): number {
+      return this._sequenceNo;
+   }
    get type(): string {
       return CallKeepAlive.__type;
    }
@@ -609,7 +554,7 @@ export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
     */
    equals(rhs: CallKeepAlive) : boolean {
 
-      return ((this._id === rhs._id));
+      return ((this._sequenceNo === rhs._sequenceNo));
    };
 
    /**
@@ -621,7 +566,7 @@ export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
          __type: CallKeepAlive.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
+            _sequenceNo: this._sequenceNo,
          }
       };
    };
@@ -645,7 +590,7 @@ export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
    */
    static reviveDb(data: any): CallKeepAlive {
 
-      return new CallKeepAlive(data._id);
+      return new CallKeepAlive(data._sequenceNo);
    };
 }
 
@@ -654,7 +599,6 @@ export class CallKeepAlive implements IStreamableFor<CallKeepAlive> {
 //==============================//
 export class CallData implements IStreamableFor<CallData> {
 
-   private _id: any;
    private _from: CallParticipation;
    private _to: CallParticipation;
    private _data: any;
@@ -663,14 +607,12 @@ export class CallData implements IStreamableFor<CallData> {
 
    /**
     * Create a CallData object - used when webRTC fails & data is shipped via server
-    * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipation
     * @param to - CallParticipation
     * @param data - the data payload 
     */
-   constructor(_id: any = null, from: CallParticipation, to: CallParticipation, data: any) {
+   constructor(from: CallParticipation, to: CallParticipation, data: any) {
 
-      this._id = _id;
       this._from = from;
       this._to = to;
       this._data = data;
@@ -679,9 +621,6 @@ export class CallData implements IStreamableFor<CallData> {
    /**
    * set of 'getters' for private variables
    */
-   get id(): any {
-      return this._id;
-   }
    get from(): CallParticipation {
       return this._from;
    }
@@ -702,8 +641,7 @@ export class CallData implements IStreamableFor<CallData> {
     */
    equals(rhs: CallData): boolean {
 
-      return ((this._id === rhs._id) &&
-         (this._from.equals(rhs._from)) &&
+      return ((this._from.equals(rhs._from)) &&
          (this._to.equals(rhs._to)) &&
          (this._data === rhs._data));
    };
@@ -717,7 +655,6 @@ export class CallData implements IStreamableFor<CallData> {
          __type: CallData.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
             _from: this._from,
             _to: this._to,
             _data: JSON.stringify(this._data)
@@ -746,7 +683,7 @@ export class CallData implements IStreamableFor<CallData> {
 
       var types = new StreamableTypes();
 
-      return new CallData(data._id,
+      return new CallData(
          CallParticipation.revive(data._from),
          CallParticipation.revive(data._to),
          types.reviveFromJSON(data._data));
@@ -758,7 +695,6 @@ export class CallData implements IStreamableFor<CallData> {
 //==============================//
 export class CallDataBatched implements IStreamableFor<CallDataBatched> {
 
-   private _id: any;
    private _from: CallParticipation;
    private _to: Array<CallParticipation>;
    private _data: any;
@@ -768,14 +704,12 @@ export class CallDataBatched implements IStreamableFor<CallDataBatched> {
    /**
     * Create a CallDataBatched object - used when webRTC fails & data is shipped via server
     * This class is used when data is to be delivered to possibly multiple participants
-    * @param _id - Mongo-DB assigned ID
     * @param from - CallParticipation
     * @param to - CallParticipation - for this version, its an array.
     * @param data - the data payload 
     */
-   constructor(_id: any = null, from: CallParticipation, to: Array<CallParticipation>, data: any) {
+   constructor(from: CallParticipation, to: Array<CallParticipation>, data: any) {
 
-      this._id = _id;
       this._from = from;
       this._to = to;
       this._data = data;
@@ -784,9 +718,6 @@ export class CallDataBatched implements IStreamableFor<CallDataBatched> {
    /**
    * set of 'getters' for private variables
    */
-   get id(): any {
-      return this._id;
-   }
    get from(): CallParticipation {
       return this._from;
    }
@@ -807,8 +738,7 @@ export class CallDataBatched implements IStreamableFor<CallDataBatched> {
     */
    equals(rhs: CallDataBatched): boolean {
 
-      return ((this._id === rhs._id) &&
-         (this._from.equals(rhs._from)) &&
+      return ((this._from.equals(rhs._from)) &&
          ((this._to as any).equals(rhs._to)) && // Uses the equals method from ArrayHook
          this.data === rhs.data); 
    };
@@ -822,7 +752,6 @@ export class CallDataBatched implements IStreamableFor<CallDataBatched> {
          __type: CallDataBatched.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _id: this._id,
             _from: this._from,
             _to: this._to,
             _data: JSON.stringify(this._data)
@@ -857,7 +786,7 @@ export class CallDataBatched implements IStreamableFor<CallDataBatched> {
 
       var types = new StreamableTypes();
 
-      return new CallDataBatched(data._id,
+      return new CallDataBatched(
          CallParticipation.revive(data._from),
          revivedParticipations,
          types.reviveFromJSON(data._data));
