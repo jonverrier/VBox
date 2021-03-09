@@ -96,8 +96,20 @@ export class PeerLink {
       return this._remoteCallParticipation;
    }
 
+   get localCallParticipation(): CallParticipation {
+      return this._localCallParticipation;
+   }
+
+   get person (): Person {
+      return this._person;
+   }
+
    get isOutbound(): boolean {
       return this._outbound;
+   }
+
+   get transport(): ETransportType {
+      return this._transport;
    }
 
    placeCall(): void {

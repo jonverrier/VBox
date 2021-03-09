@@ -206,6 +206,7 @@ export class PeerConnection {
          }
       }
 
+      // we only make a new link if we were the caller - else we can fail & wait for them to call us again. 
       if (link.isOutbound) {
          this.createCallerLink(link.remoteCallParticipation, ETransportType.Web);
       }
@@ -250,6 +251,17 @@ export class PeerConnection {
                this._links.splice(i); // if we lose the glareResolve test, kill the existing call & answer theirs
             } else {
                return;               // if we win, they will answer our offer, we do nothing more 
+            }
+         }
+      }
+
+      // This loop tests for the case where we were trying to set up web RTC, it failed on their side, so they send a web offer. 
+      // we may still be tryig to set up RTC. 
+      // So in this case we kill the local connection before setting up a new one. 
+      if (remoteOffer.transport === ETransportType.Web) {
+         for (var i = 0; i < this._links.length; i++) {
+            if (this._links[i].remoteCallParticipation.equals(remoteOffer.from) && this._links[i].transport === ETransportType.Web) {
+               this._links.splice(i); 
             }
          }
       }
