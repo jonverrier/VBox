@@ -12,7 +12,10 @@ import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
-import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum} from './Enum';
+import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './Enum';
+// import { ILiveDocument, ICommandProcessor, ICommand, ISelection, ILiveDocumentChannel } from './LiveDocumentInterfaces';
+import { LiveWorkout, LiveWhiteboardCommand } from './LiveWorkout';
+import { LiveCommandProcessor } from './LiveCommand';
 
 var EntryPoints = {
    LoggerFactory: LoggerFactory,
@@ -46,7 +49,9 @@ var EntryPoints = {
    GymClockState: GymClockState,
    EThreeStateSwitchEnum: EThreeStateSwitchEnum,
    EThreeStateRagEnum: EThreeStateRagEnum,
-   EFourStateRagEnum: EFourStateRagEnum
+   EFourStateRagEnum: EFourStateRagEnum,
+   LiveWorkout: LiveWorkout,
+   LiveWhiteboardCommand: LiveWhiteboardCommand
 };
 
 ArrayHook.initialise();

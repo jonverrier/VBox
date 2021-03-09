@@ -20,7 +20,7 @@ export enum EPeerConnectionType {
 
 export interface IPeer {
    /**
-   * set of 'getters' & some 'stters' for private variables
+   * set of 'getters' & some 'setters' for private variables
    */
    localCallParticipation(): CallParticipation;
    remoteCallParticipation(): CallParticipation;

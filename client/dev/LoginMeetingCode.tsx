@@ -17,7 +17,7 @@ const meetCodelength: number = 10;
 
 export class LoginMeetCodeData implements ILoginData {
    static readonly _meetCodeMagicNumber: number = 0xdbb0641fa; // pasted from 
-   // https://onlinehextools.com/generate-random-hex-numbershttps://onlinehextools.com/generate-random-hex-numbers
+   // https://onlinehextools.com/generate-random-hex-numbers
 
    private _meetCode: string;
    private _isTimerPending: boolean;
