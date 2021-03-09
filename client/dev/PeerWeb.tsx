@@ -250,7 +250,7 @@ export class WebPeerHelper {
    //////////
 
    placeCall(): void {
-      let offer = new CallOffer(null, this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
+      let offer = new CallOffer(this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
       this._signaller.sendOffer(offer);
    }
 
@@ -263,7 +263,7 @@ export class WebPeerHelper {
    }
 
    answerCall(remoteOffer: CallOffer): void {
-      let answer = new CallAnswer (null, this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
+      let answer = new CallAnswer (this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
       this._signaller.sendAnswer(answer);
       this._isChannelConnected = true;
 
@@ -312,7 +312,7 @@ export class WebPeerHelper {
 
       if (WebPeerHelper._dataForBatch) {
          // Take a copy of the data to send as the send is anychronous & if new items come in we need to correctly accumulate them
-         let callData = new CallDataBatched(null, WebPeerHelper._sender, WebPeerHelper._recipents.map((x) => x), WebPeerHelper._dataForBatch);
+         let callData = new CallDataBatched(WebPeerHelper._sender, WebPeerHelper._recipents.map((x) => x), WebPeerHelper._dataForBatch);
 
          // Reset accumulated data
          WebPeerHelper._dataForBatch = null;

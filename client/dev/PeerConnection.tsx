@@ -65,14 +65,13 @@ export class PeerConnection {
       this._datalisteners.push(fn);
    };
 
-   connect(facilityId: string,
-      sessionId: string,
+   connect(meetingId: string,
       personId: string,
       personName: string,
       personThumbnailUrl: string): void {
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
-      this._localCallParticipation = new CallParticipation(null, facilityId, personId, !this._isEdgeOnly, sessionId, uuid());
+      this._localCallParticipation = new CallParticipation(meetingId, uuid(), !this._isEdgeOnly);
 
       // Store data on the Person who is running the app - used in data handshake & exchange
       this._person = new Person(null, personId, personName, null, personThumbnailUrl, null);

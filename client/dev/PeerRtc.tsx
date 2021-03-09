@@ -355,7 +355,7 @@ class RtcPeerHelper {
    private onIceCandidate(candidate, to: CallParticipation) : void {
 
       // Send our call ICE candidate in
-      var callIceCandidate = new CallIceCandidate(null, this.localCallParticipation, to, candidate, true);
+      var callIceCandidate = new CallIceCandidate(this.localCallParticipation, to, candidate, true);
       this._signaller.sendIceCandidate(callIceCandidate);
    }
 
@@ -370,7 +370,7 @@ class RtcPeerHelper {
          .then(() => {
             // Send our call offer data in
             logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Posting offer', null);
-            var callOffer = new CallOffer(null, self.localCallParticipation, self.remoteCallParticipation, self._connection.localDescription, ETransportType.Rtc);
+            var callOffer = new CallOffer(self.localCallParticipation, self.remoteCallParticipation, self._connection.localDescription, ETransportType.Rtc);
             self._signaller.sendOffer(callOffer);
          })
    };
@@ -460,7 +460,7 @@ class RtcPeerHelper {
          .then(() => {
             logger.logInfo(RtcPeerHelper.className, 'answerCall', 'Posting answer', null);
             // Send our call answer data in
-            var callAnswer = new CallAnswer(null, self.localCallParticipation, remoteOffer.from, self._connection.localDescription, ETransportType.Rtc);
+            var callAnswer = new CallAnswer(self.localCallParticipation, remoteOffer.from, self._connection.localDescription, ETransportType.Rtc);
             this._signaller.sendAnswer(callAnswer)
                .then((response) => {
                   // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription

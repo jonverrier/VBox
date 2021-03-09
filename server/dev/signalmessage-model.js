@@ -4,17 +4,12 @@
 var mongoose = require("mongoose");
 
 const signalMessageSchema = new mongoose.Schema({
-   facilityId: { 
+   meetingId: { 
       type: String,
       index: true,
-      alias: '_facilityId'
+      alias: '_meetingId'
    },
-   sessionId: { // can be null - which means a broadcast
-      type: String, 
-      index: true,
-      alias: '_sessionId'
-   },
-   sessionSubId: { // can be null - which means a broadcast
+   sessionSubId: { // can be null - which means a broadcast to all in the meeting
       type: String,
       index: true,
       alias: '_sessionSubId' 
