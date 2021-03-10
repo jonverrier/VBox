@@ -73,6 +73,13 @@
     <TypeScriptCompile Include="dev\Logger.tsx" />
     <TypeScriptCompile Include="dev\LoggerClientWrap.tsx" />
     <TypeScriptCompile Include="dev\LoggerServerWrap.tsx" />
+    <TypeScriptCompile Include="dev\PeerConnection.tsx" />
+    <TypeScriptCompile Include="dev\PeerFactory.tsx" />
+    <TypeScriptCompile Include="dev\PeerInterfaces.tsx" />
+    <TypeScriptCompile Include="dev\PeerLink.tsx" />
+    <TypeScriptCompile Include="dev\PeerRtc.tsx" />
+    <TypeScriptCompile Include="dev\PeerSignaller.tsx" />
+    <TypeScriptCompile Include="dev\PeerWeb.tsx" />
     <TypeScriptCompile Include="dev\Person.tsx" />
     <TypeScriptCompile Include="dev\Queue.tsx" />
     <TypeScriptCompile Include="dev\Signal.tsx" />

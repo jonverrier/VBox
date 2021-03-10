@@ -58,14 +58,7 @@
     <TypeScriptCompile Include="dev\LoginOauth.tsx" />
     <TypeScriptCompile Include="dev\Media.tsx" />
     <TypeScriptCompile Include="dev\ParticipantUI.tsx" />
-    <TypeScriptCompile Include="dev\PeerFactory.tsx" />
-    <TypeScriptCompile Include="dev\PeerInterfaces.tsx" />
-    <TypeScriptCompile Include="dev\PeerLink.tsx" />
-    <TypeScriptCompile Include="dev\PeerRtc.tsx" />
-    <TypeScriptCompile Include="dev\PeerSignaller.tsx" />
-    <TypeScriptCompile Include="dev\PeerWeb.tsx" />
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
-    <TypeScriptCompile Include="dev\PeerConnection.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\ClientUrl.tsx" />
     <TypeScriptCompile Include="dev\whiteboardpanel.tsx" />

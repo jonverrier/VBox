@@ -14,7 +14,8 @@ import * as CSS from 'csstype';
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
-import { PeerConnection } from './PeerConnection';
+import { PeerConnection } from '../../core/dev/PeerConnection';
+
 import { StoredWorkoutState } from './LocalStore';
 
 const thinStyle: CSS.Properties = {

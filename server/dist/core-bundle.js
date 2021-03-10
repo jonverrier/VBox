@@ -5463,6 +5463,77 @@ GymClockState.__type = "GymClockState";
 
 /***/ }),
 
+/***/ "./dev/LiveChannel.tsx":
+/*!*****************************!*\
+  !*** ./dev/LiveChannel.tsx ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Document architecture:
+// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Conceptually, this architecture needs be thought of as:
+//    - Document, which is Streamable and can be sent to remote parties
+//    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
+//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+// 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LiveDocumentChannelFactory = void 0;
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+// Stubbing for testing
+var docInOut = null;
+// Stubbing for testing
+class LiveChannelStub {
+    constructor() {
+        this.types = new StreamableTypes_1.StreamableTypes;
+        // Override these for data from notifications 
+        this.onCommandApply = function (ev) { };
+        this.onCommandReverse = function () { };
+        this.onDocument = function (ev) { };
+    }
+    onCommandApplyInner(command) {
+        if (this.onCommandApply)
+            this.onCommandApply(this.types.reviveFromJSON(command));
+    }
+    onCommandReverseInner() {
+        if (this.onCommandReverse)
+            this.onCommandReverse();
+    }
+    onDocumentInner(document) {
+        if (this.onDocument)
+            this.onDocument(this.types.reviveFromJSON(document));
+    }
+    sendDocumentTo(recipient, document) {
+        this.onDocumentInner(JSON.stringify(document));
+    }
+    broadcastCommandApply(command) {
+        this.onCommandApplyInner(JSON.stringify(command));
+    }
+    broadcastCommandReverse() {
+        this.onCommandReverseInner();
+    }
+}
+class LiveDocumentChannelFactory {
+    constructor() {
+    }
+    createConnectionIn() {
+        if (!docInOut)
+            docInOut = new LiveChannelStub();
+        return docInOut;
+    }
+    createConnectionOut(document, commandProcessor) {
+        if (!docInOut)
+            docInOut = new LiveChannelStub();
+        return docInOut;
+    }
+}
+exports.LiveDocumentChannelFactory = LiveDocumentChannelFactory;
+
+
+/***/ }),
+
 /***/ "./dev/LiveCommand.tsx":
 /*!*****************************!*\
   !*** ./dev/LiveCommand.tsx ***!
@@ -5482,33 +5553,34 @@ GymClockState.__type = "GymClockState";
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveCommandProcessor = void 0;
 class LiveCommandProcessor {
-    constructor(document, channel) {
+    constructor(document, outbound, channel) {
         this._lastCommandIndex = -1;
         this._document = document;
         this._channel = channel;
+        this._outbound = outbound;
         this._commands = new Array();
         this.invalidateIndex();
-        if (channel) {
+        if (outbound !== undefined && (!outbound && channel)) {
             channel.onCommandApply = this.onCommandApply.bind(this);
             channel.onCommandReverse = this.onCommandReverse.bind(this);
             channel.onDocument = this.onDocument.bind(this);
         }
     }
     adoptAndApply(command) {
-        if (!this._lastCommandIndex) {
-            // This case is the first command ever
+        if (!this.isValidIndex()) {
+            // This case is the first command since a new document
             this._lastCommandIndex = 0;
-            this._commands.push(command);
+            this._commands.unshift(command);
         }
         else {
             // If we have undone a series of commands, need to throw away irrelevant ones & put the new command at the head
             if (this._lastCommandIndex != 0) {
                 this._commands = this._commands.splice(this._lastCommandIndex);
-                this._commands.push(command);
             }
+            this._commands.unshift(command);
         }
         command.applyTo(this._document);
-        if (this._channel)
+        if (this._channel && this._outbound)
             this._channel.broadcastCommandApply(command);
     }
     canUndo() {
@@ -5530,7 +5602,7 @@ class LiveCommandProcessor {
         if (this.canUndo()) {
             // move forward one step after undoing - opposite of 'redo' 
             this._commands[this._lastCommandIndex].reverseFrom(this._document);
-            if (this._channel)
+            if (this._channel && this._outbound)
                 this._channel.broadcastCommandReverse(this._commands[this._lastCommandIndex]);
             this._lastCommandIndex++;
         }
@@ -5540,7 +5612,7 @@ class LiveCommandProcessor {
             // move back one step before applying - opposite of 'undo' 
             this._lastCommandIndex--;
             this._commands[this._lastCommandIndex].applyTo(this._document);
-            if (this._channel)
+            if (this._channel && this._outbound)
                 this._channel.broadcastCommandApply(this._commands[this._lastCommandIndex]);
         }
     }
@@ -5590,13 +5662,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 class LiveWorkout {
-    constructor(whiteboardText, channel) {
+    constructor(whiteboardText, outbound, channel) {
+        this._outbound = outbound;
         if (channel)
             this._channel = channel;
         this._whiteboardText = whiteboardText;
     }
     createCommandProcessor() {
-        return new LiveCommand_1.LiveCommandProcessor(this, this._channel);
+        return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
     }
     // Getter and setter for whitebard text
     get whiteboardText() {
@@ -5609,11 +5682,22 @@ class LiveWorkout {
     get type() {
         return LiveWorkout.__type;
     }
+    // test for equality
+    // Only tests content fields - excludes channel etc
+    equals(rhs) {
+        if (rhs.type === this.type) {
+            var workout = rhs;
+            return (this._whiteboardText === workout._whiteboardText);
+        }
+        else
+            return false;
+    }
     assign(rhs) {
         // This is called if an entire new document gets sent e.g are just joining meeting
         // or had become detached
-        if (rhs.type == this.type) {
-            this._whiteboardText = rhs._whiteboardText;
+        if (rhs.type === this.type) {
+            var workout = rhs;
+            this._whiteboardText = workout._whiteboardText;
         }
     }
     /**
@@ -5656,7 +5740,8 @@ class LiveWhiteboardCommand {
     constructor(text, _priorText) {
         this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
         this._text = text;
-        this._priorText = _priorText;
+        this._priorText = _priorText; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
     }
     // type is read only
     get type() {
@@ -5667,15 +5752,18 @@ class LiveWhiteboardCommand {
     }
     applyTo(document) {
         // Since we downcast, need to check type
-        if (document.type == LiveWorkout.__type) {
-            this._priorText = document.whiteboardText;
-            document.whiteboardText = this._text;
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            if (this._priorText === wo.whiteboardText)
+                wo.whiteboardText = this._text;
         }
     }
     reverseFrom(document) {
         // Since we downcast, need to check type
         if (document.type == LiveWorkout.__type) {
-            document.whiteboardText = this._priorText;
+            var wo = document;
+            wo.whiteboardText = this._priorText;
         }
     }
     canReverse() {
@@ -5763,9 +5851,8 @@ class LoggerFactory {
             case ELoggerType.Server:
                 return new ClientLogger(shipToSever);
             case ELoggerType.Client:
-                return new ClientLogger(shipToSever);
             default:
-                return null;
+                return new ClientLogger(shipToSever);
         }
     }
 }
@@ -5872,6 +5959,1050 @@ class ClientLoggerWrap {
     }
 }
 exports.ClientLoggerWrap = ClientLoggerWrap;
+
+
+/***/ }),
+
+/***/ "./dev/PeerFactory.tsx":
+/*!*****************************!*\
+  !*** ./dev/PeerFactory.tsx ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeerFactory = void 0;
+const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
+const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
+const PeerRtc_1 = __webpack_require__(/*! ./PeerRtc */ "./dev/PeerRtc.tsx");
+const PeerWeb_1 = __webpack_require__(/*! ./PeerWeb */ "./dev/PeerWeb.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class PeerFactory {
+    constructor() {
+    }
+    createCallerConnection(connectionType, transport, localCallParticipation, remoteCallParticipation, person, nameCache, signaller, signalReciever) {
+        switch (transport) {
+            case Call_1.ETransportType.Rtc:
+            default:
+                return new PeerRtc_1.PeerCallerRtc(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+            case Call_1.ETransportType.Web:
+                return new PeerWeb_1.PeerCallerWeb(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+        }
+    }
+    createRecieverConnection(connectionType, transport, localCallParticipation, remoteCallParticipation, person, nameCache, signaller, signalReciever) {
+        switch (transport) {
+            case Call_1.ETransportType.Rtc:
+            default:
+                return new PeerRtc_1.PeerRecieverRtc(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+            case Call_1.ETransportType.Web:
+                return new PeerWeb_1.PeerRecieverWeb(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+        }
+    }
+}
+exports.PeerFactory = PeerFactory;
+
+
+/***/ }),
+
+/***/ "./dev/PeerInterfaces.tsx":
+/*!********************************!*\
+  !*** ./dev/PeerInterfaces.tsx ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeerNameCache = exports.EPeerConnectionType = void 0;
+var EPeerConnectionType;
+(function (EPeerConnectionType) {
+    EPeerConnectionType[EPeerConnectionType["Caller"] = 0] = "Caller";
+    EPeerConnectionType[EPeerConnectionType["Reciever"] = 1] = "Reciever";
+})(EPeerConnectionType = exports.EPeerConnectionType || (exports.EPeerConnectionType = {}));
+// Helper class - take a name like 'Jon' and if the name is not unique for the session,
+// tries variants like 'Jon:1', 'Jon:2' and so on until a unique one (for this session) is found.
+// This is to distinguish the same person joining mutliple times (multiple devices or serial log ins such as browser refresh)
+class PeerNameCache {
+    constructor() {
+        this.nameMap = new Map();
+    }
+    addReturnUnique(name) {
+        if (!this.nameMap.has(name)) {
+            this.nameMap.set(name, true);
+            return name;
+        }
+        var index = 1;
+        while (true) {
+            var newName = name + ':' + index.toString();
+            if (!this.nameMap.has(newName)) {
+                this.nameMap.set(newName, true);
+                return newName;
+            }
+            index++;
+        }
+    }
+}
+exports.PeerNameCache = PeerNameCache;
+
+
+/***/ }),
+
+/***/ "./dev/PeerLink.tsx":
+/*!**************************!*\
+  !*** ./dev/PeerLink.tsx ***!
+  \**************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeerLink = void 0;
+const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+const PeerFactory_1 = __webpack_require__(/*! ./PeerFactory */ "./dev/PeerFactory.tsx");
+function uuidPart() {
+    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1).toUpperCase();
+}
+;
+function uuid() {
+    return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
+}
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class PeerLink {
+    constructor(outbound, transport, localCallParticipation, remoteCallParticipation, person, nameCache, signalSender, signalReciever) {
+        // Override these to get data notification from the link
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function (ev) { };
+        this._outbound = outbound;
+        this._localCallParticipation = localCallParticipation;
+        this._remoteCallParticipation = remoteCallParticipation;
+        this._person = person;
+        this._transport = transport;
+        let factory = new PeerFactory_1.PeerFactory();
+        if (outbound) {
+            this._peerCaller = factory.createCallerConnection(PeerInterfaces_1.EPeerConnectionType.Caller, transport, localCallParticipation, remoteCallParticipation, person, nameCache, signalSender, signalReciever);
+            this._peerCaller.onRemoteData = this.onRemoteDataInner.bind(this);
+            this._peerCaller.onRemoteFail = this.onRemoteFailInner.bind(this);
+            this._peerReciever = undefined;
+        }
+        else {
+            this._peerReciever = factory.createRecieverConnection(PeerInterfaces_1.EPeerConnectionType.Reciever, transport, localCallParticipation, remoteCallParticipation, person, nameCache, signalSender, signalReciever);
+            this._peerReciever.onRemoteData = this.onRemoteDataInner.bind(this);
+            this._peerReciever.onRemoteFail = this.onRemoteFailInner.bind(this);
+            this._peerCaller = undefined;
+        }
+    }
+    get remoteCallParticipation() {
+        return this._remoteCallParticipation;
+    }
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    get person() {
+        return this._person;
+    }
+    get isOutbound() {
+        return this._outbound;
+    }
+    get transport() {
+        return this._transport;
+    }
+    placeCall() {
+        if (this._outbound && this._peerCaller)
+            this._peerCaller.placeCall();
+        else
+            logger.logError(PeerLink.className, 'placeCall', "Recieved placeCall but do not have caller:", null);
+    }
+    answerCall(offer) {
+        if (!this._outbound && this._peerReciever)
+            this._peerReciever.answerCall(offer);
+        else
+            logger.logError(PeerLink.className, 'answerCall', "Recieved offer but do not have reciever:", offer);
+    }
+    handleAnswer(answer) {
+        if (this._outbound && this._peerCaller)
+            this._peerCaller.handleAnswer(answer);
+        else
+            logger.logError(PeerLink.className, 'handleAnswer', "Recieved answer but do not have caller:", answer);
+    }
+    handleIceCandidate(ice) {
+        // Ice candidate messages can be sent while we are still resolving glare - e.g. we are calling each other, and we killed our side while we have
+        // incoming messages still pending
+        // So fail silently if we get unexpected Ice candidate messages 
+        if (this._outbound) {
+            if (this._peerCaller)
+                this._peerCaller.handleIceCandidate(ice);
+            // else silent fail
+        }
+        else {
+            if (this._peerReciever)
+                this._peerReciever.handleIceCandidate(ice);
+            // else silent fail
+        }
+    }
+    handleRemoteData(data) {
+        if (this._outbound) {
+            if (this._peerCaller)
+                this._peerCaller.handleRemoteData(data);
+            // else silent fail
+        }
+        else {
+            if (this._peerReciever)
+                this._peerReciever.handleRemoteData(data);
+            // else silent fail
+        }
+    }
+    send(obj) {
+        if (this._outbound && this._peerCaller)
+            this._peerCaller.send(obj);
+        if (!this._outbound && this._peerReciever)
+            this._peerReciever.send(obj);
+    }
+    isConnectedToLeader() {
+        if (!this._outbound && this._peerReciever && this._peerReciever.remotePerson()
+            && this._peerReciever.remoteCallParticipation().isCandidateLeader
+            && this._peerReciever.isConnected()) {
+            return true;
+        }
+        if (this._outbound && this._peerCaller && this._peerCaller.remotePerson()
+            && this._peerCaller.remoteCallParticipation().isCandidateLeader
+            && this._peerCaller.isConnected()) {
+            return true;
+        }
+        return false;
+    }
+    isConnectedToPerson(name) {
+        if (!this._outbound && this._peerReciever
+            && this._peerReciever.remotePersonIs(name)
+            && this._peerReciever.isConnected()) {
+            return true;
+        }
+        if (this._outbound && this._peerCaller
+            && this._peerCaller.remotePersonIs(name)
+            && this._peerCaller.isConnected()) {
+            return true;
+        }
+        return false;
+    }
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData)
+            this.onRemoteData(ev);
+    }
+    onRemoteFailInner() {
+        if (this.onRemoteFail)
+            this.onRemoteFail(this);
+    }
+}
+exports.PeerLink = PeerLink;
+PeerLink.className = 'PeerLink';
+
+
+/***/ }),
+
+/***/ "./dev/PeerRtc.tsx":
+/*!*************************!*\
+  !*** ./dev/PeerRtc.tsx ***!
+  \*************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PeerRecieverRtc = exports.PeerCallerRtc = exports.RtcConfigFactory = exports.ERtcConfigurationType = void 0;
+// This app, this library
+const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
+const Queue_1 = __webpack_require__(/*! ./Queue */ "./dev/Queue.tsx");
+const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+var ERtcConfigurationType;
+(function (ERtcConfigurationType) {
+    ERtcConfigurationType[ERtcConfigurationType["StunOnly"] = 0] = "StunOnly";
+    ERtcConfigurationType[ERtcConfigurationType["TurnOnly"] = 1] = "TurnOnly";
+    ERtcConfigurationType[ERtcConfigurationType["StunThenTurn"] = 2] = "StunThenTurn";
+    ERtcConfigurationType[ERtcConfigurationType["Nothing"] = 3] = "Nothing"; // this is used to force fallback to web for testing
+})(ERtcConfigurationType = exports.ERtcConfigurationType || (exports.ERtcConfigurationType = {}));
+// Set this to control connection scope
+const rtcConfigType = ERtcConfigurationType.StunThenTurn;
+class RtcConfigFactory {
+    constructor() {
+    }
+    createConfig(configType) {
+        switch (configType) {
+            case ERtcConfigurationType.Nothing:
+                let noConfiguration = {
+                    iceServers: []
+                };
+                return noConfiguration;
+            case ERtcConfigurationType.StunOnly:
+                let stunConfiguration = {
+                    iceServers: [{
+                            "urls": "stun:stun.l.google.com:19302"
+                        },
+                        {
+                            "urls": "stun:stun1.l.google.com:19302"
+                        }]
+                };
+                return stunConfiguration;
+            case ERtcConfigurationType.TurnOnly:
+                let turnConfiguration = {
+                    iceServers: [{
+                            "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
+                            username: 'ubuntu',
+                            credential: '1wtutona'
+                        }
+                    ]
+                };
+                return turnConfiguration;
+            case ERtcConfigurationType.StunThenTurn:
+            default:
+                let defaultConfiguration = {
+                    iceServers: [{
+                            "urls": "stun:stun.l.google.com:19302"
+                        },
+                        {
+                            "urls": "stun:stun1.l.google.com:19302"
+                        } /* 2021/3/5 - this leads to log timeouts ... ,
+                        {
+                           "urls": "turn:ec2-18-216-213-192.us-east-2.compute.amazonaws.com:3480",
+                           username: 'ubuntu',
+                           credential: '1wtutona'
+                        }*/
+                    ]
+                };
+                return defaultConfiguration;
+        }
+    }
+}
+exports.RtcConfigFactory = RtcConfigFactory;
+class PeerCallerRtc {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        // Override this for data from notifications 
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function () { };
+        this.peerHelp = new RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+        // Hook to pass any data up the chain
+        this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+        this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    localCallParticipation() {
+        return this.peerHelp.localCallParticipation;
+    }
+    remoteCallParticipation() {
+        return this.peerHelp.remoteCallParticipation;
+    }
+    localPerson() {
+        return this.peerHelp.localPerson;
+    }
+    remotePerson() {
+        return this.peerHelp.remotePerson;
+    }
+    remotePersonIs(name) {
+        if (this.peerHelp.remotePerson) {
+            return (this.peerHelp.remotePerson.name === name);
+        }
+        else {
+            return false;
+        }
+    }
+    isConnected() {
+        return this.peerHelp.isChannelConnected;
+    }
+    placeCall() {
+        this.peerHelp.createConnection(PeerInterfaces_1.EPeerConnectionType.Caller, "Caller");
+    }
+    handleAnswer(answer) {
+        this.peerHelp.handleAnswer(answer);
+    }
+    handleIceCandidate(ice) {
+        this.peerHelp.handleIceCandidate(ice);
+    }
+    handleRemoteData(data) {
+        // No-op - we dont expect to recieve data from fallback channel
+        // TODO - make an assert() fail??
+    }
+    send(obj) {
+        this.peerHelp.send(obj);
+    }
+    close() {
+        this.peerHelp.close();
+    }
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData) {
+            this.onRemoteData(ev);
+        }
+    }
+    onRemoteFailInner() {
+        if (this.onRemoteFail) {
+            this.onRemoteFail();
+        }
+    }
+}
+exports.PeerCallerRtc = PeerCallerRtc;
+class PeerRecieverRtc {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        // Override these for data from notifications 
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function () { };
+        this.peerHelp = new RtcPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+        // Hook to pass any data up the chain
+        this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+        this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    localCallParticipation() {
+        return this.peerHelp.localCallParticipation;
+    }
+    remoteCallParticipation() {
+        return this.peerHelp.remoteCallParticipation;
+    }
+    localPerson() {
+        return this.peerHelp.localPerson;
+    }
+    remotePerson() {
+        return this.peerHelp.remotePerson;
+    }
+    remotePersonIs(name) {
+        if (this.peerHelp.remotePerson) {
+            return (this.peerHelp.remotePerson.name === name);
+        }
+        else {
+            return false;
+        }
+    }
+    isConnected() {
+        return this.peerHelp.isChannelConnected;
+    }
+    answerCall(offer) {
+        this.peerHelp.createConnection(PeerInterfaces_1.EPeerConnectionType.Reciever, "Reciever");
+        this.peerHelp.answerCall(offer);
+    }
+    handleIceCandidate(ice) {
+        this.peerHelp.handleIceCandidate(ice);
+    }
+    handleRemoteData(data) {
+        // No-op - we dont expect to recieve data from fallback channel
+        // TODO - make an assert() fail??
+    }
+    send(obj) {
+        this.peerHelp.send(obj);
+    }
+    close() {
+        this.peerHelp.close();
+    }
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData) {
+            this.onRemoteData(ev);
+        }
+    }
+    onRemoteFailInner() {
+        if (this.onRemoteFail) {
+            this.onRemoteFail();
+        }
+    }
+}
+exports.PeerRecieverRtc = PeerRecieverRtc;
+class RtcPeerHelper {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        // Override these for notifications 
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function () { };
+        this._localCallParticipation = localCallParticipation;
+        this._remoteCallParticipation = remoteCallParticipation;
+        this._localPerson = person;
+        this._nameCache = nameCache;
+        this._signaller = signaller;
+        this._types = new StreamableTypes_1.StreamableTypes();
+        this._isChannelConnected = false;
+        this._isIceConnected = false;
+        this._sendChannel = undefined;
+        this._recieveChannel = undefined;
+        this._sendQueue = new Queue_1.Queue();
+        this._connection = undefined;
+        this._iceQueue = new Queue_1.Queue();
+    }
+    /**
+    * set of 'getters' & some 'setters' for private variables
+    */
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    get remoteCallParticipation() {
+        return this._remoteCallParticipation;
+    }
+    get localPerson() {
+        return this._localPerson;
+    }
+    get remotePerson() {
+        return this._remotePerson;
+    }
+    get isChannelConnected() {
+        return this._isChannelConnected;
+    }
+    get isIceConnected() {
+        return this._isIceConnected;
+    }
+    // Connection handling
+    //////////
+    createConnection(type, channelName) {
+        let factory = new RtcConfigFactory();
+        let configuration = factory.createConfig(rtcConfigType);
+        this._connection = new RTCPeerConnection(configuration);
+        this._connection.onicecandidate = (ice) => {
+            this.onIceCandidate(ice.candidate, this.remoteCallParticipation);
+        };
+        if (type === PeerInterfaces_1.EPeerConnectionType.Caller) {
+            this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededCaller.bind(this)(ev); };
+        }
+        else {
+            this._connection.onnegotiationneeded = (ev) => { this.onNegotiationNeededReciever.bind(this)(ev); };
+        }
+        this._connection.ondatachannel = (ev) => { this.onRecieveDataChannel.bind(this)(ev.channel); };
+        this._connection.oniceconnectionstatechange = (ev) => { this.onIceConnectionStateChange.bind(this)(ev, this._connection); };
+        this._connection.onconnectionstatechange = (ev) => { this.onConnectionStateChange.bind(this)(ev, this._connection); };
+        this._connection.onicecandidateerror = (ev) => { this.onIceCandidateError.bind(this)(ev); };
+        this.createSendChannel(this._connection, channelName);
+    }
+    onIceCandidate(candidate, to) {
+        // Send our call ICE candidate in
+        var callIceCandidate = new Call_1.CallIceCandidate(this.localCallParticipation, to, candidate, true);
+        this._signaller.sendIceCandidate(callIceCandidate);
+    }
+    onNegotiationNeededCaller(ev) {
+        var self = this;
+        logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Event:', ev);
+        // ICE enumeration does not start until we create a local description, so call createOffer() to kick this off
+        this._connection.createOffer({ iceRestart: true })
+            .then(offer => self._connection.setLocalDescription(offer))
+            .then(() => {
+            // Send our call offer data in
+            logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededCaller', 'Posting offer', null);
+            var callOffer = new Call_1.CallOffer(self.localCallParticipation, self.remoteCallParticipation, self._connection.localDescription, Call_1.ETransportType.Rtc);
+            self._signaller.sendOffer(callOffer);
+        });
+    }
+    ;
+    onNegotiationNeededReciever(ev) {
+        logger.logInfo(RtcPeerHelper.className, 'onNegotiationNeededReciever', 'Event:', ev);
+    }
+    ;
+    onConnectionStateChange(ev, pc) {
+        logger.logInfo(RtcPeerHelper.className, 'onConnectionStateChange', 'State:', pc.connectionState);
+        switch (pc.connectionState) {
+            case "connected":
+                break;
+            case "disconnected":
+                break;
+            case "failed":
+                // The connection has been closed or failed
+                this._isChannelConnected = false;
+                if (this.onRemoteFail)
+                    this.onRemoteFail();
+                break;
+            case "closed":
+                // The connection has been closed or failed
+                this._isChannelConnected = false;
+                break;
+        }
+    }
+    handleIceCandidate(ice) {
+        // ICE candidates can arrive before call offer/answer
+        // If we have not yet set remoteDescription, queue the iceCandidate for later
+        if (!this._connection
+            || !this._connection.remoteDescription
+            || !this._connection.remoteDescription.type) {
+            this._iceQueue.enqueue(ice);
+            return;
+        }
+        if (ice.ice) {
+            if (!this.isIceConnected) { // dont add another candidate if we are connected
+                this._connection.addIceCandidate(new RTCIceCandidate(ice.ice))
+                    .catch(e => {
+                    // TODO - analyse error paths
+                    logger.logError(RtcPeerHelper.className, 'handleIceCandidate', "error:", e);
+                });
+            }
+        } /* Debugging ICE - does setting a null candidate from the remote interfere with the local??
+         * else {
+           this.recieveConnection.addIceCandidate(null)
+              .catch(e => {
+                 // TODO - analyse error paths
+                 logger.logError('RtcReciever', 'handleIceCandidate', "error on null ICE candidate:", e);
+              });
+        } */
+    }
+    handleAnswer(answer) {
+        var self = this;
+        if (!this._isIceConnected) {
+            this._connection.setRemoteDescription(new RTCSessionDescription(answer.answer))
+                .then(() => {
+                logger.logInfo(RtcPeerHelper.className, 'handleAnswer', 'succeeded', null);
+                // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+                while (!self._iceQueue.isEmpty()) {
+                    self.handleIceCandidate.bind(self)(self._iceQueue.dequeue());
+                }
+            })
+                .catch(e => {
+                logger.logError(RtcPeerHelper.className, 'handleAnswer', 'error:', e);
+            });
+        }
+    }
+    answerCall(remoteOffer) {
+        let self = this;
+        this._connection.setRemoteDescription(new RTCSessionDescription(remoteOffer.offer))
+            .then(() => self._connection.createAnswer({ iceRestart: true }))
+            .then((answer) => self._connection.setLocalDescription(answer))
+            .then(() => {
+            logger.logInfo(RtcPeerHelper.className, 'answerCall', 'Posting answer', null);
+            // Send our call answer data in
+            var callAnswer = new Call_1.CallAnswer(self.localCallParticipation, remoteOffer.from, self._connection.localDescription, Call_1.ETransportType.Rtc);
+            this._signaller.sendAnswer(callAnswer)
+                .then((response) => {
+                // Dequeue any iceCandidates that were enqueued while we had not set remoteDescription
+                while (!self._iceQueue.isEmpty()) {
+                    self.handleIceCandidate.bind(self)(self._iceQueue.dequeue());
+                }
+            });
+        });
+    }
+    close() {
+        this._connection.close();
+    }
+    // Send channel handling
+    //////////
+    createSendChannel(connection, name) {
+        if (this._sendChannel) {
+            this._sendChannel.close();
+        }
+        this._sendChannel = connection.createDataChannel(name);
+        this._sendChannel.onopen = (ev) => { this.onSendChannelOpen(ev, this._sendChannel); };
+        this._sendChannel.onerror = this.onSendChannelError.bind(this);
+        this._sendChannel.onmessage = this.onSendChannelMessage.bind(this);
+        this._sendChannel.onclose = this.onSendChannelClose.bind(this);
+    }
+    send(obj) {
+        if (this._sendChannel && this._sendChannel.readyState === 'open') {
+            // Dequeue any messages that were enqueued while we were not ready
+            while (!this._sendQueue.isEmpty()) {
+                this._sendChannel.send(JSON.stringify(this._sendQueue.dequeue()));
+            }
+            this._sendChannel.send(JSON.stringify(obj));
+        }
+        else {
+            this._sendQueue.enqueue(obj);
+        }
+    }
+    onSendChannelOpen(ev, dc) {
+        this._isChannelConnected = true;
+        try {
+            // By convention, new joiners broadcast a 'Person' object to peers
+            dc.send(JSON.stringify(this.localPerson));
+        }
+        catch (e) {
+            logger.logError(RtcPeerHelper.className, 'onSendChannelOpen', "error:", e);
+        }
+    }
+    onSendChannelMessage(msg) {
+        logger.logInfo(RtcPeerHelper.className, 'onSendChannelMessage', "message:", msg.data);
+    }
+    onSendChannelError(ev) {
+        let ev2 = ev;
+        logger.logError(RtcPeerHelper.className, 'onSendChannelError', "error:", ev2.error);
+    }
+    onSendChannelClose(ev) {
+        logger.logInfo(RtcPeerHelper.className, 'onSendChannelClose', "event:", ev);
+    }
+    // ICE handling
+    //////////
+    onIceConnectionStateChange(ev, pc) {
+        var state = pc.iceConnectionState;
+        logger.logInfo(RtcPeerHelper.className, 'onIceConnectionStateChange', "state:", state);
+        if (state === "connected") {
+            this._isIceConnected = true;
+        }
+        if (state === "failed") {
+            this._isIceConnected = false;
+            // TODO restartIce here
+        }
+    }
+    onIceCandidateError(ev) {
+        var ev2 = ev;
+        if (ev2.errorCode === 701) {
+            logger.logError(RtcPeerHelper.className, 'onIceCandidateError', ev2.url + ' ', ev2.errorText);
+        }
+        else {
+            logger.logInfo(RtcPeerHelper.className, 'onIceCandidateError', 'event:', ev);
+        }
+    }
+    // Recieve channel handling
+    //////////
+    onRecieveDataChannel(channel) {
+        logger.logInfo(RtcPeerHelper.className, 'onRecieveDataChannel', '', null);
+        if (this._recieveChannel) {
+            this._recieveChannel.close();
+        }
+        this._recieveChannel = channel;
+        this._recieveChannel.onmessage = (ev) => { this.onRecieveChannelMessage(ev); };
+        this._recieveChannel.onopen = (ev) => { this.onRecieveChannelOpen(ev, this._recieveChannel); };
+        this._recieveChannel.onclose = this.onRecieveChannelClose.bind(this);
+        this._recieveChannel.onerror = this.onRecieveChannelError.bind(this);
+    }
+    onRecieveChannelOpen(ev, dc) {
+        logger.logInfo(RtcPeerHelper.className, 'onRecieveChannelOpen', '', null);
+    }
+    onRecieveChannelError(ev) {
+        var ev2 = ev;
+        logger.logError(RtcPeerHelper.className, 'onRecieveChannelError', "error:", ev2.error);
+    }
+    onRecieveChannelClose(ev) {
+        logger.logInfo(RtcPeerHelper.className, 'onRecieveChannelClose', '', null);
+    }
+    onRecieveChannelMessage(ev) {
+        // Too noisy to keep this on 
+        // logger.logInfo('RtcCaller', 'onrecievechannelmessage', "message:", msg.data);
+        var ev2 = ev;
+        var remoteCallData = this._types.reviveFromJSON(ev2.data);
+        // Store the person we are talking to - allows tracking in the UI later
+        if (remoteCallData.type === Person_1.Person.__type) {
+            var person = remoteCallData;
+            // Store a unique derivation of name in case a person join multiple times
+            this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            if (this.onRemoteData) {
+                this.onRemoteData(this._remotePerson);
+            }
+        }
+        else {
+            if (this.onRemoteData) {
+                this.onRemoteData(remoteCallData);
+            }
+        }
+    }
+}
+RtcPeerHelper.className = 'RtcPeerHelper';
+
+
+/***/ }),
+
+/***/ "./dev/PeerWeb.tsx":
+/*!*************************!*\
+  !*** ./dev/PeerWeb.tsx ***!
+  \*************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Peer architecture:
+// PeerConnection : overall orchestration & interface to the UI.
+// PeerFactory - creates Rtc or Web versions as necessary to meet a request for a PeerCaller or PeerSender. 
+// PeerInterfaces - defines abstract interfaces for PeerCaller, PeerSender, PeerSignalsender, PeerSignalReciever etc 
+// PeerLink - contains a connection, plus logic to bridge the send/receieve differences, and depends only on abstract classes. 
+// PeerRtc - contains concrete implementations of PeerCaller and PeerSender, send and recieve data via WebRTC
+// PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
+// PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.WebPeerHelper = exports.PeerRecieverWeb = exports.PeerCallerWeb = void 0;
+// This app, this library
+const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
+const Queue_1 = __webpack_require__(/*! ./Queue */ "./dev/Queue.tsx");
+const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+class PeerCallerWeb {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        // Override this for data from notifications 
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function () { };
+        this.peerHelp = new WebPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+        // Hook to pass any data up the chain
+        this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+        this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    localCallParticipation() {
+        return this.peerHelp.localCallParticipation;
+    }
+    remoteCallParticipation() {
+        return this.peerHelp.remoteCallParticipation;
+    }
+    localPerson() {
+        return this.peerHelp.localPerson;
+    }
+    remotePerson() {
+        return this.peerHelp.remotePerson;
+    }
+    remotePersonIs(name) {
+        if (this.peerHelp.remotePerson) {
+            return (this.peerHelp.remotePerson.name === name);
+        }
+        else {
+            return false;
+        }
+    }
+    isConnected() {
+        return this.peerHelp.isChannelConnected;
+    }
+    placeCall() {
+        this.peerHelp.placeCall();
+    }
+    handleAnswer(answer) {
+        this.peerHelp.handleAnswer(answer);
+    }
+    handleIceCandidate(ice) {
+        // No-op for web connection
+    }
+    handleRemoteData(data) {
+        this.peerHelp.handleRemoteData(data);
+    }
+    send(obj) {
+        this.peerHelp.send(obj);
+    }
+    close() {
+        this.peerHelp.close();
+    }
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData) {
+            this.onRemoteData(ev);
+        }
+    }
+    onRemoteFailInner() {
+        if (this.onRemoteFail) {
+            this.onRemoteFail();
+        }
+    }
+}
+exports.PeerCallerWeb = PeerCallerWeb;
+class PeerRecieverWeb {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        // Override these for data from notifications 
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function () { };
+        this.peerHelp = new WebPeerHelper(localCallParticipation, remoteCallParticipation, person, nameCache, signaller);
+        // Hook to pass any data up the chain
+        this.peerHelp.onRemoteData = this.onRemoteDataInner.bind(this);
+        this.peerHelp.onRemoteFail = this.onRemoteFailInner.bind(this);
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    localCallParticipation() {
+        return this.peerHelp.localCallParticipation;
+    }
+    remoteCallParticipation() {
+        return this.peerHelp.remoteCallParticipation;
+    }
+    localPerson() {
+        return this.peerHelp.localPerson;
+    }
+    remotePerson() {
+        return this.peerHelp.remotePerson;
+    }
+    remotePersonIs(name) {
+        if (this.peerHelp.remotePerson) {
+            return (this.peerHelp.remotePerson.name === name);
+        }
+        else {
+            return false;
+        }
+    }
+    isConnected() {
+        return this.peerHelp.isChannelConnected;
+    }
+    answerCall(offer) {
+        this.peerHelp.answerCall(offer);
+    }
+    handleIceCandidate(ice) {
+        // No-op for web connection
+    }
+    handleRemoteData(data) {
+        this.peerHelp.handleRemoteData(data);
+    }
+    send(obj) {
+        this.peerHelp.send(obj);
+    }
+    close() {
+        this.peerHelp.close();
+    }
+    onRemoteDataInner(ev) {
+        if (this.onRemoteData) {
+            this.onRemoteData(ev);
+        }
+    }
+    onRemoteFailInner() {
+        if (this.onRemoteFail) {
+            this.onRemoteFail();
+        }
+    }
+}
+exports.PeerRecieverWeb = PeerRecieverWeb;
+class WebPeerHelper {
+    constructor(localCallParticipation, remoteCallParticipation, person, nameCache, signaller) {
+        // Override these for notifications 
+        this.onRemoteData = function (ev) { };
+        this.onRemoteFail = function () { };
+        this._localCallParticipation = localCallParticipation;
+        this._remoteCallParticipation = remoteCallParticipation;
+        this._localPerson = person;
+        this._nameCache = nameCache;
+        this._signaller = signaller;
+        this._types = new StreamableTypes_1.StreamableTypes();
+        this._isChannelConnected = false;
+    }
+    /**
+    * set of 'getters' & some 'setters' for private variables
+    */
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    get remoteCallParticipation() {
+        return this._remoteCallParticipation;
+    }
+    get localPerson() {
+        return this._localPerson;
+    }
+    get remotePerson() {
+        return this._remotePerson;
+    }
+    get isChannelConnected() {
+        return this._isChannelConnected;
+    }
+    // Connection handling
+    //////////
+    placeCall() {
+        let offer = new Call_1.CallOffer(this._localCallParticipation, this._remoteCallParticipation, "Web", Call_1.ETransportType.Web);
+        this._signaller.sendOffer(offer);
+    }
+    handleAnswer(answer) {
+        this._isChannelConnected = true;
+        // Send the local person to start the application handshake
+        this.send(this._localPerson);
+        WebPeerHelper.drainSendQueue(this._signaller);
+    }
+    answerCall(remoteOffer) {
+        let answer = new Call_1.CallAnswer(this._localCallParticipation, this._remoteCallParticipation, "Web", Call_1.ETransportType.Web);
+        this._signaller.sendAnswer(answer);
+        this._isChannelConnected = true;
+        // Send the local person to start the application handshake
+        this.send(this._localPerson);
+        WebPeerHelper.drainSendQueue(this._signaller);
+    }
+    close() {
+        // TODO
+    }
+    send(obj) {
+        if (!WebPeerHelper._dataForBatch) {
+            // first call - just save the item and pass back control
+            WebPeerHelper._dataForBatch = obj;
+            WebPeerHelper._sender = this._localCallParticipation;
+            WebPeerHelper._recipents.push(this._remoteCallParticipation);
+            return;
+        }
+        else {
+            if (obj === WebPeerHelper._dataForBatch && this._localCallParticipation === WebPeerHelper._sender) {
+                // This case is a repeated re-send of the same item to different recipieents -> save the recipients
+                WebPeerHelper._recipents.push(this._remoteCallParticipation);
+            }
+            else {
+                // This case we have a new item being sent - flush the queue and restart
+                WebPeerHelper.drainSendQueue(this._signaller);
+                // Then save the new item and pass back control
+                WebPeerHelper._dataForBatch = obj;
+                WebPeerHelper._sender = this._localCallParticipation;
+                WebPeerHelper._recipents.push(this._remoteCallParticipation);
+            }
+            WebPeerHelper._dataForBatch = obj;
+        }
+    }
+    handleRemoteData(data) {
+        this.onRecieveMessage(data);
+    }
+    static drainSendQueue(signaller) {
+        if (WebPeerHelper._dataForBatch) {
+            // Take a copy of the data to send as the send is anychronous & if new items come in we need to correctly accumulate them
+            let callData = new Call_1.CallDataBatched(WebPeerHelper._sender, WebPeerHelper._recipents.map((x) => x), WebPeerHelper._dataForBatch);
+            // Reset accumulated data
+            WebPeerHelper._dataForBatch = undefined;
+            WebPeerHelper._sender = undefined;
+            WebPeerHelper._recipents = new Array();
+            // Send our data.
+            // we put it on a queue first as new data can arrive and get re-queued while we are sending to the server
+            WebPeerHelper._sendQueue.enqueue(callData);
+        }
+        while (!WebPeerHelper._sendQueue.isEmpty()) {
+            signaller.sendData(WebPeerHelper._sendQueue.dequeue());
+        }
+    }
+    onRecieveMessage(data) {
+        var remoteCallData = data.data;
+        // Store the person we are talking to - allows tracking in the UI later
+        if (remoteCallData.type === Person_1.Person.__type) {
+            var person = remoteCallData;
+            // Store a unique derivation of name in case a person join multiple times
+            this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            if (this.onRemoteData) {
+                this.onRemoteData(remoteCallData);
+            }
+        }
+        else {
+            if (this.onRemoteData) {
+                this.onRemoteData(remoteCallData);
+            }
+        }
+    }
+}
+exports.WebPeerHelper = WebPeerHelper;
+WebPeerHelper.className = 'WebPeerHelper';
+WebPeerHelper._sendQueue = new Queue_1.Queue();
+WebPeerHelper._dataForBatch = undefined;
+WebPeerHelper._recipents = new Array();
+WebPeerHelper._sender = undefined;
 
 
 /***/ }),
@@ -6220,6 +7351,7 @@ const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/UserFacilities.tsx");
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
 //==============================//
 // StreamableTypes class
 //==============================//
@@ -6247,6 +7379,7 @@ class StreamableTypes {
         this._types.GymClockSpec = GymClock_1.GymClockSpec;
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
+        this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
     }
     isObjectKey(key) {
         let keyNum = Number(key);
@@ -6708,8 +7841,16 @@ const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/User
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 const Enum_1 = __webpack_require__(/*! ./Enum */ "./dev/Enum.tsx");
-// import { ILiveDocument, ICommandProcessor, ICommand, ISelection, ILiveDocumentChannel } from './LiveDocumentInterfaces';
+// Peer-peer architecture
+const PeerLink_1 = __webpack_require__(/*! ./PeerLink */ "./dev/PeerLink.tsx");
+const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
+const PeerRtc_1 = __webpack_require__(/*! ./PeerRtc */ "./dev/PeerRtc.tsx");
+const PeerWeb_1 = __webpack_require__(/*! ./PeerWeb */ "./dev/PeerWeb.tsx");
+const PeerFactory_1 = __webpack_require__(/*! ./PeerFactory */ "./dev/PeerFactory.tsx");
+// LiveDocument Architecture
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
+const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
+const LiveChannel_1 = __webpack_require__(/*! ./LiveChannel */ "./dev/LiveChannel.tsx");
 var EntryPoints = {
     LoggerFactory: Logger_1.LoggerFactory,
     ELoggerType: Logger_1.ELoggerType,
@@ -6743,8 +7884,20 @@ var EntryPoints = {
     EThreeStateSwitchEnum: Enum_1.EThreeStateSwitchEnum,
     EThreeStateRagEnum: Enum_1.EThreeStateRagEnum,
     EFourStateRagEnum: Enum_1.EFourStateRagEnum,
+    // Peer Architecture
+    PeerLink: PeerLink_1.PeerLink,
+    EPeerConnectionType: PeerInterfaces_1.EPeerConnectionType,
+    PeerNameCache: PeerInterfaces_1.PeerNameCache,
+    PeerCallerRtc: PeerRtc_1.PeerCallerRtc,
+    PeerRecieverRtc: PeerRtc_1.PeerRecieverRtc,
+    PeerCallerWeb: PeerWeb_1.PeerCallerWeb,
+    PeerRecieverWeb: PeerWeb_1.PeerRecieverWeb,
+    PeerFactory: PeerFactory_1.PeerFactory,
+    // Live Document Architecture
     LiveWorkout: LiveWorkout_1.LiveWorkout,
-    LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand
+    LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand,
+    LiveCommandProcessor: LiveCommand_1.LiveCommandProcessor,
+    LiveDocumentChannelFactory: LiveChannel_1.LiveDocumentChannelFactory
 };
 ArrayHook_1.ArrayHook.initialise();
 DateHook_1.DateHook.initialise();

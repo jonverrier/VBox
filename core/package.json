@@ -9,6 +9,7 @@
    "dependencies": {
       "axios": "^0.21.1",
       "loglevel": "^1.7.1",
+      "webrtc-adapter": "^7.7.1",
       "winston": "^3.3.3"
    },
    "scripts": {

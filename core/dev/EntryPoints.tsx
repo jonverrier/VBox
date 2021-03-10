@@ -13,7 +13,15 @@ import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
 import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './Enum';
-// import { ILiveDocument, ICommandProcessor, ICommand, ISelection, ILiveDocumentChannel } from './LiveDocumentInterfaces';
+
+// Peer-peer architecture
+import { PeerLink } from './PeerLink';
+import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache, IPeerSignalReciever } from './PeerInterfaces';
+import { PeerCallerRtc, PeerRecieverRtc } from './PeerRtc';
+import { PeerCallerWeb, PeerRecieverWeb } from './PeerWeb';
+import { PeerFactory } from './PeerFactory';
+
+// LiveDocument Architecture
 import { LiveWorkout, LiveWhiteboardCommand } from './LiveWorkout';
 import { LiveCommandProcessor } from './LiveCommand';
 import { LiveDocumentChannelFactory } from './LiveChannel';
@@ -51,6 +59,18 @@ var EntryPoints = {
    EThreeStateSwitchEnum: EThreeStateSwitchEnum,
    EThreeStateRagEnum: EThreeStateRagEnum,
    EFourStateRagEnum: EFourStateRagEnum,
+
+   // Peer Architecture
+   PeerLink : PeerLink,
+   EPeerConnectionType: EPeerConnectionType,
+   PeerNameCache: PeerNameCache,
+   PeerCallerRtc: PeerCallerRtc,
+   PeerRecieverRtc: PeerRecieverRtc,
+   PeerCallerWeb: PeerCallerWeb,
+   PeerRecieverWeb: PeerRecieverWeb,
+   PeerFactory: PeerFactory,
+
+   // Live Document Architecture
    LiveWorkout: LiveWorkout,
    LiveWhiteboardCommand: LiveWhiteboardCommand,
    LiveCommandProcessor: LiveCommandProcessor,

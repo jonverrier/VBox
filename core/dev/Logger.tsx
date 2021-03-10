@@ -13,7 +13,7 @@ export enum ELoggerType {
    Client
 }
 
-interface ILogger {
+export interface ILogger {
    logError (component: string,
       method: string,
       message: string,
@@ -31,16 +31,14 @@ export class LoggerFactory {
    constructor() {
    }
 
-   createLogger(loggerType: ELoggerType, shipToSever: boolean): ILogger | null {
+   createLogger(loggerType: ELoggerType, shipToSever: boolean): ILogger {
       switch (loggerType) {
          case ELoggerType.Server:
             return new ClientLogger(shipToSever);
 
          case ELoggerType.Client:
-            return new ClientLogger(shipToSever);
-
          default:
-            return null;
+            return new ClientLogger(shipToSever);
       }
       
    }

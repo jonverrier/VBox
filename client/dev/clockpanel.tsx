@@ -15,10 +15,11 @@ import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, Gym
 import { StreamableTypes } from '../../core/dev/StreamableTypes'
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person'
+import { PeerConnection } from '../../core/dev/PeerConnection';
 
 import { RunnableClock } from './RunnableClock';
 import { StoredWorkoutState } from './LocalStore';
-import { PeerConnection } from './PeerConnection';
+
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
