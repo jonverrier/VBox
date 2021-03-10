@@ -14,16 +14,18 @@ export class LiveCommandProcessor implements ICommandProcessor {
 
    private _document: ILiveDocument;
    private _channel: ILiveDocumentChannel | undefined;
+   private _outbound: boolean | undefined;
    private _commands: Array<ICommand>;
    private _lastCommandIndex: number = -1;
 
-   constructor(document: ILiveDocument, channel?: ILiveDocumentChannel) {
+   constructor(document: ILiveDocument, outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._document = document;
       this._channel = channel;
+      this._outbound = outbound;
       this._commands = new Array<ICommand>();
       this.invalidateIndex();
 
-      if (channel) {
+      if (outbound !== undefined && (!outbound && channel)) {
          channel.onCommandApply = this.onCommandApply.bind(this);
          channel.onCommandReverse = this.onCommandReverse.bind(this);
          channel.onDocument = this.onDocument.bind(this);
@@ -32,20 +34,20 @@ export class LiveCommandProcessor implements ICommandProcessor {
 
    adoptAndApply (command: ICommand): void {
 
-      if (!this._lastCommandIndex) {
-         // This case is the first command ever
+      if (!this.isValidIndex()) {
+         // This case is the first command since a new document
          this._lastCommandIndex = 0;
-         this._commands.push(command);
+         this._commands.unshift (command);
       } else {
          // If we have undone a series of commands, need to throw away irrelevant ones & put the new command at the head
          if (this._lastCommandIndex != 0) {
             this._commands = this._commands.splice(this._lastCommandIndex);
-            this._commands.push(command);
          }
+         this._commands.unshift(command);
       }
 
       command.applyTo(this._document);
-      if (this._channel)
+      if (this._channel && this._outbound)
          this._channel.broadcastCommandApply(command);
    }
 
@@ -71,7 +73,7 @@ export class LiveCommandProcessor implements ICommandProcessor {
       if (this.canUndo()) {
          // move forward one step after undoing - opposite of 'redo' 
          this._commands[this._lastCommandIndex].reverseFrom(this._document);
-         if (this._channel)
+         if (this._channel && this._outbound)
             this._channel.broadcastCommandReverse(this._commands[this._lastCommandIndex]);
          this._lastCommandIndex++;
       }
@@ -82,7 +84,7 @@ export class LiveCommandProcessor implements ICommandProcessor {
          // move back one step before applying - opposite of 'undo' 
          this._lastCommandIndex--;
          this._commands[this._lastCommandIndex].applyTo(this._document);
-         if (this._channel)
+         if (this._channel && this._outbound)
             this._channel.broadcastCommandApply(this._commands[this._lastCommandIndex]);
       }
    }

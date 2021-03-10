@@ -8,42 +8,45 @@
 // 
 
 // This app, this component 
-import { IStreamable } from './Streamable'
+import { IStreamable } from './Streamable';
+import { StreamableTypes } from './StreamableTypes';
 import { CallParticipation } from './Call';
 import { ILiveDocument, ICommand, ICommandProcessor, ILiveDocumentChannel } from './LiveInterfaces';
 
 // Stubbing for testing
-var docInOut: ILiveDocumentChannel = null;
+var docInOut: ILiveDocumentChannel | null = null;
 
 // Stubbing for testing
 class LiveChannelStub implements ILiveDocumentChannel {
+
+   types: StreamableTypes = new StreamableTypes;
 
    constructor() {
    }
 
    // Override these for data from notifications 
-   onCommandApply: ((this: LiveChannelStub, ev: ICommand) => any) | null;
-   onCommandReverse: ((this: LiveChannelStub) => any) | null;
-   onDocument: ((this: LiveChannelStub, ev: ILiveDocument) => void) | null;
+   onCommandApply: ((ev: ICommand) => void) = function (ev) { };
+   onCommandReverse: (() => void) = function () { };
+   onDocument: ((ev: ILiveDocument) => void) = function (ev) { };
 
-   private onCommandApplyInner (command: ICommand): void {
+   private onCommandApplyInner(command: string): void {
       if (this.onCommandApply)
-         this.onCommandApply(command);
+         this.onCommandApply(this.types.reviveFromJSON (command));
    }
    private onCommandReverseInner(): void {
       if (this.onCommandReverse)
          this.onCommandReverse();
    }
-   private onDocumentInner(document: ILiveDocument): void {
+   private onDocumentInner(document: string): void {
       if (this.onDocument)
-         this.onDocument(document);
+         this.onDocument(this.types.reviveFromJSON (document));
    }
 
    sendDocumentTo(recipient: CallParticipation, document: ILiveDocument): void {
-      this.onDocumentInner (document);
+      this.onDocumentInner(JSON.stringify (document));
    }
    broadcastCommandApply(command: ICommand): void {
-      this.onCommandApplyInner (command);
+      this.onCommandApplyInner(JSON.stringify(command));
    }
    broadcastCommandReverse(): void {
       this.onCommandReverseInner();

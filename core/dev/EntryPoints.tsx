@@ -16,6 +16,7 @@ import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './
 // import { ILiveDocument, ICommandProcessor, ICommand, ISelection, ILiveDocumentChannel } from './LiveDocumentInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand } from './LiveWorkout';
 import { LiveCommandProcessor } from './LiveCommand';
+import { LiveDocumentChannelFactory } from './LiveChannel';
 
 var EntryPoints = {
    LoggerFactory: LoggerFactory,
@@ -51,7 +52,9 @@ var EntryPoints = {
    EThreeStateRagEnum: EThreeStateRagEnum,
    EFourStateRagEnum: EFourStateRagEnum,
    LiveWorkout: LiveWorkout,
-   LiveWhiteboardCommand: LiveWhiteboardCommand
+   LiveWhiteboardCommand: LiveWhiteboardCommand,
+   LiveCommandProcessor: LiveCommandProcessor,
+   LiveDocumentChannelFactory: LiveDocumentChannelFactory
 };
 
 ArrayHook.initialise();

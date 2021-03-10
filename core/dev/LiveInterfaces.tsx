@@ -15,7 +15,6 @@ export interface ILiveDocument extends IStreamable {
 
    createCommandProcessor(): ICommandProcessor;
    assign(rhs: ILiveDocument);
-
 }
 
 export interface ICommandProcessor {
@@ -34,7 +33,6 @@ export interface ICommand extends IStreamable {
    applyTo (document: ILiveDocument): void;
    reverseFrom (document: ILiveDocument): void;
    canReverse(): boolean;
-
 }
 
 export interface ISelection {
@@ -46,9 +44,10 @@ export interface ISelection {
 // This enables easy stubbing for testing
 export interface ILiveDocumentChannel {
 
-   onCommandApply(command: ICommand): void;
+   onCommandApply(command: ICommand): (void);
    onCommandReverse(command: ICommand): void;
    onDocument(command: ILiveDocument): void;
+
    sendDocumentTo(recipient: CallParticipation, document: ILiveDocument): void;
    broadcastCommandApply(command: ICommand): void;
    broadcastCommandReverse(command: ICommand): void;

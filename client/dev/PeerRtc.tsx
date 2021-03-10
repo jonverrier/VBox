@@ -134,8 +134,8 @@ export class PeerCallerRtc implements IPeerCaller {
    }
 
    // Override this for data from notifications 
-   onRemoteData: ((this: PeerCallerRtc, ev: IStreamable) => any) | null;
-   onRemoteFail: ((this: PeerCallerRtc) => void) | null;
+   onRemoteData: ((ev: IStreamable) => void) | null;
+   onRemoteFail: (() => void) | null;
 
    placeCall(): void {
 
