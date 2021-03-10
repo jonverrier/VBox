@@ -8,16 +8,11 @@
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 // PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
-// External libraries
-import * as React from 'react';
- 
-// This app, external components
-import { Person } from '../../core/dev/Person';
-import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from '../../core/dev/Call';
-import { IStreamable } from '../../core/dev/Streamable';
-import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-
-// This app, this component
+// This app, this library
+import { Person } from './Person';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from './Call';
+import { IStreamable } from './Streamable';
+import { ILogger, LoggerFactory, ELoggerType } from './Logger';
 import { EPeerConnectionType, IPeerCaller, IPeerReciever,  PeerNameCache, IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 import { PeerFactory } from './PeerFactory';
 
@@ -29,7 +24,7 @@ function uuid(): string {
    return (uuidPart() + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + "-" + uuidPart() + uuidPart() + uuidPart());
 }
 
-var logger = new LoggerFactory().createLogger (ELoggerType.Client, true);
+var logger: ILogger = new LoggerFactory().createLogger (ELoggerType.Client, true);
 
 export class PeerLink {
    // member variables
@@ -38,13 +33,13 @@ export class PeerLink {
    private _localCallParticipation: CallParticipation;
    private _remoteCallParticipation: CallParticipation;
    private _person: Person;
-   private _peerCaller: IPeerCaller;
-   private _peerReciever: IPeerReciever;
+   private _peerCaller: IPeerCaller | undefined;
+   private _peerReciever: IPeerReciever | undefined;
    private static className: string = 'PeerLink';
 
-   // Override this to get data from the link
-   onRemoteData: ((this: PeerLink, ev: IStreamable) => any) | null;
-   onRemoteFail: ((this: PeerLink, link: PeerLink) => void) | null;
+   // Override these to get data notification from the link
+   onRemoteData: ((this: PeerLink, ev: IStreamable) => any) = function (ev) { };
+   onRemoteFail: ((this: PeerLink, link: PeerLink) => void) = function (ev) { };
 
    constructor(outbound: boolean,
       transport: ETransportType,
@@ -75,6 +70,7 @@ export class PeerLink {
 
          this._peerCaller.onRemoteData = this.onRemoteDataInner.bind(this);
          this._peerCaller.onRemoteFail = this.onRemoteFailInner.bind(this);
+         this._peerReciever = undefined;
 
       } else {
 
@@ -89,6 +85,7 @@ export class PeerLink {
 
          this._peerReciever.onRemoteData = this.onRemoteDataInner.bind(this);
          this._peerReciever.onRemoteFail = this.onRemoteFailInner.bind(this);
+         this._peerCaller = undefined;
       }
    }
 
@@ -183,13 +180,13 @@ export class PeerLink {
    }
 
    isConnectedToPerson (name: string): boolean {
-      if (!this._outbound && this._peerReciever && this._peerReciever.remotePerson()
-         && this._peerReciever.remotePerson().name === name
+      if (!this._outbound && this._peerReciever 
+         && this._peerReciever.remotePersonIs(name) 
          && this._peerReciever.isConnected()) {
          return true;
       }
-      if (this._outbound && this._peerCaller && this._peerCaller.remotePerson()
-         && this._peerCaller.remotePerson().name === name
+      if (this._outbound && this._peerCaller 
+         && this._peerCaller.remotePersonIs(name)
          && this._peerCaller.isConnected()) {
          return true;
       }

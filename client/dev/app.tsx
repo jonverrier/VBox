@@ -23,13 +23,14 @@ import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom';
 import axios from 'axios';
 import * as CSS from 'csstype';
 
-// This app, other components
+// This app, other library
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
 import { Person } from '../../core/dev/Person';
 import { Facility } from '../../core/dev/Facility';
 import { UserFacilities } from '../../core/dev/UserFacilities';
 import { DateHook } from '../../core/dev/DateHook';
 import { ArrayHook } from '../../core/dev/ArrayHook';
+import { PeerConnection } from '../../core/dev/PeerConnection';
 
 // This app, this component
 import { MemberLoginData, MemberLoginProvider } from './LoginMember';
@@ -37,7 +38,6 @@ import { LoginOauthProvider } from './LoginOauth';
 import { LoginMeetCodeData } from './LoginMeetingCode';
 import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { RemoteConnectionStatus, MasterConnectionStatus } from './CallPanelUI';
-import { PeerConnection } from './PeerConnection';
 import { StoredMeetingState } from './LocalStore';
 import { LeaderResolve } from './LeaderResolveUI';
 import { Media } from './Media';

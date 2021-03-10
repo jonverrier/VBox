@@ -12,12 +12,10 @@
 import axios from 'axios';
 
 // This app, other components 
-import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallDataBatched } from '../../core/dev/Call';
-import { IStreamable } from '../../core/dev/Streamable';
-import { StreamableTypes } from '../../core/dev/StreamableTypes';
-
-// This app, this component
+import { LoggerFactory, ELoggerType } from './Logger';
+import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallDataBatched } from './Call';
+import { IStreamable } from './Streamable';
+import { StreamableTypes } from './StreamableTypes';
 import { IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);

@@ -7,13 +7,13 @@ import Nav from 'react-bootstrap/Nav';
 
 import * as CSS from 'csstype';
 
-// This app, other components
+// This app, other library
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { CallLeaderResolve } from '../../core/dev/Call';
 
 // This app, this component
-import { PeerConnection } from './PeerConnection';
+import { PeerConnection } from '../../core/dev/PeerConnection';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',

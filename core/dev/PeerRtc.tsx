@@ -16,15 +16,13 @@
 // External libraries
 import axios from 'axios';
 
-// This app, other components
-import { Person } from '../../core/dev/Person';
-import { Queue } from '../../core/dev/Queue';
-import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { StreamableTypes } from '../../core/dev/StreamableTypes';
-import { IStreamable } from '../../core/dev/Streamable';
-import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from '../../core/dev/Call';
-
-// This app, this component
+// This app, this library
+import { Person } from './Person';
+import { Queue } from './Queue';
+import { LoggerFactory, ELoggerType } from './Logger';
+import { StreamableTypes } from './StreamableTypes';
+import { IStreamable } from './Streamable';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from './Call';
 import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache, IPeerSignalReciever } from './PeerInterfaces'
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
@@ -126,16 +124,23 @@ export class PeerCallerRtc implements IPeerCaller {
    localPerson(): Person {
       return this.peerHelp.localPerson;
    }
-   remotePerson(): Person {
+   remotePerson(): Person | undefined {
       return this.peerHelp.remotePerson;
+   }
+   remotePersonIs(name: string): boolean {
+      if (this.peerHelp.remotePerson) {
+         return (this.peerHelp.remotePerson.name === name);
+      } else {
+         return false;
+      }
    }
    isConnected(): boolean {
       return this.peerHelp.isChannelConnected;
    }
 
    // Override this for data from notifications 
-   onRemoteData: ((ev: IStreamable) => void) | null;
-   onRemoteFail: (() => void) | null;
+   onRemoteData: ((ev: IStreamable) => void) = function (ev) { };
+   onRemoteFail: (() => void) = function () { };
 
    placeCall(): void {
 
@@ -209,16 +214,23 @@ export class PeerRecieverRtc implements IPeerReciever {
    localPerson(): Person {
       return this.peerHelp.localPerson;
    }
-   remotePerson(): Person {
+   remotePerson(): Person | undefined {
       return this.peerHelp.remotePerson;
+   }
+   remotePersonIs(name: string): boolean {
+      if (this.peerHelp.remotePerson) {
+         return (this.peerHelp.remotePerson.name === name);
+      } else {
+         return false;
+      }
    }
    isConnected(): boolean {
       return this.peerHelp.isChannelConnected;
    }
 
-   // Override this for data for notifications 
-   onRemoteData: ((this: PeerRecieverRtc, ev: IStreamable) => void) | null;
-   onRemoteFail: ((this: PeerRecieverRtc) => void) | null;
+   // Override these for data from notifications 
+   onRemoteData: ((ev: IStreamable) => void) = function (ev) { };
+   onRemoteFail: (() => void) = function () { };
 
    answerCall(offer: CallOffer): void {
 
@@ -265,7 +277,7 @@ class RtcPeerHelper {
    private _localCallParticipation: CallParticipation;
    private _remoteCallParticipation: CallParticipation;
    private _localPerson: Person;
-   private _remotePerson: Person;
+   private _remotePerson: Person | undefined;
    private _isChannelConnected: boolean;
    private _isIceConnected: boolean;
    private _nameCache: PeerNameCache;
@@ -274,11 +286,10 @@ class RtcPeerHelper {
    private static className: string = 'RtcPeerHelper';
 
    private _connection: RTCPeerConnection;
-   private _iceQueue: Queue<any>;
-
    private _sendChannel: RTCDataChannel;
    private _recieveChannel: RTCDataChannel;
    private _sendQueue: Queue<IStreamable>;
+   private _iceQueue: Queue<any>;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
@@ -294,16 +305,17 @@ class RtcPeerHelper {
       this._types = new StreamableTypes();
 
       this._isChannelConnected = false;
-      this._sendChannel = null;
-      this._recieveChannel = null;
+      this._isIceConnected = false;
+      this._sendChannel = undefined;
+      this._recieveChannel = undefined;
       this._sendQueue = new Queue<IStreamable>();
-      this._connection = null;
+      this._connection = undefined;
       this._iceQueue = new Queue<CallIceCandidate>();
    }
 
-   // Override these for notifications - TODO - see top of file
-   onRemoteData: ((this: RtcPeerHelper, ev: Event) => void) | null;
-   onRemoteFail: ((this: RtcPeerHelper) => void) | null;
+   // Override these for notifications 
+   onRemoteData: ((ev: IStreamable) => void) = function (ev) { };
+   onRemoteFail: (() => void) = function () { };
 
    /**
    * set of 'getters' & some 'setters' for private variables
@@ -317,7 +329,7 @@ class RtcPeerHelper {
    get localPerson(): Person {
       return this._localPerson;
    }
-   get remotePerson(): Person {
+   get remotePerson(): Person | undefined {
       return this._remotePerson;
    }
    get isChannelConnected(): boolean {

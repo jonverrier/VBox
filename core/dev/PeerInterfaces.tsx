@@ -8,10 +8,10 @@
 // PeerSignaller - contains an implementation of the PeerSignalSender & PeerSignalReciever interfaces.
 // PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
-// This app, external components
-import { Person } from '../../core/dev/Person';
-import { CallOffer, CallAnswer, CallIceCandidate, CallParticipation, CallData } from '../../core/dev/Call';
-import { IStreamable } from '../../core/dev/Streamable'
+// This app, this library
+import { Person } from './Person';
+import { CallOffer, CallAnswer, CallIceCandidate, CallParticipation, CallData } from './Call';
+import { IStreamable } from './Streamable'
 
 export enum EPeerConnectionType {
    Caller,
@@ -25,8 +25,9 @@ export interface IPeer {
    localCallParticipation(): CallParticipation;
    remoteCallParticipation(): CallParticipation;
    localPerson(): Person;
-   remotePerson(): Person;
+   remotePerson(): Person | undefined;
    isConnected(): boolean;
+   remotePersonIs(name: string): boolean;
    send(data: IStreamable): void;
 
    handleIceCandidate(ice: CallIceCandidate): void;

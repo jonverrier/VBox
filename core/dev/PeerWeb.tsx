@@ -16,15 +16,13 @@
 // External libraries
 import axios from 'axios';
 
-// This app, other components
-import { Person } from '../../core/dev/Person';
-import { Queue } from '../../core/dev/Queue';
-import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { StreamableTypes } from '../../core/dev/StreamableTypes';
-import { IStreamable } from '../../core/dev/Streamable';
-import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData, CallDataBatched } from '../../core/dev/Call';
-
-// This app, this component
+// This app, this library
+import { Person } from './Person';
+import { Queue } from './Queue';
+import { LoggerFactory, ELoggerType } from './Logger';
+import { StreamableTypes } from './StreamableTypes';
+import { IStreamable } from './Streamable';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData, CallDataBatched } from './Call';
 import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache } from './PeerInterfaces'
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
@@ -61,16 +59,23 @@ export class PeerCallerWeb implements IPeerCaller {
    localPerson(): Person {
       return this.peerHelp.localPerson;
    }
-   remotePerson(): Person {
+   remotePerson(): Person | undefined {
       return this.peerHelp.remotePerson;
+   }
+   remotePersonIs(name: string): boolean {
+      if (this.peerHelp.remotePerson) {
+         return (this.peerHelp.remotePerson.name === name);
+      } else {
+         return false;
+      }
    }
    isConnected(): boolean {
       return this.peerHelp.isChannelConnected;
    }
 
    // Override this for data from notifications 
-   onRemoteData: ((this: PeerCallerWeb, ev: IStreamable) => any) | null;
-   onRemoteFail: ((this: PeerCallerWeb) => void) | null;
+   onRemoteData: ((ev: IStreamable) => void) = function (ev) { };
+   onRemoteFail: (() => void) = function () { };
 
    placeCall(): void {
       this.peerHelp.placeCall();
@@ -142,16 +147,23 @@ export class PeerRecieverWeb implements IPeerReciever {
    localPerson(): Person {
       return this.peerHelp.localPerson;
    }
-   remotePerson(): Person {
+   remotePerson(): Person | undefined {
       return this.peerHelp.remotePerson;
+   }
+   remotePersonIs(name: string): boolean {
+      if (this.peerHelp.remotePerson) {
+         return (this.peerHelp.remotePerson.name === name);
+      } else {
+         return false;
+      }
    }
    isConnected(): boolean {
       return this.peerHelp.isChannelConnected;
    }
 
-   // Override this for data for notifications 
-   onRemoteData: ((this: PeerRecieverWeb, ev: IStreamable) => void) | null;
-   onRemoteFail: ((this: PeerRecieverWeb) => void) | null;
+   // Override these for data from notifications 
+   onRemoteData: ((ev: IStreamable) => void) = function (ev) { };
+   onRemoteFail: (() => void) = function () { };
 
    answerCall(offer: CallOffer): void {
 
@@ -195,7 +207,7 @@ export class WebPeerHelper {
    private _localCallParticipation: CallParticipation;
    private _remoteCallParticipation: CallParticipation;
    private _localPerson: Person;
-   private _remotePerson: Person;
+   private _remotePerson: Person | undefined;
    private _isChannelConnected: boolean;
    private _nameCache: PeerNameCache;
    private _signaller: IPeerSignalSender;
@@ -203,9 +215,9 @@ export class WebPeerHelper {
    private static className: string = 'WebPeerHelper';
 
    private static _sendQueue: Queue<IStreamable> = new Queue<IStreamable> ();
-   private static _dataForBatch: IStreamable = null;
+   private static _dataForBatch: IStreamable = undefined;
    private static _recipents: Array<CallParticipation> = new Array<CallParticipation>();
-   private static _sender: CallParticipation = null;
+   private static _sender: CallParticipation = undefined;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
@@ -224,8 +236,8 @@ export class WebPeerHelper {
    }
 
    // Override these for notifications 
-   onRemoteData: ((this: WebPeerHelper, ev: IStreamable) => void) | null;
-   onRemoteFail: ((this: WebPeerHelper) => void) | null;
+   onRemoteData: ((ev: IStreamable) => void) = function (ev) { };
+   onRemoteFail: (() => void) = function () { };
 
    /**
    * set of 'getters' & some 'setters' for private variables
@@ -239,7 +251,7 @@ export class WebPeerHelper {
    get localPerson(): Person {
       return this._localPerson;
    }
-   get remotePerson(): Person {
+   get remotePerson(): Person | undefined {
       return this._remotePerson;
    }
    get isChannelConnected(): boolean {
@@ -315,8 +327,8 @@ export class WebPeerHelper {
          let callData = new CallDataBatched(WebPeerHelper._sender, WebPeerHelper._recipents.map((x) => x), WebPeerHelper._dataForBatch);
 
          // Reset accumulated data
-         WebPeerHelper._dataForBatch = null;
-         WebPeerHelper._sender = null;
+         WebPeerHelper._dataForBatch = undefined;
+         WebPeerHelper._sender = undefined;
          WebPeerHelper._recipents = new Array<CallParticipation>();
 
          // Send our data.

@@ -11,8 +11,9 @@ import Row from 'react-bootstrap/Row';
 // This app
 import { Person } from '../../core/dev/Person';
 import { IStreamable } from '../../core/dev/Streamable';
+import { PeerConnection } from '../../core/dev/PeerConnection';
+
 import { Participant, ParticipantNoImage } from './ParticipantUI';
-import { PeerConnection } from './PeerConnection';
 
 export interface IRemotePeopleProps {
    peers: PeerConnection;

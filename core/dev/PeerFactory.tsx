@@ -16,16 +16,14 @@
 // External libraries
 import axios from 'axios';
 
-// This app, other components
-import { Person } from '../../core/dev/Person';
-import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { IStreamable } from '../../core/dev/Streamable';
-import { ETransportType, CallParticipation } from '../../core/dev/Call';
-
-// This app, this component
+// This app, this library
+import { Person } from './Person';
+import { LoggerFactory, ELoggerType } from './Logger';
+import { IStreamable } from './Streamable';
+import { ETransportType, CallParticipation } from './Call';
 import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache, IPeerSignalReciever } from './PeerInterfaces';
 import { PeerCallerRtc, PeerRecieverRtc } from './PeerRtc';
-import { PeerCallerWeb, PeerRecieverWeb } from './PeerWeb'
+import { PeerCallerWeb, PeerRecieverWeb } from './PeerWeb';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -44,6 +42,7 @@ export class PeerFactory {
 
       switch (transport) {
          case ETransportType.Rtc:
+         default:
             return new PeerCallerRtc(localCallParticipation,
                remoteCallParticipation,
                person,
@@ -55,8 +54,6 @@ export class PeerFactory {
                person,
                nameCache,
                signaller);
-         default:
-            return null;
       }
    }
 
@@ -71,6 +68,7 @@ export class PeerFactory {
 
       switch (transport) {
          case ETransportType.Rtc:
+         default:
             return new PeerRecieverRtc(localCallParticipation,
                remoteCallParticipation,
                person,
@@ -82,8 +80,6 @@ export class PeerFactory {
                person,
                nameCache,
                signaller);
-         default:
-            return null;
       }
    }
 }

@@ -9,17 +9,14 @@
 // PeerWeb  - contains concrete implementations of PeerCaller and PeerSender, sends and recoeved data via the node.js server
 
 // External libraries
-import * as React from 'react';
 import axios from 'axios';
 import adapter from 'webrtc-adapter'; // Google shim library
  
-// This app, external components
-import { Person } from '../../core/dev/Person';
-import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from '../../core/dev/Call';
-import { IStreamable } from '../../core/dev/Streamable';
-import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-
-// This app, this component
+// This app, this library
+import { Person } from './Person';
+import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallData } from './Call';
+import { IStreamable } from './Streamable';
+import { LoggerFactory, ELoggerType } from './Logger';
 import { PeerNameCache, IPeerSignalSender, IPeerSignalReciever } from './PeerInterfaces';
 import { PeerLink } from './PeerLink';
 import { SignalSender, SignalReciever } from './PeerSignaller';
