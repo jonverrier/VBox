@@ -1,0 +1,15 @@
+setenv.cmd
+*.xlsx
+*.pem
+*.dll
+*.config
+*.manifest
+*.testlog
+.vs/VBox/v16/.suo
+*.log
+*/obj/*
+.vs/*
+node_modules/*
+client/node_modules/*
+core/node_modules/*
+server/node_modules/*

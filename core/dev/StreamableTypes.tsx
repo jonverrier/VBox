@@ -6,7 +6,8 @@ import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderR
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
-import { GymClockSpec, GymClockAction, GymClockState } from './GymClock'
+import { GymClockSpec, GymClockAction, GymClockState } from './GymClock';
+import { LiveWorkout } from './LiveWorkout'
 
 //==============================//
 // StreamableTypes class
@@ -39,6 +40,7 @@ export class StreamableTypes {
       this._types.GymClockSpec = GymClockSpec;
       this._types.GymClockAction = GymClockAction;
       this._types.GymClockState = GymClockState;
+      this._types.LiveWorkout = LiveWorkout;
 
    }
 

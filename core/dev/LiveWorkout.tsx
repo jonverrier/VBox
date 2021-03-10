@@ -18,15 +18,17 @@ export class LiveWorkout implements ILiveDocument {
 
    private _whiteboardText: string;
    private _channel: ILiveDocumentChannel | undefined;
+   private _outbound: boolean | undefined;
 
-   constructor(whiteboardText: string, channel?: ILiveDocumentChannel) {
+   constructor(whiteboardText: string, outbound?: boolean, channel?: ILiveDocumentChannel) {
+      this._outbound = outbound;
       if (channel)
          this._channel = channel;
       this._whiteboardText = whiteboardText;
    }
 
    createCommandProcessor(): ICommandProcessor {
-      return new LiveCommandProcessor(this, this._channel);
+      return new LiveCommandProcessor(this, this._outbound, this._channel);
    }
 
    // Getter and setter for whitebard text
@@ -42,12 +44,25 @@ export class LiveWorkout implements ILiveDocument {
       return LiveWorkout.__type;
    }
 
-   assign(rhs: ILiveDocument) {
+   // test for equality
+   // Only tests content fields - excludes channel etc
+   equals (rhs: ILiveDocument) : boolean {
+
+      if (rhs.type === this.type) {
+         var workout: LiveWorkout = (rhs as LiveWorkout);
+         return (this._whiteboardText === workout._whiteboardText);
+      }
+      else
+         return false;
+   }
+
+   assign (rhs: ILiveDocument) : void {
 
       // This is called if an entire new document gets sent e.g are just joining meeting
       // or had become detached
-      if (rhs.type == this.type) {
-         this._whiteboardText = (rhs as LiveWorkout)._whiteboardText;
+      if (rhs.type === this.type) {
+         var workout: LiveWorkout = (rhs as LiveWorkout);
+         this._whiteboardText = workout._whiteboardText;
       }
    }
 
@@ -88,8 +103,6 @@ export class LiveWorkout implements ILiveDocument {
    };
 }
 
-
-
 export class LiveWhiteboardCommand implements ICommand {
 
    private _selection: ISelection;
@@ -98,10 +111,11 @@ export class LiveWhiteboardCommand implements ICommand {
 
    static readonly __type: string = "LiveWorkout";
 
-   constructor(text: string, _priorText) {
+   constructor(text: string, _priorText: string) {
       this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
       this._text = text;
-      this._priorText = _priorText;
+      this._priorText = _priorText;                    // Caller has to make sure this === current state at time of calling.
+                                                       // Otherwise can lead to problems when commands are copied around between sessions
    }
 
    // type is read only
@@ -115,16 +129,20 @@ export class LiveWhiteboardCommand implements ICommand {
 
    applyTo(document: ILiveDocument): void {
       // Since we downcast, need to check type
-      if (document.type == LiveWorkout.__type) {
-         this._priorText = (document as LiveWorkout).whiteboardText;
-         (document as LiveWorkout).whiteboardText = this._text;
+      if (document.type === LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+
+         // Verify that the document has not changed since the command was created
+         if (this._priorText === wo.whiteboardText)
+            wo.whiteboardText = this._text;
       }
    }
 
    reverseFrom(document: ILiveDocument): void {
       // Since we downcast, need to check type
       if (document.type == LiveWorkout.__type) {
-         (document as LiveWorkout).whiteboardText = this._priorText;
+         var wo: LiveWorkout = (document as LiveWorkout);
+         wo.whiteboardText = this._priorText;
       }
    }
 
@@ -178,5 +196,4 @@ export class LiveWhiteboardSelection implements ISelection {
    type(): string {
       return "LiveWhiteboardSelection";
    }
-
 }

@@ -58353,6 +58353,287 @@ GymClockState.__type = "GymClockState";
 
 /***/ }),
 
+/***/ "../core/dev/LiveCommand.tsx":
+/*!***********************************!*\
+  !*** ../core/dev/LiveCommand.tsx ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Document architecture:
+// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Conceptually, this architecture needs be thought of as:
+//    - Document, which is Streamable and can be sent to remote parties
+//    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
+//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+// 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LiveCommandProcessor = void 0;
+class LiveCommandProcessor {
+    constructor(document, outbound, channel) {
+        this._lastCommandIndex = -1;
+        this._document = document;
+        this._channel = channel;
+        this._outbound = outbound;
+        this._commands = new Array();
+        this.invalidateIndex();
+        if (!outbound && channel) {
+            channel.onCommandApply = this.onCommandApply.bind(this);
+            channel.onCommandReverse = this.onCommandReverse.bind(this);
+            channel.onDocument = this.onDocument.bind(this);
+        }
+    }
+    adoptAndApply(command) {
+        if (!this.isValidIndex()) {
+            // This case is the first command since a new document
+            this._lastCommandIndex = 0;
+            this._commands.unshift(command);
+        }
+        else {
+            // If we have undone a series of commands, need to throw away irrelevant ones & put the new command at the head
+            if (this._lastCommandIndex != 0) {
+                this._commands = this._commands.splice(this._lastCommandIndex);
+            }
+            this._commands.unshift(command);
+        }
+        command.applyTo(this._document);
+        if (this._channel)
+            this._channel.broadcastCommandApply(command);
+    }
+    canUndo() {
+        // can undo if we have anything in the list and we are not at the end
+        if (this._commands.length > 0 && this.isValidIndex() && this._lastCommandIndex < this._commands.length) {
+            return (this._commands[this._lastCommandIndex].canReverse());
+        }
+        else
+            return false;
+    }
+    canRedo() {
+        // can redo if we have anything in the list and we are not at the start
+        if (this._commands.length > 0 && this.isValidIndex() && this._lastCommandIndex > 0)
+            return true;
+        else
+            return false;
+    }
+    undo() {
+        if (this.canUndo()) {
+            // move forward one step after undoing - opposite of 'redo' 
+            this._commands[this._lastCommandIndex].reverseFrom(this._document);
+            if (this._channel)
+                this._channel.broadcastCommandReverse(this._commands[this._lastCommandIndex]);
+            this._lastCommandIndex++;
+        }
+    }
+    redo() {
+        if (this.canRedo()) {
+            // move back one step before applying - opposite of 'undo' 
+            this._lastCommandIndex--;
+            this._commands[this._lastCommandIndex].applyTo(this._document);
+            if (this._channel)
+                this._channel.broadcastCommandApply(this._commands[this._lastCommandIndex]);
+        }
+    }
+    clearCommands() {
+        this._commands = new Array();
+        this.invalidateIndex();
+    }
+    onCommandApply(command) {
+        this.adoptAndApply(command);
+    }
+    onCommandReverse(command) {
+        this.undo();
+    }
+    onDocument(document) {
+        this._document.assign(document);
+        this.clearCommands();
+    }
+    invalidateIndex() {
+        this._lastCommandIndex = -1;
+    }
+    isValidIndex() {
+        return (this._lastCommandIndex != -1);
+    }
+}
+exports.LiveCommandProcessor = LiveCommandProcessor;
+
+
+/***/ }),
+
+/***/ "../core/dev/LiveWorkout.tsx":
+/*!***********************************!*\
+  !*** ../core/dev/LiveWorkout.tsx ***!
+  \***********************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Document architecture:
+// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Conceptually, this architecture needs be thought of as:
+//    - Document, which is Streamable and can be sent to remote parties
+//    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
+//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+// 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
+class LiveWorkout {
+    constructor(whiteboardText, outbound, channel) {
+        this._outbound = outbound;
+        if (channel)
+            this._channel = channel;
+        this._whiteboardText = whiteboardText;
+    }
+    createCommandProcessor() {
+        return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
+    }
+    // Getter and setter for whitebard text
+    get whiteboardText() {
+        return this._whiteboardText;
+    }
+    set whiteboardText(whiteboardText) {
+        this._whiteboardText = whiteboardText;
+    }
+    // type is read only
+    get type() {
+        return LiveWorkout.__type;
+    }
+    // test for equality
+    // Only tests content fields - excludes channel etc
+    equals(rhs) {
+        if (rhs.type == this.type) {
+            var workout = rhs;
+            return (this._whiteboardText === workout._whiteboardText);
+        }
+        else
+            return false;
+    }
+    assign(rhs) {
+        // This is called if an entire new document gets sent e.g are just joining meeting
+        // or had become detached
+        if (rhs.type === this.type) {
+            this._whiteboardText = rhs._whiteboardText;
+        }
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveWorkout.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _whiteboardText: this._whiteboardText
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveWorkout.reviveDb(data.attributes);
+        else
+            return LiveWorkout.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveWorkout(data._whiteboardText);
+    }
+    ;
+}
+exports.LiveWorkout = LiveWorkout;
+LiveWorkout.__type = "LiveWorkout";
+class LiveWhiteboardCommand {
+    constructor(text, _priorText) {
+        this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
+        this._text = text;
+        this._priorText = _priorText;
+    }
+    // type is read only
+    get type() {
+        return LiveWorkout.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            this._priorText = wo.whiteboardText;
+            wo.whiteboardText = this._text;
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            wo.whiteboardText = this._priorText;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveWhiteboardCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _text: this._text,
+                _priortext: this._priorText
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveWhiteboardCommand.reviveDb(data.attributes);
+        else
+            return LiveWhiteboardCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveWhiteboardCommand(data._text, data._priorText);
+    }
+    ;
+}
+exports.LiveWhiteboardCommand = LiveWhiteboardCommand;
+LiveWhiteboardCommand.__type = "LiveWorkout";
+class LiveWhiteboardSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveWhiteboardSelection";
+    }
+}
+exports.LiveWhiteboardSelection = LiveWhiteboardSelection;
+
+
+/***/ }),
+
 /***/ "../core/dev/Logger.tsx":
 /*!******************************!*\
   !*** ../core/dev/Logger.tsx ***!
@@ -58843,6 +59124,7 @@ const Signal_1 = __webpack_require__(/*! ./Signal */ "../core/dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "../core/dev/UserFacilities.tsx");
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "../core/dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "../core/dev/GymClock.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "../core/dev/LiveWorkout.tsx");
 //==============================//
 // StreamableTypes class
 //==============================//
@@ -58870,6 +59152,7 @@ class StreamableTypes {
         this._types.GymClockSpec = GymClock_1.GymClockSpec;
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
+        this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
     }
     isObjectKey(key) {
         let keyNum = Number(key);

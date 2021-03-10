@@ -66,7 +66,7 @@
     <TypeScriptCompile Include="dev\Equals.tsx" />
     <TypeScriptCompile Include="dev\Facility.tsx" />
     <TypeScriptCompile Include="dev\GymClock.tsx" />
-    <TypeScriptCompile Include="dev\LiveChannnel.tsx" />
+    <TypeScriptCompile Include="dev\LiveChannel.tsx" />
     <TypeScriptCompile Include="dev\LiveCommand.tsx" />
     <TypeScriptCompile Include="dev\LiveInterfaces.tsx" />
     <TypeScriptCompile Include="dev\LiveWorkout.tsx" />

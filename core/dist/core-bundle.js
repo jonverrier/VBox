@@ -5463,6 +5463,77 @@ GymClockState.__type = "GymClockState";
 
 /***/ }),
 
+/***/ "./dev/LiveChannel.tsx":
+/*!*****************************!*\
+  !*** ./dev/LiveChannel.tsx ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Document architecture:
+// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Conceptually, this architecture needs be thought of as:
+//    - Document, which is Streamable and can be sent to remote parties
+//    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
+//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+// 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LiveDocumentChannelFactory = void 0;
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+// Stubbing for testing
+var docInOut = null;
+// Stubbing for testing
+class LiveChannelStub {
+    constructor() {
+        this.types = new StreamableTypes_1.StreamableTypes;
+        // Override these for data from notifications 
+        this.onCommandApply = function (ev) { };
+        this.onCommandReverse = function () { };
+        this.onDocument = function (ev) { };
+    }
+    onCommandApplyInner(command) {
+        if (this.onCommandApply)
+            this.onCommandApply(command); // this.types.reviveFromJSON (command));
+    }
+    onCommandReverseInner() {
+        if (this.onCommandReverse)
+            this.onCommandReverse();
+    }
+    onDocumentInner(document) {
+        if (this.onDocument)
+            this.onDocument(this.types.reviveFromJSON(document));
+    }
+    sendDocumentTo(recipient, document) {
+        this.onDocumentInner(JSON.stringify(document));
+    }
+    broadcastCommandApply(command) {
+        this.onCommandApplyInner(command); // JSON.stringify(command));
+    }
+    broadcastCommandReverse() {
+        this.onCommandReverseInner();
+    }
+}
+class LiveDocumentChannelFactory {
+    constructor() {
+    }
+    createConnectionIn() {
+        if (!docInOut)
+            docInOut = new LiveChannelStub();
+        return docInOut;
+    }
+    createConnectionOut(document, commandProcessor) {
+        if (!docInOut)
+            docInOut = new LiveChannelStub();
+        return docInOut;
+    }
+}
+exports.LiveDocumentChannelFactory = LiveDocumentChannelFactory;
+
+
+/***/ }),
+
 /***/ "./dev/LiveCommand.tsx":
 /*!*****************************!*\
   !*** ./dev/LiveCommand.tsx ***!
@@ -5482,33 +5553,34 @@ GymClockState.__type = "GymClockState";
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveCommandProcessor = void 0;
 class LiveCommandProcessor {
-    constructor(document, channel) {
+    constructor(document, outbound, channel) {
         this._lastCommandIndex = -1;
         this._document = document;
         this._channel = channel;
+        this._outbound = outbound;
         this._commands = new Array();
         this.invalidateIndex();
-        if (channel) {
+        if (outbound !== undefined && (!outbound && channel)) {
             channel.onCommandApply = this.onCommandApply.bind(this);
             channel.onCommandReverse = this.onCommandReverse.bind(this);
             channel.onDocument = this.onDocument.bind(this);
         }
     }
     adoptAndApply(command) {
-        if (!this._lastCommandIndex) {
-            // This case is the first command ever
+        if (!this.isValidIndex()) {
+            // This case is the first command since a new document
             this._lastCommandIndex = 0;
-            this._commands.push(command);
+            this._commands.unshift(command);
         }
         else {
             // If we have undone a series of commands, need to throw away irrelevant ones & put the new command at the head
             if (this._lastCommandIndex != 0) {
                 this._commands = this._commands.splice(this._lastCommandIndex);
-                this._commands.push(command);
             }
+            this._commands.unshift(command);
         }
         command.applyTo(this._document);
-        if (this._channel)
+        if (this._channel && this._outbound)
             this._channel.broadcastCommandApply(command);
     }
     canUndo() {
@@ -5530,7 +5602,7 @@ class LiveCommandProcessor {
         if (this.canUndo()) {
             // move forward one step after undoing - opposite of 'redo' 
             this._commands[this._lastCommandIndex].reverseFrom(this._document);
-            if (this._channel)
+            if (this._channel && this._outbound)
                 this._channel.broadcastCommandReverse(this._commands[this._lastCommandIndex]);
             this._lastCommandIndex++;
         }
@@ -5540,7 +5612,7 @@ class LiveCommandProcessor {
             // move back one step before applying - opposite of 'undo' 
             this._lastCommandIndex--;
             this._commands[this._lastCommandIndex].applyTo(this._document);
-            if (this._channel)
+            if (this._channel && this._outbound)
                 this._channel.broadcastCommandApply(this._commands[this._lastCommandIndex]);
         }
     }
@@ -5590,13 +5662,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 class LiveWorkout {
-    constructor(whiteboardText, channel) {
+    constructor(whiteboardText, outbound, channel) {
+        this._outbound = outbound;
         if (channel)
             this._channel = channel;
         this._whiteboardText = whiteboardText;
     }
     createCommandProcessor() {
-        return new LiveCommand_1.LiveCommandProcessor(this, this._channel);
+        return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
     }
     // Getter and setter for whitebard text
     get whiteboardText() {
@@ -5609,11 +5682,22 @@ class LiveWorkout {
     get type() {
         return LiveWorkout.__type;
     }
+    // test for equality
+    // Only tests content fields - excludes channel etc
+    equals(rhs) {
+        if (rhs.type === this.type) {
+            var workout = rhs;
+            return (this._whiteboardText === workout._whiteboardText);
+        }
+        else
+            return false;
+    }
     assign(rhs) {
         // This is called if an entire new document gets sent e.g are just joining meeting
         // or had become detached
-        if (rhs.type == this.type) {
-            this._whiteboardText = rhs._whiteboardText;
+        if (rhs.type === this.type) {
+            var workout = rhs;
+            this._whiteboardText = workout._whiteboardText;
         }
     }
     /**
@@ -5656,7 +5740,8 @@ class LiveWhiteboardCommand {
     constructor(text, _priorText) {
         this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
         this._text = text;
-        this._priorText = _priorText;
+        this._priorText = _priorText; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
     }
     // type is read only
     get type() {
@@ -5667,15 +5752,18 @@ class LiveWhiteboardCommand {
     }
     applyTo(document) {
         // Since we downcast, need to check type
-        if (document.type == LiveWorkout.__type) {
-            this._priorText = document.whiteboardText;
-            document.whiteboardText = this._text;
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            if (this._priorText === wo.whiteboardText)
+                wo.whiteboardText = this._text;
         }
     }
     reverseFrom(document) {
         // Since we downcast, need to check type
         if (document.type == LiveWorkout.__type) {
-            document.whiteboardText = this._priorText;
+            var wo = document;
+            wo.whiteboardText = this._priorText;
         }
     }
     canReverse() {
@@ -6220,6 +6308,7 @@ const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/UserFacilities.tsx");
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
 //==============================//
 // StreamableTypes class
 //==============================//
@@ -6247,6 +6336,7 @@ class StreamableTypes {
         this._types.GymClockSpec = GymClock_1.GymClockSpec;
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
+        this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
     }
     isObjectKey(key) {
         let keyNum = Number(key);
@@ -6710,6 +6800,8 @@ const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 const Enum_1 = __webpack_require__(/*! ./Enum */ "./dev/Enum.tsx");
 // import { ILiveDocument, ICommandProcessor, ICommand, ISelection, ILiveDocumentChannel } from './LiveDocumentInterfaces';
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
+const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
+const LiveChannel_1 = __webpack_require__(/*! ./LiveChannel */ "./dev/LiveChannel.tsx");
 var EntryPoints = {
     LoggerFactory: Logger_1.LoggerFactory,
     ELoggerType: Logger_1.ELoggerType,
@@ -6744,7 +6836,9 @@ var EntryPoints = {
     EThreeStateRagEnum: Enum_1.EThreeStateRagEnum,
     EFourStateRagEnum: Enum_1.EFourStateRagEnum,
     LiveWorkout: LiveWorkout_1.LiveWorkout,
-    LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand
+    LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand,
+    LiveCommandProcessor: LiveCommand_1.LiveCommandProcessor,
+    LiveDocumentChannelFactory: LiveChannel_1.LiveDocumentChannelFactory
 };
 ArrayHook_1.ArrayHook.initialise();
 DateHook_1.DateHook.initialise();
