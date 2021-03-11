@@ -16,35 +16,37 @@ import { Person } from './Person';
 
 class LiveDocumentConnection {
 
-   _meetingId: string;
    _localPerson: Person;
    _localCallParticipation: CallParticipation;
    _document: ILiveDocument;
    _commandProcessor: ICommandProcessor;
    _channel: ILiveDocumentChannel;
 
-   constructor(meetingId: string,
-      localPerson: Person,
+   constructor(localPerson: Person,
       localCallParticipation,
       outbound: boolean,
       channelFactory: ILiveDocumentChannelFactory,
       documentFactory: ILiveDocumentFactory) {
 
-      this._meetingId = meetingId;
       this._localPerson = localPerson;
       this._localCallParticipation = localCallParticipation;
 
       this._channel = outbound ? channelFactory.createConnectionOut() : channelFactory.createConnectionIn();
       this._document = documentFactory.createLiveDocument(outbound, this._channel);
       this._commandProcessor = this._document.createCommandProcessor();
+
+      // If we are outbound, when there is a new joiner, send them the document
+      if (outbound) {
+         var self: LiveDocumentConnection = this;
+         this._channel.onNewCallParticipation = function (ev: CallParticipation) {
+            self.channel.sendDocumentTo(ev, self._document);
+         };
+      }
    }
 
    /**
    * set of 'getters' & some 'setters' for private variables
    */
-   get meetingId(): string {
-      return this._meetingId;
-   }
    get localCallParticipation(): CallParticipation {
       return this._localCallParticipation;
    }
@@ -64,24 +66,22 @@ class LiveDocumentConnection {
 
 export class LiveDocumentMaster extends LiveDocumentConnection {
 
-   constructor(meetingId: string,
-      person: Person,
+   constructor(person: Person,
       localCallParticipation,
       channelFactory: ILiveDocumentChannelFactory,
       documentFactory: ILiveDocumentFactory) {
 
-      super (meetingId, person, localCallParticipation, true, channelFactory, documentFactory);
+      super(person, localCallParticipation, true, channelFactory, documentFactory);
    }
 }
 
 export class LiveDocumentRemote extends LiveDocumentConnection {
 
-   constructor(meetingId: string,
-      person: Person,
+   constructor(person: Person,
       localCallParticipation,
       channelFactory: ILiveDocumentChannelFactory,
       documentFactory: ILiveDocumentFactory) {
 
-      super(meetingId, person, localCallParticipation, false, channelFactory, documentFactory);
+      super(person, localCallParticipation, false, channelFactory, documentFactory);
    }
 }

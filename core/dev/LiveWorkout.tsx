@@ -125,7 +125,7 @@ export class LiveWhiteboardCommand implements ICommand {
 
    // type is read only
    get type(): string {
-      return LiveWorkout.__type;
+      return LiveWhiteboardCommand.__type;
    }
 
    selection(): ISelection {
@@ -213,28 +213,33 @@ class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
 
    constructor(peer: PeerConnection) {
       this._peer = peer;
-      if (peer.isEdgeOnly()) {
-         peer.addRemoteDataListener(this.onData.bind(this));
-      }
+      peer.addRemoteDataListener(this.onData.bind(this));
    }
 
    // Override these for data from notifications 
+   onNewCallParticipation: ((ev: IStreamable) => any) = function (ev) { };
    onCommandApply: ((ev: ICommand) => void) = function (ev) { };
    onCommandReverse: (() => void) = function () { };
    onDocument: ((ev: ILiveDocument) => void) = function (ev) { };
 
    onData(ev: IStreamable) {
-      if (ev.type === LiveWorkout.__type) {
-         this.onDocument(ev as LiveWorkout);
+      if (this._peer.isEdgeOnly()) {
+         // Edge nodes listen for document updates
+         if (ev.type === LiveWorkout.__type) {
+            this.onDocument(ev as LiveWorkout);
+         }
+         if (ev.type === LiveWhiteboardCommand.__type) {
+            this.onCommandApply(ev as LiveWhiteboardCommand);
+         }
+         if (ev.type === LiveUndoCommand.__type) {
+            this.onCommandReverse();
+         }
       }
-      if (ev.type === LiveWhiteboardCommand.__type) {
-         this.onCommandApply(ev as LiveWhiteboardCommand);
-      }
-      if (ev.type === LiveUndoCommand.__type) {
-         this.onCommandReverse();
-      }
-      if (ev.type === Person.__type) {
-         // TODO - figure out handshake to send remote peer the document
+      else {
+         // Hub node listens for new participants and sends them the document when they join
+         if (ev.type === CallParticipation.__type) {
+            this.onNewCallParticipation(ev);
+         }
       }
    }
 
@@ -274,6 +279,6 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
    }
 
    createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument {
-      return new LiveWorkout("Waiting...", outbound, channel);
+      return new LiveWorkout("Waiting...[doc version]", outbound, channel);
    }
 }

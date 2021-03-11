@@ -51587,6 +51587,8 @@ const UserFacilities_1 = __webpack_require__(/*! ../../core/dev/UserFacilities *
 const DateHook_1 = __webpack_require__(/*! ../../core/dev/DateHook */ "../core/dev/DateHook.tsx");
 const ArrayHook_1 = __webpack_require__(/*! ../../core/dev/ArrayHook */ "../core/dev/ArrayHook.tsx");
 const PeerConnection_1 = __webpack_require__(/*! ../../core/dev/PeerConnection */ "../core/dev/PeerConnection.tsx");
+const LiveDocumentCentral_1 = __webpack_require__(/*! ../../core/dev/LiveDocumentCentral */ "../core/dev/LiveDocumentCentral.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
 // This app, this component
 const LoginMember_1 = __webpack_require__(/*! ./LoginMember */ "./dev/LoginMember.tsx");
 const LoginOauth_1 = __webpack_require__(/*! ./LoginOauth */ "./dev/LoginOauth.tsx");
@@ -51673,11 +51675,12 @@ class MemberPage extends React.Component {
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), new Array());
         this.pageData = this.defaultPageData;
         let loginData = new LoginMember_1.MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
-        let peers = new PeerConnection_1.PeerConnection(true); // Member nodes are edge only, coaches are full hubs
+        let peerConnection = new PeerConnection_1.PeerConnection(true); // Member nodes are edge only, coaches are full hubs
         this.state = {
             isLoggedIn: false,
             pageData: this.pageData,
-            peers: peers,
+            peerConnection: peerConnection,
+            remoteDocument: undefined,
             isDataReady: false,
             meetCodeCopy: loginData.meetCode,
             nameCopy: loginData.name,
@@ -51746,8 +51749,13 @@ class MemberPage extends React.Component {
                 .then(function (response) {
                 // Success, set state to data for logged in user 
                 self.pageData = UserFacilities_1.UserFacilities.revive(response.data);
+                var person = new Person_1.Person(null, self.pageData.person.externalId, self.pageData.person.name, null, self.pageData.person.thumbnailUrl, null);
                 // Initialise WebRTC and connect
-                self.state.peers.connect(self.state.loginData.meetCode, self.pageData.person.externalId, self.pageData.person.name, self.pageData.person.thumbnailUrl);
+                self.state.peerConnection.connect(self.state.loginData.meetCode, person);
+                // Create a shared document hooked up to the connection
+                self.setState({
+                    remoteDocument: new LiveDocumentCentral_1.LiveDocumentRemote(person, self.state.peerConnection.localCallParticipation, new LiveWorkout_1.LiveWorkoutChannelFactoryPeer(self.state.peerConnection), new LiveWorkout_1.LiveWorkoutFactory())
+                });
                 // Keep alive to server every 25 seconds
                 let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
                 self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId });
@@ -51812,7 +51820,7 @@ class MemberPage extends React.Component {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(CallPanelUI_1.RemoteConnectionStatus, { peers: this.state.peers }, " "),
+                            React.createElement(CallPanelUI_1.RemoteConnectionStatus, { peers: this.state.peerConnection }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
                                     React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -51822,11 +51830,11 @@ class MemberPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.peers }, " ")),
+                            React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.peerConnection, whiteboardText: this.state.remoteDocument.document.whiteboardText, liveWorkout: this.state.remoteDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peers }),
+                            React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peerConnection }),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peers }, " "))),
+                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peerConnection }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -51839,13 +51847,14 @@ class CoachPage extends React.Component {
         this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new Facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png', null), null);
         this.pageData = this.defaultPageData;
         let loginData = new LoginMeetingCode_1.LoginMeetCodeData(this.lastUserData.loadMeetingId());
-        let peers = new PeerConnection_1.PeerConnection(false); // Member nodes are edge only, coaches are full hubs
+        let peerConnection = new PeerConnection_1.PeerConnection(false); // Member nodes are edge only, coaches are full hubs
         this.state = {
             isLoggedIn: false,
             isLeader: true,
             haveAccess: false,
             pageData: this.pageData,
-            peers: peers,
+            peerConnection: peerConnection,
+            masterDocument: undefined,
             isDataReady: false,
             meetCodeCopy: loginData.meetCode,
             loginData: loginData,
@@ -51918,8 +51927,13 @@ class CoachPage extends React.Component {
                 if (response.data) {
                     // Success, set state to data for logged in user 
                     self.pageData = UserFacilities_1.UserFacilities.revive(response.data);
+                    var person = new Person_1.Person(null, self.pageData.person.externalId, self.pageData.person.name, null, self.pageData.person.thumbnailUrl, null);
                     // Initialise WebRTC and connect
-                    self.state.peers.connect(self.state.loginData.meetCode, self.pageData.person.externalId, self.pageData.person.name, self.pageData.person.thumbnailUrl);
+                    self.state.peerConnection.connect(self.state.loginData.meetCode, person);
+                    // Create a shared document hooked up to the connection
+                    self.setState({
+                        masterDocument: new LiveDocumentCentral_1.LiveDocumentMaster(person, self.state.peerConnection.localCallParticipation, new LiveWorkout_1.LiveWorkoutChannelFactoryPeer(self.state.peerConnection), new LiveWorkout_1.LiveWorkoutFactory())
+                    });
                     // Keep alive to server every 25 seconds
                     let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
                     self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId });
@@ -51988,7 +52002,7 @@ class CoachPage extends React.Component {
                                     React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
                         React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
-                            React.createElement(CallPanelUI_1.MasterConnectionStatus, { peers: this.state.peers }),
+                            React.createElement(CallPanelUI_1.MasterConnectionStatus, { peers: this.state.peerConnection }),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
                                     React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
@@ -51998,14 +52012,14 @@ class CoachPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: thinStyle },
-                            React.createElement(LeaderResolveUI_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), peers: this.state.peers }, " "))),
+                            React.createElement(LeaderResolveUI_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), peers: this.state.peerConnection }, " "))),
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peers: this.state.peers }, " ")),
+                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peerConnection: this.state.peerConnection, whiteboardText: this.state.masterDocument.document.whiteboardText, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.peers }, " "),
+                            React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.peerConnection }, " "),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peers }, " "))),
+                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peerConnection }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -52694,6 +52708,7 @@ const Button_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Button 
 const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./node_modules/@primer/octicons-react/dist/index.esm.js");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const Whiteboard_1 = __webpack_require__(/*! ../../core/dev/Whiteboard */ "../core/dev/Whiteboard.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
 const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
@@ -52706,10 +52721,6 @@ const thinCentredStyle = {
     alignItems: 'center',
     verticalAlign: 'top',
     justifyContent: 'center'
-};
-const thinLeftStyle = {
-    margin: '0px', padding: '0px',
-    alignItems: 'left'
 };
 const popdownBtnStyle = {
     margin: '0px', padding: '4px',
@@ -52760,15 +52771,14 @@ const blockCharStyle = {
 const fieldXSepStyle = {
     marginLeft: '8px'
 };
-const initialBoardText = 'Waiting...';
 const defaultMasterWorkoutText = 'Workout will show here - click the button above.';
 const defaultMasterResultsText = 'Workout results will show here - click the button above.';
 class MasterWhiteboard extends React.Component {
     constructor(props) {
         super(props);
         var haveWorkout = false;
-        if (props.peers) {
-            props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
+        if (props.peerConnection) {
+            props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
         }
         this.storedWorkoutState = new LocalStore_1.StoredWorkoutState();
         var workout;
@@ -52776,11 +52786,11 @@ class MasterWhiteboard extends React.Component {
         var storedWorkout = this.storedWorkoutState.loadWorkout();
         if (storedWorkout.length > 0) {
             haveWorkout = true;
-            workout = new Whiteboard_1.WhiteboardElement(10, storedWorkout);
+            workout = new Whiteboard_1.WhiteboardElement(storedWorkout);
         }
         else
-            workout = new Whiteboard_1.WhiteboardElement(10, defaultMasterWorkoutText);
-        var results = new Whiteboard_1.WhiteboardElement(10, defaultMasterResultsText);
+            workout = new Whiteboard_1.WhiteboardElement(defaultMasterWorkoutText);
+        var results = new Whiteboard_1.WhiteboardElement(defaultMasterResultsText);
         this.state = {
             haveRealWorkout: haveWorkout,
             haveRealResults: false,
@@ -52798,7 +52808,6 @@ class MasterWhiteboard extends React.Component {
         if (ev.type === Person_1.Person.__type) {
             // Add the new participant to the Results board element
             var text = this.state.results.text;
-            var rows = this.state.results.rows;
             if (text === defaultMasterResultsText) {
                 // Overrwite contents if its the first participant
                 text = ev2.name;
@@ -52806,27 +52815,26 @@ class MasterWhiteboard extends React.Component {
             else if (!text.includes(ev2.name)) {
                 // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
                 text = text + '\n' + ev2.name;
-                rows = rows + 1;
             }
-            this.setState({ haveRealResults: true, results: new Whiteboard_1.WhiteboardElement(rows, text) });
+            this.setState({ haveRealResults: true, results: new Whiteboard_1.WhiteboardElement(text) });
             this.forceUpdate(() => {
                 // Send them the whole contents of the board
                 var board = new Whiteboard_1.Whiteboard(this.state.workout, this.state.results);
-                this.props.peers.broadcast(board);
+                this.props.peerConnection.broadcast(board);
             });
         }
     }
     onworkoutchange(element) {
         this.setState({ haveRealWorkout: true, workout: element });
         var board = new Whiteboard_1.Whiteboard(element, this.state.results);
-        this.props.peers.broadcast(board);
+        this.props.peerConnection.broadcast(board);
         // save in local cache
         this.storedWorkoutState.saveWorkout(element.text);
     }
     onresultschange(element) {
         this.setState({ haveRealResults: true, results: element });
         var board = new Whiteboard_1.Whiteboard(this.state.workout, element);
-        this.props.peers.broadcast(board);
+        this.props.peerConnection.broadcast(board);
     }
     render() {
         return (React.createElement("div", { style: whiteboardStyle },
@@ -52834,9 +52842,9 @@ class MasterWhiteboard extends React.Component {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peers, caption: 'Workout', placeholder: 'Type the workout details here.', initialRows: 10, value: this.state.workout.text, valueAsOf: new Date(), onchange: this.onworkoutchange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Workout', placeholder: 'Type the workout details here.', value: this.state.workout.text, valueAsOf: new Date(), onchange: this.onworkoutchange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peers, caption: 'Results', placeholder: 'Type results here after the workout.', initialRows: 10, value: this.state.results.text, valueAsOf: new Date(), onchange: this.onresultschange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Results', placeholder: 'Type results here after the workout.', value: this.state.results.text, valueAsOf: new Date(), onchange: this.onresultschange.bind(this) })))));
     }
 }
 exports.MasterWhiteboard = MasterWhiteboard;
@@ -52875,8 +52883,10 @@ class MasterWhiteboardElement extends React.Component {
     }
     processSave() {
         this.state.enableCancel = this.state.enableOk = false;
-        this.props.onchange(new Whiteboard_1.WhiteboardElement(this.props.initialRows, this.state.value));
+        this.props.onchange(new Whiteboard_1.WhiteboardElement(this.state.value));
         this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
+        let command = new LiveWorkout_1.LiveWhiteboardCommand(this.state.value + ' from doc2', this.props.liveWorkout.whiteboardText);
+        this.props.commandProcessor.adoptAndApply(command);
     }
     processCancel() {
         this.setState({ inEditMode: false });
@@ -52900,7 +52910,7 @@ class MasterWhiteboardElement extends React.Component {
                     React.createElement("div", null,
                         React.createElement(Form_1.default, null,
                             React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
-                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.props.placeholder, rows: this.props.initialRows, cols: 60, maxLength: 1023, minLength: 0, value: this.latestValue(), onChange: (ev) => { this.processChange(ev.target.value); } })),
+                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.props.placeholder, cols: 60, maxLength: 1023, minLength: 0, value: this.latestValue(), onChange: (ev) => { this.processChange(ev.target.value); } })),
                             React.createElement(Form_1.default.Row, { style: { textAlign: 'center' } },
                                 React.createElement("p", { style: blockCharStyle }),
                                 React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
@@ -52917,8 +52927,8 @@ class RemoteWhiteboard extends React.Component {
             props.rtc.addRemoteDataListener(this.onRemoteData.bind(this));
         }
         this.state = {
-            workoutValue: new Whiteboard_1.WhiteboardElement(10, initialBoardText),
-            resultsValue: new Whiteboard_1.WhiteboardElement(10, initialBoardText)
+            workoutValue: new Whiteboard_1.WhiteboardElement(props.whiteboardText),
+            resultsValue: new Whiteboard_1.WhiteboardElement(props.whiteboardText)
         };
     }
     onRemoteData(ev) {
@@ -52942,9 +52952,9 @@ class RemoteWhiteboard extends React.Component {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', initialRows: this.state.workoutValue.rows, value: this.state.workoutValue }, " ")),
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', value: this.state.workoutValue }, " ")),
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', initialRows: this.state.resultsValue.rows, value: this.state.resultsValue }, " ")))));
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', value: this.state.resultsValue }, " ")))));
     }
 }
 exports.RemoteWhiteboard = RemoteWhiteboard;
@@ -54402,6 +54412,74 @@ LiveUndoCommand.__type = "LiveUndoCommand";
 
 /***/ }),
 
+/***/ "../core/dev/LiveDocumentCentral.tsx":
+/*!*******************************************!*\
+  !*** ../core/dev/LiveDocumentCentral.tsx ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Document architecture:
+// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Conceptually, this architecture needs be thought of as:
+//    - Document, which is Streamable and can be sent to remote parties
+//    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
+//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+// 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LiveDocumentRemote = exports.LiveDocumentMaster = void 0;
+class LiveDocumentConnection {
+    constructor(localPerson, localCallParticipation, outbound, channelFactory, documentFactory) {
+        this._localPerson = localPerson;
+        this._localCallParticipation = localCallParticipation;
+        this._channel = outbound ? channelFactory.createConnectionOut() : channelFactory.createConnectionIn();
+        this._document = documentFactory.createLiveDocument(outbound, this._channel);
+        this._commandProcessor = this._document.createCommandProcessor();
+        // If we are outbound, when there is a new joiner, send them the document
+        if (outbound) {
+            var self = this;
+            this._channel.onNewCallParticipation = function (ev) {
+                self.channel.sendDocumentTo(ev, self._document);
+            };
+        }
+    }
+    /**
+    * set of 'getters' & some 'setters' for private variables
+    */
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    get localPerson() {
+        return this._localPerson;
+    }
+    get document() {
+        return this._document;
+    }
+    get channel() {
+        return this._channel;
+    }
+    get commandProcessor() {
+        return this._commandProcessor;
+    }
+}
+class LiveDocumentMaster extends LiveDocumentConnection {
+    constructor(person, localCallParticipation, channelFactory, documentFactory) {
+        super(person, localCallParticipation, true, channelFactory, documentFactory);
+    }
+}
+exports.LiveDocumentMaster = LiveDocumentMaster;
+class LiveDocumentRemote extends LiveDocumentConnection {
+    constructor(person, localCallParticipation, channelFactory, documentFactory) {
+        super(person, localCallParticipation, false, channelFactory, documentFactory);
+    }
+}
+exports.LiveDocumentRemote = LiveDocumentRemote;
+
+
+/***/ }),
+
 /***/ "../core/dev/LiveWorkout.tsx":
 /*!***********************************!*\
   !*** ../core/dev/LiveWorkout.tsx ***!
@@ -54421,7 +54499,7 @@ LiveUndoCommand.__type = "LiveUndoCommand";
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/dev/StreamableTypes.tsx");
-const Person_1 = __webpack_require__(/*! ./Person */ "../core/dev/Person.tsx");
+const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
 class LiveWorkout {
     constructor(whiteboardText, outbound, channel) {
@@ -54507,7 +54585,7 @@ class LiveWhiteboardCommand {
     }
     // type is read only
     get type() {
-        return LiveWorkout.__type;
+        return LiveWhiteboardCommand.__type;
     }
     selection() {
         return this._selection;
@@ -54582,26 +54660,31 @@ class LiveWorkoutChannelPeer {
     constructor(peer) {
         this._types = new StreamableTypes_1.StreamableTypes;
         // Override these for data from notifications 
+        this.onNewCallParticipation = function (ev) { };
         this.onCommandApply = function (ev) { };
         this.onCommandReverse = function () { };
         this.onDocument = function (ev) { };
         this._peer = peer;
-        if (peer.isEdgeOnly()) {
-            peer.addRemoteDataListener(this.onData.bind(this));
-        }
+        peer.addRemoteDataListener(this.onData.bind(this));
     }
     onData(ev) {
-        if (ev.type === LiveWorkout.__type) {
-            this.onDocument(ev);
+        if (this._peer.isEdgeOnly()) {
+            // Edge nodes listen for document updates
+            if (ev.type === LiveWorkout.__type) {
+                this.onDocument(ev);
+            }
+            if (ev.type === LiveWhiteboardCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
+                this.onCommandReverse();
+            }
         }
-        if (ev.type === LiveWhiteboardCommand.__type) {
-            this.onCommandApply(ev);
-        }
-        if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
-            this.onCommandReverse();
-        }
-        if (ev.type === Person_1.Person.__type) {
-            // TODO - figure out handshake to send remote peer the document
+        else {
+            // Hub node listens for new participants and sends them the document when they join
+            if (ev.type === Call_1.CallParticipation.__type) {
+                this.onNewCallParticipation(ev);
+            }
         }
     }
     sendDocumentTo(recipient, document) {
@@ -54632,7 +54715,7 @@ class LiveWorkoutFactory {
     constructor() {
     }
     createLiveDocument(outbound, channel) {
-        return new LiveWorkout("Waiting...", outbound, channel);
+        return new LiveWorkout("Waiting...[doc version]", outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
@@ -54808,8 +54891,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PeerConnection = void 0;
 const webrtc_adapter_1 = __importDefault(__webpack_require__(/*! webrtc-adapter */ "../core/node_modules/webrtc-adapter/src/js/adapter_core.js")); // Google shim library
-// This app, this library
-const Person_1 = __webpack_require__(/*! ./Person */ "../core/dev/Person.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
 const Logger_1 = __webpack_require__(/*! ./Logger */ "../core/dev/Logger.tsx");
 const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "../core/dev/PeerInterfaces.tsx");
@@ -54840,11 +54921,14 @@ class PeerConnection {
         this._datalisteners.push(fn);
     }
     ;
-    connect(meetingId, personId, personName, personThumbnailUrl) {
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    connect(meetingId, person) {
         // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
         this._localCallParticipation = new Call_1.CallParticipation(meetingId, uuid(), !this._isEdgeOnly);
         // Store data on the Person who is running the app - used in data handshake & exchange
-        this._person = new Person_1.Person(null, personId, personName, null, personThumbnailUrl, null);
+        this._person = person;
         // and connect to the server - which sends our participation details for others
         this._signalReciever.connect(this._localCallParticipation);
     }
@@ -54870,17 +54954,15 @@ class PeerConnection {
         return this._isEdgeOnly;
     }
     broadcast(obj) {
-        var self = this;
-        for (var i = 0; i < self._links.length; i++) {
-            self._links[i].send(obj);
+        for (var i = 0; i < this._links.length; i++) {
+            this._links[i].send(obj);
         }
         PeerWeb_1.WebPeerHelper.drainSendQueue(this._signalSender);
     }
     sendTo(recipient, obj) {
-        var self = this;
-        for (var i = 0; i < self._links.length; i++) {
-            if (self._links[i].remoteCallParticipation.equals(recipient)) {
-                self._links[i].send(obj);
+        for (var i = 0; i < this._links.length; i++) {
+            if (this._links[i].remoteCallParticipation.equals(recipient)) {
+                this._links[i].send(obj);
             }
         }
         PeerWeb_1.WebPeerHelper.drainSendQueue(this._signalSender);
@@ -55809,6 +55891,11 @@ class RtcPeerHelper {
             var person = remoteCallData;
             // Store a unique derivation of name in case a person join multiple times
             this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            // New document listeners expect a 'CallParticipation'
+            if (this.onRemoteData) {
+                this.onRemoteData(this._remoteCallParticipation);
+            }
+            // Some document listeners expect a 'Person'
             if (this.onRemoteData) {
                 this.onRemoteData(this._remotePerson);
             }
@@ -56243,8 +56330,13 @@ class WebPeerHelper {
             var person = remoteCallData;
             // Store a unique derivation of name in case a person join multiple times
             this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            // New document listeners expect a 'CallParticipation'
             if (this.onRemoteData) {
-                this.onRemoteData(remoteCallData);
+                this.onRemoteData(this._remoteCallParticipation);
+            }
+            // Some document listeners expect a 'Person'
+            if (this.onRemoteData) {
+                this.onRemoteData(this._remotePerson);
             }
         }
         else {
@@ -56873,20 +56965,15 @@ Whiteboard.__type = "Whiteboard";
 //==============================//
 class WhiteboardElement {
     /**
-     * Create a WhiteboardWorkout object
-      * @param rows - the number of rows (to set visible field size).
+     * Create a WhiteboardElement object
       * @param text - the text to display.
      */
-    constructor(rows, text) {
-        this._rows = rows;
+    constructor(text) {
         this._text = text;
     }
     /**
     * set of 'getters' for private variables
     */
-    get rows() {
-        return this._rows;
-    }
     get text() {
         return this._text;
     }
@@ -56899,17 +56986,14 @@ class WhiteboardElement {
      * @param rhs - the object to compare this one to.
      */
     equals(rhs) {
-        return ((this._rows === rhs._rows) &&
-            (this._text === rhs._text));
+        return (this._text === rhs._text);
     }
     ;
     /**
-  * test for equality - checks all fields are the same.
-  * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-  * @param rhs - the object to compare this one to.
-  */
+     * copy from another
+     * @param rhs - the object to compare this one to.
+     */
     assign(rhs) {
-        this._rows = rhs._rows;
         this._text = rhs._text;
     }
     ;
@@ -56921,7 +57005,6 @@ class WhiteboardElement {
             __type: WhiteboardElement.__type,
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
-                _rows: this._rows,
                 _text: this._text
             }
         };
@@ -56943,7 +57026,7 @@ class WhiteboardElement {
     * @param data - the JSON data to revove from
     */
     static reviveDb(data) {
-        return new WhiteboardElement(data._rows, data._text);
+        return new WhiteboardElement(data._text);
     }
 }
 exports.WhiteboardElement = WhiteboardElement;

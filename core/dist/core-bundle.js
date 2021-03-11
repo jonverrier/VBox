@@ -5481,7 +5481,6 @@ GymClockState.__type = "GymClockState";
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveDocumentChannelFactoryStub = void 0;
-// This app, this component 
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 // Stubbing for testing
 var docInOut = null;
@@ -5490,6 +5489,7 @@ class LiveChannelStub {
     constructor() {
         this.types = new StreamableTypes_1.StreamableTypes;
         // Override these for data from notifications 
+        this.onNewCallParticipation = function (ev) { };
         this.onCommandApply = function (ev) { };
         this.onCommandReverse = function () { };
         this.onDocument = function (ev) { };
@@ -5723,20 +5723,23 @@ LiveUndoCommand.__type = "LiveUndoCommand";
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveDocumentRemote = exports.LiveDocumentMaster = void 0;
 class LiveDocumentConnection {
-    constructor(meetingId, localPerson, localCallParticipation, outbound, channelFactory, documentFactory) {
-        this._meetingId = meetingId;
+    constructor(localPerson, localCallParticipation, outbound, channelFactory, documentFactory) {
         this._localPerson = localPerson;
         this._localCallParticipation = localCallParticipation;
         this._channel = outbound ? channelFactory.createConnectionOut() : channelFactory.createConnectionIn();
         this._document = documentFactory.createLiveDocument(outbound, this._channel);
         this._commandProcessor = this._document.createCommandProcessor();
+        // If we are outbound, when there is a new joiner, send them the document
+        if (outbound) {
+            var self = this;
+            this._channel.onNewCallParticipation = function (ev) {
+                self.channel.sendDocumentTo(ev, self._document);
+            };
+        }
     }
     /**
     * set of 'getters' & some 'setters' for private variables
     */
-    get meetingId() {
-        return this._meetingId;
-    }
     get localCallParticipation() {
         return this._localCallParticipation;
     }
@@ -5754,14 +5757,14 @@ class LiveDocumentConnection {
     }
 }
 class LiveDocumentMaster extends LiveDocumentConnection {
-    constructor(meetingId, person, localCallParticipation, channelFactory, documentFactory) {
-        super(meetingId, person, localCallParticipation, true, channelFactory, documentFactory);
+    constructor(person, localCallParticipation, channelFactory, documentFactory) {
+        super(person, localCallParticipation, true, channelFactory, documentFactory);
     }
 }
 exports.LiveDocumentMaster = LiveDocumentMaster;
 class LiveDocumentRemote extends LiveDocumentConnection {
-    constructor(meetingId, person, localCallParticipation, channelFactory, documentFactory) {
-        super(meetingId, person, localCallParticipation, false, channelFactory, documentFactory);
+    constructor(person, localCallParticipation, channelFactory, documentFactory) {
+        super(person, localCallParticipation, false, channelFactory, documentFactory);
     }
 }
 exports.LiveDocumentRemote = LiveDocumentRemote;
@@ -5788,7 +5791,7 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
-const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
+const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 class LiveWorkout {
     constructor(whiteboardText, outbound, channel) {
@@ -5874,7 +5877,7 @@ class LiveWhiteboardCommand {
     }
     // type is read only
     get type() {
-        return LiveWorkout.__type;
+        return LiveWhiteboardCommand.__type;
     }
     selection() {
         return this._selection;
@@ -5949,26 +5952,31 @@ class LiveWorkoutChannelPeer {
     constructor(peer) {
         this._types = new StreamableTypes_1.StreamableTypes;
         // Override these for data from notifications 
+        this.onNewCallParticipation = function (ev) { };
         this.onCommandApply = function (ev) { };
         this.onCommandReverse = function () { };
         this.onDocument = function (ev) { };
         this._peer = peer;
-        if (peer.isEdgeOnly()) {
-            peer.addRemoteDataListener(this.onData.bind(this));
-        }
+        peer.addRemoteDataListener(this.onData.bind(this));
     }
     onData(ev) {
-        if (ev.type === LiveWorkout.__type) {
-            this.onDocument(ev);
+        if (this._peer.isEdgeOnly()) {
+            // Edge nodes listen for document updates
+            if (ev.type === LiveWorkout.__type) {
+                this.onDocument(ev);
+            }
+            if (ev.type === LiveWhiteboardCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
+                this.onCommandReverse();
+            }
         }
-        if (ev.type === LiveWhiteboardCommand.__type) {
-            this.onCommandApply(ev);
-        }
-        if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
-            this.onCommandReverse();
-        }
-        if (ev.type === Person_1.Person.__type) {
-            // TODO - figure out handshake to send remote peer the document
+        else {
+            // Hub node listens for new participants and sends them the document when they join
+            if (ev.type === Call_1.CallParticipation.__type) {
+                this.onNewCallParticipation(ev);
+            }
         }
     }
     sendDocumentTo(recipient, document) {
@@ -5999,7 +6007,7 @@ class LiveWorkoutFactory {
     constructor() {
     }
     createLiveDocument(outbound, channel) {
-        return new LiveWorkout("Waiting...", outbound, channel);
+        return new LiveWorkout("Waiting...[doc version]", outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
@@ -6900,6 +6908,11 @@ class RtcPeerHelper {
             var person = remoteCallData;
             // Store a unique derivation of name in case a person join multiple times
             this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            // New document listeners expect a 'CallParticipation'
+            if (this.onRemoteData) {
+                this.onRemoteData(this._remoteCallParticipation);
+            }
+            // Some document listeners expect a 'Person'
             if (this.onRemoteData) {
                 this.onRemoteData(this._remotePerson);
             }
@@ -7175,8 +7188,13 @@ class WebPeerHelper {
             var person = remoteCallData;
             // Store a unique derivation of name in case a person join multiple times
             this._remotePerson = new Person_1.Person(person.id, person.externalId, this._nameCache.addReturnUnique(person.name), person.email, person.thumbnailUrl, person.lastAuthCode);
+            // New document listeners expect a 'CallParticipation'
             if (this.onRemoteData) {
-                this.onRemoteData(remoteCallData);
+                this.onRemoteData(this._remoteCallParticipation);
+            }
+            // Some document listeners expect a 'Person'
+            if (this.onRemoteData) {
+                this.onRemoteData(this._remotePerson);
             }
         }
         else {
@@ -7805,20 +7823,15 @@ Whiteboard.__type = "Whiteboard";
 //==============================//
 class WhiteboardElement {
     /**
-     * Create a WhiteboardWorkout object
-      * @param rows - the number of rows (to set visible field size).
+     * Create a WhiteboardElement object
       * @param text - the text to display.
      */
-    constructor(rows, text) {
-        this._rows = rows;
+    constructor(text) {
         this._text = text;
     }
     /**
     * set of 'getters' for private variables
     */
-    get rows() {
-        return this._rows;
-    }
     get text() {
         return this._text;
     }
@@ -7831,17 +7844,14 @@ class WhiteboardElement {
      * @param rhs - the object to compare this one to.
      */
     equals(rhs) {
-        return ((this._rows === rhs._rows) &&
-            (this._text === rhs._text));
+        return (this._text === rhs._text);
     }
     ;
     /**
-  * test for equality - checks all fields are the same.
-  * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-  * @param rhs - the object to compare this one to.
-  */
+     * copy from another
+     * @param rhs - the object to compare this one to.
+     */
     assign(rhs) {
-        this._rows = rhs._rows;
         this._text = rhs._text;
     }
     ;
@@ -7853,7 +7863,6 @@ class WhiteboardElement {
             __type: WhiteboardElement.__type,
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
-                _rows: this._rows,
                 _text: this._text
             }
         };
@@ -7875,7 +7884,7 @@ class WhiteboardElement {
     * @param data - the JSON data to revove from
     */
     static reviveDb(data) {
-        return new WhiteboardElement(data._rows, data._text);
+        return new WhiteboardElement(data._text);
     }
 }
 exports.WhiteboardElement = WhiteboardElement;

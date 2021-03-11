@@ -192,14 +192,12 @@ describe("LiveWorkout", function () {
       var person = new Person(1, "123", "Joe", "Joe@mail.com", "https://jo.pics.com", "1234");
 
       // create two linked documents
-      var master = new LiveDocumentMaster(callParticipation.meetingId,
-         person,
+      var master = new LiveDocumentMaster(person,
          callParticipation,
          new LiveDocumentChannelFactoryStub(),
          new LiveWorkoutFactory());
 
-      var remote = new LiveDocumentRemote(callParticipation.meetingId,
-         person,
+      var remote = new LiveDocumentRemote(person,
          callParticipation,
          new LiveDocumentChannelFactoryStub(),
          new LiveWorkoutFactory());

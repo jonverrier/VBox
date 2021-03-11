@@ -357,8 +357,13 @@ export class WebPeerHelper {
             person.thumbnailUrl,
             person.lastAuthCode);
 
+         // New document listeners expect a 'CallParticipation'
          if (this.onRemoteData) {
-            this.onRemoteData(remoteCallData);
+            this.onRemoteData(this._remoteCallParticipation);
+         }
+         // Some document listeners expect a 'Person'
+         if (this.onRemoteData) {
+            this.onRemoteData(this._remotePerson);
          }
       } else {
 

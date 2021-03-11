@@ -31,6 +31,8 @@ import { UserFacilities } from '../../core/dev/UserFacilities';
 import { DateHook } from '../../core/dev/DateHook';
 import { ArrayHook } from '../../core/dev/ArrayHook';
 import { PeerConnection } from '../../core/dev/PeerConnection';
+import { LiveDocumentMaster, LiveDocumentRemote } from '../../core/dev/LiveDocumentCentral';
+import { LiveWorkoutFactory, LiveWorkoutChannelFactoryPeer, LiveWorkout } from '../../core/dev/LiveWorkout';
 
 // This app, this component
 import { MemberLoginData, MemberLoginProvider } from './LoginMember';
@@ -135,7 +137,8 @@ interface IMemberPageProps {
 interface IMemberPageState {
    isLoggedIn: boolean;
    pageData: UserFacilities;
-   peers: PeerConnection;
+   peerConnection: PeerConnection;
+   remoteDocument: LiveDocumentRemote;
    isDataReady: boolean;
    meetCodeCopy: string;
    nameCopy: string;
@@ -163,12 +166,13 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
       this.pageData = this.defaultPageData;
       let loginData = new MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
-      let peers = new PeerConnection(true); // Member nodes are edge only, coaches are full hubs
+      let peerConnection = new PeerConnection(true); // Member nodes are edge only, coaches are full hubs
 
       this.state = {
          isLoggedIn: false,
          pageData: this.pageData,
-         peers: peers,
+         peerConnection: peerConnection,
+         remoteDocument: undefined,
          isDataReady: false,
          meetCodeCopy: loginData.meetCode,
          nameCopy: loginData.name,
@@ -250,11 +254,23 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                // Success, set state to data for logged in user 
                self.pageData = UserFacilities.revive(response.data);
 
-               // Initialise WebRTC and connect
-               self.state.peers.connect(self.state.loginData.meetCode,
+               var person = new Person(null,
                   self.pageData.person.externalId,
                   self.pageData.person.name,
-                  self.pageData.person.thumbnailUrl);
+                  null,
+                  self.pageData.person.thumbnailUrl, null);
+
+               // Initialise WebRTC and connect
+               self.state.peerConnection.connect(self.state.loginData.meetCode,
+                  person);
+
+               // Create a shared document hooked up to the connection
+               self.setState({
+                  remoteDocument: new LiveDocumentRemote(person,
+                     self.state.peerConnection.localCallParticipation,
+                     new LiveWorkoutChannelFactoryPeer(self.state.peerConnection),
+                     new LiveWorkoutFactory())
+               });
 
                // Keep alive to server every 25 seconds
                let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
@@ -353,7 +369,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <RemoteConnectionStatus peers={this.state.peers}> </RemoteConnectionStatus>
+                        <RemoteConnectionStatus peers={this.state.peerConnection}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
                               <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
@@ -371,12 +387,14 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <RemoteWhiteboard rtc={this.state.peers}> </RemoteWhiteboard>
+                        <RemoteWhiteboard rtc={this.state.peerConnection}
+                           whiteboardText={(this.state.remoteDocument.document as LiveWorkout).whiteboardText}
+                           liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <RemoteClock peers={this.state.peers}/>
+                        <RemoteClock peers={this.state.peerConnection}/>
                         <br />
-                        <RemotePeople peers={this.state.peers}> </RemotePeople>
+                        <RemotePeople peers={this.state.peerConnection}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>
@@ -395,7 +413,8 @@ interface ICoachPageState {
    isLeader: boolean;
    haveAccess: boolean;
    pageData: UserFacilities;
-   peers: PeerConnection;
+   peerConnection: PeerConnection;
+   masterDocument: LiveDocumentMaster;
    isDataReady: boolean;
    meetCodeCopy: string;
    loginData: LoginMeetCodeData;
@@ -424,14 +443,15 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
       this.pageData = this.defaultPageData;
       let loginData = new LoginMeetCodeData (this.lastUserData.loadMeetingId());
 
-      let peers = new PeerConnection(false); // Member nodes are edge only, coaches are full hubs
+      let peerConnection = new PeerConnection(false); // Member nodes are edge only, coaches are full hubs
 
       this.state = {
          isLoggedIn: false,
          isLeader: true,    // we are leader until someone beats us in 'glareResolve' exchange
          haveAccess: false, // Cannot access mic or speaker until user does something. 
          pageData: this.pageData,
-         peers: peers,
+         peerConnection: peerConnection,
+         masterDocument: undefined,
          isDataReady: false,
          meetCodeCopy: loginData.meetCode,
          loginData: loginData,
@@ -518,11 +538,23 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   // Success, set state to data for logged in user 
                   self.pageData = UserFacilities.revive(response.data);
 
-                  // Initialise WebRTC and connect
-                  self.state.peers.connect(self.state.loginData.meetCode,
+                  var person = new Person(null,
                      self.pageData.person.externalId,
                      self.pageData.person.name,
-                     self.pageData.person.thumbnailUrl);
+                     null,
+                     self.pageData.person.thumbnailUrl, null);
+
+                  // Initialise WebRTC and connect
+                  self.state.peerConnection.connect(self.state.loginData.meetCode,
+                     person);
+
+                  // Create a shared document hooked up to the connection
+                  self.setState({
+                     masterDocument: new LiveDocumentMaster(person,
+                        self.state.peerConnection.localCallParticipation,
+                        new LiveWorkoutChannelFactoryPeer(self.state.peerConnection),
+                        new LiveWorkoutFactory())
+                  });
 
                   // Keep alive to server every 25 seconds
                   let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
@@ -619,7 +651,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <MasterConnectionStatus peers={this.state.peers} />
+                        <MasterConnectionStatus peers={this.state.peerConnection} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
                               <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
@@ -637,17 +669,20 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={thinStyle}>
-                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} peers={this.state.peers}> </LeaderResolve>
+                        <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} peers={this.state.peerConnection}> </LeaderResolve>
                      </Col>
                   </Row>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <MasterWhiteboard allowEdit={this.state.isLeader} peers={this.state.peers}> </MasterWhiteboard>                        
+                        <MasterWhiteboard allowEdit={this.state.isLeader} peerConnection={this.state.peerConnection}
+                           whiteboardText={(this.state.masterDocument.document as LiveWorkout).whiteboardText}
+                           commandProcessor={this.state.masterDocument.commandProcessor}
+                           liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.peers}> </MasterClock>
+                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.peerConnection}> </MasterClock>
                         <br />
-                        <RemotePeople peers={this.state.peers}> </RemotePeople>
+                        <RemotePeople peers={this.state.peerConnection}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>
