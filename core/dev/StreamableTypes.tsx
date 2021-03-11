@@ -7,7 +7,8 @@ import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { Whiteboard, WhiteboardElement } from './Whiteboard';
 import { GymClockSpec, GymClockAction, GymClockState } from './GymClock';
-import { LiveWorkout } from './LiveWorkout'
+import { LiveWorkout, LiveWhiteboardCommand } from './LiveWorkout';
+import { LiveUndoCommand } from './LiveCommand';
 
 //==============================//
 // StreamableTypes class
@@ -41,6 +42,8 @@ export class StreamableTypes {
       this._types.GymClockAction = GymClockAction;
       this._types.GymClockState = GymClockState;
       this._types.LiveWorkout = LiveWorkout;
+      this._types.LiveWhiteboardCommand = LiveWhiteboardCommand;
+      this._types.LiveUndoCommand = LiveUndoCommand;
 
    }
 

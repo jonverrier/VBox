@@ -8,6 +8,7 @@
 // 
 
 // This app, this component 
+import { IStreamableFor } from './Streamable';
 import { ILiveDocument, ICommand, ICommandProcessor, ILiveDocumentChannel } from './LiveInterfaces';
 
 export class LiveCommandProcessor implements ICommandProcessor {
@@ -47,7 +48,7 @@ export class LiveCommandProcessor implements ICommandProcessor {
       }
 
       command.applyTo(this._document);
-      if (this._channel && this._outbound)
+      if (this._outbound !== undefined && this._channel && this._outbound)
          this._channel.broadcastCommandApply(command);
    }
 
@@ -115,3 +116,74 @@ export class LiveCommandProcessor implements ICommandProcessor {
    }
 }
 
+// Streamable object that is sent to instruct an 'undo'
+export class LiveUndoCommand implements IStreamableFor<LiveUndoCommand> {
+
+   private _sequenceNo: number;
+
+   static readonly __type = "LiveUndoCommand";
+
+   /**
+    * Create a LiveUndoCommand object
+    */
+   constructor(sequenceNo: number = 0) {
+
+      this._sequenceNo = sequenceNo;
+   }
+
+   /**
+   * set of 'getters' for private variables
+   */
+   get sequenceNo(): number {
+      return this._sequenceNo;
+   }
+   get type(): string {
+      return LiveUndoCommand.__type;
+   }
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   equals(rhs: LiveUndoCommand): boolean {
+
+      return ((this._sequenceNo === rhs._sequenceNo));
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   toJSON(): any {
+
+      return {
+         __type: LiveUndoCommand.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _sequenceNo: this._sequenceNo,
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revive from 
+    */
+   static revive(data: any): LiveUndoCommand {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return LiveUndoCommand.reviveDb(data.attributes);
+
+      return LiveUndoCommand.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revive from 
+   */
+   static reviveDb(data: any): LiveUndoCommand {
+
+      return new LiveUndoCommand(data._sequenceNo);
+   };
+}

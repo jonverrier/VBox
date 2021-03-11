@@ -3,11 +3,17 @@
 
 var pkg = require('../dist/core-bundle.js');
 var EntryPoints = pkg.default;
+
+var StreamableTypes = EntryPoints.StreamableTypes;
+var Person = EntryPoints.Person;
+var CallParticipation = EntryPoints.CallParticipation;
+
 var LiveWorkout = EntryPoints.LiveWorkout;
 var LiveWhiteboardCommand = EntryPoints.LiveWhiteboardCommand;
-var LiveDocumentChannelFactory = EntryPoints.LiveDocumentChannelFactory;
-var StreamableTypes = EntryPoints.StreamableTypes;
-var CallParticipation = EntryPoints.CallParticipation;
+var LiveDocumentChannelFactoryStub = EntryPoints.LiveDocumentChannelFactoryStub;
+var LiveDocumentMaster = EntryPoints.LiveDocumentMaster;
+var LiveDocumentRemote = EntryPoints.LiveDocumentRemote;
+var LiveWorkoutFactory = EntryPoints.LiveWorkoutFactory;
 
 var expect = require("chai").expect;
 
@@ -16,19 +22,24 @@ describe("LiveWorkout", function () {
    var text1 = "workout1";
    var text2 = "workout2";
    var text3 = "workout3";
-   var text4 = "workout4";
+   var textIn = "workout4";
    var workoutOut, workoutIn, workout, commandProcessorIn, commandProcessorOut, command1, command2, channelFactory, channelOut, channelIn;
 
-   channelFactory = new LiveDocumentChannelFactory();
+   channelFactory = new LiveDocumentChannelFactoryStub();
    channelOut = channelFactory.createConnectionOut();
    channelIn = channelFactory.createConnectionIn();
    workoutOut = new LiveWorkout(text1, true, channelOut);
-   workoutIn = new LiveWorkout(text4, false, channelIn);
-   workout = new LiveWorkout(text4);
+   workoutIn = new LiveWorkout(textIn, false, channelIn);
+   workout = new LiveWorkout(textIn);
    commandProcessorOut = workoutOut.createCommandProcessor();
    commandProcessorIn = workoutIn.createCommandProcessor();
 
    beforeEach(function () {
+   });
+
+
+   it("Needs to correctly store attributes", function () {
+      expect(workoutOut.whiteboardText).to.equal(text1);
    });
 
    it("Needs to compare for equality and inequality", function () {
@@ -37,24 +48,13 @@ describe("LiveWorkout", function () {
       expect(workoutOut.equals(workout)).to.equal(false);
    });
 
-   it("Needs to apply a single command.", function () {
+   it("Needs to save and restore to/from JSON.", function () {
+      var types = new StreamableTypes();
+      var output = JSON.stringify(workoutOut);
 
-      command1 = new LiveWhiteboardCommand(text2, workoutOut.whiteboardText);
+      var obj = types.reviveFromJSON(output);
 
-      // Apply the command, then check it has worked, can be undone, cannot be undone
-      commandProcessorOut.adoptAndApply(command1);
-      expect(workoutOut.whiteboardText === text2).to.equal(true);
-      expect(commandProcessorOut.canUndo()).to.equal(true);
-      expect(commandProcessorOut.canRedo()).to.equal(false);
-
-      // Undo it, check the result, check it can be re-done and not undone
-      commandProcessorOut.undo();
-      expect(workoutOut.whiteboardText === text1).to.equal(true);
-      expect(commandProcessorOut.canRedo()).to.equal(true);
-      expect(commandProcessorOut.canUndo()).to.equal(false);
-
-      // Clear commands for next test
-      commandProcessorOut.clearCommands();
+      expect(workoutOut.equals(obj)).to.equal(true);
    });
 
    it("Needs to apply a single command.", function () {
@@ -77,7 +77,7 @@ describe("LiveWorkout", function () {
       commandProcessorOut.clearCommands();
    });
 
-   it("Needs to apply a multiple commands.", function () {
+   it("Needs to apply multiple commands.", function () {
 
       command1 = new LiveWhiteboardCommand(text2, workoutOut.whiteboardText);
 
@@ -103,10 +103,6 @@ describe("LiveWorkout", function () {
       // Undo and clear commands for next test
       commandProcessorOut.undo();
       commandProcessorOut.clearCommands();
-   });
-
-   it("Needs to correctly store attributes", function () {
-      expect(workoutOut.whiteboardText).to.equal(text1);
    });
 
    it("Needs to synch whole document to remote.", function () {
@@ -135,6 +131,7 @@ describe("LiveWorkout", function () {
       expect(workoutOut.whiteboardText === text2).to.equal(true);
       expect(commandProcessorOut.canUndo()).to.equal(true);
       expect(commandProcessorOut.canRedo()).to.equal(false);
+      expect(workoutOut.equals(workoutIn)).to.equal(true);
 
       // Apply another command, then check it has worked, can be undone, cannot be undone
       command2 = new LiveWhiteboardCommand(text3, workoutOut.whiteboardText);
@@ -142,6 +139,7 @@ describe("LiveWorkout", function () {
       expect(workoutOut.whiteboardText === text3).to.equal(true);
       expect(commandProcessorOut.canUndo()).to.equal(true);
       expect(commandProcessorOut.canRedo()).to.equal(false);
+      expect(workoutOut.equals(workoutIn)).to.equal(true);
 
       // Undo it, check the result, check it can be re-done and can still undo the previous one
       commandProcessorOut.undo();
@@ -152,10 +150,12 @@ describe("LiveWorkout", function () {
 
       // Undo and clear commands for next test
       commandProcessorOut.undo();
+      expect(workoutOut.equals(workoutIn)).to.equal(true);
+
       commandProcessorOut.clearCommands();
       commandProcessorIn.clearCommands();
 
-   });
+   }); 
 
    it("Needs to apply a single command then undo it to remote document.", function () {
 
@@ -169,8 +169,10 @@ describe("LiveWorkout", function () {
       // Apply the command, then check it has worked, can be undone, cannot be undone
       commandProcessorOut.adoptAndApply(command1);
       expect(workoutOut.whiteboardText === text2).to.equal(true);
+      expect(workoutIn.whiteboardText === text2).to.equal(true);
       expect(commandProcessorOut.canUndo()).to.equal(true);
       expect(commandProcessorOut.canRedo()).to.equal(false);
+      expect(workoutOut.equals(workoutIn)).to.equal(true);
 
       // Undo it, check the result, check it can be re-done and not undone
       commandProcessorOut.undo();
@@ -183,14 +185,36 @@ describe("LiveWorkout", function () {
       commandProcessorOut.clearCommands();
    });
 
+   it("Document setup need to work.", function () {
 
-   it("Needs to save and restore to/from JSON.", function () {
-      var types = new StreamableTypes();
-      var output = JSON.stringify(workoutOut);
+      // Copy them over
+      var callParticipation = new CallParticipation("1234567890", "sess1", true);
+      var person = new Person(1, "123", "Joe", "Joe@mail.com", "https://jo.pics.com", "1234");
 
-      var obj = types.reviveFromJSON(output);
+      // create two linked documents
+      var master = new LiveDocumentMaster(callParticipation.meetingId,
+         person,
+         callParticipation,
+         new LiveDocumentChannelFactoryStub(),
+         new LiveWorkoutFactory());
 
-      expect(workoutOut.equals(obj)).to.equal(true);
+      var remote = new LiveDocumentRemote(callParticipation.meetingId,
+         person,
+         callParticipation,
+         new LiveDocumentChannelFactoryStub(),
+         new LiveWorkoutFactory());
+      remote.document.whiteboardText = "Not the same."
+
+      expect(remote.document.equals(master.document)).to.equal(false);
+      master.channel.sendDocumentTo(callParticipation, master.document);
+      expect(remote.document.equals(master.document)).to.equal(true);
+
+      command1 = new LiveWhiteboardCommand(text2, master.document.whiteboardText);
+
+      // Apply the command, then check it has worked, can be undone, cannot be undone
+      master.commandProcessor.adoptAndApply(command1);
+      expect(master.document.whiteboardText === text2).to.equal(true);
+      expect(remote.document.equals(master.document)).to.equal(true);
    });
 });
 

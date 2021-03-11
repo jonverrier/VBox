@@ -16,15 +16,16 @@ import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './
 
 // Peer-peer architecture
 import { PeerLink } from './PeerLink';
-import { EPeerConnectionType, IPeerSignalSender, IPeerCaller, IPeerReciever, PeerNameCache, IPeerSignalReciever } from './PeerInterfaces';
+import { EPeerConnectionType, PeerNameCache } from './PeerInterfaces';
 import { PeerCallerRtc, PeerRecieverRtc } from './PeerRtc';
 import { PeerCallerWeb, PeerRecieverWeb } from './PeerWeb';
 import { PeerFactory } from './PeerFactory';
 
 // LiveDocument Architecture
-import { LiveWorkout, LiveWhiteboardCommand } from './LiveWorkout';
-import { LiveCommandProcessor } from './LiveCommand';
-import { LiveDocumentChannelFactory } from './LiveChannel';
+import { LiveWorkout, LiveWhiteboardCommand, LiveWorkoutChannelFactoryPeer, LiveWorkoutFactory} from './LiveWorkout';
+import { LiveCommandProcessor, LiveUndoCommand } from './LiveCommand';
+import { LiveDocumentChannelFactoryStub } from './LiveChannel';
+import { LiveDocumentMaster, LiveDocumentRemote } from './LiveDocumentCentral';
 
 var EntryPoints = {
    LoggerFactory: LoggerFactory,
@@ -71,10 +72,16 @@ var EntryPoints = {
    PeerFactory: PeerFactory,
 
    // Live Document Architecture
+   LiveCommandProcessor: LiveCommandProcessor,
+   LiveUndoCommand: LiveUndoCommand,
+   LiveDocumentChannelFactoryStub: LiveDocumentChannelFactoryStub,
    LiveWorkout: LiveWorkout,
    LiveWhiteboardCommand: LiveWhiteboardCommand,
-   LiveCommandProcessor: LiveCommandProcessor,
-   LiveDocumentChannelFactory: LiveDocumentChannelFactory
+   LiveDocumentMaster: LiveDocumentMaster,
+   LiveDocumentRemote: LiveDocumentRemote,
+   LiveWorkoutChannelFactoryPeer: LiveWorkoutChannelFactoryPeer,
+   LiveWorkoutFactory: LiveWorkoutFactory
+
 };
 
 ArrayHook.initialise();

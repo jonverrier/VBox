@@ -54250,7 +54250,7 @@ GymClockState.__type = "GymClockState";
 //    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveCommandProcessor = void 0;
+exports.LiveUndoCommand = exports.LiveCommandProcessor = void 0;
 class LiveCommandProcessor {
     constructor(document, outbound, channel) {
         this._lastCommandIndex = -1;
@@ -54279,7 +54279,7 @@ class LiveCommandProcessor {
             this._commands.unshift(command);
         }
         command.applyTo(this._document);
-        if (this._channel && this._outbound)
+        if (this._outbound !== undefined && this._channel && this._outbound)
             this._channel.broadcastCommandApply(command);
     }
     canUndo() {
@@ -54337,6 +54337,67 @@ class LiveCommandProcessor {
     }
 }
 exports.LiveCommandProcessor = LiveCommandProcessor;
+// Streamable object that is sent to instruct an 'undo'
+class LiveUndoCommand {
+    /**
+     * Create a LiveUndoCommand object
+     */
+    constructor(sequenceNo = 0) {
+        this._sequenceNo = sequenceNo;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get sequenceNo() {
+        return this._sequenceNo;
+    }
+    get type() {
+        return LiveUndoCommand.__type;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return ((this._sequenceNo === rhs._sequenceNo));
+    }
+    ;
+    /**
+     * Method that serializes to JSON
+     */
+    toJSON() {
+        return {
+            __type: LiveUndoCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _sequenceNo: this._sequenceNo,
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revive from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveUndoCommand.reviveDb(data.attributes);
+        return LiveUndoCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revive from
+    */
+    static reviveDb(data) {
+        return new LiveUndoCommand(data._sequenceNo);
+    }
+    ;
+}
+exports.LiveUndoCommand = LiveUndoCommand;
+LiveUndoCommand.__type = "LiveUndoCommand";
 
 
 /***/ }),
@@ -54358,7 +54419,9 @@ exports.LiveCommandProcessor = LiveCommandProcessor;
 //    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/dev/StreamableTypes.tsx");
+const Person_1 = __webpack_require__(/*! ./Person */ "../core/dev/Person.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
 class LiveWorkout {
     constructor(whiteboardText, outbound, channel) {
@@ -54477,7 +54540,7 @@ class LiveWhiteboardCommand {
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _text: this._text,
-                _priortext: this._priorText
+                _priorText: this._priorText
             }
         };
     }
@@ -54504,7 +54567,8 @@ class LiveWhiteboardCommand {
     ;
 }
 exports.LiveWhiteboardCommand = LiveWhiteboardCommand;
-LiveWhiteboardCommand.__type = "LiveWorkout";
+LiveWhiteboardCommand.__type = "LiveWhiteboardCommand";
+// Class to represent the 'selection' of the whiteboard within a Workout document.
 class LiveWhiteboardSelection {
     constructor() {
     }
@@ -54513,6 +54577,65 @@ class LiveWhiteboardSelection {
     }
 }
 exports.LiveWhiteboardSelection = LiveWhiteboardSelection;
+// Implemntation of channl over RTC/peer architecture
+class LiveWorkoutChannelPeer {
+    constructor(peer) {
+        this._types = new StreamableTypes_1.StreamableTypes;
+        // Override these for data from notifications 
+        this.onCommandApply = function (ev) { };
+        this.onCommandReverse = function () { };
+        this.onDocument = function (ev) { };
+        this._peer = peer;
+        if (peer.isEdgeOnly()) {
+            peer.addRemoteDataListener(this.onData.bind(this));
+        }
+    }
+    onData(ev) {
+        if (ev.type === LiveWorkout.__type) {
+            this.onDocument(ev);
+        }
+        if (ev.type === LiveWhiteboardCommand.__type) {
+            this.onCommandApply(ev);
+        }
+        if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
+            this.onCommandReverse();
+        }
+        if (ev.type === Person_1.Person.__type) {
+            // TODO - figure out handshake to send remote peer the document
+        }
+    }
+    sendDocumentTo(recipient, document) {
+        this._peer.sendTo(recipient, document);
+    }
+    broadcastCommandApply(command) {
+        this._peer.broadcast(command);
+    }
+    broadcastCommandReverse() {
+        this._peer.broadcast(new LiveCommand_1.LiveUndoCommand());
+    }
+}
+// Creates the type of channel we need to exchange Workout Documents
+class LiveWorkoutChannelFactoryPeer {
+    constructor(connection) {
+        this._connection = connection;
+    }
+    createConnectionIn() {
+        return new LiveWorkoutChannelPeer(this._connection);
+    }
+    createConnectionOut() {
+        return new LiveWorkoutChannelPeer(this._connection);
+    }
+}
+exports.LiveWorkoutChannelFactoryPeer = LiveWorkoutChannelFactoryPeer;
+// Creates the type of Workout Documents
+class LiveWorkoutFactory {
+    constructor() {
+    }
+    createLiveDocument(outbound, channel) {
+        return new LiveWorkout("Waiting...", outbound, channel);
+    }
+}
+exports.LiveWorkoutFactory = LiveWorkoutFactory;
 
 
 /***/ }),
@@ -54743,10 +54866,22 @@ class PeerConnection {
         }
         return false;
     }
+    isEdgeOnly() {
+        return this._isEdgeOnly;
+    }
     broadcast(obj) {
         var self = this;
         for (var i = 0; i < self._links.length; i++) {
             self._links[i].send(obj);
+        }
+        PeerWeb_1.WebPeerHelper.drainSendQueue(this._signalSender);
+    }
+    sendTo(recipient, obj) {
+        var self = this;
+        for (var i = 0; i < self._links.length; i++) {
+            if (self._links[i].remoteCallParticipation.equals(recipient)) {
+                self._links[i].send(obj);
+            }
         }
         PeerWeb_1.WebPeerHelper.drainSendQueue(this._signalSender);
     }
@@ -56474,6 +56609,7 @@ const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "../core/de
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "../core/dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "../core/dev/GymClock.tsx");
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "../core/dev/LiveWorkout.tsx");
+const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
 //==============================//
 // StreamableTypes class
 //==============================//
@@ -56502,6 +56638,8 @@ class StreamableTypes {
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
         this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
+        this._types.LiveWhiteboardCommand = LiveWorkout_1.LiveWhiteboardCommand;
+        this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
     }
     isObjectKey(key) {
         let keyNum = Number(key);

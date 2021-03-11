@@ -101,11 +101,27 @@ export class PeerConnection {
       return false;
    }
 
-   broadcast (obj) {
+   isEdgeOnly(): boolean {
+
+      return this._isEdgeOnly;
+   }
+
+   broadcast (obj: IStreamable) : void {
       var self = this;
 
       for (var i = 0; i < self._links.length; i++) {
          self._links[i].send(obj);
+      }
+      WebPeerHelper.drainSendQueue(this._signalSender);
+   }
+
+   sendTo(recipient: CallParticipation, obj: IStreamable): void {
+      var self = this;
+
+      for (var i = 0; i < self._links.length; i++) {
+         if (self._links[i].remoteCallParticipation.equals(recipient)) {
+            self._links[i].send(obj);
+         }
       }
       WebPeerHelper.drainSendQueue(this._signalSender);
    }

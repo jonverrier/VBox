@@ -5472,15 +5472,16 @@ GymClockState.__type = "GymClockState";
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
 //    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveDocumentChannelFactory = void 0;
+exports.LiveDocumentChannelFactoryStub = void 0;
+// This app, this component 
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 // Stubbing for testing
 var docInOut = null;
@@ -5515,7 +5516,7 @@ class LiveChannelStub {
         this.onCommandReverseInner();
     }
 }
-class LiveDocumentChannelFactory {
+class LiveDocumentChannelFactoryStub {
     constructor() {
     }
     createConnectionIn() {
@@ -5523,13 +5524,13 @@ class LiveDocumentChannelFactory {
             docInOut = new LiveChannelStub();
         return docInOut;
     }
-    createConnectionOut(document, commandProcessor) {
+    createConnectionOut() {
         if (!docInOut)
             docInOut = new LiveChannelStub();
         return docInOut;
     }
 }
-exports.LiveDocumentChannelFactory = LiveDocumentChannelFactory;
+exports.LiveDocumentChannelFactoryStub = LiveDocumentChannelFactoryStub;
 
 
 /***/ }),
@@ -5551,7 +5552,7 @@ exports.LiveDocumentChannelFactory = LiveDocumentChannelFactory;
 //    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveCommandProcessor = void 0;
+exports.LiveUndoCommand = exports.LiveCommandProcessor = void 0;
 class LiveCommandProcessor {
     constructor(document, outbound, channel) {
         this._lastCommandIndex = -1;
@@ -5580,7 +5581,7 @@ class LiveCommandProcessor {
             this._commands.unshift(command);
         }
         command.applyTo(this._document);
-        if (this._channel && this._outbound)
+        if (this._outbound !== undefined && this._channel && this._outbound)
             this._channel.broadcastCommandApply(command);
     }
     canUndo() {
@@ -5638,6 +5639,132 @@ class LiveCommandProcessor {
     }
 }
 exports.LiveCommandProcessor = LiveCommandProcessor;
+// Streamable object that is sent to instruct an 'undo'
+class LiveUndoCommand {
+    /**
+     * Create a LiveUndoCommand object
+     */
+    constructor(sequenceNo = 0) {
+        this._sequenceNo = sequenceNo;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get sequenceNo() {
+        return this._sequenceNo;
+    }
+    get type() {
+        return LiveUndoCommand.__type;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return ((this._sequenceNo === rhs._sequenceNo));
+    }
+    ;
+    /**
+     * Method that serializes to JSON
+     */
+    toJSON() {
+        return {
+            __type: LiveUndoCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _sequenceNo: this._sequenceNo,
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revive from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveUndoCommand.reviveDb(data.attributes);
+        return LiveUndoCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revive from
+    */
+    static reviveDb(data) {
+        return new LiveUndoCommand(data._sequenceNo);
+    }
+    ;
+}
+exports.LiveUndoCommand = LiveUndoCommand;
+LiveUndoCommand.__type = "LiveUndoCommand";
+
+
+/***/ }),
+
+/***/ "./dev/LiveDocumentCentral.tsx":
+/*!*************************************!*\
+  !*** ./dev/LiveDocumentCentral.tsx ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// Modules in the Document architecture:
+// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Conceptually, this architecture needs be thought of as:
+//    - Document, which is Streamable and can be sent to remote parties
+//    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
+//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+// 
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LiveDocumentRemote = exports.LiveDocumentMaster = void 0;
+class LiveDocumentConnection {
+    constructor(meetingId, localPerson, localCallParticipation, outbound, channelFactory, documentFactory) {
+        this._meetingId = meetingId;
+        this._localPerson = localPerson;
+        this._localCallParticipation = localCallParticipation;
+        this._channel = outbound ? channelFactory.createConnectionOut() : channelFactory.createConnectionIn();
+        this._document = documentFactory.createLiveDocument(outbound, this._channel);
+        this._commandProcessor = this._document.createCommandProcessor();
+    }
+    /**
+    * set of 'getters' & some 'setters' for private variables
+    */
+    get meetingId() {
+        return this._meetingId;
+    }
+    get localCallParticipation() {
+        return this._localCallParticipation;
+    }
+    get localPerson() {
+        return this._localPerson;
+    }
+    get document() {
+        return this._document;
+    }
+    get channel() {
+        return this._channel;
+    }
+    get commandProcessor() {
+        return this._commandProcessor;
+    }
+}
+class LiveDocumentMaster extends LiveDocumentConnection {
+    constructor(meetingId, person, localCallParticipation, channelFactory, documentFactory) {
+        super(meetingId, person, localCallParticipation, true, channelFactory, documentFactory);
+    }
+}
+exports.LiveDocumentMaster = LiveDocumentMaster;
+class LiveDocumentRemote extends LiveDocumentConnection {
+    constructor(meetingId, person, localCallParticipation, channelFactory, documentFactory) {
+        super(meetingId, person, localCallParticipation, false, channelFactory, documentFactory);
+    }
+}
+exports.LiveDocumentRemote = LiveDocumentRemote;
 
 
 /***/ }),
@@ -5659,7 +5786,9 @@ exports.LiveCommandProcessor = LiveCommandProcessor;
 //    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 class LiveWorkout {
     constructor(whiteboardText, outbound, channel) {
@@ -5778,7 +5907,7 @@ class LiveWhiteboardCommand {
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _text: this._text,
-                _priortext: this._priorText
+                _priorText: this._priorText
             }
         };
     }
@@ -5805,7 +5934,8 @@ class LiveWhiteboardCommand {
     ;
 }
 exports.LiveWhiteboardCommand = LiveWhiteboardCommand;
-LiveWhiteboardCommand.__type = "LiveWorkout";
+LiveWhiteboardCommand.__type = "LiveWhiteboardCommand";
+// Class to represent the 'selection' of the whiteboard within a Workout document.
 class LiveWhiteboardSelection {
     constructor() {
     }
@@ -5814,6 +5944,65 @@ class LiveWhiteboardSelection {
     }
 }
 exports.LiveWhiteboardSelection = LiveWhiteboardSelection;
+// Implemntation of channl over RTC/peer architecture
+class LiveWorkoutChannelPeer {
+    constructor(peer) {
+        this._types = new StreamableTypes_1.StreamableTypes;
+        // Override these for data from notifications 
+        this.onCommandApply = function (ev) { };
+        this.onCommandReverse = function () { };
+        this.onDocument = function (ev) { };
+        this._peer = peer;
+        if (peer.isEdgeOnly()) {
+            peer.addRemoteDataListener(this.onData.bind(this));
+        }
+    }
+    onData(ev) {
+        if (ev.type === LiveWorkout.__type) {
+            this.onDocument(ev);
+        }
+        if (ev.type === LiveWhiteboardCommand.__type) {
+            this.onCommandApply(ev);
+        }
+        if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
+            this.onCommandReverse();
+        }
+        if (ev.type === Person_1.Person.__type) {
+            // TODO - figure out handshake to send remote peer the document
+        }
+    }
+    sendDocumentTo(recipient, document) {
+        this._peer.sendTo(recipient, document);
+    }
+    broadcastCommandApply(command) {
+        this._peer.broadcast(command);
+    }
+    broadcastCommandReverse() {
+        this._peer.broadcast(new LiveCommand_1.LiveUndoCommand());
+    }
+}
+// Creates the type of channel we need to exchange Workout Documents
+class LiveWorkoutChannelFactoryPeer {
+    constructor(connection) {
+        this._connection = connection;
+    }
+    createConnectionIn() {
+        return new LiveWorkoutChannelPeer(this._connection);
+    }
+    createConnectionOut() {
+        return new LiveWorkoutChannelPeer(this._connection);
+    }
+}
+exports.LiveWorkoutChannelFactoryPeer = LiveWorkoutChannelFactoryPeer;
+// Creates the type of Workout Documents
+class LiveWorkoutFactory {
+    constructor() {
+    }
+    createLiveDocument(outbound, channel) {
+        return new LiveWorkout("Waiting...", outbound, channel);
+    }
+}
+exports.LiveWorkoutFactory = LiveWorkoutFactory;
 
 
 /***/ }),
@@ -7352,6 +7541,7 @@ const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/User
 const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
+const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 //==============================//
 // StreamableTypes class
 //==============================//
@@ -7380,6 +7570,8 @@ class StreamableTypes {
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
         this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
+        this._types.LiveWhiteboardCommand = LiveWorkout_1.LiveWhiteboardCommand;
+        this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
     }
     isObjectKey(key) {
         let keyNum = Number(key);
@@ -7851,6 +8043,7 @@ const PeerFactory_1 = __webpack_require__(/*! ./PeerFactory */ "./dev/PeerFactor
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 const LiveChannel_1 = __webpack_require__(/*! ./LiveChannel */ "./dev/LiveChannel.tsx");
+const LiveDocumentCentral_1 = __webpack_require__(/*! ./LiveDocumentCentral */ "./dev/LiveDocumentCentral.tsx");
 var EntryPoints = {
     LoggerFactory: Logger_1.LoggerFactory,
     ELoggerType: Logger_1.ELoggerType,
@@ -7894,10 +8087,15 @@ var EntryPoints = {
     PeerRecieverWeb: PeerWeb_1.PeerRecieverWeb,
     PeerFactory: PeerFactory_1.PeerFactory,
     // Live Document Architecture
+    LiveCommandProcessor: LiveCommand_1.LiveCommandProcessor,
+    LiveUndoCommand: LiveCommand_1.LiveUndoCommand,
+    LiveDocumentChannelFactoryStub: LiveChannel_1.LiveDocumentChannelFactoryStub,
     LiveWorkout: LiveWorkout_1.LiveWorkout,
     LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand,
-    LiveCommandProcessor: LiveCommand_1.LiveCommandProcessor,
-    LiveDocumentChannelFactory: LiveChannel_1.LiveDocumentChannelFactory
+    LiveDocumentMaster: LiveDocumentCentral_1.LiveDocumentMaster,
+    LiveDocumentRemote: LiveDocumentCentral_1.LiveDocumentRemote,
+    LiveWorkoutChannelFactoryPeer: LiveWorkout_1.LiveWorkoutChannelFactoryPeer,
+    LiveWorkoutFactory: LiveWorkout_1.LiveWorkoutFactory
 };
 ArrayHook_1.ArrayHook.initialise();
 DateHook_1.DateHook.initialise();

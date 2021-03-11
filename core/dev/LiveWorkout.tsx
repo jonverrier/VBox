@@ -9,8 +9,13 @@
 
 // This app, this component 
 import { IStreamable } from './Streamable'
-import { ILiveDocument, ICommand, ISelection, ICommandProcessor, ILiveDocumentChannel } from './LiveInterfaces';
-import { LiveCommandProcessor } from './LiveCommand';
+import { StreamableTypes } from './StreamableTypes';
+import { Person } from './Person';
+import { CallParticipation } from './Call';
+import { ILiveDocument, ICommand, ISelection, ICommandProcessor, 
+         ILiveDocumentChannel, ILiveDocumentChannelFactory, ILiveDocumentFactory} from './LiveInterfaces';
+import { LiveCommandProcessor, LiveUndoCommand} from './LiveCommand';
+import { PeerConnection } from './PeerConnection';
 
 export class LiveWorkout implements ILiveDocument {
 
@@ -109,7 +114,7 @@ export class LiveWhiteboardCommand implements ICommand {
    private _text: string;
    private _priorText: string;
 
-   static readonly __type: string = "LiveWorkout";
+   static readonly __type: string = "LiveWhiteboardCommand";
 
    constructor(text: string, _priorText: string) {
       this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
@@ -160,7 +165,7 @@ export class LiveWhiteboardCommand implements ICommand {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _text: this._text,
-            _priortext: this._priorText
+            _priorText: this._priorText
          }
       };
    };
@@ -188,6 +193,7 @@ export class LiveWhiteboardCommand implements ICommand {
    };
 }
 
+// Class to represent the 'selection' of the whiteboard within a Workout document.
 export class LiveWhiteboardSelection implements ISelection {
 
    constructor() {
@@ -195,5 +201,79 @@ export class LiveWhiteboardSelection implements ISelection {
 
    type(): string {
       return "LiveWhiteboardSelection";
+   }
+}
+
+// Implemntation of channl over RTC/peer architecture
+class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
+
+   _types: StreamableTypes = new StreamableTypes;
+   _peer: PeerConnection;
+   _document: LiveWorkout;
+
+   constructor(peer: PeerConnection) {
+      this._peer = peer;
+      if (peer.isEdgeOnly()) {
+         peer.addRemoteDataListener(this.onData.bind(this));
+      }
+   }
+
+   // Override these for data from notifications 
+   onCommandApply: ((ev: ICommand) => void) = function (ev) { };
+   onCommandReverse: (() => void) = function () { };
+   onDocument: ((ev: ILiveDocument) => void) = function (ev) { };
+
+   onData(ev: IStreamable) {
+      if (ev.type === LiveWorkout.__type) {
+         this.onDocument(ev as LiveWorkout);
+      }
+      if (ev.type === LiveWhiteboardCommand.__type) {
+         this.onCommandApply(ev as LiveWhiteboardCommand);
+      }
+      if (ev.type === LiveUndoCommand.__type) {
+         this.onCommandReverse();
+      }
+      if (ev.type === Person.__type) {
+         // TODO - figure out handshake to send remote peer the document
+      }
+   }
+
+   sendDocumentTo(recipient: CallParticipation, document: ILiveDocument): void {
+      this._peer.sendTo(recipient, document);
+   }
+   broadcastCommandApply(command: ICommand): void {
+      this._peer.broadcast(command);
+   }
+   broadcastCommandReverse(): void {
+      this._peer.broadcast(new LiveUndoCommand());
+   }
+}
+
+// Creates the type of channel we need to exchange Workout Documents
+export class LiveWorkoutChannelFactoryPeer implements ILiveDocumentChannelFactory {
+
+   _connection: PeerConnection;
+
+   constructor(connection: PeerConnection) {
+      this._connection = connection;
+   }
+
+   createConnectionIn(): ILiveDocumentChannel {
+      return new LiveWorkoutChannelPeer(this._connection);
+   }
+
+   createConnectionOut(): ILiveDocumentChannel {
+      return new LiveWorkoutChannelPeer(this._connection);
+   }
+}
+
+// Creates the type of Workout Documents
+export class LiveWorkoutFactory implements ILiveDocumentFactory {
+
+   constructor() {
+   }
+
+   createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument {
+      return new LiveWorkout("Waiting...", outbound, channel);
    }
 }
