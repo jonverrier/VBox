@@ -8,6 +8,7 @@
 // 
 
 // This app, this component 
+import { IStreamable } from './Streamable';
 import { StreamableTypes } from './StreamableTypes';
 import { CallParticipation } from './Call';
 import { ILiveDocument, ICommand, ILiveDocumentChannel, ILiveDocumentChannelFactory } from './LiveInterfaces';
@@ -24,6 +25,7 @@ class LiveChannelStub implements ILiveDocumentChannel {
    }
 
    // Override these for data from notifications 
+   onNewCallParticipation: ((ev: IStreamable) => any) = function (ev) { };
    onCommandApply: ((ev: ICommand) => void) = function (ev) { };
    onCommandReverse: (() => void) = function () { };
    onDocument: ((ev: ILiveDocument) => void) = function (ev) { };

@@ -46,7 +46,7 @@
     <Folder Include="test\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="dev\app.tsx" />
+    <TypeScriptCompile Include="dev\App.tsx" />
     <TypeScriptCompile Include="dev\CallPanelUI.tsx" />
     <TypeScriptCompile Include="dev\clockpanel.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />

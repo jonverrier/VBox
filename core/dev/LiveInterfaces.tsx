@@ -55,7 +55,8 @@ export interface ISelection {
 // This enables easy stubbing for testing
 export interface ILiveDocumentChannel {
 
-   onCommandApply(command: ICommand): (void);
+   onNewCallParticipation(ev: IStreamable): void;
+   onCommandApply(command: ICommand): void;
    onCommandReverse(command: ICommand): void;
    onDocument(command: ILiveDocument): void;
 

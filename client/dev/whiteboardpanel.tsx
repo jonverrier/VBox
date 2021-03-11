@@ -15,7 +15,8 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
 import { PeerConnection } from '../../core/dev/PeerConnection';
-
+import { ICommandProcessor } from '../../core/dev/LiveInterfaces';
+import { LiveWorkout, LiveWhiteboardCommand } from '../../core/dev/LiveWorkout';
 import { StoredWorkoutState } from './LocalStore';
 
 const thinStyle: CSS.Properties = {
@@ -31,11 +32,6 @@ const thinCentredStyle: CSS.Properties = {
    alignItems: 'center',
    verticalAlign: 'top',
    justifyContent: 'center'
-};
-
-const thinLeftStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
-   alignItems: 'left'
 };
 
 const popdownBtnStyle: CSS.Properties = {
@@ -95,7 +91,10 @@ const fieldXSepStyle: CSS.Properties = {
 };
 
 interface IMasterWhiteboardProps {
-   peers: PeerConnection;
+   peerConnection: PeerConnection;
+   commandProcessor: ICommandProcessor;
+   liveWorkout: LiveWorkout;
+   whiteboardText: string;
    allowEdit: boolean;
 }
 
@@ -106,15 +105,15 @@ interface IMasterWhiteboardState {
    results: WhiteboardElement;
 }
 
-const initialBoardText : string = 'Waiting...';
 const defaultMasterWorkoutText: string = 'Workout will show here - click the button above.';
 const defaultMasterResultsText: string = 'Workout results will show here - click the button above.';
 
 interface IMasterWhiteboardElementProps {
    rtc: PeerConnection;
+   commandProcessor: ICommandProcessor;
+   liveWorkout: LiveWorkout;
    allowEdit: boolean;
    caption: string;
-   initialRows: number;
    placeholder: string;
    value: string;
    valueAsOf: Date;
@@ -139,8 +138,8 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
 
       var haveWorkout: boolean = false;
 
-      if (props.peers) {
-         props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
+      if (props.peerConnection) {
+         props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
       }
 
       this.storedWorkoutState = new StoredWorkoutState();
@@ -150,11 +149,11 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
       var storedWorkout = this.storedWorkoutState.loadWorkout();
       if (storedWorkout.length > 0) {
          haveWorkout = true;
-         workout = new WhiteboardElement(10, storedWorkout);
+         workout = new WhiteboardElement(storedWorkout);
       } else
-         workout = new WhiteboardElement(10, defaultMasterWorkoutText);
+         workout = new WhiteboardElement(defaultMasterWorkoutText);
 
-      var results = new WhiteboardElement(10, defaultMasterResultsText);
+      var results = new WhiteboardElement(defaultMasterResultsText);
 
       this.state = {
          haveRealWorkout: haveWorkout,
@@ -179,7 +178,6 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
 
          // Add the new participant to the Results board element
          var text = this.state.results.text;
-         var rows = this.state.results.rows;
 
          if (text === defaultMasterResultsText) {
             // Overrwite contents if its the first participant
@@ -189,14 +187,13 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
          if (!text.includes(ev2.name) ) {
             // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
             text = text + '\n' + ev2.name;
-            rows = rows + 1;
          }
-         this.setState({ haveRealResults: true, results: new WhiteboardElement (rows, text) });
+         this.setState({ haveRealResults: true, results: new WhiteboardElement (text) });
 
          this.forceUpdate(() => {
             // Send them the whole contents of the board
             var board = new Whiteboard(this.state.workout, this.state.results);
-            this.props.peers.broadcast(board);
+            this.props.peerConnection.broadcast(board);
          });
       }
    }
@@ -204,7 +201,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    onworkoutchange(element: WhiteboardElement) {
       this.setState({ haveRealWorkout: true, workout: element });
       var board = new Whiteboard(element, this.state.results);
-      this.props.peers.broadcast(board);
+      this.props.peerConnection.broadcast(board);
 
       // save in local cache
       this.storedWorkoutState.saveWorkout(element.text);
@@ -213,7 +210,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    onresultschange(element: WhiteboardElement) {
       this.setState({ haveRealResults: true, results: element });
       var board = new Whiteboard(this.state.workout, element);
-      this.props.peers.broadcast(board);
+      this.props.peerConnection.broadcast(board);
    }
 
    render() {
@@ -226,16 +223,18 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
             </Row>
             <Row style={thinStyle}>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peers}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peerConnection}
+                     commandProcessor={this.props.commandProcessor}
+                     liveWorkout={this.props.liveWorkout}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
-                     initialRows={10}
                      value={this.state.workout.text} valueAsOf={new Date()}
                      onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peers}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peerConnection}
+                     commandProcessor={this.props.commandProcessor}
+                     liveWorkout={this.props.liveWorkout}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
-                     initialRows={10} 
                      value={this.state.results.text} valueAsOf={new Date()}
                      onchange={this.onresultschange.bind(this)}></MasterWhiteboardElement>
                </Col>
@@ -290,8 +289,11 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 
    processSave() {
       this.state.enableCancel = this.state.enableOk = false;
-      this.props.onchange(new WhiteboardElement(this.props.initialRows, this.state.value));
+      this.props.onchange(new WhiteboardElement(this.state.value));
       this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
+
+      let command = new LiveWhiteboardCommand(this.state.value + ' from doc2', this.props.liveWorkout.whiteboardText);
+      this.props.commandProcessor.adoptAndApply(command);
    }
 
    processCancel() {
@@ -321,7 +323,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                   <Form>
                      <Form.Group controlId="elementFormId">
                         <Form.Control as="textarea" style={fieldXSepStyle}
-                              placeholder={this.props.placeholder} rows={this.props.initialRows} cols={60} maxLength={1023} minLength={0}
+                              placeholder={this.props.placeholder} cols={60} maxLength={1023} minLength={0}
                               value={this.latestValue()}
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
@@ -347,6 +349,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 
 export interface IRemoteWhiteboardProps {
    rtc: PeerConnection;
+   liveWorkout: LiveWorkout;
+   whiteboardText: string;
 }
 
 interface IRemoteWhiteboardState {
@@ -357,7 +361,6 @@ interface IRemoteWhiteboardState {
 interface IRemoteWhiteboardElementProps {
    rtc: PeerConnection;
    caption: string;
-   initialRows: number;
    value: WhiteboardElement;
 }
 
@@ -377,8 +380,8 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       }
 
       this.state = {
-         workoutValue: new WhiteboardElement(10, initialBoardText),
-         resultsValue: new WhiteboardElement(10, initialBoardText)
+         workoutValue: new WhiteboardElement(props.whiteboardText),
+         resultsValue: new WhiteboardElement(props.whiteboardText)
       };
 
    }
@@ -412,12 +415,12 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
                <Col style={thinStyle}>
                   <RemoteWhiteboardElement rtc={this.props.rtc}
                      caption={'Workout'}
-                     initialRows={this.state.workoutValue.rows} value={this.state.workoutValue}> </RemoteWhiteboardElement>
+                     value={this.state.workoutValue}> </RemoteWhiteboardElement>
                </Col>
                <Col style={thinStyle}>
                   <RemoteWhiteboardElement rtc={this.props.rtc}
                      caption={'Results'}
-                     initialRows={this.state.resultsValue.rows} value={this.state.resultsValue}> </RemoteWhiteboardElement>
+                     value={this.state.resultsValue}> </RemoteWhiteboardElement>
                </Col>
             </Row>
          </div>

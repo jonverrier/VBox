@@ -96,28 +96,22 @@ export class Whiteboard implements IStreamableFor<Whiteboard> {
 export class WhiteboardElement implements IStreamableFor<WhiteboardElement> {
    "use strict";
 
-   private _rows: number;
    private _text: string;
 
    static readonly __type = "WhiteboardElement";
 
    /**
-    * Create a WhiteboardWorkout object
-     * @param rows - the number of rows (to set visible field size).
+    * Create a WhiteboardElement object
      * @param text - the text to display.
     */
-   constructor (rows: number, text: string) {
+   constructor (text: string) {
 
-      this._rows = rows;
       this._text = text;
    }   
 
    /**
    * set of 'getters' for private variables
    */
-   get rows(): number {
-      return this._rows;
-   }
    get text(): string {
       return this._text;
    }
@@ -132,21 +126,16 @@ export class WhiteboardElement implements IStreamableFor<WhiteboardElement> {
     */
    equals(rhs: WhiteboardElement) : boolean {
 
-      return (
-         (this._rows === rhs._rows) &&
-         (this._text === rhs._text));
+      return (this._text === rhs._text);
    };
 
    /**
- * test for equality - checks all fields are the same. 
- * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
- * @param rhs - the object to compare this one to.  
- */
+    * copy from another
+    * @param rhs - the object to compare this one to.  
+    */
    assign(rhs: WhiteboardElement): void {
-      this._rows = rhs._rows;
       this._text = rhs._text;
    };
-
 
    /**
     * Method that serializes to JSON 
@@ -157,7 +146,6 @@ export class WhiteboardElement implements IStreamableFor<WhiteboardElement> {
          __type: WhiteboardElement.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _rows: this._rows,
             _text: this._text
          }
       };
@@ -182,7 +170,7 @@ export class WhiteboardElement implements IStreamableFor<WhiteboardElement> {
    */
    static reviveDb(data: any) : WhiteboardElement {
 
-      return new WhiteboardElement(data._rows, data._text);
+      return new WhiteboardElement(data._text);
    }
 }
 

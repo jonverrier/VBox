@@ -62,16 +62,18 @@ export class PeerConnection {
       this._datalisteners.push(fn);
    };
 
+   get localCallParticipation(): CallParticipation {
+      return this._localCallParticipation;
+   }
+
    connect(meetingId: string,
-      personId: string,
-      personName: string,
-      personThumbnailUrl: string): void {
+      person: Person): void {
 
       // Create a unique id to this call participation by appending a UUID for the browser tab we are connecting from
       this._localCallParticipation = new CallParticipation(meetingId, uuid(), !this._isEdgeOnly);
 
       // Store data on the Person who is running the app - used in data handshake & exchange
-      this._person = new Person(null, personId, personName, null, personThumbnailUrl, null);
+      this._person = person;
 
       // and connect to the server - which sends our participation details for others
       this._signalReciever.connect(this._localCallParticipation);
@@ -107,20 +109,18 @@ export class PeerConnection {
    }
 
    broadcast (obj: IStreamable) : void {
-      var self = this;
 
-      for (var i = 0; i < self._links.length; i++) {
-         self._links[i].send(obj);
+      for (var i = 0; i < this._links.length; i++) {
+         this._links[i].send(obj);
       }
       WebPeerHelper.drainSendQueue(this._signalSender);
    }
 
    sendTo(recipient: CallParticipation, obj: IStreamable): void {
-      var self = this;
 
-      for (var i = 0; i < self._links.length; i++) {
-         if (self._links[i].remoteCallParticipation.equals(recipient)) {
-            self._links[i].send(obj);
+      for (var i = 0; i < this._links.length; i++) {
+         if (this._links[i].remoteCallParticipation.equals(recipient)) {
+            this._links[i].send(obj);
          }
       }
       WebPeerHelper.drainSendQueue(this._signalSender);
