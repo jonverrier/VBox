@@ -1,6 +1,6 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
@@ -8,10 +8,9 @@
 // 
 
 // This app, this component 
-import { IStreamable } from './Streamable';
 import { StreamableTypes } from './StreamableTypes';
 import { CallParticipation } from './Call';
-import { ILiveDocument, ICommand, ICommandProcessor, ILiveDocumentChannel } from './LiveInterfaces';
+import { ILiveDocument, ICommand, ILiveDocumentChannel, ILiveDocumentChannelFactory } from './LiveInterfaces';
 
 // Stubbing for testing
 var docInOut: ILiveDocumentChannel | null = null;
@@ -53,7 +52,8 @@ class LiveChannelStub implements ILiveDocumentChannel {
    }
 }
 
-export class LiveDocumentChannelFactory {
+export class LiveDocumentChannelFactoryStub implements ILiveDocumentChannelFactory {
+
    constructor() {
    }
 
@@ -63,10 +63,9 @@ export class LiveDocumentChannelFactory {
       return docInOut;
    }
 
-   createConnectionOut(document: ILiveDocument, commandProcessor: ICommandProcessor): ILiveDocumentChannel {
+   createConnectionOut(): ILiveDocumentChannel {
       if (!docInOut)
          docInOut = new LiveChannelStub ();
       return docInOut;
    }
 }
-

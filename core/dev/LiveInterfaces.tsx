@@ -11,6 +11,17 @@
 import { IStreamable } from './Streamable'
 import { CallParticipation } from './Call';
 
+export interface ILiveDocumentFactory {
+
+   createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument;
+}
+
+export interface ILiveDocumentChannelFactory {
+
+   createConnectionIn(): ILiveDocumentChannel;
+   createConnectionOut(): ILiveDocumentChannel;
+}
+
 export interface ILiveDocument extends IStreamable {
 
    createCommandProcessor(): ICommandProcessor;
