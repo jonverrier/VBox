@@ -131,6 +131,7 @@ const connect = async () => {
    const db = mongoose.connection;
 
    try {
+      // Connect first to DB
       await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
 
       // This initialises the sequence number for the event source
@@ -138,11 +139,20 @@ const connect = async () => {
 
       console.log('Listening on ' + process.env.PORT + ' ...');
 
+      // Listen once initialised
+      var server = app.listen(app.get('port'), function () {
+      });
+
    } catch (error) {
       console.log('Error:' + error);
    }
 };
 
+connect();
+
+/* 
+
 var server = app.listen(app.get('port'), function () {
    connect();
 });
+*/
