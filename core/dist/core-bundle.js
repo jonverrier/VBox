@@ -5561,12 +5561,17 @@ class LiveCommandProcessor {
         this._outbound = outbound;
         this._commands = new Array();
         this.invalidateIndex();
+        this._changeListeners = new Array();
         if (outbound !== undefined && (!outbound && channel)) {
             channel.onCommandApply = this.onCommandApply.bind(this);
             channel.onCommandReverse = this.onCommandReverse.bind(this);
             channel.onDocument = this.onDocument.bind(this);
         }
     }
+    addChangeListener(fn) {
+        this._changeListeners.push(fn);
+    }
+    ;
     adoptAndApply(command) {
         if (!this.isValidIndex()) {
             // This case is the first command since a new document
@@ -5580,9 +5585,17 @@ class LiveCommandProcessor {
             }
             this._commands.unshift(command);
         }
+        // Apply the comment
         command.applyTo(this._document);
+        // Broadcast to remote listeners
         if (this._outbound !== undefined && this._channel && this._outbound)
             this._channel.broadcastCommandApply(command);
+        // notify local listeners
+        if (this._changeListeners) {
+            for (var i = 0; i < this._changeListeners.length; i++) {
+                this._changeListeners[i](command, this._document);
+            }
+        }
     }
     canUndo() {
         // can undo if we have anything in the list and we are not at the end
@@ -5794,11 +5807,12 @@ const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/St
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 class LiveWorkout {
-    constructor(whiteboardText, outbound, channel) {
+    constructor(whiteboardText, resultsText, outbound, channel) {
         this._outbound = outbound;
         if (channel)
             this._channel = channel;
         this._whiteboardText = whiteboardText;
+        this._resultsText = resultsText;
     }
     createCommandProcessor() {
         return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
@@ -5810,6 +5824,13 @@ class LiveWorkout {
     set whiteboardText(whiteboardText) {
         this._whiteboardText = whiteboardText;
     }
+    // Getter and setter for results text
+    get resultsText() {
+        return this._resultsText;
+    }
+    set resultsText(resultsText) {
+        this._resultsText = resultsText;
+    }
     // type is read only
     get type() {
         return LiveWorkout.__type;
@@ -5819,7 +5840,8 @@ class LiveWorkout {
     equals(rhs) {
         if (rhs.type === this.type) {
             var workout = rhs;
-            return (this._whiteboardText === workout._whiteboardText);
+            return (this._whiteboardText === workout._whiteboardText &&
+                this._resultsText === workout._resultsText);
         }
         else
             return false;
@@ -5830,6 +5852,7 @@ class LiveWorkout {
         if (rhs.type === this.type) {
             var workout = rhs;
             this._whiteboardText = workout._whiteboardText;
+            this._resultsText = workout._resultsText;
         }
     }
     /**
@@ -5840,7 +5863,8 @@ class LiveWorkout {
             __type: LiveWorkout.__type,
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
-                _whiteboardText: this._whiteboardText
+                _whiteboardText: this._whiteboardText,
+                _resultsText: this._resultsText
             }
         };
     }
@@ -5862,7 +5886,7 @@ class LiveWorkout {
     * @param data - the JSON data to revove from
     */
     static reviveDb(data) {
-        return new LiveWorkout(data._whiteboardText);
+        return new LiveWorkout(data._whiteboardText, data._resultsText);
     }
     ;
 }
@@ -6007,7 +6031,7 @@ class LiveWorkoutFactory {
     constructor() {
     }
     createLiveDocument(outbound, channel) {
-        return new LiveWorkout("Waiting...[doc version]", outbound, channel);
+        return new LiveWorkout("Waiting...[doc version1]", "Waiting...[doc version2]", outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;

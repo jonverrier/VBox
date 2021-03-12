@@ -51830,7 +51830,7 @@ class MemberPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.peerConnection, whiteboardText: this.state.remoteDocument.document.whiteboardText, liveWorkout: this.state.remoteDocument.document }, " ")),
+                            React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.peerConnection, whiteboardText: this.state.remoteDocument.document.whiteboardText, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peerConnection }),
                             React.createElement("br", null),
@@ -52825,6 +52825,8 @@ class MasterWhiteboard extends React.Component {
         }
     }
     onworkoutchange(element) {
+        let command = new LiveWorkout_1.LiveWhiteboardCommand(element.text + ' from doc2', this.props.liveWorkout.whiteboardText);
+        this.props.commandProcessor.adoptAndApply(command);
         this.setState({ haveRealWorkout: true, workout: element });
         var board = new Whiteboard_1.Whiteboard(element, this.state.results);
         this.props.peerConnection.broadcast(board);
@@ -52885,8 +52887,6 @@ class MasterWhiteboardElement extends React.Component {
         this.state.enableCancel = this.state.enableOk = false;
         this.props.onchange(new Whiteboard_1.WhiteboardElement(this.state.value));
         this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
-        let command = new LiveWorkout_1.LiveWhiteboardCommand(this.state.value + ' from doc2', this.props.liveWorkout.whiteboardText);
-        this.props.commandProcessor.adoptAndApply(command);
     }
     processCancel() {
         this.setState({ inEditMode: false });
@@ -52923,26 +52923,21 @@ class MasterWhiteboardElement extends React.Component {
 class RemoteWhiteboard extends React.Component {
     constructor(props) {
         super(props);
-        if (props.rtc) {
-            props.rtc.addRemoteDataListener(this.onRemoteData.bind(this));
-        }
+        // watch for changes being made to on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
         this.state = {
-            workoutValue: new Whiteboard_1.WhiteboardElement(props.whiteboardText),
-            resultsValue: new Whiteboard_1.WhiteboardElement(props.whiteboardText)
+            workoutText: props.whiteboardText,
+            resultsText: props.whiteboardText
         };
     }
-    onRemoteData(ev) {
-        if (ev.type === Whiteboard_1.Whiteboard.__type) {
-            var whiteboard = ev;
-            if (!this.state.workoutValue.equals(whiteboard.workout)) {
-                this.state.workoutValue.assign(whiteboard.workout);
-                this.setState({ workoutValue: this.state.workoutValue });
-                this.forceUpdate();
+    onChange(cmd, doc) {
+        if (doc.type === LiveWorkout_1.LiveWorkout.__type) {
+            var workout = doc;
+            if (!(this.state.workoutText === workout.whiteboardText)) {
+                this.setState({ workoutText: workout.whiteboardText });
             }
-            if (!this.state.resultsValue.equals(whiteboard.results)) {
-                this.state.resultsValue.assign(whiteboard.results);
-                this.setState({ resultsValue: this.state.resultsValue });
-                this.forceUpdate();
+            if (!(this.state.resultsText === workout.resultsText)) {
+                this.setState({ resultsText: workout.resultsText });
             }
         }
     }
@@ -52952,9 +52947,9 @@ class RemoteWhiteboard extends React.Component {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', value: this.state.workoutValue }, " ")),
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', value: this.state.workoutText }, " ")),
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', value: this.state.resultsValue }, " ")))));
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', value: this.state.resultsText }, " ")))));
     }
 }
 exports.RemoteWhiteboard = RemoteWhiteboard;
@@ -52971,7 +52966,7 @@ class RemoteWhiteboardElement extends React.Component {
                 React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
                 React.createElement("p", { style: blockCharStyle })),
             React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value.text))));
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
     }
 }
 
@@ -54269,12 +54264,17 @@ class LiveCommandProcessor {
         this._outbound = outbound;
         this._commands = new Array();
         this.invalidateIndex();
+        this._changeListeners = new Array();
         if (outbound !== undefined && (!outbound && channel)) {
             channel.onCommandApply = this.onCommandApply.bind(this);
             channel.onCommandReverse = this.onCommandReverse.bind(this);
             channel.onDocument = this.onDocument.bind(this);
         }
     }
+    addChangeListener(fn) {
+        this._changeListeners.push(fn);
+    }
+    ;
     adoptAndApply(command) {
         if (!this.isValidIndex()) {
             // This case is the first command since a new document
@@ -54288,9 +54288,17 @@ class LiveCommandProcessor {
             }
             this._commands.unshift(command);
         }
+        // Apply the comment
         command.applyTo(this._document);
+        // Broadcast to remote listeners
         if (this._outbound !== undefined && this._channel && this._outbound)
             this._channel.broadcastCommandApply(command);
+        // notify local listeners
+        if (this._changeListeners) {
+            for (var i = 0; i < this._changeListeners.length; i++) {
+                this._changeListeners[i](command, this._document);
+            }
+        }
     }
     canUndo() {
         // can undo if we have anything in the list and we are not at the end
@@ -54502,11 +54510,12 @@ const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/
 const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
 class LiveWorkout {
-    constructor(whiteboardText, outbound, channel) {
+    constructor(whiteboardText, resultsText, outbound, channel) {
         this._outbound = outbound;
         if (channel)
             this._channel = channel;
         this._whiteboardText = whiteboardText;
+        this._resultsText = resultsText;
     }
     createCommandProcessor() {
         return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
@@ -54518,6 +54527,13 @@ class LiveWorkout {
     set whiteboardText(whiteboardText) {
         this._whiteboardText = whiteboardText;
     }
+    // Getter and setter for results text
+    get resultsText() {
+        return this._resultsText;
+    }
+    set resultsText(resultsText) {
+        this._resultsText = resultsText;
+    }
     // type is read only
     get type() {
         return LiveWorkout.__type;
@@ -54527,7 +54543,8 @@ class LiveWorkout {
     equals(rhs) {
         if (rhs.type === this.type) {
             var workout = rhs;
-            return (this._whiteboardText === workout._whiteboardText);
+            return (this._whiteboardText === workout._whiteboardText &&
+                this._resultsText === workout._resultsText);
         }
         else
             return false;
@@ -54538,6 +54555,7 @@ class LiveWorkout {
         if (rhs.type === this.type) {
             var workout = rhs;
             this._whiteboardText = workout._whiteboardText;
+            this._resultsText = workout._resultsText;
         }
     }
     /**
@@ -54548,7 +54566,8 @@ class LiveWorkout {
             __type: LiveWorkout.__type,
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
-                _whiteboardText: this._whiteboardText
+                _whiteboardText: this._whiteboardText,
+                _resultsText: this._resultsText
             }
         };
     }
@@ -54570,7 +54589,7 @@ class LiveWorkout {
     * @param data - the JSON data to revove from
     */
     static reviveDb(data) {
-        return new LiveWorkout(data._whiteboardText);
+        return new LiveWorkout(data._whiteboardText, data._resultsText);
     }
     ;
 }
@@ -54715,7 +54734,7 @@ class LiveWorkoutFactory {
     constructor() {
     }
     createLiveDocument(outbound, channel) {
-        return new LiveWorkout("Waiting...[doc version]", outbound, channel);
+        return new LiveWorkout("Waiting...[doc version1]", "Waiting...[doc version2]", outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
