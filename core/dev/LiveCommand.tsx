@@ -18,6 +18,7 @@ export class LiveCommandProcessor implements ICommandProcessor {
    private _outbound: boolean | undefined;
    private _commands: Array<ICommand>;
    private _lastCommandIndex: number = -1;
+   private _changeListeners: Array<Function>;
 
    constructor(document: ILiveDocument, outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._document = document;
@@ -25,6 +26,7 @@ export class LiveCommandProcessor implements ICommandProcessor {
       this._outbound = outbound;
       this._commands = new Array<ICommand>();
       this.invalidateIndex();
+      this._changeListeners = new Array<Function>();
 
       if (outbound !== undefined && (!outbound && channel)) {
          channel.onCommandApply = this.onCommandApply.bind(this);
@@ -32,6 +34,10 @@ export class LiveCommandProcessor implements ICommandProcessor {
          channel.onDocument = this.onDocument.bind(this);
       }
    }
+
+   addChangeListener(fn: Function): void {
+      this._changeListeners.push(fn);
+   };
 
    adoptAndApply (command: ICommand): void {
 
@@ -47,9 +53,19 @@ export class LiveCommandProcessor implements ICommandProcessor {
          this._commands.unshift(command);
       }
 
+      // Apply the comment
       command.applyTo(this._document);
+
+      // Broadcast to remote listeners
       if (this._outbound !== undefined && this._channel && this._outbound)
          this._channel.broadcastCommandApply(command);
+
+      // notify local listeners
+      if (this._changeListeners) {
+         for (var i = 0; i < this._changeListeners.length; i++) {
+            this._changeListeners[i](command, this._document);
+         }
+      }
    }
 
    canUndo(): boolean {

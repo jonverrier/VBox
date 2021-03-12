@@ -36,6 +36,7 @@ export interface ICommandProcessor {
    undo(): void;
    redo(): void;
    clearCommands(): void;
+   addChangeListener(fn: Function ): void;
 }
 
 export interface ICommand extends IStreamable {

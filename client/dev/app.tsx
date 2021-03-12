@@ -389,6 +389,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      <Col style={lpanelStyle}>
                         <RemoteWhiteboard rtc={this.state.peerConnection}
                            whiteboardText={(this.state.remoteDocument.document as LiveWorkout).whiteboardText}
+                           commandProcessor={this.state.remoteDocument.commandProcessor }
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>

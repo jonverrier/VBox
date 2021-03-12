@@ -48,7 +48,7 @@ export class PeerConnection {
    constructor(isEdge: boolean) { // If isEdge is set, does not set up links with new participants - we are reciever only
       this._localCallParticipation = null;
       this._links = new Array();
-      this._datalisteners = new Array();
+      this._datalisteners = new Array<Function>();
       this._nameCache = new PeerNameCache();
       this._signalSender = new SignalSender();
       this._signalReciever = new SignalReciever();

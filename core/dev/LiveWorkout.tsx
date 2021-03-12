@@ -22,14 +22,16 @@ export class LiveWorkout implements ILiveDocument {
    static readonly __type: string = "LiveWorkout";
 
    private _whiteboardText: string;
+   private _resultsText: string;
    private _channel: ILiveDocumentChannel | undefined;
    private _outbound: boolean | undefined;
 
-   constructor(whiteboardText: string, outbound?: boolean, channel?: ILiveDocumentChannel) {
+   constructor(whiteboardText: string, resultsText: string, outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._outbound = outbound;
       if (channel)
          this._channel = channel;
       this._whiteboardText = whiteboardText;
+      this._resultsText = resultsText;
    }
 
    createCommandProcessor(): ICommandProcessor {
@@ -43,6 +45,13 @@ export class LiveWorkout implements ILiveDocument {
    set whiteboardText(whiteboardText: string) {
       this._whiteboardText = whiteboardText;
    }
+   // Getter and setter for results text
+   get resultsText(): string {
+      return this._resultsText;
+   }
+   set resultsText(resultsText: string) {
+      this._resultsText = resultsText;
+   }
 
    // type is read only
    get type(): string {
@@ -55,7 +64,8 @@ export class LiveWorkout implements ILiveDocument {
 
       if (rhs.type === this.type) {
          var workout: LiveWorkout = (rhs as LiveWorkout);
-         return (this._whiteboardText === workout._whiteboardText);
+         return (this._whiteboardText === workout._whiteboardText &&
+            this._resultsText === workout._resultsText);
       }
       else
          return false;
@@ -68,6 +78,7 @@ export class LiveWorkout implements ILiveDocument {
       if (rhs.type === this.type) {
          var workout: LiveWorkout = (rhs as LiveWorkout);
          this._whiteboardText = workout._whiteboardText;
+         this._resultsText = workout._resultsText;
       }
    }
 
@@ -80,7 +91,8 @@ export class LiveWorkout implements ILiveDocument {
          __type: LiveWorkout.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _whiteboardText: this._whiteboardText
+            _whiteboardText: this._whiteboardText,
+            _resultsText: this._resultsText
          }
       };
    };
@@ -104,7 +116,8 @@ export class LiveWorkout implements ILiveDocument {
    */
    static reviveDb(data: any): LiveWorkout {
 
-      return new LiveWorkout(data._whiteboardText);
+      return new LiveWorkout(data._whiteboardText,
+         data._resultsText);
    };
 }
 
@@ -279,6 +292,7 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
    }
 
    createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument {
-      return new LiveWorkout("Waiting...[doc version]", outbound, channel);
+      return new LiveWorkout("Waiting...[doc version1]", "Waiting...[doc version2]",
+         outbound, channel);
    }
 }
