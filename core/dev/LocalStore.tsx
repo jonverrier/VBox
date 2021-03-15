@@ -18,7 +18,7 @@ export class LocalStore {
     * @param value - value to save 
     */
    saveValue (key: string, value: string) {
-      if (window.localStorage)
+      if (typeof window !== 'undefined' && window.localStorage)
          window.localStorage.setItem(key, value.toString());
    };
    
@@ -28,7 +28,7 @@ export class LocalStore {
     * @param key - key to use to look up data 
     */
    loadValue(key: string) {
-      if (window.localStorage)
+      if (typeof window !== 'undefined' && window.localStorage)
          return window.localStorage.getItem(key);
       else
          return null;
@@ -40,7 +40,7 @@ export class LocalStore {
     * @param key - key to use to look up data 
     */
    clearValue (key: string) {
-      if (window.localStorage)
+      if (typeof window !== 'undefined' && window.localStorage)
          window.localStorage.removeItem(key);
    }
 }

@@ -51,7 +51,6 @@
     <TypeScriptCompile Include="dev\clockpanel.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />
     <TypeScriptCompile Include="dev\LeaderResolveUI.tsx" />
-    <TypeScriptCompile Include="dev\LocalStore.tsx" />
     <TypeScriptCompile Include="dev\LoginInterfaces.tsx" />
     <TypeScriptCompile Include="dev\LoginMeetingCode.tsx" />
     <TypeScriptCompile Include="dev\LoginMember.tsx" />
@@ -61,7 +60,7 @@
     <TypeScriptCompile Include="dev\peoplepanel.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\ClientUrl.tsx" />
-    <TypeScriptCompile Include="dev\whiteboardpanel.tsx" />
+    <TypeScriptCompile Include="dev\WhiteboardUI.tsx" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
 </Project>

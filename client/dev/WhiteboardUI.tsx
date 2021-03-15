@@ -13,11 +13,10 @@ import * as CSS from 'csstype';
 
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
-import { Whiteboard, WhiteboardElement } from '../../core/dev/Whiteboard';
 import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
-import { LiveWorkout, LiveWhiteboardCommand } from '../../core/dev/LiveWorkout';
-import { StoredWorkoutState } from './LocalStore';
+import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
+import { StoredWorkoutState } from '../../core/dev/LocalStore';
 
 const thinStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -94,19 +93,13 @@ interface IMasterWhiteboardProps {
    peerConnection: PeerConnection;
    commandProcessor: ICommandProcessor;
    liveWorkout: LiveWorkout;
-   whiteboardText: string;
    allowEdit: boolean;
 }
 
 interface IMasterWhiteboardState {
-   haveRealWorkout: boolean;
-   haveRealResults: boolean;
-   workout: WhiteboardElement;
-   results: WhiteboardElement;
+   workout: string;
+   results: string;
 }
-
-const defaultMasterWorkoutText: string = 'Workout will show here - click the button above.';
-const defaultMasterResultsText: string = 'Workout results will show here - click the button above.';
 
 interface IMasterWhiteboardElementProps {
    rtc: PeerConnection;
@@ -117,7 +110,7 @@ interface IMasterWhiteboardElementProps {
    placeholder: string;
    value: string;
    valueAsOf: Date;
-   onchange: Function;
+   onChange: Function;
 }
 
 interface IMasterWhiteboardElementState {
@@ -136,30 +129,16 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    constructor(props: IMasterWhiteboardProps) {
       super(props);
 
-      var haveWorkout: boolean = false;
-
       if (props.peerConnection) {
          props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
       }
 
-      this.storedWorkoutState = new StoredWorkoutState();
       var workout;
 
-      // Use cached copy of the workout if there is one
-      var storedWorkout = this.storedWorkoutState.loadWorkout();
-      if (storedWorkout.length > 0) {
-         haveWorkout = true;
-         workout = new WhiteboardElement(storedWorkout);
-      } else
-         workout = new WhiteboardElement(defaultMasterWorkoutText);
-
-      var results = new WhiteboardElement(defaultMasterResultsText);
-
       this.state = {
-         haveRealWorkout: haveWorkout,
-         haveRealResults: false,
-         workout: workout,
-         results: results
+         // Make copies of the strings, only change orginal via a command. 
+         workout: props.liveWorkout.whiteboardText.slice(),
+         results: props.liveWorkout.resultsText.slice()
       };
    }
 
@@ -176,44 +155,36 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
       if (ev.type === Person.__type) {
 
          // Add the new participant to the Results board element
-         var text = this.state.results.text;
+         var text = this.state.results;
 
-         if (text === defaultMasterResultsText) {
-            // Overrwite contents if its the first participant
-            text = ev2.name;
-         }
-         else 
-         if (!text.includes(ev2.name) ) {
-            // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
+         if (!text.includes(ev2.name)) {
+
+            // Overwrite what is there if we still have the default caption.
+            if (text === LiveWorkoutFactory.defaultResultsTextRemote)
+               text = '';
+
+            // append if the name is not already in the results text.
             text = text + '\n' + ev2.name;
+            let command = new LiveResultsCommand(text, this.props.liveWorkout.resultsText);
+            this.props.commandProcessor.adoptAndApply(command);
          }
-         this.setState({ haveRealResults: true, results: new WhiteboardElement (text) });
-
-         this.forceUpdate(() => {
-            // Send them the whole contents of the board
-            var board = new Whiteboard(this.state.workout, this.state.results);
-            this.props.peerConnection.broadcast(board);
-         });
+         this.setState({ results: text });
       }
    }
 
-   onworkoutchange(element: WhiteboardElement) {
+   onWorkoutChange(element: string) {
 
-      let command = new LiveWhiteboardCommand(element.text + ' from doc2', this.props.liveWorkout.whiteboardText);
+      let command = new LiveWhiteboardCommand(element, this.props.liveWorkout.whiteboardText);
       this.props.commandProcessor.adoptAndApply(command);
-
-      this.setState({ haveRealWorkout: true, workout: element });
-      var board = new Whiteboard(element, this.state.results);
-      this.props.peerConnection.broadcast(board);
-
-      // save in local cache
-      this.storedWorkoutState.saveWorkout(element.text);
+      // Make copies of the strings, only change orginal via a command. 
+      this.setState({ workout: this.props.liveWorkout.whiteboardText.slice()});
    }
 
-   onresultschange(element: WhiteboardElement) {
-      this.setState({ haveRealResults: true, results: element });
-      var board = new Whiteboard(this.state.workout, element);
-      this.props.peerConnection.broadcast(board);
+   onResultsChange(element: string) {
+      let command = new LiveResultsCommand(element, this.props.liveWorkout.resultsText);
+      this.props.commandProcessor.adoptAndApply(command);
+      // Make copies of the strings, only change orginal via a command. 
+      this.setState({ results: this.props.liveWorkout.resultsText.slice() });
    }
 
    render() {
@@ -230,16 +201,16 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
                      commandProcessor={this.props.commandProcessor}
                      liveWorkout={this.props.liveWorkout}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
-                     value={this.state.workout.text} valueAsOf={new Date()}
-                     onchange={this.onworkoutchange.bind(this)}></MasterWhiteboardElement>
+                     value={this.state.workout} valueAsOf={new Date()}
+                     onChange={this.onWorkoutChange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
                   <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peerConnection}
                      commandProcessor={this.props.commandProcessor}
                      liveWorkout={this.props.liveWorkout}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
-                     value={this.state.results.text} valueAsOf={new Date()}
-                     onchange={this.onresultschange.bind(this)}></MasterWhiteboardElement>
+                     value={this.state.results} valueAsOf={new Date()}
+                     onChange={this.onResultsChange.bind(this)}></MasterWhiteboardElement>
                </Col>
             </Row>
          </div>
@@ -292,7 +263,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 
    processSave() {
       this.state.enableCancel = this.state.enableOk = false;
-      this.props.onchange(new WhiteboardElement(this.state.value));
+      this.props.onChange(this.state.value);
       this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
    }
 
@@ -376,7 +347,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
    constructor(props: IRemoteWhiteboardProps) {
       super(props);
 
-      // watch for changes being made to on our document
+      // watch for changes being made on our document
       props.commandProcessor.addChangeListener(this.onChange.bind(this));
 
       this.state = {
@@ -385,7 +356,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       };
    }
 
-   onChange(cmd: ICommand, doc: ILiveDocument) {
+   onChange(doc: ILiveDocument, cmd?: ICommand) {
       if (doc.type === LiveWorkout.__type) {
          var workout: LiveWorkout = doc as LiveWorkout;
 

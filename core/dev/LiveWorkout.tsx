@@ -1,10 +1,14 @@
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 
 // This app, this component 
@@ -12,11 +16,16 @@ import { IStreamable } from './Streamable'
 import { StreamableTypes } from './StreamableTypes';
 import { Person } from './Person';
 import { CallParticipation } from './Call';
+import { StoredWorkoutState } from './LocalStore';
 import { ILiveDocument, ICommand, ISelection, ICommandProcessor, 
          ILiveDocumentChannel, ILiveDocumentChannelFactory, ILiveDocumentFactory} from './LiveInterfaces';
 import { LiveCommandProcessor, LiveUndoCommand} from './LiveCommand';
 import { PeerConnection } from './PeerConnection';
 
+////////////////////////////////////////
+// LiveWorkout - class to represents the entire state of a workout. 
+// Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
+////////////////////////////////////////
 export class LiveWorkout implements ILiveDocument {
 
    static readonly __type: string = "LiveWorkout";
@@ -121,6 +130,9 @@ export class LiveWorkout implements ILiveDocument {
    };
 }
 
+////////////////////////////////////////
+// LiveWhiteboardCommand - class to represents the whiteboard within a workout. 
+////////////////////////////////////////
 export class LiveWhiteboardCommand implements ICommand {
 
    private _selection: ISelection;
@@ -153,6 +165,9 @@ export class LiveWhiteboardCommand implements ICommand {
          // Verify that the document has not changed since the command was created
          if (this._priorText === wo.whiteboardText)
             wo.whiteboardText = this._text;
+
+         // save in local cache
+         new StoredWorkoutState().saveWorkout(wo.whiteboardText);
       }
    }
 
@@ -206,7 +221,97 @@ export class LiveWhiteboardCommand implements ICommand {
    };
 }
 
-// Class to represent the 'selection' of the whiteboard within a Workout document.
+////////////////////////////////////////
+// LiveResultsCommand - class to represents the whiteboard within a workout.
+////////////////////////////////////////
+export class LiveResultsCommand implements ICommand {
+
+   private _selection: ISelection;
+   private _text: string;
+   private _priorText: string;
+
+   static readonly __type: string = "LiveResultsCommand";
+
+   constructor(text: string, _priorText: string) {
+      this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
+      this._text = text;
+      this._priorText = _priorText;                 // Caller has to make sure this === current state at time of calling.
+      // Otherwise can lead to problems when commands are copied around between sessions
+   }
+
+   // type is read only
+   get type(): string {
+      return LiveResultsCommand.__type;
+   }
+
+   selection(): ISelection {
+      return this._selection;
+   }
+
+   applyTo(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type === LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+
+         // Verify that the document has not changed since the command was created
+         if (this._priorText === wo.resultsText)
+            wo.resultsText = this._text;
+      }
+   }
+
+   reverseFrom(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type == LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+         wo.resultsText = this._priorText;
+      }
+   }
+
+   canReverse(): boolean {
+      return true;
+   }
+
+   /**
+       * Method that serializes to JSON 
+       */
+   toJSON(): Object {
+
+      return {
+         __type: LiveResultsCommand.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _text: this._text,
+            _priorText: this._priorText
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   static revive(data: any): LiveResultsCommand {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return LiveResultsCommand.reviveDb(data.attributes);
+      else
+         return LiveResultsCommand.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   static reviveDb(data: any): LiveResultsCommand {
+
+      return new LiveResultsCommand(data._text, data._priorText);
+   };
+}
+
+////////////////////////////////////////
+// LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
+////////////////////////////////////////
 export class LiveWhiteboardSelection implements ISelection {
 
    constructor() {
@@ -217,7 +322,22 @@ export class LiveWhiteboardSelection implements ISelection {
    }
 }
 
-// Implemntation of channl over RTC/peer architecture
+////////////////////////////////////////
+// LiveWhiteboardSelection - Class to represent the 'selection' of the results within a Workout document.
+////////////////////////////////////////
+export class LiveResultsSelection implements ISelection {
+
+   constructor() {
+   }
+
+   type(): string {
+      return "LiveResultsSelection";
+   }
+}
+
+////////////////////////////////////////
+// LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
+////////////////////////////////////////
 class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
 
    _types: StreamableTypes = new StreamableTypes;
@@ -244,6 +364,9 @@ class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
          if (ev.type === LiveWhiteboardCommand.__type) {
             this.onCommandApply(ev as LiveWhiteboardCommand);
          }
+         if (ev.type === LiveResultsCommand.__type) {
+            this.onCommandApply(ev as LiveResultsCommand);
+         }
          if (ev.type === LiveUndoCommand.__type) {
             this.onCommandReverse();
          }
@@ -267,7 +390,10 @@ class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
    }
 }
 
-// Creates the type of channel we need to exchange Workout Documents
+////////////////////////////////////////
+// LiveWorkoutChannelFactoryPeer - Creates the type of channel we need to exchange Workout Documents
+// pass this to ILiveDocumentMaster / Remote in LiveDocumentCentral.
+////////////////////////////////////////
 export class LiveWorkoutChannelFactoryPeer implements ILiveDocumentChannelFactory {
 
    _connection: PeerConnection;
@@ -285,14 +411,34 @@ export class LiveWorkoutChannelFactoryPeer implements ILiveDocumentChannelFactor
    }
 }
 
-// Creates the type of Workout Documents
+////////////////////////////////////////
+// LiveWorkoutFactory - Creates the Workout Documents, pass this to ILiveDocumentMaster / Remote in LiveDocumentCentral. 
+////////////////////////////////////////
 export class LiveWorkoutFactory implements ILiveDocumentFactory {
+
+   static defaultWorkoutTextMaster: string = "No workout set. Click the button above ?.";
+   static defaultWorkoutTextRemote: string = "Waiting for Coach to join.";
+   static defaultResultsTextMaster: string = "Waiting for people to join.";
+   static defaultResultsTextRemote: string = "Waiting for people to join.";
 
    constructor() {
    }
 
    createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument {
-      return new LiveWorkout("Waiting...[doc version1]", "Waiting...[doc version2]",
+
+      // Use cached copy of the workout if there is one
+      let storedWorkoutState = new StoredWorkoutState();
+      let storedWorkout = storedWorkoutState.loadWorkout();
+      if (storedWorkout.length === 0) {
+         if (outbound)
+            storedWorkout = LiveWorkoutFactory.defaultWorkoutTextMaster;
+         else
+            storedWorkout = LiveWorkoutFactory.defaultWorkoutTextRemote;
+      }
+
+      var resultsText: string = outbound ? LiveWorkoutFactory.defaultResultsTextMaster : LiveWorkoutFactory.defaultWorkoutTextRemote;
+
+      return new LiveWorkout(storedWorkout, resultsText,
          outbound, channel);
    }
 }

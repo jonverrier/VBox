@@ -33,6 +33,7 @@ import { ArrayHook } from '../../core/dev/ArrayHook';
 import { PeerConnection } from '../../core/dev/PeerConnection';
 import { LiveDocumentMaster, LiveDocumentRemote } from '../../core/dev/LiveDocumentCentral';
 import { LiveWorkoutFactory, LiveWorkoutChannelFactoryPeer, LiveWorkout } from '../../core/dev/LiveWorkout';
+import { StoredMeetingState } from '../../core/dev/LocalStore';
 
 // This app, this component
 import { MemberLoginData, MemberLoginProvider } from './LoginMember';
@@ -40,12 +41,11 @@ import { LoginOauthProvider } from './LoginOauth';
 import { LoginMeetCodeData } from './LoginMeetingCode';
 import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { RemoteConnectionStatus, MasterConnectionStatus } from './CallPanelUI';
-import { StoredMeetingState } from './LocalStore';
 import { LeaderResolve } from './LeaderResolveUI';
 import { Media } from './Media';
+import { MasterWhiteboard, RemoteWhiteboard } from './WhiteboardUI';
 import { RemotePeople } from './peoplepanel';
 import { MasterClock, RemoteClock } from './clockpanel';
-import { MasterWhiteboard, RemoteWhiteboard } from './whiteboardpanel';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -676,7 +676,6 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
                         <MasterWhiteboard allowEdit={this.state.isLeader} peerConnection={this.state.peerConnection}
-                           whiteboardText={(this.state.masterDocument.document as LiveWorkout).whiteboardText}
                            commandProcessor={this.state.masterDocument.commandProcessor}
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterWhiteboard>
                      </Col>

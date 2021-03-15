@@ -10,7 +10,6 @@ import { Queue, QueueString, QueueNumber, QueueAny } from './Queue'
 import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
-import { Whiteboard, WhiteboardElement } from './Whiteboard';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
 import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './Enum';
 
@@ -48,8 +47,6 @@ var EntryPoints = {
    CallDataBatched: CallDataBatched,
    SignalMessage: SignalMessage,
    UserFacilities: UserFacilities,
-   Whiteboard: Whiteboard,
-   WhiteboardElement: WhiteboardElement,
    EGymClockDuration: EGymClockDuration,
    EGymClockMusic: EGymClockMusic,
    EGymClockState: EGymClockState,
