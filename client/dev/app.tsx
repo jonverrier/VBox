@@ -387,7 +387,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <RemoteWhiteboard rtc={this.state.peerConnection}
+                        <RemoteWhiteboard
                            whiteboardText={(this.state.remoteDocument.document as LiveWorkout).whiteboardText}
                            commandProcessor={this.state.remoteDocument.commandProcessor }
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
@@ -737,14 +737,6 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
       this.setState({ isMobileFormFactor: isMobile });
    }
 
-   playAudio() {
-      if (!this.state.playingAudio) {
-         var audioEl: any = document.getElementsByClassName("audio-element")[0];
-         audioEl.play();
-         this.setState({ playingAudio: true });
-      }
-   }
-
    validateEmail(email : string) {
       const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return re.test(String(email).toLowerCase());
@@ -808,22 +800,21 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                     src={'landing-workout.png'} />
                               <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Share the whiteboard.</h3>
+                                 <h3 style={carouselHeadingStyle}>Share an online whiteboard to brief your team.</h3>
                               </Carousel.Caption>
                            </Carousel.Item  >
                               <Carousel.Item interval={7500}>
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-video.png'} />
                               <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Manage the video call.</h3>
+                                 <h3 style={carouselHeadingStyle}>Manage the video so your team look at what is relevant.</h3>
                               </Carousel.Caption>
                            </Carousel.Item>
                            <Carousel.Item interval={7500}>
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-music.png'} />
                                  <Carousel.Caption>
-                                    <h3 style={carouselHeadingStyle}>Play licenced music&nbsp;
-                                       <a onClick={this.playAudio.bind(this)}><u>(try)</u></a>.
+                                    <h3 style={carouselHeadingStyle}>Play licenced music for the workout.
                                     </h3>
                               </Carousel.Caption>
                            </Carousel.Item>

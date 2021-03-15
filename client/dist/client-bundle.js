@@ -51455,7 +51455,6 @@ class MasterWhiteboard extends React.Component {
         if (props.peerConnection) {
             props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
         }
-        var workout;
         this.state = {
             // Make copies of the strings, only change orginal via a command. 
             workout: props.liveWorkout.whiteboardText.slice(),
@@ -51502,9 +51501,9 @@ class MasterWhiteboard extends React.Component {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Workout', placeholder: 'Type the workout details here.', value: this.state.workout, valueAsOf: new Date(), onChange: this.onWorkoutChange.bind(this) })),
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Workout', placeholder: 'Type the workout details here.', value: this.state.workout, valueAsOf: new Date(), onChange: this.onWorkoutChange.bind(this) })),
                 React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Results', placeholder: 'Type results here after the workout.', value: this.state.results, valueAsOf: new Date(), onChange: this.onResultsChange.bind(this) })))));
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Results', placeholder: 'Type results here after the workout.', value: this.state.results, valueAsOf: new Date(), onChange: this.onResultsChange.bind(this) })))));
     }
 }
 exports.MasterWhiteboard = MasterWhiteboard;
@@ -51550,7 +51549,7 @@ class MasterWhiteboardElement extends React.Component {
         this.setState({ inEditMode: false });
     }
     latestValue() {
-        // if latest value was saved from local edit, use it, else the property has been updated, so should be used. 
+        // if latest value was saved from local edit, use it, otherwise use the property we were given as a default.
         if (this.state.valueAsOf.getTime() > this.props.valueAsOf.getTime())
             return this.state.value;
         else
@@ -51605,23 +51604,21 @@ class RemoteWhiteboard extends React.Component {
                 React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', value: this.state.workoutText }, " ")),
+                    React.createElement(RemoteWhiteboardElement, { caption: 'Workout', value: this.state.workoutText }, " ")),
                 React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', value: this.state.resultsText }, " ")))));
+                    React.createElement(RemoteWhiteboardElement, { caption: 'Results', value: this.state.resultsText }, " ")))));
     }
 }
 exports.RemoteWhiteboard = RemoteWhiteboard;
 class RemoteWhiteboardElement extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            caption: props.caption
-        };
+        this.state = {};
     }
     render() {
         return (React.createElement("div", null,
             React.createElement(Row_1.default, { style: thinCentredStyle },
-                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
+                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.props.caption),
                 React.createElement("p", { style: blockCharStyle })),
             React.createElement(Row_1.default, { style: thinStyle },
                 React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
@@ -51934,7 +51931,7 @@ class MemberPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(WhiteboardUI_1.RemoteWhiteboard, { rtc: this.state.peerConnection, whiteboardText: this.state.remoteDocument.document.whiteboardText, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
+                            React.createElement(WhiteboardUI_1.RemoteWhiteboard, { whiteboardText: this.state.remoteDocument.document.whiteboardText, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peerConnection }),
                             React.createElement("br", null),
@@ -52151,13 +52148,6 @@ class LandingPage extends React.Component {
     onMobileFormFactorChange(isMobile) {
         this.setState({ isMobileFormFactor: isMobile });
     }
-    playAudio() {
-        if (!this.state.playingAudio) {
-            var audioEl = document.getElementsByClassName("audio-element")[0];
-            audioEl.play();
-            this.setState({ playingAudio: true });
-        }
-    }
     validateEmail(email) {
         const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return re.test(String(email).toLowerCase());
@@ -52210,19 +52200,15 @@ class LandingPage extends React.Component {
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
                                     React.createElement("img", { style: this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle, src: 'landing-workout.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
-                                        React.createElement("h3", { style: carouselHeadingStyle }, "Share the whiteboard."))),
+                                        React.createElement("h3", { style: carouselHeadingStyle }, "Share an online whiteboard to brief your team."))),
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
                                     React.createElement("img", { style: this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle, src: 'landing-video.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
-                                        React.createElement("h3", { style: carouselHeadingStyle }, "Manage the video call."))),
+                                        React.createElement("h3", { style: carouselHeadingStyle }, "Manage the video so your team look at what is relevant."))),
                                 React.createElement(Carousel_1.default.Item, { interval: 7500 },
                                     React.createElement("img", { style: this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle, src: 'landing-music.png' }),
                                     React.createElement(Carousel_1.default.Caption, null,
-                                        React.createElement("h3", { style: carouselHeadingStyle },
-                                            "Play licenced music\u00A0",
-                                            React.createElement("a", { onClick: this.playAudio.bind(this) },
-                                                React.createElement("u", null, "(try)")),
-                                            "."))))),
+                                        React.createElement("h3", { style: carouselHeadingStyle }, "Play licenced music for the workout."))))),
                         React.createElement(Col_1.default, { className: "align-items-center" },
                             React.createElement(Form_1.default.Group, { controlId: "signMeUpId" },
                                 React.createElement(Form_1.default.Control, { type: "email", placeholder: "Enter your email here.", maxLength: 40, style: fieldTSepStyle, onChange: this.handleEmailChange.bind(this), isValid: this.state.isValidEmail, disabled: this.state.sentEmail, value: this.state.email }),
