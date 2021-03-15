@@ -50658,187 +50658,6 @@ exports.LeaderResolve = LeaderResolve;
 
 /***/ }),
 
-/***/ "./dev/LocalStore.tsx":
-/*!****************************!*\
-  !*** ./dev/LocalStore.tsx ***!
-  \****************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.StoredWorkoutState = exports.StoredMeetingState = exports.LocalStore = void 0;
-//==============================//
-// LocalStore class
-//==============================//
-class LocalStore {
-    /**
-     * Initialises repository
-     */
-    constructor() {
-    }
-    /**
-     *
-     * saveValue
-     * @param key - key to use to look up data
-     * @param value - value to save
-     */
-    saveValue(key, value) {
-        if (window.localStorage)
-            window.localStorage.setItem(key, value.toString());
-    }
-    ;
-    /**
-     *
-     * loadValue
-     * @param key - key to use to look up data
-     */
-    loadValue(key) {
-        if (window.localStorage)
-            return window.localStorage.getItem(key);
-        else
-            return null;
-    }
-    ;
-    /**
-     *
-     * clearValue
-     * @param key - key to use to look up data
-     */
-    clearValue(key) {
-        if (window.localStorage)
-            window.localStorage.removeItem(key);
-    }
-}
-exports.LocalStore = LocalStore;
-const lastMeetingId = "lastMeetingId";
-const lastNameId = "lastName";
-const lastWorkoutId = "lastWorkout";
-const lastClockId = "lastClock";
-const lastClockStateId = "lastClockState";
-//==============================//
-// StoredMeetingState class
-//==============================//
-class StoredMeetingState {
-    constructor() {
-        this._store = new LocalStore();
-    }
-    /**
-     *
-     * saveMeetingId
-     * @param meetingId - value to save
-     */
-    saveMeetingId(meetingId) {
-        this._store.saveValue(lastMeetingId, meetingId);
-    }
-    ;
-    /**
-     *
-     * loadMeetingId
-     */
-    loadMeetingId() {
-        var ret = this._store.loadValue(lastMeetingId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-    /**
-     *
-     * saveName
-     * @param meetingId - value to save
-     */
-    saveName(meetingId) {
-        this._store.saveValue(lastNameId, meetingId);
-    }
-    ;
-    /**
-     *
-     * loadName
-     */
-    loadName() {
-        var ret = this._store.loadValue(lastNameId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-}
-exports.StoredMeetingState = StoredMeetingState;
-//==============================//
-// StoredWorkoutState class
-//==============================//
-class StoredWorkoutState {
-    constructor() {
-        this._store = new LocalStore();
-    }
-    /**
-     *
-     * saveWorkout
-     * @param workout - value to save
-     */
-    saveWorkout(workout) {
-        this._store.saveValue(lastWorkoutId, workout);
-    }
-    ;
-    /**
-     *
-     * loadWorkout
-     */
-    loadWorkout() {
-        var ret = this._store.loadValue(lastWorkoutId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-    /**
-     *
-     * saveClockSpec
-     * @param clock - value to save
-     */
-    saveClockSpec(clock) {
-        this._store.saveValue(lastClockId, clock);
-    }
-    ;
-    /**
-     *
-     * loadClockSpec
-     */
-    loadClockSpec() {
-        var ret = this._store.loadValue(lastClockId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-    /**
-     *
-     * saveClockState
-     * @param clock - value to save
-     */
-    saveClockState(clock) {
-        this._store.saveValue(lastClockStateId, clock);
-    }
-    ;
-    /**
-     *
-     * loadClockState
-     */
-    loadClockState() {
-        var ret = this._store.loadValue(lastClockStateId);
-        if (!ret)
-            ret = "";
-        return ret;
-    }
-    ;
-}
-exports.StoredWorkoutState = StoredWorkoutState;
-
-
-/***/ }),
-
 /***/ "./dev/LoginMeetingCode.tsx":
 /*!**********************************!*\
   !*** ./dev/LoginMeetingCode.tsx ***!
@@ -51527,6 +51346,291 @@ exports.RunnableClock = RunnableClock;
 
 /***/ }),
 
+/***/ "./dev/WhiteboardUI.tsx":
+/*!******************************!*\
+  !*** ./dev/WhiteboardUI.tsx ***!
+  \******************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RemoteWhiteboard = exports.MasterWhiteboard = void 0;
+const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
+const Col_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js"));
+const Form_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js"));
+const Collapse_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js"));
+const Button_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js"));
+const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./node_modules/@primer/octicons-react/dist/index.esm.js");
+const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
+const thinStyle = {
+    margin: '0px', padding: '0px',
+};
+const thinishStyle = {
+    margin: '2px', padding: '0px',
+};
+const thinCentredStyle = {
+    margin: '0px', padding: '0px',
+    alignItems: 'center',
+    verticalAlign: 'top',
+    justifyContent: 'center'
+};
+const popdownBtnStyle = {
+    margin: '0px', padding: '4px',
+    fontSize: '13.333px'
+};
+const whiteboardStyle = {
+    color: 'white', background: 'white',
+    margin: '0px', padding: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+const whiteboardHeaderStyle = {
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '40px',
+    marginTop: '0px', paddingTop: '0px',
+    marginBottom: '10px', paddingBottom: '0px',
+    marginLeft: '0px', paddingLeft: '0px',
+    marginRight: '0px', paddingRight: '0px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+const whiteboardElementHeaderStyle = {
+    margin: '0px', padding: '0px',
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '32px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat'
+};
+const whiteboardElementBodyStyle = {
+    margin: '0px',
+    paddingLeft: '8px', paddingRight: '8px',
+    paddingTop: '0px', paddingBottom: '0px',
+    color: 'black', background: 'white',
+    fontFamily: 'Permanent Marker',
+    fontSize: '20px',
+    backgroundImage: 'url("board.png")',
+    backgroundRepeat: 'repeat',
+    minWidth: '240px', maxWidth: '*',
+    whiteSpace: 'pre-wrap'
+};
+const blockCharStyle = {
+    margin: '0px',
+    paddingLeft: '8px', paddingRight: '8px',
+    paddingTop: '0px', paddingBottom: '0px',
+};
+const fieldXSepStyle = {
+    marginLeft: '8px'
+};
+class MasterWhiteboard extends React.Component {
+    constructor(props) {
+        super(props);
+        if (props.peerConnection) {
+            props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
+        }
+        var workout;
+        this.state = {
+            // Make copies of the strings, only change orginal via a command. 
+            workout: props.liveWorkout.whiteboardText.slice(),
+            results: props.liveWorkout.resultsText.slice()
+        };
+    }
+    componentDidMount() {
+    }
+    componentWillUnmount() {
+    }
+    onRemoteData(ev) {
+        var ev2 = ev;
+        // By convention, new joiners broadcast a 'Person' object
+        if (ev.type === Person_1.Person.__type) {
+            // Add the new participant to the Results board element
+            var text = this.state.results;
+            if (!text.includes(ev2.name)) {
+                // Overwrite what is there if we still have the default caption.
+                if (text === LiveWorkout_1.LiveWorkoutFactory.defaultResultsTextRemote)
+                    text = '';
+                // append if the name is not already in the results text.
+                text = text + '\n' + ev2.name;
+                let command = new LiveWorkout_1.LiveResultsCommand(text, this.props.liveWorkout.resultsText);
+                this.props.commandProcessor.adoptAndApply(command);
+            }
+            this.setState({ results: text });
+        }
+    }
+    onWorkoutChange(element) {
+        let command = new LiveWorkout_1.LiveWhiteboardCommand(element, this.props.liveWorkout.whiteboardText);
+        this.props.commandProcessor.adoptAndApply(command);
+        // Make copies of the strings, only change orginal via a command. 
+        this.setState({ workout: this.props.liveWorkout.whiteboardText.slice() });
+    }
+    onResultsChange(element) {
+        let command = new LiveWorkout_1.LiveResultsCommand(element, this.props.liveWorkout.resultsText);
+        this.props.commandProcessor.adoptAndApply(command);
+        // Make copies of the strings, only change orginal via a command. 
+        this.setState({ results: this.props.liveWorkout.resultsText.slice() });
+    }
+    render() {
+        return (React.createElement("div", { style: whiteboardStyle },
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: thinishStyle },
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Workout', placeholder: 'Type the workout details here.', value: this.state.workout, valueAsOf: new Date(), onChange: this.onWorkoutChange.bind(this) })),
+                React.createElement(Col_1.default, { style: thinishStyle },
+                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Results', placeholder: 'Type results here after the workout.', value: this.state.results, valueAsOf: new Date(), onChange: this.onResultsChange.bind(this) })))));
+    }
+}
+exports.MasterWhiteboard = MasterWhiteboard;
+class MasterWhiteboardElement extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            inEditMode: false,
+            enableOk: false,
+            enableCancel: false,
+            value: props.value,
+            valueAsOf: new Date()
+        };
+    }
+    componentDidMount() {
+    }
+    componentWillUnmount() {
+    }
+    processChange(value) {
+        var enableOk;
+        var enableCancel;
+        if (value.length > 0) {
+            this.state.value = value;
+            enableOk = true;
+            enableCancel = true;
+        }
+        else {
+            this.state.value = "";
+            enableOk = false;
+            enableCancel = false;
+        }
+        if (!this.props.allowEdit) {
+            enableOk = false;
+        }
+        this.setState({ enableOk: enableOk, enableCancel: enableCancel, valueAsOf: new Date() });
+    }
+    processSave() {
+        this.state.enableCancel = this.state.enableOk = false;
+        this.props.onChange(this.state.value);
+        this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
+    }
+    processCancel() {
+        this.setState({ inEditMode: false });
+    }
+    latestValue() {
+        // if latest value was saved from local edit, use it, else the property has been updated, so should be used. 
+        if (this.state.valueAsOf.getTime() > this.props.valueAsOf.getTime())
+            return this.state.value;
+        else
+            return this.props.value;
+    }
+    render() {
+        return (React.createElement("div", null,
+            React.createElement(Row_1.default, { style: thinCentredStyle },
+                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.props.caption),
+                React.createElement("p", { style: blockCharStyle }),
+                React.createElement(Button_1.default, { style: popdownBtnStyle, variant: "secondary", size: "sm", onClick: () => this.setState({ inEditMode: !this.state.inEditMode }) },
+                    React.createElement(octicons_react_1.TriangleDownIcon, null))),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Collapse_1.default, { in: this.state.inEditMode },
+                    React.createElement("div", null,
+                        React.createElement(Form_1.default, null,
+                            React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
+                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.props.placeholder, cols: 60, maxLength: 1023, minLength: 0, value: this.latestValue(), onChange: (ev) => { this.processChange(ev.target.value); } })),
+                            React.createElement(Form_1.default.Row, { style: { textAlign: 'center' } },
+                                React.createElement("p", { style: blockCharStyle }),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
+                                React.createElement("p", { style: blockCharStyle }),
+                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
+    }
+}
+class RemoteWhiteboard extends React.Component {
+    constructor(props) {
+        super(props);
+        // watch for changes being made on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
+        this.state = {
+            workoutText: props.whiteboardText,
+            resultsText: props.whiteboardText
+        };
+    }
+    onChange(doc, cmd) {
+        if (doc.type === LiveWorkout_1.LiveWorkout.__type) {
+            var workout = doc;
+            if (!(this.state.workoutText === workout.whiteboardText)) {
+                this.setState({ workoutText: workout.whiteboardText });
+            }
+            if (!(this.state.resultsText === workout.resultsText)) {
+                this.setState({ resultsText: workout.resultsText });
+            }
+        }
+    }
+    render() {
+        return (React.createElement("div", { style: whiteboardStyle },
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', value: this.state.workoutText }, " ")),
+                React.createElement(Col_1.default, { style: thinStyle },
+                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', value: this.state.resultsText }, " ")))));
+    }
+}
+exports.RemoteWhiteboard = RemoteWhiteboard;
+class RemoteWhiteboardElement extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            caption: props.caption
+        };
+    }
+    render() {
+        return (React.createElement("div", null,
+            React.createElement(Row_1.default, { style: thinCentredStyle },
+                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
+                React.createElement("p", { style: blockCharStyle })),
+            React.createElement(Row_1.default, { style: thinStyle },
+                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
+    }
+}
+
+
+/***/ }),
+
 /***/ "./dev/app.tsx":
 /*!*********************!*\
   !*** ./dev/app.tsx ***!
@@ -51589,18 +51693,18 @@ const ArrayHook_1 = __webpack_require__(/*! ../../core/dev/ArrayHook */ "../core
 const PeerConnection_1 = __webpack_require__(/*! ../../core/dev/PeerConnection */ "../core/dev/PeerConnection.tsx");
 const LiveDocumentCentral_1 = __webpack_require__(/*! ../../core/dev/LiveDocumentCentral */ "../core/dev/LiveDocumentCentral.tsx");
 const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
+const LocalStore_1 = __webpack_require__(/*! ../../core/dev/LocalStore */ "../core/dev/LocalStore.tsx");
 // This app, this component
 const LoginMember_1 = __webpack_require__(/*! ./LoginMember */ "./dev/LoginMember.tsx");
 const LoginOauth_1 = __webpack_require__(/*! ./LoginOauth */ "./dev/LoginOauth.tsx");
 const LoginMeetingCode_1 = __webpack_require__(/*! ./LoginMeetingCode */ "./dev/LoginMeetingCode.tsx");
 const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
 const CallPanelUI_1 = __webpack_require__(/*! ./CallPanelUI */ "./dev/CallPanelUI.tsx");
-const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const LeaderResolveUI_1 = __webpack_require__(/*! ./LeaderResolveUI */ "./dev/LeaderResolveUI.tsx");
 const Media_1 = __webpack_require__(/*! ./Media */ "./dev/Media.tsx");
+const WhiteboardUI_1 = __webpack_require__(/*! ./WhiteboardUI */ "./dev/WhiteboardUI.tsx");
 const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
 const clockpanel_1 = __webpack_require__(/*! ./clockpanel */ "./dev/clockpanel.tsx");
-const whiteboardpanel_1 = __webpack_require__(/*! ./whiteboardpanel */ "./dev/whiteboardpanel.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 const jumbotronStyle = {
     paddingLeft: '10px',
@@ -51830,7 +51934,7 @@ class MemberPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.RemoteWhiteboard, { rtc: this.state.peerConnection, whiteboardText: this.state.remoteDocument.document.whiteboardText, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
+                            React.createElement(WhiteboardUI_1.RemoteWhiteboard, { rtc: this.state.peerConnection, whiteboardText: this.state.remoteDocument.document.whiteboardText, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peerConnection }),
                             React.createElement("br", null),
@@ -52015,7 +52119,7 @@ class CoachPage extends React.Component {
                             React.createElement(LeaderResolveUI_1.LeaderResolve, { onLeaderChange: this.onLeaderChange.bind(this), peers: this.state.peerConnection }, " "))),
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(whiteboardpanel_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peerConnection: this.state.peerConnection, whiteboardText: this.state.masterDocument.document.whiteboardText, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " ")),
+                            React.createElement(WhiteboardUI_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peerConnection: this.state.peerConnection, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.peerConnection }, " "),
                             React.createElement("br", null),
@@ -52222,8 +52326,8 @@ const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./no
 const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/dev/GymClock.tsx");
 const StreamableTypes_1 = __webpack_require__(/*! ../../core/dev/StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const LocalStore_1 = __webpack_require__(/*! ../../core/dev/LocalStore */ "../core/dev/LocalStore.tsx");
 const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
-const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
 };
@@ -52662,313 +52766,6 @@ class RemotePeople extends React.Component {
     }
 }
 exports.RemotePeople = RemotePeople;
-
-
-/***/ }),
-
-/***/ "./dev/whiteboardpanel.tsx":
-/*!*********************************!*\
-  !*** ./dev/whiteboardpanel.tsx ***!
-  \*********************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RemoteWhiteboard = exports.MasterWhiteboard = void 0;
-const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
-const Col_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Col */ "./node_modules/react-bootstrap/esm/Col.js"));
-const Form_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Form */ "./node_modules/react-bootstrap/esm/Form.js"));
-const Collapse_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Collapse */ "./node_modules/react-bootstrap/esm/Collapse.js"));
-const Button_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Button */ "./node_modules/react-bootstrap/esm/Button.js"));
-const octicons_react_1 = __webpack_require__(/*! @primer/octicons-react */ "./node_modules/@primer/octicons-react/dist/index.esm.js");
-const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const Whiteboard_1 = __webpack_require__(/*! ../../core/dev/Whiteboard */ "../core/dev/Whiteboard.tsx");
-const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
-const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
-const thinStyle = {
-    margin: '0px', padding: '0px',
-};
-const thinishStyle = {
-    margin: '2px', padding: '0px',
-};
-const thinCentredStyle = {
-    margin: '0px', padding: '0px',
-    alignItems: 'center',
-    verticalAlign: 'top',
-    justifyContent: 'center'
-};
-const popdownBtnStyle = {
-    margin: '0px', padding: '4px',
-    fontSize: '13.333px'
-};
-const whiteboardStyle = {
-    color: 'white', background: 'white',
-    margin: '0px', padding: '0px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat'
-};
-const whiteboardHeaderStyle = {
-    color: 'black', background: 'white',
-    fontFamily: 'Permanent Marker',
-    fontSize: '40px',
-    marginTop: '0px', paddingTop: '0px',
-    marginBottom: '10px', paddingBottom: '0px',
-    marginLeft: '0px', paddingLeft: '0px',
-    marginRight: '0px', paddingRight: '0px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat'
-};
-const whiteboardElementHeaderStyle = {
-    margin: '0px', padding: '0px',
-    color: 'black', background: 'white',
-    fontFamily: 'Permanent Marker',
-    fontSize: '32px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat'
-};
-const whiteboardElementBodyStyle = {
-    margin: '0px',
-    paddingLeft: '8px', paddingRight: '8px',
-    paddingTop: '0px', paddingBottom: '0px',
-    color: 'black', background: 'white',
-    fontFamily: 'Permanent Marker',
-    fontSize: '20px',
-    backgroundImage: 'url("board.png")',
-    backgroundRepeat: 'repeat',
-    minWidth: '240px', maxWidth: '*',
-    whiteSpace: 'pre-wrap'
-};
-const blockCharStyle = {
-    margin: '0px',
-    paddingLeft: '8px', paddingRight: '8px',
-    paddingTop: '0px', paddingBottom: '0px',
-};
-const fieldXSepStyle = {
-    marginLeft: '8px'
-};
-const defaultMasterWorkoutText = 'Workout will show here - click the button above.';
-const defaultMasterResultsText = 'Workout results will show here - click the button above.';
-class MasterWhiteboard extends React.Component {
-    constructor(props) {
-        super(props);
-        var haveWorkout = false;
-        if (props.peerConnection) {
-            props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
-        }
-        this.storedWorkoutState = new LocalStore_1.StoredWorkoutState();
-        var workout;
-        // Use cached copy of the workout if there is one
-        var storedWorkout = this.storedWorkoutState.loadWorkout();
-        if (storedWorkout.length > 0) {
-            haveWorkout = true;
-            workout = new Whiteboard_1.WhiteboardElement(storedWorkout);
-        }
-        else
-            workout = new Whiteboard_1.WhiteboardElement(defaultMasterWorkoutText);
-        var results = new Whiteboard_1.WhiteboardElement(defaultMasterResultsText);
-        this.state = {
-            haveRealWorkout: haveWorkout,
-            haveRealResults: false,
-            workout: workout,
-            results: results
-        };
-    }
-    componentDidMount() {
-    }
-    componentWillUnmount() {
-    }
-    onRemoteData(ev) {
-        var ev2 = ev;
-        // By convention, new joiners broadcast a 'Person' object
-        if (ev.type === Person_1.Person.__type) {
-            // Add the new participant to the Results board element
-            var text = this.state.results.text;
-            if (text === defaultMasterResultsText) {
-                // Overrwite contents if its the first participant
-                text = ev2.name;
-            }
-            else if (!text.includes(ev2.name)) {
-                // append if the name is not already in the box. Can get double joins if they refresh the browser or join from multiple devices. 
-                text = text + '\n' + ev2.name;
-            }
-            this.setState({ haveRealResults: true, results: new Whiteboard_1.WhiteboardElement(text) });
-            this.forceUpdate(() => {
-                // Send them the whole contents of the board
-                var board = new Whiteboard_1.Whiteboard(this.state.workout, this.state.results);
-                this.props.peerConnection.broadcast(board);
-            });
-        }
-    }
-    onworkoutchange(element) {
-        let command = new LiveWorkout_1.LiveWhiteboardCommand(element.text + ' from doc2', this.props.liveWorkout.whiteboardText);
-        this.props.commandProcessor.adoptAndApply(command);
-        this.setState({ haveRealWorkout: true, workout: element });
-        var board = new Whiteboard_1.Whiteboard(element, this.state.results);
-        this.props.peerConnection.broadcast(board);
-        // save in local cache
-        this.storedWorkoutState.saveWorkout(element.text);
-    }
-    onresultschange(element) {
-        this.setState({ haveRealResults: true, results: element });
-        var board = new Whiteboard_1.Whiteboard(this.state.workout, element);
-        this.props.peerConnection.broadcast(board);
-    }
-    render() {
-        return (React.createElement("div", { style: whiteboardStyle },
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Workout', placeholder: 'Type the workout details here.', value: this.state.workout.text, valueAsOf: new Date(), onchange: this.onworkoutchange.bind(this) })),
-                React.createElement(Col_1.default, { style: thinishStyle },
-                    React.createElement(MasterWhiteboardElement, { allowEdit: this.props.allowEdit, rtc: this.props.peerConnection, commandProcessor: this.props.commandProcessor, liveWorkout: this.props.liveWorkout, caption: 'Results', placeholder: 'Type results here after the workout.', value: this.state.results.text, valueAsOf: new Date(), onchange: this.onresultschange.bind(this) })))));
-    }
-}
-exports.MasterWhiteboard = MasterWhiteboard;
-class MasterWhiteboardElement extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            inEditMode: false,
-            enableOk: false,
-            enableCancel: false,
-            value: props.value,
-            valueAsOf: new Date()
-        };
-    }
-    componentDidMount() {
-    }
-    componentWillUnmount() {
-    }
-    processChange(value) {
-        var enableOk;
-        var enableCancel;
-        if (value.length > 0) {
-            this.state.value = value;
-            enableOk = true;
-            enableCancel = true;
-        }
-        else {
-            this.state.value = "";
-            enableOk = false;
-            enableCancel = false;
-        }
-        if (!this.props.allowEdit) {
-            enableOk = false;
-        }
-        this.setState({ enableOk: enableOk, enableCancel: enableCancel, valueAsOf: new Date() });
-    }
-    processSave() {
-        this.state.enableCancel = this.state.enableOk = false;
-        this.props.onchange(new Whiteboard_1.WhiteboardElement(this.state.value));
-        this.setState({ inEditMode: false, enableOk: this.state.enableOk, enableCancel: this.state.enableCancel });
-    }
-    processCancel() {
-        this.setState({ inEditMode: false });
-    }
-    latestValue() {
-        // if latest value was saved from local edit, use it, else the property has been updated, so should be used. 
-        if (this.state.valueAsOf.getTime() > this.props.valueAsOf.getTime())
-            return this.state.value;
-        else
-            return this.props.value;
-    }
-    render() {
-        return (React.createElement("div", null,
-            React.createElement(Row_1.default, { style: thinCentredStyle },
-                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.props.caption),
-                React.createElement("p", { style: blockCharStyle }),
-                React.createElement(Button_1.default, { style: popdownBtnStyle, variant: "secondary", size: "sm", onClick: () => this.setState({ inEditMode: !this.state.inEditMode }) },
-                    React.createElement(octicons_react_1.TriangleDownIcon, null))),
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Collapse_1.default, { in: this.state.inEditMode },
-                    React.createElement("div", null,
-                        React.createElement(Form_1.default, null,
-                            React.createElement(Form_1.default.Group, { controlId: "elementFormId" },
-                                React.createElement(Form_1.default.Control, { as: "textarea", style: fieldXSepStyle, placeholder: this.props.placeholder, cols: 60, maxLength: 1023, minLength: 0, value: this.latestValue(), onChange: (ev) => { this.processChange(ev.target.value); } })),
-                            React.createElement(Form_1.default.Row, { style: { textAlign: 'center' } },
-                                React.createElement("p", { style: blockCharStyle }),
-                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableOk, className: 'mr', onClick: this.processSave.bind(this) }, "Save"),
-                                React.createElement("p", { style: blockCharStyle }),
-                                React.createElement(Button_1.default, { variant: "secondary", disabled: !this.state.enableCancel, onClick: this.processCancel.bind(this) }, "Cancel")))))),
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
-    }
-}
-class RemoteWhiteboard extends React.Component {
-    constructor(props) {
-        super(props);
-        // watch for changes being made to on our document
-        props.commandProcessor.addChangeListener(this.onChange.bind(this));
-        this.state = {
-            workoutText: props.whiteboardText,
-            resultsText: props.whiteboardText
-        };
-    }
-    onChange(cmd, doc) {
-        if (doc.type === LiveWorkout_1.LiveWorkout.__type) {
-            var workout = doc;
-            if (!(this.state.workoutText === workout.whiteboardText)) {
-                this.setState({ workoutText: workout.whiteboardText });
-            }
-            if (!(this.state.resultsText === workout.resultsText)) {
-                this.setState({ resultsText: workout.resultsText });
-            }
-        }
-    }
-    render() {
-        return (React.createElement("div", { style: whiteboardStyle },
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { style: whiteboardHeaderStyle }, (new Date()).getWeekDay() /* Uses the extra method in DateHook */)),
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Workout', value: this.state.workoutText }, " ")),
-                React.createElement(Col_1.default, { style: thinStyle },
-                    React.createElement(RemoteWhiteboardElement, { rtc: this.props.rtc, caption: 'Results', value: this.state.resultsText }, " ")))));
-    }
-}
-exports.RemoteWhiteboard = RemoteWhiteboard;
-class RemoteWhiteboardElement extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            caption: props.caption
-        };
-    }
-    render() {
-        return (React.createElement("div", null,
-            React.createElement(Row_1.default, { style: thinCentredStyle },
-                React.createElement("p", { style: whiteboardElementHeaderStyle }, this.state.caption),
-                React.createElement("p", { style: blockCharStyle })),
-            React.createElement(Row_1.default, { style: thinStyle },
-                React.createElement("p", { style: whiteboardElementBodyStyle }, this.props.value))));
-    }
-}
 
 
 /***/ }),
@@ -54247,12 +54044,16 @@ GymClockState.__type = "GymClockState";
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveUndoCommand = exports.LiveCommandProcessor = void 0;
@@ -54296,7 +54097,7 @@ class LiveCommandProcessor {
         // notify local listeners
         if (this._changeListeners) {
             for (var i = 0; i < this._changeListeners.length; i++) {
-                this._changeListeners[i](command, this._document);
+                this._changeListeners[i](this._document, command);
             }
         }
     }
@@ -54346,6 +54147,12 @@ class LiveCommandProcessor {
     onDocument(document) {
         this._document.assign(document);
         this.clearCommands();
+        // notify local listeners, command is NULL but we send the entire document
+        if (this._changeListeners) {
+            for (var i = 0; i < this._changeListeners.length; i++) {
+                this._changeListeners[i](this._document);
+            }
+        }
     }
     invalidateIndex() {
         this._lastCommandIndex = -1;
@@ -54429,12 +54236,16 @@ LiveUndoCommand.__type = "LiveUndoCommand";
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveDocumentRemote = exports.LiveDocumentMaster = void 0;
@@ -54497,18 +54308,27 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
+const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "../core/dev/LocalStore.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
+////////////////////////////////////////
+// LiveWorkout - class to represents the entire state of a workout. 
+// Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
+////////////////////////////////////////
 class LiveWorkout {
     constructor(whiteboardText, resultsText, outbound, channel) {
         this._outbound = outbound;
@@ -54595,6 +54415,9 @@ class LiveWorkout {
 }
 exports.LiveWorkout = LiveWorkout;
 LiveWorkout.__type = "LiveWorkout";
+////////////////////////////////////////
+// LiveWhiteboardCommand - class to represents the whiteboard within a workout. 
+////////////////////////////////////////
 class LiveWhiteboardCommand {
     constructor(text, _priorText) {
         this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
@@ -54616,6 +54439,8 @@ class LiveWhiteboardCommand {
             // Verify that the document has not changed since the command was created
             if (this._priorText === wo.whiteboardText)
                 wo.whiteboardText = this._text;
+            // save in local cache
+            new LocalStore_1.StoredWorkoutState().saveWorkout(wo.whiteboardText);
         }
     }
     reverseFrom(document) {
@@ -54665,7 +54490,82 @@ class LiveWhiteboardCommand {
 }
 exports.LiveWhiteboardCommand = LiveWhiteboardCommand;
 LiveWhiteboardCommand.__type = "LiveWhiteboardCommand";
-// Class to represent the 'selection' of the whiteboard within a Workout document.
+////////////////////////////////////////
+// LiveResultsCommand - class to represents the whiteboard within a workout.
+////////////////////////////////////////
+class LiveResultsCommand {
+    constructor(text, _priorText) {
+        this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
+        this._text = text;
+        this._priorText = _priorText; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
+    }
+    // type is read only
+    get type() {
+        return LiveResultsCommand.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            if (this._priorText === wo.resultsText)
+                wo.resultsText = this._text;
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            wo.resultsText = this._priorText;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveResultsCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _text: this._text,
+                _priorText: this._priorText
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveResultsCommand.reviveDb(data.attributes);
+        else
+            return LiveResultsCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveResultsCommand(data._text, data._priorText);
+    }
+    ;
+}
+exports.LiveResultsCommand = LiveResultsCommand;
+LiveResultsCommand.__type = "LiveResultsCommand";
+////////////////////////////////////////
+// LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
+////////////////////////////////////////
 class LiveWhiteboardSelection {
     constructor() {
     }
@@ -54674,7 +54574,20 @@ class LiveWhiteboardSelection {
     }
 }
 exports.LiveWhiteboardSelection = LiveWhiteboardSelection;
-// Implemntation of channl over RTC/peer architecture
+////////////////////////////////////////
+// LiveWhiteboardSelection - Class to represent the 'selection' of the results within a Workout document.
+////////////////////////////////////////
+class LiveResultsSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveResultsSelection";
+    }
+}
+exports.LiveResultsSelection = LiveResultsSelection;
+////////////////////////////////////////
+// LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
+////////////////////////////////////////
 class LiveWorkoutChannelPeer {
     constructor(peer) {
         this._types = new StreamableTypes_1.StreamableTypes;
@@ -54693,6 +54606,9 @@ class LiveWorkoutChannelPeer {
                 this.onDocument(ev);
             }
             if (ev.type === LiveWhiteboardCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveResultsCommand.__type) {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
@@ -54716,7 +54632,10 @@ class LiveWorkoutChannelPeer {
         this._peer.broadcast(new LiveCommand_1.LiveUndoCommand());
     }
 }
-// Creates the type of channel we need to exchange Workout Documents
+////////////////////////////////////////
+// LiveWorkoutChannelFactoryPeer - Creates the type of channel we need to exchange Workout Documents
+// pass this to ILiveDocumentMaster / Remote in LiveDocumentCentral.
+////////////////////////////////////////
 class LiveWorkoutChannelFactoryPeer {
     constructor(connection) {
         this._connection = connection;
@@ -54729,15 +54648,212 @@ class LiveWorkoutChannelFactoryPeer {
     }
 }
 exports.LiveWorkoutChannelFactoryPeer = LiveWorkoutChannelFactoryPeer;
-// Creates the type of Workout Documents
+////////////////////////////////////////
+// LiveWorkoutFactory - Creates the Workout Documents, pass this to ILiveDocumentMaster / Remote in LiveDocumentCentral. 
+////////////////////////////////////////
 class LiveWorkoutFactory {
     constructor() {
     }
     createLiveDocument(outbound, channel) {
-        return new LiveWorkout("Waiting...[doc version1]", "Waiting...[doc version2]", outbound, channel);
+        // Use cached copy of the workout if there is one
+        let storedWorkoutState = new LocalStore_1.StoredWorkoutState();
+        let storedWorkout = storedWorkoutState.loadWorkout();
+        if (storedWorkout.length === 0) {
+            if (outbound)
+                storedWorkout = LiveWorkoutFactory.defaultWorkoutTextMaster;
+            else
+                storedWorkout = LiveWorkoutFactory.defaultWorkoutTextRemote;
+        }
+        var resultsText = outbound ? LiveWorkoutFactory.defaultResultsTextMaster : LiveWorkoutFactory.defaultWorkoutTextRemote;
+        return new LiveWorkout(storedWorkout, resultsText, outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
+LiveWorkoutFactory.defaultWorkoutTextMaster = "No workout set. Click the button above ?.";
+LiveWorkoutFactory.defaultWorkoutTextRemote = "Waiting for Coach to join.";
+LiveWorkoutFactory.defaultResultsTextMaster = "Waiting for people to join.";
+LiveWorkoutFactory.defaultResultsTextRemote = "Waiting for people to join.";
+
+
+/***/ }),
+
+/***/ "../core/dev/LocalStore.tsx":
+/*!**********************************!*\
+  !*** ../core/dev/LocalStore.tsx ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StoredWorkoutState = exports.StoredMeetingState = exports.LocalStore = void 0;
+//==============================//
+// LocalStore class
+//==============================//
+class LocalStore {
+    /**
+     * Initialises repository
+     */
+    constructor() {
+    }
+    /**
+     *
+     * saveValue
+     * @param key - key to use to look up data
+     * @param value - value to save
+     */
+    saveValue(key, value) {
+        if (typeof window !== 'undefined' && window.localStorage)
+            window.localStorage.setItem(key, value.toString());
+    }
+    ;
+    /**
+     *
+     * loadValue
+     * @param key - key to use to look up data
+     */
+    loadValue(key) {
+        if (typeof window !== 'undefined' && window.localStorage)
+            return window.localStorage.getItem(key);
+        else
+            return null;
+    }
+    ;
+    /**
+     *
+     * clearValue
+     * @param key - key to use to look up data
+     */
+    clearValue(key) {
+        if (typeof window !== 'undefined' && window.localStorage)
+            window.localStorage.removeItem(key);
+    }
+}
+exports.LocalStore = LocalStore;
+const lastMeetingId = "lastMeetingId";
+const lastNameId = "lastName";
+const lastWorkoutId = "lastWorkout";
+const lastClockId = "lastClock";
+const lastClockStateId = "lastClockState";
+//==============================//
+// StoredMeetingState class
+//==============================//
+class StoredMeetingState {
+    constructor() {
+        this._store = new LocalStore();
+    }
+    /**
+     *
+     * saveMeetingId
+     * @param meetingId - value to save
+     */
+    saveMeetingId(meetingId) {
+        this._store.saveValue(lastMeetingId, meetingId);
+    }
+    ;
+    /**
+     *
+     * loadMeetingId
+     */
+    loadMeetingId() {
+        var ret = this._store.loadValue(lastMeetingId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveName
+     * @param meetingId - value to save
+     */
+    saveName(meetingId) {
+        this._store.saveValue(lastNameId, meetingId);
+    }
+    ;
+    /**
+     *
+     * loadName
+     */
+    loadName() {
+        var ret = this._store.loadValue(lastNameId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+}
+exports.StoredMeetingState = StoredMeetingState;
+//==============================//
+// StoredWorkoutState class
+//==============================//
+class StoredWorkoutState {
+    constructor() {
+        this._store = new LocalStore();
+    }
+    /**
+     *
+     * saveWorkout
+     * @param workout - value to save
+     */
+    saveWorkout(workout) {
+        this._store.saveValue(lastWorkoutId, workout);
+    }
+    ;
+    /**
+     *
+     * loadWorkout
+     */
+    loadWorkout() {
+        var ret = this._store.loadValue(lastWorkoutId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveClockSpec
+     * @param clock - value to save
+     */
+    saveClockSpec(clock) {
+        this._store.saveValue(lastClockId, clock);
+    }
+    ;
+    /**
+     *
+     * loadClockSpec
+     */
+    loadClockSpec() {
+        var ret = this._store.loadValue(lastClockId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveClockState
+     * @param clock - value to save
+     */
+    saveClockState(clock) {
+        this._store.saveValue(lastClockStateId, clock);
+    }
+    ;
+    /**
+     *
+     * loadClockState
+     */
+    loadClockState() {
+        var ret = this._store.loadValue(lastClockStateId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+}
+exports.StoredWorkoutState = StoredWorkoutState;
 
 
 /***/ }),
@@ -56717,7 +56833,6 @@ const Facility_1 = __webpack_require__(/*! ./Facility */ "../core/dev/Facility.t
 const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
 const Signal_1 = __webpack_require__(/*! ./Signal */ "../core/dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "../core/dev/UserFacilities.tsx");
-const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "../core/dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "../core/dev/GymClock.tsx");
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "../core/dev/LiveWorkout.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
@@ -56743,13 +56858,12 @@ class StreamableTypes {
         this._types.CallDataBatched = Call_1.CallDataBatched;
         this._types.SignalMessage = Signal_1.SignalMessage;
         this._types.UserFacilities = UserFacilities_1.UserFacilities;
-        this._types.Whiteboard = Whiteboard_1.Whiteboard;
-        this._types.WhiteboardElement = Whiteboard_1.WhiteboardElement;
         this._types.GymClockSpec = GymClock_1.GymClockSpec;
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
         this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
         this._types.LiveWhiteboardCommand = LiveWorkout_1.LiveWhiteboardCommand;
+        this._types.LiveResultsCommand = LiveWorkout_1.LiveResultsCommand;
         this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
     }
     isObjectKey(key) {
@@ -56892,164 +57006,6 @@ class UserFacilities {
 }
 exports.UserFacilities = UserFacilities;
 UserFacilities.__type = "UserFacilities";
-
-
-/***/ }),
-
-/***/ "../core/dev/Whiteboard.tsx":
-/*!**********************************!*\
-  !*** ../core/dev/Whiteboard.tsx ***!
-  \**********************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*jslint white: false, indent: 3, maxerr: 1000 */
-/*global Enum*/
-/*global exports*/
-/*! Copyright TXPCo, 2020, 2021 */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WhiteboardElement = exports.Whiteboard = void 0;
-//==============================//
-// Whiteboard class
-//==============================//
-class Whiteboard {
-    /**
-     * Create a Whiteboard object
-     * @param workout - text description to display for the workout
-     * @param results - text description to display for the results
-     */
-    constructor(workout, results) {
-        this._workout = workout;
-        this._results = results;
-    }
-    /**
-    * set of 'getters' for private variables
-    */
-    get workout() {
-        return this._workout;
-    }
-    get results() {
-        return this._results;
-    }
-    get type() {
-        return Whiteboard.__type;
-    }
-    /**
-     * test for equality - checks all fields are the same.
-     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-     * @param rhs - the object to compare this one to.
-     */
-    equals(rhs) {
-        return ((this._workout.equals(rhs._workout)) &&
-            (this._results.equals(rhs._results)));
-    }
-    ;
-    /**
-     * Method that serializes to JSON
-     */
-    toJSON() {
-        return {
-            __type: Whiteboard.__type,
-            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-            attributes: {
-                _workout: this._workout,
-                _results: this._results
-            }
-        };
-    }
-    /**
-     * Method that can deserialize JSON into an instance
-     * @param data - the JSON data to revove from
-     */
-    static revive(data) {
-        // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-        if (data.attributes)
-            return Whiteboard.reviveDb(data.attributes);
-        else
-            return Whiteboard.reviveDb(data);
-    }
-    /**
-    * Method that can deserialize JSON into an instance
-    * @param data - the JSON data to revove from
-    */
-    static reviveDb(data) {
-        return new Whiteboard(WhiteboardElement.revive(data._workout), WhiteboardElement.revive(data._results));
-    }
-}
-exports.Whiteboard = Whiteboard;
-Whiteboard.__type = "Whiteboard";
-//==============================//
-// WhiteboardElement class
-//==============================//
-class WhiteboardElement {
-    /**
-     * Create a WhiteboardElement object
-      * @param text - the text to display.
-     */
-    constructor(text) {
-        this._text = text;
-    }
-    /**
-    * set of 'getters' for private variables
-    */
-    get text() {
-        return this._text;
-    }
-    get type() {
-        return WhiteboardElement.__type;
-    }
-    /**
-     * test for equality - checks all fields are the same.
-     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-     * @param rhs - the object to compare this one to.
-     */
-    equals(rhs) {
-        return (this._text === rhs._text);
-    }
-    ;
-    /**
-     * copy from another
-     * @param rhs - the object to compare this one to.
-     */
-    assign(rhs) {
-        this._text = rhs._text;
-    }
-    ;
-    /**
-     * Method that serializes to JSON
-     */
-    toJSON() {
-        return {
-            __type: WhiteboardElement.__type,
-            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-            attributes: {
-                _text: this._text
-            }
-        };
-    }
-    ;
-    /**
-     * Method that can deserialize JSON into an instance
-     * @param data - the JSON data to revove from
-     */
-    static revive(data) {
-        // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-        if (data.attributes)
-            return WhiteboardElement.reviveDb(data.attributes);
-        else
-            return WhiteboardElement.reviveDb(data);
-    }
-    /**
-    * Method that can deserialize JSON into an instance
-    * @param data - the JSON data to revove from
-    */
-    static reviveDb(data) {
-        return new WhiteboardElement(data._text);
-    }
-}
-exports.WhiteboardElement = WhiteboardElement;
-WhiteboardElement.__type = "WhiteboardElement";
 
 
 /***/ }),

@@ -28,8 +28,8 @@ describe("LiveWorkout", function () {
    channelFactory = new LiveDocumentChannelFactoryStub();
    channelOut = channelFactory.createConnectionOut();
    channelIn = channelFactory.createConnectionIn();
-   workoutOut = new LiveWorkout(text1, true, channelOut);
-   workoutIn = new LiveWorkout(textIn, false, channelIn);
+   workoutOut = new LiveWorkout(text1, '', true, channelOut);
+   workoutIn = new LiveWorkout(textIn, '', false, channelIn);
    workout = new LiveWorkout(textIn);
    commandProcessorOut = workoutOut.createCommandProcessor();
    commandProcessorIn = workoutIn.createCommandProcessor();

@@ -48,7 +48,6 @@
     <Content Include="test\test-queue.js" />
     <Content Include="test\test-signal.js" />
     <Content Include="test\test-userfacilities.js" />
-    <Content Include="test\test-whiteboard.js" />
     <Content Include="tsconfig.json" />
     <Content Include="webpack-config.js" />
   </ItemGroup>
@@ -71,6 +70,7 @@
     <TypeScriptCompile Include="dev\LiveDocumentCentral.tsx" />
     <TypeScriptCompile Include="dev\LiveInterfaces.tsx" />
     <TypeScriptCompile Include="dev\LiveWorkout.tsx" />
+    <TypeScriptCompile Include="dev\LocalStore.tsx" />
     <TypeScriptCompile Include="dev\Logger.tsx" />
     <TypeScriptCompile Include="dev\LoggerClientWrap.tsx" />
     <TypeScriptCompile Include="dev\LoggerServerWrap.tsx" />
@@ -87,7 +87,6 @@
     <TypeScriptCompile Include="dev\Streamable.tsx" />
     <TypeScriptCompile Include="dev\StreamableTypes.tsx" />
     <TypeScriptCompile Include="dev\UserFacilities.tsx" />
-    <TypeScriptCompile Include="dev\Whiteboard.tsx" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
 </Project>

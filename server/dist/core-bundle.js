@@ -5473,7 +5473,11 @@ GymClockState.__type = "GymClockState";
 
 /*! Copyright TXPCo, 2020, 2021 */
 // Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
 // LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
@@ -5544,12 +5548,16 @@ exports.LiveDocumentChannelFactoryStub = LiveDocumentChannelFactoryStub;
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveUndoCommand = exports.LiveCommandProcessor = void 0;
@@ -5593,7 +5601,7 @@ class LiveCommandProcessor {
         // notify local listeners
         if (this._changeListeners) {
             for (var i = 0; i < this._changeListeners.length; i++) {
-                this._changeListeners[i](command, this._document);
+                this._changeListeners[i](this._document, command);
             }
         }
     }
@@ -5643,6 +5651,12 @@ class LiveCommandProcessor {
     onDocument(document) {
         this._document.assign(document);
         this.clearCommands();
+        // notify local listeners, command is NULL but we send the entire document
+        if (this._changeListeners) {
+            for (var i = 0; i < this._changeListeners.length; i++) {
+                this._changeListeners[i](this._document);
+            }
+        }
     }
     invalidateIndex() {
         this._lastCommandIndex = -1;
@@ -5726,12 +5740,16 @@ LiveUndoCommand.__type = "LiveUndoCommand";
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveDocumentRemote = exports.LiveDocumentMaster = void 0;
@@ -5794,18 +5812,27 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 "use strict";
 
 /*! Copyright TXPCo, 2020, 2021 */
-// Modules in the Document architecture:
-// DocumentInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// Modules in the LiveDocument architecture:
+// LiveChannelStub - contains a stub implementation of LiveChannel, short - circuits any streaming and just passes document & commands from publisher to subscriber in test harness.
+// LiveCommand - contains LiveCommandProcessor - maintains a log of commands, drives undo/redo, and manages publish/scrscribe connection to channels
+// LiveDocumentCentral - contains classes that aggregate creation of live documents. 
+// LiveInterfaces - defines abstract interfaces for Document, Selection, Command, ...
+// LiveWorkout - contains a concrete implementation of a LiveDocument for the live workout app. 
 // Conceptually, this architecture needs be thought of as:
 //    - Document, which is Streamable and can be sent to remote parties
 //    - a set of Commands, each of which are Streamable and can be sent to remote parties. A Command contains a Selection to which it is applied. 
-//    - Master and Remote CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
+//    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveWhiteboardSelection = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
+const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
+////////////////////////////////////////
+// LiveWorkout - class to represents the entire state of a workout. 
+// Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
+////////////////////////////////////////
 class LiveWorkout {
     constructor(whiteboardText, resultsText, outbound, channel) {
         this._outbound = outbound;
@@ -5892,6 +5919,9 @@ class LiveWorkout {
 }
 exports.LiveWorkout = LiveWorkout;
 LiveWorkout.__type = "LiveWorkout";
+////////////////////////////////////////
+// LiveWhiteboardCommand - class to represents the whiteboard within a workout. 
+////////////////////////////////////////
 class LiveWhiteboardCommand {
     constructor(text, _priorText) {
         this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
@@ -5913,6 +5943,8 @@ class LiveWhiteboardCommand {
             // Verify that the document has not changed since the command was created
             if (this._priorText === wo.whiteboardText)
                 wo.whiteboardText = this._text;
+            // save in local cache
+            new LocalStore_1.StoredWorkoutState().saveWorkout(wo.whiteboardText);
         }
     }
     reverseFrom(document) {
@@ -5962,7 +5994,82 @@ class LiveWhiteboardCommand {
 }
 exports.LiveWhiteboardCommand = LiveWhiteboardCommand;
 LiveWhiteboardCommand.__type = "LiveWhiteboardCommand";
-// Class to represent the 'selection' of the whiteboard within a Workout document.
+////////////////////////////////////////
+// LiveResultsCommand - class to represents the whiteboard within a workout.
+////////////////////////////////////////
+class LiveResultsCommand {
+    constructor(text, _priorText) {
+        this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
+        this._text = text;
+        this._priorText = _priorText; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
+    }
+    // type is read only
+    get type() {
+        return LiveResultsCommand.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            if (this._priorText === wo.resultsText)
+                wo.resultsText = this._text;
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            wo.resultsText = this._priorText;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveResultsCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _text: this._text,
+                _priorText: this._priorText
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveResultsCommand.reviveDb(data.attributes);
+        else
+            return LiveResultsCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveResultsCommand(data._text, data._priorText);
+    }
+    ;
+}
+exports.LiveResultsCommand = LiveResultsCommand;
+LiveResultsCommand.__type = "LiveResultsCommand";
+////////////////////////////////////////
+// LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
+////////////////////////////////////////
 class LiveWhiteboardSelection {
     constructor() {
     }
@@ -5971,7 +6078,20 @@ class LiveWhiteboardSelection {
     }
 }
 exports.LiveWhiteboardSelection = LiveWhiteboardSelection;
-// Implemntation of channl over RTC/peer architecture
+////////////////////////////////////////
+// LiveWhiteboardSelection - Class to represent the 'selection' of the results within a Workout document.
+////////////////////////////////////////
+class LiveResultsSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveResultsSelection";
+    }
+}
+exports.LiveResultsSelection = LiveResultsSelection;
+////////////////////////////////////////
+// LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
+////////////////////////////////////////
 class LiveWorkoutChannelPeer {
     constructor(peer) {
         this._types = new StreamableTypes_1.StreamableTypes;
@@ -5990,6 +6110,9 @@ class LiveWorkoutChannelPeer {
                 this.onDocument(ev);
             }
             if (ev.type === LiveWhiteboardCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveResultsCommand.__type) {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
@@ -6013,7 +6136,10 @@ class LiveWorkoutChannelPeer {
         this._peer.broadcast(new LiveCommand_1.LiveUndoCommand());
     }
 }
-// Creates the type of channel we need to exchange Workout Documents
+////////////////////////////////////////
+// LiveWorkoutChannelFactoryPeer - Creates the type of channel we need to exchange Workout Documents
+// pass this to ILiveDocumentMaster / Remote in LiveDocumentCentral.
+////////////////////////////////////////
 class LiveWorkoutChannelFactoryPeer {
     constructor(connection) {
         this._connection = connection;
@@ -6026,15 +6152,212 @@ class LiveWorkoutChannelFactoryPeer {
     }
 }
 exports.LiveWorkoutChannelFactoryPeer = LiveWorkoutChannelFactoryPeer;
-// Creates the type of Workout Documents
+////////////////////////////////////////
+// LiveWorkoutFactory - Creates the Workout Documents, pass this to ILiveDocumentMaster / Remote in LiveDocumentCentral. 
+////////////////////////////////////////
 class LiveWorkoutFactory {
     constructor() {
     }
     createLiveDocument(outbound, channel) {
-        return new LiveWorkout("Waiting...[doc version1]", "Waiting...[doc version2]", outbound, channel);
+        // Use cached copy of the workout if there is one
+        let storedWorkoutState = new LocalStore_1.StoredWorkoutState();
+        let storedWorkout = storedWorkoutState.loadWorkout();
+        if (storedWorkout.length === 0) {
+            if (outbound)
+                storedWorkout = LiveWorkoutFactory.defaultWorkoutTextMaster;
+            else
+                storedWorkout = LiveWorkoutFactory.defaultWorkoutTextRemote;
+        }
+        var resultsText = outbound ? LiveWorkoutFactory.defaultResultsTextMaster : LiveWorkoutFactory.defaultWorkoutTextRemote;
+        return new LiveWorkout(storedWorkout, resultsText, outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
+LiveWorkoutFactory.defaultWorkoutTextMaster = "No workout set. Click the button above ?.";
+LiveWorkoutFactory.defaultWorkoutTextRemote = "Waiting for Coach to join.";
+LiveWorkoutFactory.defaultResultsTextMaster = "Waiting for people to join.";
+LiveWorkoutFactory.defaultResultsTextRemote = "Waiting for people to join.";
+
+
+/***/ }),
+
+/***/ "./dev/LocalStore.tsx":
+/*!****************************!*\
+  !*** ./dev/LocalStore.tsx ***!
+  \****************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StoredWorkoutState = exports.StoredMeetingState = exports.LocalStore = void 0;
+//==============================//
+// LocalStore class
+//==============================//
+class LocalStore {
+    /**
+     * Initialises repository
+     */
+    constructor() {
+    }
+    /**
+     *
+     * saveValue
+     * @param key - key to use to look up data
+     * @param value - value to save
+     */
+    saveValue(key, value) {
+        if (typeof window !== 'undefined' && window.localStorage)
+            window.localStorage.setItem(key, value.toString());
+    }
+    ;
+    /**
+     *
+     * loadValue
+     * @param key - key to use to look up data
+     */
+    loadValue(key) {
+        if (typeof window !== 'undefined' && window.localStorage)
+            return window.localStorage.getItem(key);
+        else
+            return null;
+    }
+    ;
+    /**
+     *
+     * clearValue
+     * @param key - key to use to look up data
+     */
+    clearValue(key) {
+        if (typeof window !== 'undefined' && window.localStorage)
+            window.localStorage.removeItem(key);
+    }
+}
+exports.LocalStore = LocalStore;
+const lastMeetingId = "lastMeetingId";
+const lastNameId = "lastName";
+const lastWorkoutId = "lastWorkout";
+const lastClockId = "lastClock";
+const lastClockStateId = "lastClockState";
+//==============================//
+// StoredMeetingState class
+//==============================//
+class StoredMeetingState {
+    constructor() {
+        this._store = new LocalStore();
+    }
+    /**
+     *
+     * saveMeetingId
+     * @param meetingId - value to save
+     */
+    saveMeetingId(meetingId) {
+        this._store.saveValue(lastMeetingId, meetingId);
+    }
+    ;
+    /**
+     *
+     * loadMeetingId
+     */
+    loadMeetingId() {
+        var ret = this._store.loadValue(lastMeetingId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveName
+     * @param meetingId - value to save
+     */
+    saveName(meetingId) {
+        this._store.saveValue(lastNameId, meetingId);
+    }
+    ;
+    /**
+     *
+     * loadName
+     */
+    loadName() {
+        var ret = this._store.loadValue(lastNameId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+}
+exports.StoredMeetingState = StoredMeetingState;
+//==============================//
+// StoredWorkoutState class
+//==============================//
+class StoredWorkoutState {
+    constructor() {
+        this._store = new LocalStore();
+    }
+    /**
+     *
+     * saveWorkout
+     * @param workout - value to save
+     */
+    saveWorkout(workout) {
+        this._store.saveValue(lastWorkoutId, workout);
+    }
+    ;
+    /**
+     *
+     * loadWorkout
+     */
+    loadWorkout() {
+        var ret = this._store.loadValue(lastWorkoutId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveClockSpec
+     * @param clock - value to save
+     */
+    saveClockSpec(clock) {
+        this._store.saveValue(lastClockId, clock);
+    }
+    ;
+    /**
+     *
+     * loadClockSpec
+     */
+    loadClockSpec() {
+        var ret = this._store.loadValue(lastClockId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+    /**
+     *
+     * saveClockState
+     * @param clock - value to save
+     */
+    saveClockState(clock) {
+        this._store.saveValue(lastClockStateId, clock);
+    }
+    ;
+    /**
+     *
+     * loadClockState
+     */
+    loadClockState() {
+        var ret = this._store.loadValue(lastClockStateId);
+        if (!ret)
+            ret = "";
+        return ret;
+    }
+    ;
+}
+exports.StoredWorkoutState = StoredWorkoutState;
 
 
 /***/ }),
@@ -7580,7 +7903,6 @@ const Facility_1 = __webpack_require__(/*! ./Facility */ "./dev/Facility.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/UserFacilities.tsx");
-const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 const LiveWorkout_1 = __webpack_require__(/*! ./LiveWorkout */ "./dev/LiveWorkout.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
@@ -7606,13 +7928,12 @@ class StreamableTypes {
         this._types.CallDataBatched = Call_1.CallDataBatched;
         this._types.SignalMessage = Signal_1.SignalMessage;
         this._types.UserFacilities = UserFacilities_1.UserFacilities;
-        this._types.Whiteboard = Whiteboard_1.Whiteboard;
-        this._types.WhiteboardElement = Whiteboard_1.WhiteboardElement;
         this._types.GymClockSpec = GymClock_1.GymClockSpec;
         this._types.GymClockAction = GymClock_1.GymClockAction;
         this._types.GymClockState = GymClock_1.GymClockState;
         this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
         this._types.LiveWhiteboardCommand = LiveWorkout_1.LiveWhiteboardCommand;
+        this._types.LiveResultsCommand = LiveWorkout_1.LiveResultsCommand;
         this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
     }
     isObjectKey(key) {
@@ -7755,164 +8076,6 @@ class UserFacilities {
 }
 exports.UserFacilities = UserFacilities;
 UserFacilities.__type = "UserFacilities";
-
-
-/***/ }),
-
-/***/ "./dev/Whiteboard.tsx":
-/*!****************************!*\
-  !*** ./dev/Whiteboard.tsx ***!
-  \****************************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*jslint white: false, indent: 3, maxerr: 1000 */
-/*global Enum*/
-/*global exports*/
-/*! Copyright TXPCo, 2020, 2021 */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.WhiteboardElement = exports.Whiteboard = void 0;
-//==============================//
-// Whiteboard class
-//==============================//
-class Whiteboard {
-    /**
-     * Create a Whiteboard object
-     * @param workout - text description to display for the workout
-     * @param results - text description to display for the results
-     */
-    constructor(workout, results) {
-        this._workout = workout;
-        this._results = results;
-    }
-    /**
-    * set of 'getters' for private variables
-    */
-    get workout() {
-        return this._workout;
-    }
-    get results() {
-        return this._results;
-    }
-    get type() {
-        return Whiteboard.__type;
-    }
-    /**
-     * test for equality - checks all fields are the same.
-     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-     * @param rhs - the object to compare this one to.
-     */
-    equals(rhs) {
-        return ((this._workout.equals(rhs._workout)) &&
-            (this._results.equals(rhs._results)));
-    }
-    ;
-    /**
-     * Method that serializes to JSON
-     */
-    toJSON() {
-        return {
-            __type: Whiteboard.__type,
-            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-            attributes: {
-                _workout: this._workout,
-                _results: this._results
-            }
-        };
-    }
-    /**
-     * Method that can deserialize JSON into an instance
-     * @param data - the JSON data to revove from
-     */
-    static revive(data) {
-        // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-        if (data.attributes)
-            return Whiteboard.reviveDb(data.attributes);
-        else
-            return Whiteboard.reviveDb(data);
-    }
-    /**
-    * Method that can deserialize JSON into an instance
-    * @param data - the JSON data to revove from
-    */
-    static reviveDb(data) {
-        return new Whiteboard(WhiteboardElement.revive(data._workout), WhiteboardElement.revive(data._results));
-    }
-}
-exports.Whiteboard = Whiteboard;
-Whiteboard.__type = "Whiteboard";
-//==============================//
-// WhiteboardElement class
-//==============================//
-class WhiteboardElement {
-    /**
-     * Create a WhiteboardElement object
-      * @param text - the text to display.
-     */
-    constructor(text) {
-        this._text = text;
-    }
-    /**
-    * set of 'getters' for private variables
-    */
-    get text() {
-        return this._text;
-    }
-    get type() {
-        return WhiteboardElement.__type;
-    }
-    /**
-     * test for equality - checks all fields are the same.
-     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
-     * @param rhs - the object to compare this one to.
-     */
-    equals(rhs) {
-        return (this._text === rhs._text);
-    }
-    ;
-    /**
-     * copy from another
-     * @param rhs - the object to compare this one to.
-     */
-    assign(rhs) {
-        this._text = rhs._text;
-    }
-    ;
-    /**
-     * Method that serializes to JSON
-     */
-    toJSON() {
-        return {
-            __type: WhiteboardElement.__type,
-            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-            attributes: {
-                _text: this._text
-            }
-        };
-    }
-    ;
-    /**
-     * Method that can deserialize JSON into an instance
-     * @param data - the JSON data to revove from
-     */
-    static revive(data) {
-        // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-        if (data.attributes)
-            return WhiteboardElement.reviveDb(data.attributes);
-        else
-            return WhiteboardElement.reviveDb(data);
-    }
-    /**
-    * Method that can deserialize JSON into an instance
-    * @param data - the JSON data to revove from
-    */
-    static reviveDb(data) {
-        return new WhiteboardElement(data._text);
-    }
-}
-exports.WhiteboardElement = WhiteboardElement;
-WhiteboardElement.__type = "WhiteboardElement";
 
 
 /***/ }),
@@ -8063,7 +8226,6 @@ const Queue_1 = __webpack_require__(/*! ./Queue */ "./dev/Queue.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/UserFacilities.tsx");
-const Whiteboard_1 = __webpack_require__(/*! ./Whiteboard */ "./dev/Whiteboard.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 const Enum_1 = __webpack_require__(/*! ./Enum */ "./dev/Enum.tsx");
 // Peer-peer architecture
@@ -8098,8 +8260,6 @@ var EntryPoints = {
     CallDataBatched: Call_1.CallDataBatched,
     SignalMessage: Signal_1.SignalMessage,
     UserFacilities: UserFacilities_1.UserFacilities,
-    Whiteboard: Whiteboard_1.Whiteboard,
-    WhiteboardElement: Whiteboard_1.WhiteboardElement,
     EGymClockDuration: GymClock_1.EGymClockDuration,
     EGymClockMusic: GymClock_1.EGymClockMusic,
     EGymClockState: GymClock_1.EGymClockState,
