@@ -6,10 +6,8 @@ var EntryPoints = pkg.default;
 
 var EGymClockDuration = EntryPoints.EGymClockDuration;
 var EGymClockMusic = EntryPoints.EGymClockMusic;
-var EGymClockAction = EntryPoints.EGymClockAction;
 var EGymClockState = EntryPoints.EGymClockState;
 var GymClockSpec = EntryPoints.GymClockSpec;
-var GymClockAction = EntryPoints.GymClockAction;
 var GymClockState = EntryPoints.GymClockState;
 var StreamableTypes = EntryPoints.StreamableTypes;
 
@@ -44,36 +42,6 @@ describe("GymClockSpec", function () {
 
       var obj = types.reviveFromJSON(output);
       expect(obj.equals(spec1)).to.equal(true);
-   });
-});
-
-describe("GymClockAction", function () {
-   var action1, action2;
-
-   beforeEach(function () {
-      action1 = new GymClockAction(EGymClockAction.Start);
-      action2 = new GymClockAction(EGymClockAction.Stop);
-   });
-
-
-   it("Needs to compare for equality and inequality", function () {
-
-      expect(action1.equals(action1)).to.equal(true);
-      expect(action1.equals(action2)).to.equal(false);
-   });
-
-   it("Needs to correctly store attributes", function () {
-
-      expect(action1.actionEnum).to.equal(EGymClockAction.Start);
-   });
-
-   it("Needs to save and restore to/from JSON", function () {
-
-      var types = new StreamableTypes();
-      var output = JSON.stringify(action1);
-
-      var obj = types.reviveFromJSON(output);
-      expect(obj.equals(action1)).to.equal(true);
    });
 });
 

@@ -102,7 +102,6 @@ interface IMasterWhiteboardState {
 }
 
 interface IMasterWhiteboardElementProps {
-   rtc: PeerConnection;
    commandProcessor: ICommandProcessor;
    liveWorkout: LiveWorkout;
    allowEdit: boolean;
@@ -132,8 +131,6 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
       if (props.peerConnection) {
          props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
       }
-
-      var workout;
 
       this.state = {
          // Make copies of the strings, only change orginal via a command. 
@@ -197,7 +194,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
             </Row>
             <Row style={thinStyle}>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peerConnection}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} 
                      commandProcessor={this.props.commandProcessor}
                      liveWorkout={this.props.liveWorkout}
                      caption={'Workout'} placeholder={'Type the workout details here.'}
@@ -205,7 +202,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
                      onChange={this.onWorkoutChange.bind(this)}></MasterWhiteboardElement>
                </Col>
                <Col style={thinishStyle}>
-                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} rtc={this.props.peerConnection}
+                  <MasterWhiteboardElement allowEdit={this.props.allowEdit} 
                      commandProcessor={this.props.commandProcessor}
                      liveWorkout={this.props.liveWorkout}
                      caption={'Results'} placeholder={'Type results here after the workout.'}
@@ -272,7 +269,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
    }
 
    latestValue() {
-      // if latest value was saved from local edit, use it, else the property has been updated, so should be used. 
+      // if latest value was saved from local edit, use it, otherwise use the property we were given as a default.
       if (this.state.valueAsOf.getTime() > this.props.valueAsOf.getTime())
          return this.state.value;
       else
@@ -319,10 +316,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 }
 
 export interface IRemoteWhiteboardProps {
-   rtc: PeerConnection;
    commandProcessor: ICommandProcessor;
    liveWorkout: LiveWorkout;
-   whiteboardText: string;
 }
 
 interface IRemoteWhiteboardState {
@@ -331,13 +326,11 @@ interface IRemoteWhiteboardState {
 }
 
 interface IRemoteWhiteboardElementProps {
-   rtc: PeerConnection;
    caption: string;
    value: string;
 }
 
 interface IRemoteWhiteboardElementState {
-   caption: string;
 }
 
 export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IRemoteWhiteboardState> {
@@ -351,8 +344,8 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       props.commandProcessor.addChangeListener(this.onChange.bind(this));
 
       this.state = {
-         workoutText: props.whiteboardText,
-         resultsText: props.whiteboardText
+         workoutText: props.liveWorkout.whiteboardText,
+         resultsText: props.liveWorkout.resultsText
       };
    }
 
@@ -379,12 +372,12 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
             </Row>
             <Row style={thinStyle}>
                <Col style={thinStyle}>
-                  <RemoteWhiteboardElement rtc={this.props.rtc}
+                  <RemoteWhiteboardElement
                      caption={'Workout'}
                      value={this.state.workoutText}> </RemoteWhiteboardElement>
                </Col>
                <Col style={thinStyle}>
-                  <RemoteWhiteboardElement rtc={this.props.rtc}
+                  <RemoteWhiteboardElement 
                      caption={'Results'}
                      value={this.state.resultsText}> </RemoteWhiteboardElement>
                </Col>
@@ -401,7 +394,6 @@ class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementPr
       super(props);
 
       this.state = {
-         caption: props.caption
       };
    }
 
@@ -409,7 +401,7 @@ class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementPr
       return (
          <div>
             <Row style={thinCentredStyle}>
-               <p style={whiteboardElementHeaderStyle}>{this.state.caption}</p><p style={blockCharStyle}></p>
+               <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p><p style={blockCharStyle}></p>
             </Row>
             <Row style={thinStyle}>
                <p style={whiteboardElementBodyStyle}>{this.props.value}</p>

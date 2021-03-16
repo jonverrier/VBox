@@ -45,7 +45,7 @@ import { LeaderResolve } from './LeaderResolveUI';
 import { Media } from './Media';
 import { MasterWhiteboard, RemoteWhiteboard } from './WhiteboardUI';
 import { RemotePeople } from './peoplepanel';
-import { MasterClock, RemoteClock } from './clockpanel';
+import { MasterClock, RemoteClock } from './ClockUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -387,13 +387,14 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                <Container fluid style={pageStyle}>
                   <Row style={thinStyle}>
                      <Col style={lpanelStyle}>
-                        <RemoteWhiteboard rtc={this.state.peerConnection}
-                           whiteboardText={(this.state.remoteDocument.document as LiveWorkout).whiteboardText}
+                        <RemoteWhiteboard
                            commandProcessor={this.state.remoteDocument.commandProcessor }
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <RemoteClock peers={this.state.peerConnection}/>
+                        <RemoteClock 
+                           commandProcessor={this.state.remoteDocument.commandProcessor}
+                           liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}/>
                         <br />
                         <RemotePeople peers={this.state.peerConnection}> </RemotePeople>
                      </Col>
@@ -680,7 +681,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.peerConnection}> </MasterClock>
+                        <MasterClock allowEdit={this.state.isLeader} 
+                           commandProcessor={this.state.masterDocument.commandProcessor}
+                           liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterClock>
                         <br />
                         <RemotePeople peers={this.state.peerConnection}> </RemotePeople>
                      </Col>
@@ -735,14 +738,6 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
 
    onMobileFormFactorChange(isMobile: boolean) {
       this.setState({ isMobileFormFactor: isMobile });
-   }
-
-   playAudio() {
-      if (!this.state.playingAudio) {
-         var audioEl: any = document.getElementsByClassName("audio-element")[0];
-         audioEl.play();
-         this.setState({ playingAudio: true });
-      }
    }
 
    validateEmail(email : string) {
@@ -808,22 +803,21 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                     src={'landing-workout.png'} />
                               <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Share the whiteboard.</h3>
+                                 <h3 style={carouselHeadingStyle}>Share an online whiteboard to brief your team.</h3>
                               </Carousel.Caption>
                            </Carousel.Item  >
                               <Carousel.Item interval={7500}>
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-video.png'} />
                               <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Manage the video call.</h3>
+                                 <h3 style={carouselHeadingStyle}>Manage video feed so your team focus on what you need them to.</h3>
                               </Carousel.Caption>
                            </Carousel.Item>
                            <Carousel.Item interval={7500}>
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-music.png'} />
                                  <Carousel.Caption>
-                                    <h3 style={carouselHeadingStyle}>Play licenced music&nbsp;
-                                       <a onClick={this.playAudio.bind(this)}><u>(try)</u></a>.
+                                    <h3 style={carouselHeadingStyle}>Play licenced music for the workout.
                                     </h3>
                               </Carousel.Caption>
                            </Carousel.Item>

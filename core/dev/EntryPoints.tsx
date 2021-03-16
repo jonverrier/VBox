@@ -10,7 +10,7 @@ import { Queue, QueueString, QueueNumber, QueueAny } from './Queue'
 import { ETransportType, CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
-import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from './GymClock'
+import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from './GymClock'
 import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './Enum';
 
 // Peer-peer architecture
@@ -21,7 +21,11 @@ import { PeerCallerWeb, PeerRecieverWeb } from './PeerWeb';
 import { PeerFactory } from './PeerFactory';
 
 // LiveDocument Architecture
-import { LiveWorkout, LiveWhiteboardCommand, LiveWorkoutChannelFactoryPeer, LiveWorkoutFactory} from './LiveWorkout';
+import {
+   LiveWorkout,
+   LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand,
+   LiveWorkoutChannelFactoryPeer, LiveWorkoutFactory
+} from './LiveWorkout';
 import { LiveCommandProcessor, LiveUndoCommand } from './LiveCommand';
 import { LiveDocumentChannelFactoryStub } from './LiveChannel';
 import { LiveDocumentMaster, LiveDocumentRemote } from './LiveDocumentCentral';
@@ -50,9 +54,7 @@ var EntryPoints = {
    EGymClockDuration: EGymClockDuration,
    EGymClockMusic: EGymClockMusic,
    EGymClockState: EGymClockState,
-   EGymClockAction: EGymClockAction,
    GymClockSpec: GymClockSpec,
-   GymClockAction: GymClockAction,
    GymClockState: GymClockState,
    EThreeStateSwitchEnum: EThreeStateSwitchEnum,
    EThreeStateRagEnum: EThreeStateRagEnum,
@@ -74,6 +76,9 @@ var EntryPoints = {
    LiveDocumentChannelFactoryStub: LiveDocumentChannelFactoryStub,
    LiveWorkout: LiveWorkout,
    LiveWhiteboardCommand: LiveWhiteboardCommand,
+   LiveResultsCommand: LiveResultsCommand,
+   LiveClockSpecCommand: LiveClockSpecCommand,
+   LiveClockStateCommand: LiveClockStateCommand,
    LiveDocumentMaster: LiveDocumentMaster,
    LiveDocumentRemote: LiveDocumentRemote,
    LiveWorkoutChannelFactoryPeer: LiveWorkoutChannelFactoryPeer,
