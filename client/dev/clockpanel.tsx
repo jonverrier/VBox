@@ -17,6 +17,8 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person'
 import { PeerConnection } from '../../core/dev/PeerConnection';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
+import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
+import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
 
 import { RunnableClock } from './RunnableClock';
 
@@ -49,51 +51,10 @@ const blockCharStyle: CSS.Properties = {
    paddingTop: '0px', paddingBottom: '0px',
 };
 
-// Keep this function need declation in case an extra Enum is added above & this needs to change
-function selectMusic(durationEnum, musicEnum) : string {
-   var url: string;
-
-   if (musicEnum == EGymClockMusic.None) {
-      return null;
-   }
-   else
-   if (musicEnum == EGymClockMusic.Uptempo) {
-      switch (durationEnum) {
-         case EGymClockDuration.Five:
-            return '130-bpm-workout-V2 trimmed.mp3';
-
-         default:
-         case EGymClockDuration.Ten:
-            return '10-Minute-Timer.mp3';
-
-         case EGymClockDuration.Fifteen:
-            return '15-Minute-Timer.mp3';
-
-         case EGymClockDuration.Twenty:
-            return '20-Minute-Timer.mp3';
-      }
-   }
-   else
-   if (musicEnum == EGymClockMusic.Midtempo) {
-      switch (durationEnum) {
-         case EGymClockDuration.Five:
-            return '130-bpm-workout-V2 trimmed.mp3';
-
-         default:
-         case EGymClockDuration.Ten:
-            return '130-bpm-workout-V2 trimmed.mp3';
-
-         case EGymClockDuration.Fifteen:
-            return '130-bpm-workout-V2 trimmed.mp3';
-
-         case EGymClockDuration.Twenty:
-            return '130-bpm-workout-V2 trimmed.mp3';
-      }
-   }
-};
-
 export interface IRemoteClockProps {
    peers: PeerConnection;
+   commandProcessor: ICommandProcessor;
+   liveWorkout: LiveWorkout;
 }
 
 export interface IRemoteClockState {
@@ -113,12 +74,29 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
          props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
       }
 
+      // watch for changes being made on our document
+      props.commandProcessor.addChangeListener(this.onChange.bind(this));
+
       this.state = {
          isMounted : false,
          mm: 0,
          ss: 0,
          clock: null
       };
+   }
+
+   onChange(doc: ILiveDocument, cmd?: ICommand) {
+      if (doc.type === LiveWorkout.__type) {
+         var workout: LiveWorkout = doc as LiveWorkout;
+
+         // Stop current clock if it is going
+         if (this.state.clock && this.state.clock.isRunning())
+            this.state.clock.stop();
+
+         // replace with a new one matching the spec
+         let clock = new RunnableClock(workout.clockSpec);
+         this.setState({ clock: clock });
+      }
    }
 
    componentDidMount() {
@@ -133,20 +111,6 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
 
    onRemoteData(ev: IStreamable) {
 
-      if (ev.type === GymClockSpec.__type) {
-         // we are sent a clock spec as soon as we connect
-         var evSpec = ev as GymClockSpec;
-
-         // Stop current clock if it is going
-         if (this.state.clock && this.state.clock.isRunning())
-            this.state.clock.stop();
-
-         // replace with a new one matching the spec
-         let spec = new GymClockSpec(evSpec.durationEnum, evSpec.musicEnum, evSpec.musicUrl);
-         let clock = new RunnableClock (spec);
-         this.setState({clock: clock});
-      }
-      else
       if (ev.type === GymClockState.__type) {
          // Then we are sent the state of the clock (running/paused/stopped etc)
          var evState = ev as GymClockState;
@@ -192,6 +156,8 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
 
 interface IMasterClockProps {
    rtc: PeerConnection;
+   commandProcessor: ICommandProcessor;
+   liveWorkout: LiveWorkout;
    allowEdit: boolean;
 }
 
@@ -200,8 +166,9 @@ interface IMasterClockState {
    isMounted: boolean;
    enableOk: boolean;
    enableCancel: boolean;
+   durationEnum: EGymClockDuration;
+   musicEnum: EGymClockMusic;
    clockStateEnum: any;
-   clockSpec: GymClockSpec;
    clock: RunnableClock;
    mm: number;
    ss: number;
@@ -217,22 +184,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
 
       this.storedWorkoutState = new StoredWorkoutState();
 
-      // Use cached copy of the workout clock if there is one
-      var storedClockSpec = this.storedWorkoutState.loadClockSpec();
-      var clockSpec : GymClockSpec;
-
-      if (storedClockSpec && storedClockSpec.length > 0) {
-         var types = new StreamableTypes()
-         var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
-         clockSpec = new GymClockSpec(loadedClockSpec.durationEnum,
-                                      loadedClockSpec.musicEnum,
-                                      selectMusic(loadedClockSpec.durationEnum,
-                                                  loadedClockSpec.musicEnum)
-                                      );
-      } else
-         clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None, undefined); 
-
-      let clock = new RunnableClock(clockSpec);
+      let clock = new RunnableClock(props.liveWorkout.clockSpec);
 
       // Use cached copy of the workout clock state if there is one
       var storedClockState = this.storedWorkoutState.loadClockState();
@@ -251,7 +203,8 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          isMounted: false,
          enableOk: false,
          enableCancel: false,
-         clockSpec: clockSpec,
+         durationEnum: props.liveWorkout.clockSpec.durationEnum,
+         musicEnum: props.liveWorkout.clockSpec.musicEnum,
          clockStateEnum: clock.clockStateEnum,
          clock: clock,
          mm: 0,
@@ -272,7 +225,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
       // By convention, new joiners broadcast a 'Person' object
       if (ev.type === Person.__type) {
          // Send them the clock
-         this.props.rtc.broadcast(this.state.clockSpec);
+         this.props.rtc.broadcast(this.props.liveWorkout.clockSpec);
 
          // Send clock state including the offset. 
          this.props.rtc.broadcast(this.state.clock.saveToState());
@@ -310,19 +263,19 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
    }
 
    processSave() {
-      var spec: GymClockSpec = new GymClockSpec(this.state.clockSpec.durationEnum,
-         this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl); 
+      var spec: GymClockSpec = new GymClockSpec(this.state.durationEnum,
+                                                this.state.musicEnum); 
 
       this.state.clock.stop();
-      var clock = new RunnableClock(spec);
+      var clock = new RunnableClock (spec);
 
       this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
 
       // Cache the clock spec as JSON
-      this.storedWorkoutState.saveClockSpec(JSON.stringify(this.state.clockSpec));
+      this.storedWorkoutState.saveClockSpec(JSON.stringify(spec));
 
-      // broadcast the clock spec to remotes
-      this.props.rtc.broadcast(spec);
+      let command = new LiveClockSpecCommand(spec, this.props.liveWorkout.clockSpec);
+      this.props.commandProcessor.adoptAndApply(command);
    }
 
    processCancel() {
@@ -421,45 +374,41 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                         <Form.Group controlId="durationGroupId">
                            <Form.Label>Run timer for:</Form.Label>
                            <Form.Check label="5m" type="radio" id={'10m-select'}
-                              checked={this.state.clockSpec.durationEnum === EGymClockDuration.Five}
+                              checked={this.state.durationEnum === EGymClockDuration.Five}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(EGymClockDuration.Five,
-                                          this.state.clockSpec.musicEnum, selectMusic(EGymClockDuration.Five, this.state.clockSpec.musicEnum)),
+                                       durationEnum: EGymClockDuration.Five,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
                            <Form.Check label="10m" type="radio" id={'10m-select'}
-                              checked={this.state.clockSpec.durationEnum === EGymClockDuration.Ten}
+                              checked={this.state.durationEnum === EGymClockDuration.Ten}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(EGymClockDuration.Ten, 
-                                          this.state.clockSpec.musicEnum, selectMusic(EGymClockDuration.Ten, this.state.clockSpec.musicEnum)),
+                                       durationEnum: EGymClockDuration.Ten,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
                            <Form.Check label="15m" type="radio" id={'15m-select'}
-                              checked={this.state.clockSpec.durationEnum === EGymClockDuration.Fifteen}
+                              checked={this.state.durationEnum === EGymClockDuration.Fifteen}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(EGymClockDuration.Fifteen,
-                                          this.state.clockSpec.musicEnum, selectMusic(EGymClockDuration.Fifteen, this.state.clockSpec.musicEnum)),
+                                       durationEnum: EGymClockDuration.Fifteen,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
                            <Form.Check label="20m" type="radio" id={'20m-select'}
-                              checked={this.state.clockSpec.durationEnum === EGymClockDuration.Twenty}
+                              checked={this.state.durationEnum === EGymClockDuration.Twenty}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(EGymClockDuration.Twenty,
-                                          this.state.clockSpec.musicEnum, selectMusic(EGymClockDuration.Twenty, this.state.clockSpec.musicEnum)),
+                                       durationEnum: EGymClockDuration.Twenty,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
@@ -471,34 +420,31 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                            <Form.Label>Music:</Form.Label>
                            <Form.Check label="Up tempo" type="radio" id={'upTempo-select'}
                               // TODO - should be able to remove 'name' from all these 
-                              checked={this.state.clockSpec.musicEnum === EGymClockMusic.Uptempo}
+                              checked={this.state.musicEnum === EGymClockMusic.Uptempo}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(this.state.clockSpec.durationEnum,
-                                          EGymClockMusic.Uptempo, selectMusic(this.state.clockSpec.durationEnum, EGymClockMusic.Uptempo)),
+                                       musicEnum: EGymClockMusic.Uptempo,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
                            <Form.Check label="Mid tempo" type="radio" id={'midTempo-select'}
-                              checked={this.state.clockSpec.musicEnum === EGymClockMusic.Midtempo}
+                              checked={this.state.musicEnum === EGymClockMusic.Midtempo}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(this.state.clockSpec.durationEnum,
-                                          EGymClockMusic.Midtempo, selectMusic(this.state.clockSpec.durationEnum, EGymClockMusic.Midtempo)),
+                                       musicEnum: EGymClockMusic.Midtempo,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }
                               }} />
                            <Form.Check label="None" type="radio" id={'noMusic-select'}
-                              checked={this.state.clockSpec.musicEnum === EGymClockMusic.None}
+                              checked={this.state.musicEnum === EGymClockMusic.None}
                               onChange={(ev) => {
                                  if (ev.target.checked) {
                                     this.setState({
-                                       clockSpec: new GymClockSpec(this.state.clockSpec.durationEnum,
-                                          EGymClockMusic.None, selectMusic(this.state.clockSpec.durationEnum, EGymClockMusic.None)),
+                                       musicEnum: EGymClockMusic.None,
                                        enableCancel: true
                                     }); this.testEnableSave();
                                  }

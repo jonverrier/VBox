@@ -318,7 +318,6 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
 export interface IRemoteWhiteboardProps {
    commandProcessor: ICommandProcessor;
    liveWorkout: LiveWorkout;
-   whiteboardText: string;
 }
 
 interface IRemoteWhiteboardState {
@@ -345,8 +344,8 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
       props.commandProcessor.addChangeListener(this.onChange.bind(this));
 
       this.state = {
-         workoutText: props.whiteboardText,
-         resultsText: props.whiteboardText
+         workoutText: props.liveWorkout.whiteboardText,
+         resultsText: props.liveWorkout.resultsText
       };
    }
 

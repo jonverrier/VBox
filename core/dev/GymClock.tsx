@@ -47,15 +47,13 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
    * Create a GymClockSpec object
    * @param durationEnum - one of the enumeration objects (10, 15, 20, ...)
    * @param musicEnum - one of the enumeration objects (Uptempo, Midtempo, none, ...)
-   * @param musicUrl - string URL to the music file. Can be null.
    */
    constructor(durationEnum: EGymClockDuration = EGymClockDuration.Ten,
-      musicEnum: EGymClockMusic = EGymClockMusic.None,
-      musicUrl: string = '') {
+      musicEnum: EGymClockMusic = EGymClockMusic.None) {
 
       this._durationEnum = durationEnum;
       this._musicEnum = musicEnum;
-      this._musicUrl = musicUrl;
+      this._musicUrl = GymClockSpec.selectMusic(this._durationEnum, this._musicEnum);
    }
 
    /**
@@ -113,6 +111,51 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
          return GymClockSpec.reviveDb(data.attributes);
 
       return GymClockSpec.reviveDb(data);
+   }
+
+   static selectMusic(durationEnum: EGymClockDuration, musicEnum: EGymClockMusic): string {
+
+      var url: string;
+
+      if (musicEnum == EGymClockMusic.None) {
+         return null;
+      }
+      else {
+         if (musicEnum == EGymClockMusic.Uptempo) {
+            switch (durationEnum) {
+               case EGymClockDuration.Five:
+                  return '130-bpm-workout-V2 trimmed.mp3';
+
+               default:
+               case EGymClockDuration.Ten:
+                  return '10-Minute-Timer.mp3';
+
+               case EGymClockDuration.Fifteen:
+                  return '15-Minute-Timer.mp3';
+
+               case EGymClockDuration.Twenty:
+                  return '20-Minute-Timer.mp3';
+            }
+         }
+         else {
+            if (musicEnum == EGymClockMusic.Midtempo) {
+               switch (durationEnum) {
+                  case EGymClockDuration.Five:
+                     return '130-bpm-workout-V2 trimmed.mp3';
+
+                  default:
+                  case EGymClockDuration.Ten:
+                     return '130-bpm-workout-V2 trimmed.mp3';
+
+                  case EGymClockDuration.Fifteen:
+                     return '130-bpm-workout-V2 trimmed.mp3';
+
+                  case EGymClockDuration.Twenty:
+                     return '130-bpm-workout-V2 trimmed.mp3';
+               }
+            }
+         }
+      }
    };
 
    /**
@@ -121,7 +164,7 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
    */
    static reviveDb(data: any): GymClockSpec {
 
-     return new GymClockSpec(data._durationEnum, data._musicEnum, data._musicUrl);
+     return new GymClockSpec(data._durationEnum, data._musicEnum);
    };
 }
 

@@ -51583,8 +51583,8 @@ class RemoteWhiteboard extends React.Component {
         // watch for changes being made on our document
         props.commandProcessor.addChangeListener(this.onChange.bind(this));
         this.state = {
-            workoutText: props.whiteboardText,
-            resultsText: props.whiteboardText
+            workoutText: props.liveWorkout.whiteboardText,
+            resultsText: props.liveWorkout.resultsText
         };
     }
     onChange(doc, cmd) {
@@ -51931,9 +51931,9 @@ class MemberPage extends React.Component {
                 React.createElement(Container_1.default, { fluid: true, style: pageStyle },
                     React.createElement(Row_1.default, { style: thinStyle },
                         React.createElement(Col_1.default, { style: lpanelStyle },
-                            React.createElement(WhiteboardUI_1.RemoteWhiteboard, { whiteboardText: this.state.remoteDocument.document.whiteboardText, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
+                            React.createElement(WhiteboardUI_1.RemoteWhiteboard, { commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peerConnection }),
+                            React.createElement(clockpanel_1.RemoteClock, { peers: this.state.peerConnection, commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }),
                             React.createElement("br", null),
                             React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peerConnection }, " "))),
                     React.createElement(Footer, null))));
@@ -52118,7 +52118,7 @@ class CoachPage extends React.Component {
                         React.createElement(Col_1.default, { style: lpanelStyle },
                             React.createElement(WhiteboardUI_1.MasterWhiteboard, { allowEdit: this.state.isLeader, peerConnection: this.state.peerConnection, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " ")),
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
-                            React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.peerConnection }, " "),
+                            React.createElement(clockpanel_1.MasterClock, { allowEdit: this.state.isLeader, rtc: this.state.peerConnection, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " "),
                             React.createElement("br", null),
                             React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peerConnection }, " "))),
                     React.createElement(Footer, null))));
@@ -52313,6 +52313,7 @@ const GymClock_1 = __webpack_require__(/*! ../../core/dev/GymClock */ "../core/d
 const StreamableTypes_1 = __webpack_require__(/*! ../../core/dev/StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
 const LocalStore_1 = __webpack_require__(/*! ../../core/dev/LocalStore */ "../core/dev/LocalStore.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
 const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
 const thinStyle = {
     margin: '0px', padding: '0px',
@@ -52336,52 +52337,31 @@ const blockCharStyle = {
     paddingLeft: '8px', paddingRight: '8px',
     paddingTop: '0px', paddingBottom: '0px',
 };
-// Keep this function need declation in case an extra Enum is added above & this needs to change
-function selectMusic(durationEnum, musicEnum) {
-    var url;
-    if (musicEnum == GymClock_1.EGymClockMusic.None) {
-        return null;
-    }
-    else if (musicEnum == GymClock_1.EGymClockMusic.Uptempo) {
-        switch (durationEnum) {
-            case GymClock_1.EGymClockDuration.Five:
-                return '130-bpm-workout-V2 trimmed.mp3';
-            default:
-            case GymClock_1.EGymClockDuration.Ten:
-                return '10-Minute-Timer.mp3';
-            case GymClock_1.EGymClockDuration.Fifteen:
-                return '15-Minute-Timer.mp3';
-            case GymClock_1.EGymClockDuration.Twenty:
-                return '20-Minute-Timer.mp3';
-        }
-    }
-    else if (musicEnum == GymClock_1.EGymClockMusic.Midtempo) {
-        switch (durationEnum) {
-            case GymClock_1.EGymClockDuration.Five:
-                return '130-bpm-workout-V2 trimmed.mp3';
-            default:
-            case GymClock_1.EGymClockDuration.Ten:
-                return '130-bpm-workout-V2 trimmed.mp3';
-            case GymClock_1.EGymClockDuration.Fifteen:
-                return '130-bpm-workout-V2 trimmed.mp3';
-            case GymClock_1.EGymClockDuration.Twenty:
-                return '130-bpm-workout-V2 trimmed.mp3';
-        }
-    }
-}
-;
 class RemoteClock extends React.Component {
     constructor(props) {
         super(props);
         if (props.peers) {
             props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
         }
+        // watch for changes being made on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
         this.state = {
             isMounted: false,
             mm: 0,
             ss: 0,
             clock: null
         };
+    }
+    onChange(doc, cmd) {
+        if (doc.type === LiveWorkout_1.LiveWorkout.__type) {
+            var workout = doc;
+            // Stop current clock if it is going
+            if (this.state.clock && this.state.clock.isRunning())
+                this.state.clock.stop();
+            // replace with a new one matching the spec
+            let clock = new RunnableClock_1.RunnableClock(workout.clockSpec);
+            this.setState({ clock: clock });
+        }
     }
     componentDidMount() {
         // Allow data display from master
@@ -52392,18 +52372,7 @@ class RemoteClock extends React.Component {
         this.setState({ isMounted: false });
     }
     onRemoteData(ev) {
-        if (ev.type === GymClock_1.GymClockSpec.__type) {
-            // we are sent a clock spec as soon as we connect
-            var evSpec = ev;
-            // Stop current clock if it is going
-            if (this.state.clock && this.state.clock.isRunning())
-                this.state.clock.stop();
-            // replace with a new one matching the spec
-            let spec = new GymClock_1.GymClockSpec(evSpec.durationEnum, evSpec.musicEnum, evSpec.musicUrl);
-            let clock = new RunnableClock_1.RunnableClock(spec);
-            this.setState({ clock: clock });
-        }
-        else if (ev.type === GymClock_1.GymClockState.__type) {
+        if (ev.type === GymClock_1.GymClockState.__type) {
             // Then we are sent the state of the clock (running/paused/stopped etc)
             var evState = ev;
             let state = new GymClock_1.GymClockState(evState.stateEnum, evState.secondsIn);
@@ -52446,17 +52415,7 @@ class MasterClock extends React.Component {
     constructor(props) {
         super(props);
         this.storedWorkoutState = new LocalStore_1.StoredWorkoutState();
-        // Use cached copy of the workout clock if there is one
-        var storedClockSpec = this.storedWorkoutState.loadClockSpec();
-        var clockSpec;
-        if (storedClockSpec && storedClockSpec.length > 0) {
-            var types = new StreamableTypes_1.StreamableTypes();
-            var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
-            clockSpec = new GymClock_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum, selectMusic(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum));
-        }
-        else
-            clockSpec = new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Ten, GymClock_1.EGymClockMusic.None, undefined);
-        let clock = new RunnableClock_1.RunnableClock(clockSpec);
+        let clock = new RunnableClock_1.RunnableClock(props.liveWorkout.clockSpec);
         // Use cached copy of the workout clock state if there is one
         var storedClockState = this.storedWorkoutState.loadClockState();
         var clockState;
@@ -52472,7 +52431,8 @@ class MasterClock extends React.Component {
             isMounted: false,
             enableOk: false,
             enableCancel: false,
-            clockSpec: clockSpec,
+            durationEnum: props.liveWorkout.clockSpec.durationEnum,
+            musicEnum: props.liveWorkout.clockSpec.musicEnum,
             clockStateEnum: clock.clockStateEnum,
             clock: clock,
             mm: 0,
@@ -52488,7 +52448,7 @@ class MasterClock extends React.Component {
         // By convention, new joiners broadcast a 'Person' object
         if (ev.type === Person_1.Person.__type) {
             // Send them the clock
-            this.props.rtc.broadcast(this.state.clockSpec);
+            this.props.rtc.broadcast(this.props.liveWorkout.clockSpec);
             // Send clock state including the offset. 
             this.props.rtc.broadcast(this.state.clock.saveToState());
         }
@@ -52517,14 +52477,14 @@ class MasterClock extends React.Component {
         this.setState({ enableOk: true });
     }
     processSave() {
-        var spec = new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, this.state.clockSpec.musicEnum, this.state.clockSpec.musicUrl);
+        var spec = new GymClock_1.GymClockSpec(this.state.durationEnum, this.state.musicEnum);
         this.state.clock.stop();
         var clock = new RunnableClock_1.RunnableClock(spec);
         this.setState({ clock: clock, enableOk: false, enableCancel: false, inEditMode: false });
         // Cache the clock spec as JSON
-        this.storedWorkoutState.saveClockSpec(JSON.stringify(this.state.clockSpec));
-        // broadcast the clock spec to remotes
-        this.props.rtc.broadcast(spec);
+        this.storedWorkoutState.saveClockSpec(JSON.stringify(spec));
+        let command = new LiveWorkout_1.LiveClockSpecCommand(spec, this.props.liveWorkout.clockSpec);
+        this.props.commandProcessor.adoptAndApply(command);
     }
     processCancel() {
         this.setState({ inEditMode: false });
@@ -52593,37 +52553,37 @@ class MasterClock extends React.Component {
                         React.createElement(Form_1.default.Row, { style: { textAlign: 'left' } },
                             React.createElement(Form_1.default.Group, { controlId: "durationGroupId" },
                                 React.createElement(Form_1.default.Label, null, "Run timer for:"),
-                                React.createElement(Form_1.default.Check, { label: "5m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Five, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "5m", type: "radio", id: '10m-select', checked: this.state.durationEnum === GymClock_1.EGymClockDuration.Five, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Five, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Five, this.state.clockSpec.musicEnum)),
+                                                durationEnum: GymClock_1.EGymClockDuration.Five,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "10m", type: "radio", id: '10m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Ten, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "10m", type: "radio", id: '10m-select', checked: this.state.durationEnum === GymClock_1.EGymClockDuration.Ten, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Ten, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Ten, this.state.clockSpec.musicEnum)),
+                                                durationEnum: GymClock_1.EGymClockDuration.Ten,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "15m", type: "radio", id: '15m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Fifteen, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "15m", type: "radio", id: '15m-select', checked: this.state.durationEnum === GymClock_1.EGymClockDuration.Fifteen, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Fifteen, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Fifteen, this.state.clockSpec.musicEnum)),
+                                                durationEnum: GymClock_1.EGymClockDuration.Fifteen,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "20m", type: "radio", id: '20m-select', checked: this.state.clockSpec.durationEnum === GymClock_1.EGymClockDuration.Twenty, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "20m", type: "radio", id: '20m-select', checked: this.state.durationEnum === GymClock_1.EGymClockDuration.Twenty, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Twenty, this.state.clockSpec.musicEnum, selectMusic(GymClock_1.EGymClockDuration.Twenty, this.state.clockSpec.musicEnum)),
+                                                durationEnum: GymClock_1.EGymClockDuration.Twenty,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
@@ -52634,28 +52594,28 @@ class MasterClock extends React.Component {
                                 React.createElement(Form_1.default.Label, null, "Music:"),
                                 React.createElement(Form_1.default.Check, { label: "Up tempo", type: "radio", id: 'upTempo-select', 
                                     // TODO - should be able to remove 'name' from all these 
-                                    checked: this.state.clockSpec.musicEnum === GymClock_1.EGymClockMusic.Uptempo, onChange: (ev) => {
+                                    checked: this.state.musicEnum === GymClock_1.EGymClockMusic.Uptempo, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Uptempo, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Uptempo)),
+                                                musicEnum: GymClock_1.EGymClockMusic.Uptempo,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "Mid tempo", type: "radio", id: 'midTempo-select', checked: this.state.clockSpec.musicEnum === GymClock_1.EGymClockMusic.Midtempo, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "Mid tempo", type: "radio", id: 'midTempo-select', checked: this.state.musicEnum === GymClock_1.EGymClockMusic.Midtempo, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Midtempo, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.Midtempo)),
+                                                musicEnum: GymClock_1.EGymClockMusic.Midtempo,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
                                         }
                                     } }),
-                                React.createElement(Form_1.default.Check, { label: "None", type: "radio", id: 'noMusic-select', checked: this.state.clockSpec.musicEnum === GymClock_1.EGymClockMusic.None, onChange: (ev) => {
+                                React.createElement(Form_1.default.Check, { label: "None", type: "radio", id: 'noMusic-select', checked: this.state.musicEnum === GymClock_1.EGymClockMusic.None, onChange: (ev) => {
                                         if (ev.target.checked) {
                                             this.setState({
-                                                clockSpec: new GymClock_1.GymClockSpec(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.None, selectMusic(this.state.clockSpec.durationEnum, GymClock_1.EGymClockMusic.None)),
+                                                musicEnum: GymClock_1.EGymClockMusic.None,
                                                 enableCancel: true
                                             });
                                             this.testEnableSave();
@@ -53814,12 +53774,11 @@ class GymClockSpec {
      * Create a GymClockSpec object
      * @param durationEnum - one of the enumeration objects (10, 15, 20, ...)
      * @param musicEnum - one of the enumeration objects (Uptempo, Midtempo, none, ...)
-     * @param musicUrl - string URL to the music file. Can be null.
      */
-    constructor(durationEnum = EGymClockDuration.Ten, musicEnum = EGymClockMusic.None, musicUrl = '') {
+    constructor(durationEnum = EGymClockDuration.Ten, musicEnum = EGymClockMusic.None) {
         this._durationEnum = durationEnum;
         this._musicEnum = musicEnum;
-        this._musicUrl = musicUrl;
+        this._musicUrl = GymClockSpec.selectMusic(this._durationEnum, this._musicEnum);
     }
     /**
     * set of 'getters' for private variables
@@ -53872,13 +53831,49 @@ class GymClockSpec {
             return GymClockSpec.reviveDb(data.attributes);
         return GymClockSpec.reviveDb(data);
     }
+    static selectMusic(durationEnum, musicEnum) {
+        var url;
+        if (musicEnum == EGymClockMusic.None) {
+            return null;
+        }
+        else {
+            if (musicEnum == EGymClockMusic.Uptempo) {
+                switch (durationEnum) {
+                    case EGymClockDuration.Five:
+                        return '130-bpm-workout-V2 trimmed.mp3';
+                    default:
+                    case EGymClockDuration.Ten:
+                        return '10-Minute-Timer.mp3';
+                    case EGymClockDuration.Fifteen:
+                        return '15-Minute-Timer.mp3';
+                    case EGymClockDuration.Twenty:
+                        return '20-Minute-Timer.mp3';
+                }
+            }
+            else {
+                if (musicEnum == EGymClockMusic.Midtempo) {
+                    switch (durationEnum) {
+                        case EGymClockDuration.Five:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                        default:
+                        case EGymClockDuration.Ten:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                        case EGymClockDuration.Fifteen:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                        case EGymClockDuration.Twenty:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                    }
+                }
+            }
+        }
+    }
     ;
     /**
     * Method that can deserialize JSON into an instance
     * @param data - the JSON data to revive from
     */
     static reviveDb(data) {
-        return new GymClockSpec(data._durationEnum, data._musicEnum, data._musicUrl);
+        return new GymClockSpec(data._durationEnum, data._musicEnum);
     }
     ;
 }
@@ -54306,22 +54301,24 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 //    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "../core/dev/StreamableTypes.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "../core/dev/Call.tsx");
 const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "../core/dev/LocalStore.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "../core/dev/LiveCommand.tsx");
+const GymClock_1 = __webpack_require__(/*! ./GymClock */ "../core/dev/GymClock.tsx");
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
 // Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
 ////////////////////////////////////////
 class LiveWorkout {
-    constructor(whiteboardText, resultsText, outbound, channel) {
+    constructor(whiteboardText, resultsText, clockSpec, outbound, channel) {
         this._outbound = outbound;
         if (channel)
             this._channel = channel;
         this._whiteboardText = whiteboardText;
         this._resultsText = resultsText;
+        this._clockSpec = clockSpec;
     }
     createCommandProcessor() {
         return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
@@ -54340,6 +54337,13 @@ class LiveWorkout {
     set resultsText(resultsText) {
         this._resultsText = resultsText;
     }
+    // Getter and setter for clock spec
+    get clockSpec() {
+        return this._clockSpec;
+    }
+    set clockSpec(clockSpec) {
+        this._clockSpec = clockSpec;
+    }
     // type is read only
     get type() {
         return LiveWorkout.__type;
@@ -54350,7 +54354,8 @@ class LiveWorkout {
         if (rhs.type === this.type) {
             var workout = rhs;
             return (this._whiteboardText === workout._whiteboardText &&
-                this._resultsText === workout._resultsText);
+                this._resultsText === workout._resultsText &&
+                this._clockSpec.equals(workout._clockSpec));
         }
         else
             return false;
@@ -54362,6 +54367,7 @@ class LiveWorkout {
             var workout = rhs;
             this._whiteboardText = workout._whiteboardText;
             this._resultsText = workout._resultsText;
+            this._clockSpec = workout._clockSpec;
         }
     }
     /**
@@ -54373,7 +54379,8 @@ class LiveWorkout {
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _whiteboardText: this._whiteboardText,
-                _resultsText: this._resultsText
+                _resultsText: this._resultsText,
+                _clockSpec: this._clockSpec
             }
         };
     }
@@ -54393,9 +54400,11 @@ class LiveWorkout {
     /**
     * Method that can deserialize JSON into an instance
     * @param data - the JSON data to revove from
+    * Note: this ignores the 'channel' object. It is used by the channel to resurrect an incoming document when we are synchronising state,
+    *  then the channel calls 'assign' on the current version to copy this state across.
     */
     static reviveDb(data) {
-        return new LiveWorkout(data._whiteboardText, data._resultsText);
+        return new LiveWorkout(data._whiteboardText, data._resultsText, GymClock_1.GymClockSpec.revive(data._clockSpec));
     }
     ;
 }
@@ -54550,6 +54559,79 @@ class LiveResultsCommand {
 exports.LiveResultsCommand = LiveResultsCommand;
 LiveResultsCommand.__type = "LiveResultsCommand";
 ////////////////////////////////////////
+// LiveClockSpecCommand - class to represents the clock spec within a workout.
+////////////////////////////////////////
+class LiveClockSpecCommand {
+    constructor(clockSpec, priorSpec) {
+        this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
+        this._clockSpec = clockSpec;
+        this._priorSpec = priorSpec; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
+    }
+    // type is read only
+    get type() {
+        return LiveClockSpecCommand.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            if (this._priorSpec.equals(wo.clockSpec))
+                wo.clockSpec = this._clockSpec;
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            wo.clockSpec = this._priorSpec;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveClockSpecCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _clockSpec: this._clockSpec,
+                _priorSpec: this._priorSpec
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveClockSpecCommand.reviveDb(data.attributes);
+        else
+            return LiveClockSpecCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveClockSpecCommand(GymClock_1.GymClockSpec.revive(data._clockSpec), GymClock_1.GymClockSpec.revive(data._priorSpec));
+    }
+    ;
+}
+exports.LiveClockSpecCommand = LiveClockSpecCommand;
+LiveClockSpecCommand.__type = "LiveClockSpecCommand";
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 class LiveWhiteboardSelection {
@@ -54571,6 +54653,17 @@ class LiveResultsSelection {
     }
 }
 exports.LiveResultsSelection = LiveResultsSelection;
+////////////////////////////////////////
+// LiveClockSpecSelection - Class to represent the 'selection' of the clock spec within a Workout document.
+////////////////////////////////////////
+class LiveClockSpecSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveClockSpecSelection";
+    }
+}
+exports.LiveClockSpecSelection = LiveClockSpecSelection;
 ////////////////////////////////////////
 // LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
 ////////////////////////////////////////
@@ -54595,6 +54688,9 @@ class LiveWorkoutChannelPeer {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveResultsCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveClockSpecCommand.__type) {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
@@ -54650,8 +54746,20 @@ class LiveWorkoutFactory {
             else
                 storedWorkout = LiveWorkoutFactory.defaultWorkoutTextRemote;
         }
+        // Results text set according to if we are coach or member.
         var resultsText = outbound ? LiveWorkoutFactory.defaultResultsTextMaster : LiveWorkoutFactory.defaultWorkoutTextRemote;
-        return new LiveWorkout(storedWorkout, resultsText, outbound, channel);
+        // Use cached copy of the workout clock spec if there is one
+        var storedClockSpec = storedWorkoutState.loadClockSpec();
+        var clockSpec;
+        if (storedClockSpec && storedClockSpec.length > 0) {
+            var types = new StreamableTypes_1.StreamableTypes();
+            var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
+            clockSpec = new GymClock_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum);
+        }
+        else {
+            clockSpec = new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Ten, GymClock_1.EGymClockMusic.None);
+        }
+        return new LiveWorkout(storedWorkout, resultsText, clockSpec, outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
@@ -56850,6 +56958,7 @@ class StreamableTypes {
         this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
         this._types.LiveWhiteboardCommand = LiveWorkout_1.LiveWhiteboardCommand;
         this._types.LiveResultsCommand = LiveWorkout_1.LiveResultsCommand;
+        this._types.LiveClockSpecCommand = LiveWorkout_1.LiveClockSpecCommand;
         this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
     }
     isObjectKey(key) {

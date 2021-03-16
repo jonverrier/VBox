@@ -5256,12 +5256,11 @@ class GymClockSpec {
      * Create a GymClockSpec object
      * @param durationEnum - one of the enumeration objects (10, 15, 20, ...)
      * @param musicEnum - one of the enumeration objects (Uptempo, Midtempo, none, ...)
-     * @param musicUrl - string URL to the music file. Can be null.
      */
-    constructor(durationEnum = EGymClockDuration.Ten, musicEnum = EGymClockMusic.None, musicUrl = '') {
+    constructor(durationEnum = EGymClockDuration.Ten, musicEnum = EGymClockMusic.None) {
         this._durationEnum = durationEnum;
         this._musicEnum = musicEnum;
-        this._musicUrl = musicUrl;
+        this._musicUrl = GymClockSpec.selectMusic(this._durationEnum, this._musicEnum);
     }
     /**
     * set of 'getters' for private variables
@@ -5314,13 +5313,49 @@ class GymClockSpec {
             return GymClockSpec.reviveDb(data.attributes);
         return GymClockSpec.reviveDb(data);
     }
+    static selectMusic(durationEnum, musicEnum) {
+        var url;
+        if (musicEnum == EGymClockMusic.None) {
+            return null;
+        }
+        else {
+            if (musicEnum == EGymClockMusic.Uptempo) {
+                switch (durationEnum) {
+                    case EGymClockDuration.Five:
+                        return '130-bpm-workout-V2 trimmed.mp3';
+                    default:
+                    case EGymClockDuration.Ten:
+                        return '10-Minute-Timer.mp3';
+                    case EGymClockDuration.Fifteen:
+                        return '15-Minute-Timer.mp3';
+                    case EGymClockDuration.Twenty:
+                        return '20-Minute-Timer.mp3';
+                }
+            }
+            else {
+                if (musicEnum == EGymClockMusic.Midtempo) {
+                    switch (durationEnum) {
+                        case EGymClockDuration.Five:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                        default:
+                        case EGymClockDuration.Ten:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                        case EGymClockDuration.Fifteen:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                        case EGymClockDuration.Twenty:
+                            return '130-bpm-workout-V2 trimmed.mp3';
+                    }
+                }
+            }
+        }
+    }
     ;
     /**
     * Method that can deserialize JSON into an instance
     * @param data - the JSON data to revive from
     */
     static reviveDb(data) {
-        return new GymClockSpec(data._durationEnum, data._musicEnum, data._musicUrl);
+        return new GymClockSpec(data._durationEnum, data._musicEnum);
     }
     ;
 }
@@ -5824,22 +5859,24 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 //    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
+const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
 // Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
 ////////////////////////////////////////
 class LiveWorkout {
-    constructor(whiteboardText, resultsText, outbound, channel) {
+    constructor(whiteboardText, resultsText, clockSpec, outbound, channel) {
         this._outbound = outbound;
         if (channel)
             this._channel = channel;
         this._whiteboardText = whiteboardText;
         this._resultsText = resultsText;
+        this._clockSpec = clockSpec;
     }
     createCommandProcessor() {
         return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
@@ -5858,6 +5895,13 @@ class LiveWorkout {
     set resultsText(resultsText) {
         this._resultsText = resultsText;
     }
+    // Getter and setter for clock spec
+    get clockSpec() {
+        return this._clockSpec;
+    }
+    set clockSpec(clockSpec) {
+        this._clockSpec = clockSpec;
+    }
     // type is read only
     get type() {
         return LiveWorkout.__type;
@@ -5868,7 +5912,8 @@ class LiveWorkout {
         if (rhs.type === this.type) {
             var workout = rhs;
             return (this._whiteboardText === workout._whiteboardText &&
-                this._resultsText === workout._resultsText);
+                this._resultsText === workout._resultsText &&
+                this._clockSpec.equals(workout._clockSpec));
         }
         else
             return false;
@@ -5880,6 +5925,7 @@ class LiveWorkout {
             var workout = rhs;
             this._whiteboardText = workout._whiteboardText;
             this._resultsText = workout._resultsText;
+            this._clockSpec = workout._clockSpec;
         }
     }
     /**
@@ -5891,7 +5937,8 @@ class LiveWorkout {
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _whiteboardText: this._whiteboardText,
-                _resultsText: this._resultsText
+                _resultsText: this._resultsText,
+                _clockSpec: this._clockSpec
             }
         };
     }
@@ -5911,9 +5958,11 @@ class LiveWorkout {
     /**
     * Method that can deserialize JSON into an instance
     * @param data - the JSON data to revove from
+    * Note: this ignores the 'channel' object. It is used by the channel to resurrect an incoming document when we are synchronising state,
+    *  then the channel calls 'assign' on the current version to copy this state across.
     */
     static reviveDb(data) {
-        return new LiveWorkout(data._whiteboardText, data._resultsText);
+        return new LiveWorkout(data._whiteboardText, data._resultsText, GymClock_1.GymClockSpec.revive(data._clockSpec));
     }
     ;
 }
@@ -6068,6 +6117,79 @@ class LiveResultsCommand {
 exports.LiveResultsCommand = LiveResultsCommand;
 LiveResultsCommand.__type = "LiveResultsCommand";
 ////////////////////////////////////////
+// LiveClockSpecCommand - class to represents the clock spec within a workout.
+////////////////////////////////////////
+class LiveClockSpecCommand {
+    constructor(clockSpec, priorSpec) {
+        this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
+        this._clockSpec = clockSpec;
+        this._priorSpec = priorSpec; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
+    }
+    // type is read only
+    get type() {
+        return LiveClockSpecCommand.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            if (this._priorSpec.equals(wo.clockSpec))
+                wo.clockSpec = this._clockSpec;
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            wo.clockSpec = this._priorSpec;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveClockSpecCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _clockSpec: this._clockSpec,
+                _priorSpec: this._priorSpec
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveClockSpecCommand.reviveDb(data.attributes);
+        else
+            return LiveClockSpecCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveClockSpecCommand(GymClock_1.GymClockSpec.revive(data._clockSpec), GymClock_1.GymClockSpec.revive(data._priorSpec));
+    }
+    ;
+}
+exports.LiveClockSpecCommand = LiveClockSpecCommand;
+LiveClockSpecCommand.__type = "LiveClockSpecCommand";
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 class LiveWhiteboardSelection {
@@ -6089,6 +6211,17 @@ class LiveResultsSelection {
     }
 }
 exports.LiveResultsSelection = LiveResultsSelection;
+////////////////////////////////////////
+// LiveClockSpecSelection - Class to represent the 'selection' of the clock spec within a Workout document.
+////////////////////////////////////////
+class LiveClockSpecSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveClockSpecSelection";
+    }
+}
+exports.LiveClockSpecSelection = LiveClockSpecSelection;
 ////////////////////////////////////////
 // LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
 ////////////////////////////////////////
@@ -6113,6 +6246,9 @@ class LiveWorkoutChannelPeer {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveResultsCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveClockSpecCommand.__type) {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
@@ -6168,8 +6304,20 @@ class LiveWorkoutFactory {
             else
                 storedWorkout = LiveWorkoutFactory.defaultWorkoutTextRemote;
         }
+        // Results text set according to if we are coach or member.
         var resultsText = outbound ? LiveWorkoutFactory.defaultResultsTextMaster : LiveWorkoutFactory.defaultWorkoutTextRemote;
-        return new LiveWorkout(storedWorkout, resultsText, outbound, channel);
+        // Use cached copy of the workout clock spec if there is one
+        var storedClockSpec = storedWorkoutState.loadClockSpec();
+        var clockSpec;
+        if (storedClockSpec && storedClockSpec.length > 0) {
+            var types = new StreamableTypes_1.StreamableTypes();
+            var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
+            clockSpec = new GymClock_1.GymClockSpec(loadedClockSpec.durationEnum, loadedClockSpec.musicEnum);
+        }
+        else {
+            clockSpec = new GymClock_1.GymClockSpec(GymClock_1.EGymClockDuration.Ten, GymClock_1.EGymClockMusic.None);
+        }
+        return new LiveWorkout(storedWorkout, resultsText, clockSpec, outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
@@ -7934,6 +8082,7 @@ class StreamableTypes {
         this._types.LiveWorkout = LiveWorkout_1.LiveWorkout;
         this._types.LiveWhiteboardCommand = LiveWorkout_1.LiveWhiteboardCommand;
         this._types.LiveResultsCommand = LiveWorkout_1.LiveResultsCommand;
+        this._types.LiveClockSpecCommand = LiveWorkout_1.LiveClockSpecCommand;
         this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
     }
     isObjectKey(key) {
@@ -8285,6 +8434,8 @@ var EntryPoints = {
     LiveDocumentChannelFactoryStub: LiveChannel_1.LiveDocumentChannelFactoryStub,
     LiveWorkout: LiveWorkout_1.LiveWorkout,
     LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand,
+    LiveResultsCommand: LiveWorkout_1.LiveResultsCommand,
+    LiveClockSpecCommand: LiveWorkout_1.LiveClockSpecCommand,
     LiveDocumentMaster: LiveDocumentCentral_1.LiveDocumentMaster,
     LiveDocumentRemote: LiveDocumentCentral_1.LiveDocumentRemote,
     LiveWorkoutChannelFactoryPeer: LiveWorkout_1.LiveWorkoutChannelFactoryPeer,

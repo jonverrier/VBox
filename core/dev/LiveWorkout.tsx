@@ -14,13 +14,13 @@
 // This app, this component 
 import { IStreamable } from './Streamable'
 import { StreamableTypes } from './StreamableTypes';
-import { Person } from './Person';
 import { CallParticipation } from './Call';
 import { StoredWorkoutState } from './LocalStore';
 import { ILiveDocument, ICommand, ISelection, ICommandProcessor, 
          ILiveDocumentChannel, ILiveDocumentChannelFactory, ILiveDocumentFactory} from './LiveInterfaces';
 import { LiveCommandProcessor, LiveUndoCommand} from './LiveCommand';
 import { PeerConnection } from './PeerConnection';
+import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from './GymClock';
 
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
@@ -32,15 +32,20 @@ export class LiveWorkout implements ILiveDocument {
 
    private _whiteboardText: string;
    private _resultsText: string;
+   private _clockSpec: GymClockSpec;
    private _channel: ILiveDocumentChannel | undefined;
    private _outbound: boolean | undefined;
 
-   constructor(whiteboardText: string, resultsText: string, outbound?: boolean, channel?: ILiveDocumentChannel) {
+   constructor(whiteboardText: string,
+      resultsText: string,
+      clockSpec: GymClockSpec,
+      outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._outbound = outbound;
       if (channel)
          this._channel = channel;
       this._whiteboardText = whiteboardText;
       this._resultsText = resultsText;
+      this._clockSpec = clockSpec;
    }
 
    createCommandProcessor(): ICommandProcessor {
@@ -61,6 +66,13 @@ export class LiveWorkout implements ILiveDocument {
    set resultsText(resultsText: string) {
       this._resultsText = resultsText;
    }
+   // Getter and setter for clock spec
+   get clockSpec(): GymClockSpec {
+      return this._clockSpec;
+   }
+   set clockSpec(clockSpec: GymClockSpec) {
+      this._clockSpec = clockSpec;
+   }
 
    // type is read only
    get type(): string {
@@ -74,7 +86,8 @@ export class LiveWorkout implements ILiveDocument {
       if (rhs.type === this.type) {
          var workout: LiveWorkout = (rhs as LiveWorkout);
          return (this._whiteboardText === workout._whiteboardText &&
-            this._resultsText === workout._resultsText);
+            this._resultsText === workout._resultsText &&
+            this._clockSpec.equals (workout._clockSpec));
       }
       else
          return false;
@@ -88,6 +101,7 @@ export class LiveWorkout implements ILiveDocument {
          var workout: LiveWorkout = (rhs as LiveWorkout);
          this._whiteboardText = workout._whiteboardText;
          this._resultsText = workout._resultsText;
+         this._clockSpec = workout._clockSpec;
       }
    }
 
@@ -101,7 +115,8 @@ export class LiveWorkout implements ILiveDocument {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _whiteboardText: this._whiteboardText,
-            _resultsText: this._resultsText
+            _resultsText: this._resultsText,
+            _clockSpec : this._clockSpec
          }
       };
    };
@@ -122,11 +137,13 @@ export class LiveWorkout implements ILiveDocument {
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
+   * Note: this ignores the 'channel' object. It is used by the channel to resurrect an incoming document when we are synchronising state,
+   *  then the channel calls 'assign' on the current version to copy this state across.
    */
    static reviveDb(data: any): LiveWorkout {
 
       return new LiveWorkout(data._whiteboardText,
-         data._resultsText);
+         data._resultsText, GymClockSpec.revive (data._clockSpec));
    };
 }
 
@@ -310,6 +327,94 @@ export class LiveResultsCommand implements ICommand {
 }
 
 ////////////////////////////////////////
+// LiveClockSpecCommand - class to represents the clock spec within a workout.
+////////////////////////////////////////
+export class LiveClockSpecCommand implements ICommand {
+
+   private _selection: ISelection;
+   private _clockSpec: GymClockSpec;
+   private _priorSpec: GymClockSpec;
+
+   static readonly __type: string = "LiveClockSpecCommand";
+
+   constructor(clockSpec: GymClockSpec, priorSpec: GymClockSpec) {
+      this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
+      this._clockSpec = clockSpec;
+      this._priorSpec = priorSpec;                 // Caller has to make sure this === current state at time of calling.
+      // Otherwise can lead to problems when commands are copied around between sessions
+   }
+
+   // type is read only
+   get type(): string {
+      return LiveClockSpecCommand.__type;
+   }
+
+   selection(): ISelection {
+      return this._selection;
+   }
+
+   applyTo(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type === LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+
+         // Verify that the document has not changed since the command was created
+         if (this._priorSpec.equals ( wo.clockSpec))
+            wo.clockSpec = this._clockSpec;
+      }
+   }
+
+   reverseFrom(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type == LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+         wo.clockSpec = this._priorSpec;
+      }
+   }
+
+   canReverse(): boolean {
+      return true;
+   }
+
+   /**
+       * Method that serializes to JSON 
+       */
+   toJSON(): Object {
+
+      return {
+         __type: LiveClockSpecCommand.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _clockSpec: this._clockSpec,
+            _priorSpec: this._priorSpec
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   static revive(data: any): LiveClockSpecCommand {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return LiveClockSpecCommand.reviveDb(data.attributes);
+      else
+         return LiveClockSpecCommand.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   static reviveDb(data: any): LiveClockSpecCommand {
+
+      return new LiveClockSpecCommand(GymClockSpec.revive(data._clockSpec), GymClockSpec.revive(data._priorSpec));
+   };
+}
+
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 export class LiveWhiteboardSelection implements ISelection {
@@ -332,6 +437,19 @@ export class LiveResultsSelection implements ISelection {
 
    type(): string {
       return "LiveResultsSelection";
+   }
+}
+
+////////////////////////////////////////
+// LiveClockSpecSelection - Class to represent the 'selection' of the clock spec within a Workout document.
+////////////////////////////////////////
+export class LiveClockSpecSelection implements ISelection {
+
+   constructor() {
+   }
+
+   type(): string {
+      return "LiveClockSpecSelection";
    }
 }
 
@@ -366,6 +484,9 @@ class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
          }
          if (ev.type === LiveResultsCommand.__type) {
             this.onCommandApply(ev as LiveResultsCommand);
+         }
+         if (ev.type === LiveClockSpecCommand.__type) {
+            this.onCommandApply(ev as LiveClockSpecCommand);
          }
          if (ev.type === LiveUndoCommand.__type) {
             this.onCommandReverse();
@@ -436,9 +557,27 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
             storedWorkout = LiveWorkoutFactory.defaultWorkoutTextRemote;
       }
 
+      // Results text set according to if we are coach or member.
       var resultsText: string = outbound ? LiveWorkoutFactory.defaultResultsTextMaster : LiveWorkoutFactory.defaultWorkoutTextRemote;
 
-      return new LiveWorkout(storedWorkout, resultsText,
+      // Use cached copy of the workout clock spec if there is one
+      var storedClockSpec = storedWorkoutState.loadClockSpec();
+      var clockSpec: GymClockSpec;
+
+      if (storedClockSpec && storedClockSpec.length > 0) {
+
+         var types = new StreamableTypes();
+         var loadedClockSpec = types.reviveFromJSON(storedClockSpec);
+         clockSpec = new GymClockSpec(loadedClockSpec.durationEnum,
+            loadedClockSpec.musicEnum);
+
+      } else {
+         clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None);
+      }
+
+      return new LiveWorkout(storedWorkout,
+         resultsText,
+         clockSpec,
          outbound, channel);
    }
 }

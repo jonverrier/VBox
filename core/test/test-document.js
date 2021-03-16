@@ -10,10 +10,16 @@ var CallParticipation = EntryPoints.CallParticipation;
 
 var LiveWorkout = EntryPoints.LiveWorkout;
 var LiveWhiteboardCommand = EntryPoints.LiveWhiteboardCommand;
+var LiveClockSpecCommand = EntryPoints.LiveClockSpecCommand;
 var LiveDocumentChannelFactoryStub = EntryPoints.LiveDocumentChannelFactoryStub;
 var LiveDocumentMaster = EntryPoints.LiveDocumentMaster;
 var LiveDocumentRemote = EntryPoints.LiveDocumentRemote;
 var LiveWorkoutFactory = EntryPoints.LiveWorkoutFactory;
+
+var EGymClockDuration = EntryPoints.EGymClockDuration;
+var EGymClockMusic = EntryPoints.EGymClockMusic;
+var EGymClockState = EntryPoints.EGymClockState;
+var GymClockSpec = EntryPoints.GymClockSpec;
 
 var expect = require("chai").expect;
 
@@ -25,12 +31,14 @@ describe("LiveWorkout", function () {
    var textIn = "workout4";
    var workoutOut, workoutIn, workout, commandProcessorIn, commandProcessorOut, command1, command2, channelFactory, channelOut, channelIn;
 
+   let clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None);
+
    channelFactory = new LiveDocumentChannelFactoryStub();
    channelOut = channelFactory.createConnectionOut();
    channelIn = channelFactory.createConnectionIn();
-   workoutOut = new LiveWorkout(text1, '', true, channelOut);
-   workoutIn = new LiveWorkout(textIn, '', false, channelIn);
-   workout = new LiveWorkout(textIn);
+   workoutOut = new LiveWorkout(text1, '', clockSpec, true, channelOut);
+   workoutIn = new LiveWorkout(textIn, '', clockSpec, false, channelIn);
+   workout = new LiveWorkout(textIn, '', clockSpec);
    commandProcessorOut = workoutOut.createCommandProcessor();
    commandProcessorIn = workoutIn.createCommandProcessor();
 
@@ -53,7 +61,6 @@ describe("LiveWorkout", function () {
       var output = JSON.stringify(workoutOut);
 
       var obj = types.reviveFromJSON(output);
-
       expect(workoutOut.equals(obj)).to.equal(true);
    });
 
@@ -185,7 +192,7 @@ describe("LiveWorkout", function () {
       commandProcessorOut.clearCommands();
    });
 
-   it("Document setup need to work.", function () {
+   it("Can setup a LiveDocument flows.", function () {
 
       // Copy them over
       var callParticipation = new CallParticipation("1234567890", "sess1", true);
@@ -213,6 +220,28 @@ describe("LiveWorkout", function () {
       master.commandProcessor.adoptAndApply(command1);
       expect(master.document.whiteboardText === text2).to.equal(true);
       expect(remote.document.equals(master.document)).to.equal(true);
+   });
+
+   it("Can apply and reverse clock spec changes.", function () {
+
+      let clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None);
+      let oldClock = workoutOut.clockSpec;
+      command1 = new LiveClockSpecCommand(clockSpec, oldClock);
+
+      // Apply the command, then check it has worked, can be undone, cannot be undone
+      commandProcessorOut.adoptAndApply(command1);
+      expect(workoutOut.clockSpec.equals(clockSpec)).to.equal(true);
+      expect(commandProcessorOut.canUndo()).to.equal(true);
+      expect(commandProcessorOut.canRedo()).to.equal(false);
+
+      // Undo it, check the result, check it can be re-done and not undone
+      commandProcessorOut.undo();
+      expect(workoutOut.clockSpec.equals(oldClock)).to.equal(true);
+      expect(commandProcessorOut.canRedo()).to.equal(true);
+      expect(commandProcessorOut.canUndo()).to.equal(false);
+
+      // Clear commands for next test
+      commandProcessorOut.clearCommands();
    });
 });
 

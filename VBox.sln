@@ -6,8 +6,15 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Core", "Core\Core.njsproj", "{B342D306-69D4-40A8-AD0E-CAE85EC697E1}"
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Server", "Server\Server.njsproj", "{C2241BFC-3DF3-4D98-83CB-59ACFBEF521A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B342D306-69D4-40A8-AD0E-CAE85EC697E1} = {B342D306-69D4-40A8-AD0E-CAE85EC697E1}
+		{DDAEA9F0-2FDC-4B1D-A5CC-0DE8C3901593} = {DDAEA9F0-2FDC-4B1D-A5CC-0DE8C3901593}
+	EndProjectSection
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "Client", "Client\Client.njsproj", "{DDAEA9F0-2FDC-4B1D-A5CC-0DE8C3901593}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B342D306-69D4-40A8-AD0E-CAE85EC697E1} = {B342D306-69D4-40A8-AD0E-CAE85EC697E1}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E22D4AB8-A4EA-4CEF-A638-B062F5831518}"
 	ProjectSection(SolutionItems) = preProject
