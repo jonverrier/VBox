@@ -11,6 +11,7 @@ var CallParticipation = EntryPoints.CallParticipation;
 var LiveWorkout = EntryPoints.LiveWorkout;
 var LiveWhiteboardCommand = EntryPoints.LiveWhiteboardCommand;
 var LiveClockSpecCommand = EntryPoints.LiveClockSpecCommand;
+var LiveClockStateCommand = EntryPoints.LiveClockStateCommand;
 var LiveDocumentChannelFactoryStub = EntryPoints.LiveDocumentChannelFactoryStub;
 var LiveDocumentMaster = EntryPoints.LiveDocumentMaster;
 var LiveDocumentRemote = EntryPoints.LiveDocumentRemote;
@@ -20,6 +21,7 @@ var EGymClockDuration = EntryPoints.EGymClockDuration;
 var EGymClockMusic = EntryPoints.EGymClockMusic;
 var EGymClockState = EntryPoints.EGymClockState;
 var GymClockSpec = EntryPoints.GymClockSpec;
+var GymClockState = EntryPoints.GymClockState;
 
 var expect = require("chai").expect;
 
@@ -32,13 +34,14 @@ describe("LiveWorkout", function () {
    var workoutOut, workoutIn, workout, commandProcessorIn, commandProcessorOut, command1, command2, channelFactory, channelOut, channelIn;
 
    let clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None);
+   let clockState = new GymClockState(EGymClockState.Stopped, 0);
 
    channelFactory = new LiveDocumentChannelFactoryStub();
    channelOut = channelFactory.createConnectionOut();
    channelIn = channelFactory.createConnectionIn();
-   workoutOut = new LiveWorkout(text1, '', clockSpec, true, channelOut);
-   workoutIn = new LiveWorkout(textIn, '', clockSpec, false, channelIn);
-   workout = new LiveWorkout(textIn, '', clockSpec);
+   workoutOut = new LiveWorkout(text1, '', clockSpec, clockState, true, channelOut);
+   workoutIn = new LiveWorkout(textIn, '', clockSpec, clockState, false, channelIn);
+   workout = new LiveWorkout(textIn, '', clockSpec, clockState);
    commandProcessorOut = workoutOut.createCommandProcessor();
    commandProcessorIn = workoutIn.createCommandProcessor();
 
@@ -237,6 +240,28 @@ describe("LiveWorkout", function () {
       // Undo it, check the result, check it can be re-done and not undone
       commandProcessorOut.undo();
       expect(workoutOut.clockSpec.equals(oldClock)).to.equal(true);
+      expect(commandProcessorOut.canRedo()).to.equal(true);
+      expect(commandProcessorOut.canUndo()).to.equal(false);
+
+      // Clear commands for next test
+      commandProcessorOut.clearCommands();
+   });
+
+   it("Can apply and reverse clock state changes.", function () {
+
+      let clockState = new GymClockState(EGymClockState.Stopped, 0);
+      let oldClock = workoutOut.clockState;
+      command1 = new LiveClockStateCommand(clockState, oldClock);
+
+      // Apply the command, then check it has worked, can be undone, cannot be undone
+      commandProcessorOut.adoptAndApply(command1);
+      expect(workoutOut.clockState.equals(clockState)).to.equal(true);
+      expect(commandProcessorOut.canUndo()).to.equal(true);
+      expect(commandProcessorOut.canRedo()).to.equal(false);
+
+      // Undo it, check the result, check it can be re-done and not undone
+      commandProcessorOut.undo();
+      expect(workoutOut.clockState.equals(oldClock)).to.equal(true);
       expect(commandProcessorOut.canRedo()).to.equal(true);
       expect(commandProcessorOut.canUndo()).to.equal(false);
 

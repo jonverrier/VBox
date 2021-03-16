@@ -5,8 +5,8 @@ import { Facility } from './Facility';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
-import { GymClockSpec, GymClockAction, GymClockState } from './GymClock';
-import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand } from './LiveWorkout';
+import { GymClockSpec, GymClockState } from './GymClock';
+import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand } from './LiveWorkout';
 import { LiveUndoCommand } from './LiveCommand';
 
 //==============================//
@@ -36,12 +36,12 @@ export class StreamableTypes {
       this._types.SignalMessage = SignalMessage;
       this._types.UserFacilities = UserFacilities;
       this._types.GymClockSpec = GymClockSpec;
-      this._types.GymClockAction = GymClockAction;
       this._types.GymClockState = GymClockState;
       this._types.LiveWorkout = LiveWorkout;
       this._types.LiveWhiteboardCommand = LiveWhiteboardCommand;
       this._types.LiveResultsCommand = LiveResultsCommand;
       this._types.LiveClockSpecCommand = LiveClockSpecCommand;
+      this._types.LiveClockStateCommand = LiveClockStateCommand;
       this._types.LiveUndoCommand = LiveUndoCommand;
 
    }

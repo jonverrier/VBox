@@ -45,7 +45,7 @@ import { LeaderResolve } from './LeaderResolveUI';
 import { Media } from './Media';
 import { MasterWhiteboard, RemoteWhiteboard } from './WhiteboardUI';
 import { RemotePeople } from './peoplepanel';
-import { MasterClock, RemoteClock } from './clockpanel';
+import { MasterClock, RemoteClock } from './ClockUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -392,7 +392,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <RemoteClock peers={this.state.peerConnection}
+                        <RemoteClock 
                            commandProcessor={this.state.remoteDocument.commandProcessor}
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}/>
                         <br />
@@ -681,7 +681,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterWhiteboard>
                      </Col>
                      <Col md='auto' style={rpanelStyle}>
-                        <MasterClock allowEdit={this.state.isLeader} rtc={this.state.peerConnection}
+                        <MasterClock allowEdit={this.state.isLeader} 
                            commandProcessor={this.state.masterDocument.commandProcessor}
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterClock>
                         <br />
@@ -810,7 +810,7 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
                                  <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
                                  src={'landing-video.png'} />
                               <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Manage the video so your team look at what is relevant.</h3>
+                                 <h3 style={carouselHeadingStyle}>Manage video feed so your team focus on what you need them to.</h3>
                               </Carousel.Caption>
                            </Carousel.Item>
                            <Carousel.Item interval={7500}>

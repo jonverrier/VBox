@@ -3,7 +3,7 @@
 // GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
 // RunnableClock is a running clock - created from a spec, then can start, stop, pause etc.
 
-import { EGymClockDuration, EGymClockMusic, EGymClockState, EGymClockAction, GymClockSpec, GymClockAction, GymClockState } from '../../core/dev/GymClock'
+import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from '../../core/dev/GymClock';
 
 const countDownSeconds : number = 15;
 
@@ -65,13 +65,12 @@ export class RunnableClock  {
    get clockSpec(): GymClockSpec {
       return this._clockSpec;
    }
-   get clockStateEnum(): EGymClockState {
+   get stateEnum(): EGymClockState {
       return this._clockStateEnum;
    }
    get secondsCounted(): number {
       return this._secondsCounted;
    }
-
    /**
     * test for equality - checks all fields are the same. 
     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 

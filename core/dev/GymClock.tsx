@@ -9,7 +9,6 @@ import { IStreamableFor } from './Streamable';
 export enum EGymClockDuration { 'Five', 'Ten', 'Fifteen', 'Twenty' };
 export enum EGymClockMusic { 'Uptempo', 'Midtempo', 'None' };
 export enum EGymClockState { 'Stopped', 'CountingDown', 'Running', 'Paused' };
-export enum EGymClockAction { 'Start', 'Stop', 'Pause' };
 
 const countDownSeconds: number = 15;
 
@@ -168,83 +167,6 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
    };
 }
 
-
-//==============================//
-// GymClockAction class 
-// Exists just to transport en enum of RPC with a type
-//==============================//
-export class GymClockAction implements IStreamableFor<GymClockAction> {
-
-   private _actionEnum: EGymClockAction;
-
-   static readonly __type = "GymClockAction";
-
-   /**
-    * Create a GymClockAction object
-    */
-   constructor(actionEnum: EGymClockAction) {
-
-      this._actionEnum = actionEnum;
-   }
-
-   /**
-   * set of 'getters' for private variables
-   */
-   get actionEnum(): EGymClockAction {
-      return this._actionEnum;
-   }
-   get type(): string {
-      return GymClockAction.__type;
-   }
-
-   /**
-    * test for equality - checks all fields are the same. 
-    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
-    * @param rhs - the object to compare this one to.  
-    */
-   equals(rhs: GymClockAction) : boolean {
-
-      return (this._actionEnum === rhs._actionEnum);
-   };
-
-
-   /**
-    * Method that serializes to JSON 
-    */
-   toJSON () : any {
-
-      return {
-         __type: GymClockAction.__type,
-         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-         attributes: {
-            _actionEnum: this._actionEnum
-         }
-      };
-   };
-
-   /**
-    * Method that can deserialize JSON into an instance 
-    * @param data - the JSON data to revive from 
-    */
-   static revive(data: any): GymClockAction {
-
-      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
-      if (data.attributes)
-         return GymClockAction.reviveDb(data.attributes);
-
-      return GymClockAction.reviveDb(data);
-   };
-
-   /**
-   * Method that can deserialize JSON into an instance 
-   * @param data - the JSON data to revive from 
-   */
-   static reviveDb(data: any): GymClockAction{
-
-      return new GymClockAction(data._actionEnum);
-   };
-}
-
 //==============================//
 // GymClockState class 
 //==============================//
@@ -258,7 +180,7 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
    /**
     * Create a GymClockState object
     */
-   constructor (stateEnum, secondsIn) {
+   constructor(stateEnum: EGymClockState, secondsIn: number) {
 
       this._stateEnum = stateEnum;
       this._secondsIn = secondsIn;

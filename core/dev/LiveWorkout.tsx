@@ -33,12 +33,14 @@ export class LiveWorkout implements ILiveDocument {
    private _whiteboardText: string;
    private _resultsText: string;
    private _clockSpec: GymClockSpec;
+   private _clockState: GymClockState;
    private _channel: ILiveDocumentChannel | undefined;
    private _outbound: boolean | undefined;
 
    constructor(whiteboardText: string,
       resultsText: string,
       clockSpec: GymClockSpec,
+      clockState: GymClockState,
       outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._outbound = outbound;
       if (channel)
@@ -46,6 +48,7 @@ export class LiveWorkout implements ILiveDocument {
       this._whiteboardText = whiteboardText;
       this._resultsText = resultsText;
       this._clockSpec = clockSpec;
+      this._clockState = clockState;
    }
 
    createCommandProcessor(): ICommandProcessor {
@@ -73,6 +76,13 @@ export class LiveWorkout implements ILiveDocument {
    set clockSpec(clockSpec: GymClockSpec) {
       this._clockSpec = clockSpec;
    }
+   // Getter and setter for clock state
+   get clockState(): GymClockState {
+      return this._clockState;
+   }
+   set clockState(clockState: GymClockState) {
+      this._clockState = clockState;
+   }
 
    // type is read only
    get type(): string {
@@ -87,7 +97,8 @@ export class LiveWorkout implements ILiveDocument {
          var workout: LiveWorkout = (rhs as LiveWorkout);
          return (this._whiteboardText === workout._whiteboardText &&
             this._resultsText === workout._resultsText &&
-            this._clockSpec.equals (workout._clockSpec));
+            this._clockSpec.equals(workout._clockSpec) &&
+            this._clockState.equals(workout._clockState));
       }
       else
          return false;
@@ -102,6 +113,7 @@ export class LiveWorkout implements ILiveDocument {
          this._whiteboardText = workout._whiteboardText;
          this._resultsText = workout._resultsText;
          this._clockSpec = workout._clockSpec;
+         this._clockState = workout._clockState;
       }
    }
 
@@ -116,7 +128,8 @@ export class LiveWorkout implements ILiveDocument {
          attributes: {
             _whiteboardText: this._whiteboardText,
             _resultsText: this._resultsText,
-            _clockSpec : this._clockSpec
+            _clockSpec: this._clockSpec,
+            _clockState: this._clockState
          }
       };
    };
@@ -143,7 +156,9 @@ export class LiveWorkout implements ILiveDocument {
    static reviveDb(data: any): LiveWorkout {
 
       return new LiveWorkout(data._whiteboardText,
-         data._resultsText, GymClockSpec.revive (data._clockSpec));
+         data._resultsText,
+         GymClockSpec.revive(data._clockSpec),
+         GymClockState.revive(data._clockState));
    };
 }
 
@@ -153,16 +168,16 @@ export class LiveWorkout implements ILiveDocument {
 export class LiveWhiteboardCommand implements ICommand {
 
    private _selection: ISelection;
-   private _text: string;
-   private _priorText: string;
+   private _next: string;
+   private _prior: string;
 
    static readonly __type: string = "LiveWhiteboardCommand";
 
-   constructor(text: string, _priorText: string) {
+   constructor(next: string, prior: string) {
       this._selection = new LiveWhiteboardSelection(); // This command always has the same selection - the entire whiteboard. 
-      this._text = text;
-      this._priorText = _priorText;                    // Caller has to make sure this === current state at time of calling.
-                                                       // Otherwise can lead to problems when commands are copied around between sessions
+      this._next = next;
+      this._prior = prior;                    // Caller has to make sure this === current state at time of calling.
+                                              // Otherwise can lead to problems when commands are copied around between sessions
    }
 
    // type is read only
@@ -180,8 +195,8 @@ export class LiveWhiteboardCommand implements ICommand {
          var wo: LiveWorkout = (document as LiveWorkout);
 
          // Verify that the document has not changed since the command was created
-         if (this._priorText === wo.whiteboardText)
-            wo.whiteboardText = this._text;
+         if (this._prior === wo.whiteboardText)
+            wo.whiteboardText = this._next;
 
          // save in local cache
          new StoredWorkoutState().saveWorkout(wo.whiteboardText);
@@ -192,7 +207,7 @@ export class LiveWhiteboardCommand implements ICommand {
       // Since we downcast, need to check type
       if (document.type == LiveWorkout.__type) {
          var wo: LiveWorkout = (document as LiveWorkout);
-         wo.whiteboardText = this._priorText;
+         wo.whiteboardText = this._prior;
       }
    }
 
@@ -209,8 +224,8 @@ export class LiveWhiteboardCommand implements ICommand {
          __type: LiveWhiteboardCommand.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _text: this._text,
-            _priorText: this._priorText
+            _next: this._next,
+            _prior: this._prior
          }
       };
    };
@@ -234,7 +249,7 @@ export class LiveWhiteboardCommand implements ICommand {
    */
    static reviveDb(data: any): LiveWhiteboardCommand {
 
-      return new LiveWhiteboardCommand(data._text, data._priorText);
+      return new LiveWhiteboardCommand(data._next, data._prior);
    };
 }
 
@@ -244,15 +259,15 @@ export class LiveWhiteboardCommand implements ICommand {
 export class LiveResultsCommand implements ICommand {
 
    private _selection: ISelection;
-   private _text: string;
-   private _priorText: string;
+   private _next: string;
+   private _prior: string;
 
    static readonly __type: string = "LiveResultsCommand";
 
-   constructor(text: string, _priorText: string) {
+   constructor(next: string, prior: string) {
       this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
-      this._text = text;
-      this._priorText = _priorText;                 // Caller has to make sure this === current state at time of calling.
+      this._next = next;
+      this._prior = prior;                 // Caller has to make sure this === current state at time of calling.
       // Otherwise can lead to problems when commands are copied around between sessions
    }
 
@@ -271,8 +286,8 @@ export class LiveResultsCommand implements ICommand {
          var wo: LiveWorkout = (document as LiveWorkout);
 
          // Verify that the document has not changed since the command was created
-         if (this._priorText === wo.resultsText)
-            wo.resultsText = this._text;
+         if (this._prior === wo.resultsText)
+            wo.resultsText = this._next;
       }
    }
 
@@ -280,7 +295,7 @@ export class LiveResultsCommand implements ICommand {
       // Since we downcast, need to check type
       if (document.type == LiveWorkout.__type) {
          var wo: LiveWorkout = (document as LiveWorkout);
-         wo.resultsText = this._priorText;
+         wo.resultsText = this._prior;
       }
    }
 
@@ -297,8 +312,8 @@ export class LiveResultsCommand implements ICommand {
          __type: LiveResultsCommand.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _text: this._text,
-            _priorText: this._priorText
+            _next: this._next,
+            _prior: this._prior
          }
       };
    };
@@ -322,7 +337,7 @@ export class LiveResultsCommand implements ICommand {
    */
    static reviveDb(data: any): LiveResultsCommand {
 
-      return new LiveResultsCommand(data._text, data._priorText);
+      return new LiveResultsCommand(data._next, data._prior);
    };
 }
 
@@ -332,15 +347,15 @@ export class LiveResultsCommand implements ICommand {
 export class LiveClockSpecCommand implements ICommand {
 
    private _selection: ISelection;
-   private _clockSpec: GymClockSpec;
-   private _priorSpec: GymClockSpec;
+   private _next: GymClockSpec;
+   private _prior: GymClockSpec;
 
    static readonly __type: string = "LiveClockSpecCommand";
 
-   constructor(clockSpec: GymClockSpec, priorSpec: GymClockSpec) {
-      this._selection = new LiveResultsSelection(); // This command always has the same selection - the entire whiteboard. 
-      this._clockSpec = clockSpec;
-      this._priorSpec = priorSpec;                 // Caller has to make sure this === current state at time of calling.
+   constructor(next: GymClockSpec, prior: GymClockSpec) {
+      this._selection = new LiveClockSpecSelection(); // This command always has the same selection - the entire whiteboard. 
+      this._next = next;
+      this._prior = prior;                 // Caller has to make sure this === current state at time of calling.
       // Otherwise can lead to problems when commands are copied around between sessions
    }
 
@@ -359,8 +374,8 @@ export class LiveClockSpecCommand implements ICommand {
          var wo: LiveWorkout = (document as LiveWorkout);
 
          // Verify that the document has not changed since the command was created
-         if (this._priorSpec.equals ( wo.clockSpec))
-            wo.clockSpec = this._clockSpec;
+         if (this._prior.equals ( wo.clockSpec))
+            wo.clockSpec = this._next;
       }
    }
 
@@ -368,7 +383,7 @@ export class LiveClockSpecCommand implements ICommand {
       // Since we downcast, need to check type
       if (document.type == LiveWorkout.__type) {
          var wo: LiveWorkout = (document as LiveWorkout);
-         wo.clockSpec = this._priorSpec;
+         wo.clockSpec = this._prior;
       }
    }
 
@@ -385,8 +400,8 @@ export class LiveClockSpecCommand implements ICommand {
          __type: LiveClockSpecCommand.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
-            _clockSpec: this._clockSpec,
-            _priorSpec: this._priorSpec
+            _next: this._next,
+            _prior: this._prior
          }
       };
    };
@@ -410,7 +425,97 @@ export class LiveClockSpecCommand implements ICommand {
    */
    static reviveDb(data: any): LiveClockSpecCommand {
 
-      return new LiveClockSpecCommand(GymClockSpec.revive(data._clockSpec), GymClockSpec.revive(data._priorSpec));
+      return new LiveClockSpecCommand(GymClockSpec.revive(data._next),
+         GymClockSpec.revive(data._prior));
+   };
+}
+
+////////////////////////////////////////
+// LiveClockStateCommand - class to represents the clock state within a workout.
+////////////////////////////////////////
+export class LiveClockStateCommand implements ICommand {
+
+   private _selection: ISelection;
+   private _next: GymClockState;
+   private _prior: GymClockState;
+
+   static readonly __type: string = "LiveClockStateCommand";
+
+   constructor(next: GymClockState, prior: GymClockState) {
+      this._selection = new LiveClockStateSelection(); // This command always has the same selection - the entire whiteboard.
+      this._next = next;
+      this._prior = prior;                 // Caller has to make sure this === current state at time of calling.
+      // Otherwise can lead to problems when commands are copied around between sessions
+   }
+
+   // type is read only
+   get type(): string {
+      return LiveClockStateCommand.__type;
+   }
+
+   selection(): ISelection {
+      return this._selection;
+   }
+
+   applyTo(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type === LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+
+         // Verify that the document has not changed since the command was created
+         if (this._prior.equals(wo.clockState))
+            wo.clockState = this._next;
+      }
+   }
+
+   reverseFrom(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type == LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+         wo.clockState = this._prior;
+      }
+   }
+
+   canReverse(): boolean {
+      return true;
+   }
+
+   /**
+       * Method that serializes to JSON 
+       */
+   toJSON(): Object {
+
+      return {
+         __type: LiveClockStateCommand.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _next: this._next,
+            _prior: this._prior
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   static revive(data: any): LiveClockStateCommand {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return LiveClockStateCommand.reviveDb(data.attributes);
+      else
+         return LiveClockStateCommand.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   static reviveDb(data: any): LiveClockStateCommand {
+
+      return new LiveClockStateCommand(GymClockState.revive(data._next),
+         GymClockState.revive(data._prior));
    };
 }
 
@@ -454,6 +559,19 @@ export class LiveClockSpecSelection implements ISelection {
 }
 
 ////////////////////////////////////////
+// LiveClockStateSelection - Class to represent the 'state' of the clock  within a Workout document.
+////////////////////////////////////////
+export class LiveClockStateSelection implements ISelection {
+
+   constructor() {
+   }
+
+   type(): string {
+      return "LiveClockStateSelection";
+   }
+}
+
+////////////////////////////////////////
 // LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
 ////////////////////////////////////////
 class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
@@ -487,6 +605,9 @@ class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
          }
          if (ev.type === LiveClockSpecCommand.__type) {
             this.onCommandApply(ev as LiveClockSpecCommand);
+         }
+         if (ev.type === LiveClockStateCommand.__type) {
+            this.onCommandApply(ev as LiveClockStateCommand);
          }
          if (ev.type === LiveUndoCommand.__type) {
             this.onCommandReverse();
@@ -575,9 +696,22 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
          clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None);
       }
 
+      // Use cached copy of the workout clock state if there is one
+      var storedClockState = storedWorkoutState.loadClockState();
+      var clockState: GymClockState;
+
+      if (storedClockState && storedClockState.length > 0) {
+         var types = new StreamableTypes()
+         var loadedClockState = types.reviveFromJSON(storedClockState);
+         clockState = new GymClockState(loadedClockState.stateEnum,
+            loadedClockState.secondsIn);
+      } else
+         clockState = new GymClockState(EGymClockState.Stopped, 0);
+
       return new LiveWorkout(storedWorkout,
          resultsText,
          clockSpec,
+         clockState,
          outbound, channel);
    }
 }
