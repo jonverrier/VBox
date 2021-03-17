@@ -7,7 +7,6 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
-import { TriangleDownIcon, PlayIcon, StopIcon } from '@primer/octicons-react'
 
 import * as CSS from 'csstype';
 
@@ -28,20 +27,15 @@ const thinStyle: CSS.Properties = {
 };
 
 const thinAutoStyle: CSS.Properties = {
-   margin: 'auto', padding: '0px',
+   margin: 'auto', padding: '0px', alignItems:'top'
 };
 
 const clockStyle: CSS.Properties = {
    color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 
-const popdownBtnStyle: CSS.Properties = {
-   margin: '0px', padding: '4px',
-   fontSize: '14px'
-};
-
 const clockBtnStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
+   margin: '2px', padding: '2px',
    fontSize: '14px'
 };
 
@@ -61,6 +55,7 @@ export interface IRemoteClockState {
    mm: number;
    ss: number;
    clock: RunnableClock | null;
+   userAllowsMusic: boolean;
 }
 
 export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClockState> {
@@ -76,7 +71,8 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
          isMounted : false,
          mm: 0,
          ss: 0,
-         clock: null
+         clock: null,
+         userAllowsMusic: false
       };
    }
 
@@ -121,7 +117,9 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
             case EGymClockState.CountingDown:
             case EGymClockState.Running:
                if (this.state.clock)
-                  this.state.clock.start(this.onTick.bind(this));
+                  this.state.clock.start(this.onTick.bind(this),
+                     this.state.userAllowsMusic,
+                     workout.clockState.secondsCounted);
                break;
             case EGymClockState.Stopped:
                if (this.state.clock)
@@ -145,12 +143,15 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
       this.setState({ isMounted: false });
    }
 
-   onRemoteData(ev: IStreamable) {
-
-
+   mute(): void {
+      this.setState({ userAllowsMusic: false });
    }
 
-   onTick(mm, ss) {
+   unMute(): void {
+      this.setState({ userAllowsMusic: true });
+   }
+
+   onTick(mm: number, ss: number): void {
       if (this.state.isMounted) {
          this.setState({ mm: mm, ss: ss });
       }
@@ -158,7 +159,25 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
 
    render() {
       return (
-         <p style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</p>
+         <Container style={thinStyle}>
+            <Row style={thinStyle}>
+               <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  disabled={!this.state.userAllowsMusic}
+                  onClick={this.mute.bind(this)}>
+                  <i className="fa fa-volume-off" style={clockBtnStyle}></i>
+               </Button>
+               <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  disabled={this.state.userAllowsMusic}
+                  onClick={this.unMute.bind(this)}>
+                  <i className="fa fa-volume-up" style={clockBtnStyle}></i>
+               </Button>           
+            </Row>
+            <Row style={thinStyle}>
+               <Col style={thinStyle}>
+                  <div style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</div>
+               </Col>
+            </Row>
+         </Container>
       );
    }
 }
@@ -180,6 +199,7 @@ interface IMasterClockState {
    clock: RunnableClock;
    mm: number;
    ss: number;
+   userAllowsMusic: boolean;
 }
 
 export class MasterClock extends React.Component<IMasterClockProps, IMasterClockState> {
@@ -202,18 +222,26 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          clockState: props.liveWorkout.clockState.stateEnum,
          clock: clock,
          mm: 0,
-         ss: 0
+         ss: 0,
+         userAllowsMusic: false
       };
 
       // Scynch our clock up to the state we load
       clock.loadFromState(props.liveWorkout.clockState, this.onTick.bind(this));
    }
 
-   onTick(mm: number, ss: number) {
+   onTick(mm: number, ss: number) : void {
       if (this.state.isMounted) {
          // slight optimisation in case clock is ticking faster than 1 second
          if (this.state.mm != mm || this.state.ss != ss)
             this.setState({ mm: mm, ss: ss });
+
+         // Write back to the document. 
+         // We don't use the Command mechanism as that means updating all connected participants every second, when mostly they ignore the change
+         // as their clock is already running.
+         // So we save to the document and then any new joiners will get valid data when they join as the document is up to date. 
+         this.props.liveWorkout.clockState = new GymClockState(this.props.liveWorkout.clockState.stateEnum,
+            this.state.clock.secondsCounted);
 
          // Save state to local store - for recovery purposes
          this.storedWorkoutState.saveClockState(JSON.stringify(this.state.clock.saveToState()));
@@ -228,6 +256,16 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
    componentWillUnmount() {
       // Stop sending data to remotes
       this.setState({ isMounted: false });
+   }
+
+   mute(): void {
+      this.state.clock.mute();
+      this.setState({ userAllowsMusic: false });
+   }
+
+   unMute(): void {
+      this.state.clock.unMute();
+      this.setState({ userAllowsMusic: true });
    }
 
    testEnableSave() {
@@ -269,7 +307,9 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
    }
 
    processPlay() {
-      this.state.clock.start(this.onTick.bind(this), this.state.clock.secondsCounted);
+      this.state.clock.start(this.onTick.bind(this),
+         this.state.userAllowsMusic,
+         this.state.clock.secondsCounted);
 
       // broadcast the clock change to remotes
       let state = new GymClockState(EGymClockState.CountingDown, this.state.clock.secondsCounted);
@@ -315,35 +355,39 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          <div>
             <Container style={thinStyle}>
                <Row style={thinStyle}>
-                  <Col style={thinStyle}><p style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</p></Col>
-                  <Col style={thinAutoStyle}>
-                     <Row style={thinStyle}>
-                        <Button variant="secondary" size="sm" style={clockBtnStyle}
-                           disabled={!this.canPlay()}
-                           onClick={this.processPlay.bind(this) }>
-                        <i className="fa fa-play"></i>
-                        </Button>
-                     </Row>
-                     <Row style={thinStyle}>
-                        <Button variant="secondary" size="sm" style={clockBtnStyle}
-                           disabled={!this.canPause()}
-                           onClick={this.processPause.bind(this)}> 
-                        <i className="fa fa-pause"></i>
-                        </Button>
-                     </Row>
-                     <Row style={thinStyle}>
-                        <Button variant="secondary" size="sm" style={clockBtnStyle}
-                           disabled={!this.canStop()}
-                           onClick={this.processStop.bind(this)}>
-                        <i className="fa fa-stop"></i>
-                        </Button>
-                     </Row>
-                  </Col>
+                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                     disabled={!this.state.userAllowsMusic}
+                     onClick={this.mute.bind(this)}>
+                     <i className="fa fa-volume-off" style={clockBtnStyle}></i>
+                  </Button>
+                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                     disabled={this.state.userAllowsMusic}
+                     onClick={this.unMute.bind(this)}>
+                     <i className="fa fa-volume-up" style={clockBtnStyle}></i>
+                  </Button>
+                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                     disabled={!this.canPlay()}
+                     onClick={this.processPlay.bind(this) }>
+                     <i className="fa fa-play" style={clockBtnStyle}></i>
+                  </Button>
+                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                     disabled={!this.canPause()}
+                     onClick={this.processPause.bind(this)}> 
+                     <i className="fa fa-pause" style={clockBtnStyle}></i>
+                  </Button>
+                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                     disabled={!this.canStop()}
+                     onClick={this.processStop.bind(this)}>
+                     <i className="fa fa-stop" style={clockBtnStyle}></i>
+                  </Button>
+                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                     onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
+                     <i className="fa fa-caret-down" style={clockBtnStyle}></i>
+                  </Button>
+               </Row>
+               <Row style={thinStyle}>
                   <Col style={thinStyle}>
-                     <Button variant="secondary" size="sm" style={popdownBtnStyle}
-                        onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
-                        <TriangleDownIcon />
-                     </Button>
+                     <div style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</div>
                   </Col>
                </Row>
             </Container>

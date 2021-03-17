@@ -7,7 +7,6 @@ import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
-import { TriangleDownIcon } from '@primer/octicons-react'
 
 import * as CSS from 'csstype';
 
@@ -33,9 +32,9 @@ const thinCentredStyle: CSS.Properties = {
    justifyContent: 'center'
 };
 
-const popdownBtnStyle: CSS.Properties = {
-   margin: '0px', padding: '4px',
-   fontSize: '13.333px'
+const clockBtnStyle: CSS.Properties = {
+   margin: '2px', padding: '2px',
+   fontSize: '14px'
 };
 
 const whiteboardStyle: CSS.Properties = {
@@ -281,8 +280,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          <div>
             <Row style={thinCentredStyle}>
                <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p><p style={blockCharStyle}></p>
-               <Button style={popdownBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
-                  <TriangleDownIcon />
+               <Button style={clockBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
+                  <i className="fa fa-caret-down" style={clockBtnStyle}></i>
                </Button>
             </Row>      
             <Row style={thinStyle}>

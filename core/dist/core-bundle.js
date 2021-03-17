@@ -5363,7 +5363,7 @@ class GymClockState {
      */
     constructor(stateEnum, secondsIn) {
         this._stateEnum = stateEnum;
-        this._secondsIn = secondsIn;
+        this._secondsCounted = secondsIn;
     }
     /**
     * set of 'getters' for private variables
@@ -5371,8 +5371,8 @@ class GymClockState {
     get stateEnum() {
         return this._stateEnum;
     }
-    get secondsIn() {
-        return this._secondsIn;
+    get secondsCounted() {
+        return this._secondsCounted;
     }
     get type() {
         return GymClockState.__type;
@@ -5384,7 +5384,7 @@ class GymClockState {
      */
     equals(rhs) {
         return (this._stateEnum === rhs._stateEnum &&
-            this._secondsIn === rhs._secondsIn);
+            this._secondsCounted === rhs._secondsCounted);
     }
     ;
     /**
@@ -5396,7 +5396,7 @@ class GymClockState {
             // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
             attributes: {
                 _stateEnum: this._stateEnum,
-                _secondsIn: this._secondsIn
+                _secondsCounted: this._secondsCounted
             }
         };
     }
@@ -5417,7 +5417,7 @@ class GymClockState {
     * @param data - the JSON data to revive from
     */
     static reviveDb(data) {
-        return new GymClockState(data._stateEnum, data._secondsIn);
+        return new GymClockState(data._stateEnum, data._secondsCounted);
     }
     ;
 }
@@ -5789,11 +5789,14 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveClockStateSelection = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveClockStateCommand = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+// This app, this component 
+const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
+var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
 // Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
@@ -5929,9 +5932,12 @@ class LiveWhiteboardCommand {
         // Since we downcast, need to check type
         if (document.type === LiveWorkout.__type) {
             var wo = document;
-            // Verify that the document has not changed since the command was created
-            if (this._prior === wo.whiteboardText)
-                wo.whiteboardText = this._next;
+            // Verify that the document has not changed since the command was created. 
+            // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+            if (this._prior === wo.whiteboardText) {
+                logger.logError(LiveResultsCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.whiteboardText);
+            }
+            wo.whiteboardText = this._next;
             // save in local cache
             new LocalStore_1.StoredWorkoutState().saveWorkout(wo.whiteboardText);
         }
@@ -6005,8 +6011,11 @@ class LiveResultsCommand {
         if (document.type === LiveWorkout.__type) {
             var wo = document;
             // Verify that the document has not changed since the command was created
-            if (this._prior === wo.resultsText)
-                wo.resultsText = this._next;
+            // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+            if (this._prior === wo.resultsText) {
+                logger.logError(LiveResultsCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.resultsText);
+            }
+            wo.resultsText = this._next;
         }
     }
     reverseFrom(document) {
@@ -6078,8 +6087,11 @@ class LiveClockSpecCommand {
         if (document.type === LiveWorkout.__type) {
             var wo = document;
             // Verify that the document has not changed since the command was created
-            if (this._prior.equals(wo.clockSpec))
-                wo.clockSpec = this._next;
+            // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+            if (this._prior.equals(wo.clockSpec)) {
+                logger.logError(LiveClockSpecCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.clockSpec);
+            }
+            wo.clockSpec = this._next;
         }
     }
     reverseFrom(document) {
@@ -6151,8 +6163,12 @@ class LiveClockStateCommand {
         if (document.type === LiveWorkout.__type) {
             var wo = document;
             // Verify that the document has not changed since the command was created
-            if (this._prior.equals(wo.clockState))
-                wo.clockState = this._next;
+            // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+            // Note we only compare state, since the tick count can drift between participants
+            if (this._prior.stateEnum !== wo.clockState.stateEnum) {
+                logger.logError(LiveClockStateCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior.stateEnum, wo.clockState.stateEnum);
+            }
+            wo.clockState = this._next;
         }
     }
     reverseFrom(document) {

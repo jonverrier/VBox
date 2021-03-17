@@ -12,6 +12,8 @@
 // 
 
 // This app, this component 
+
+import { LoggerFactory, ELoggerType } from './Logger';
 import { IStreamable } from './Streamable'
 import { StreamableTypes } from './StreamableTypes';
 import { CallParticipation } from './Call';
@@ -21,6 +23,8 @@ import { ILiveDocument, ICommand, ISelection, ICommandProcessor,
 import { LiveCommandProcessor, LiveUndoCommand} from './LiveCommand';
 import { PeerConnection } from './PeerConnection';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from './GymClock';
+
+var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
@@ -194,9 +198,13 @@ export class LiveWhiteboardCommand implements ICommand {
       if (document.type === LiveWorkout.__type) {
          var wo: LiveWorkout = (document as LiveWorkout);
 
-         // Verify that the document has not changed since the command was created
-         if (this._prior === wo.whiteboardText)
-            wo.whiteboardText = this._next;
+         // Verify that the document has not changed since the command was created. 
+         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+         if (this._prior === wo.whiteboardText) {
+            logger.logError(LiveResultsCommand.__type, 'applyTo',
+               'Error, current document state != prior from command:' + this._prior, wo.whiteboardText);
+         }
+         wo.whiteboardText = this._next;
 
          // save in local cache
          new StoredWorkoutState().saveWorkout(wo.whiteboardText);
@@ -286,8 +294,12 @@ export class LiveResultsCommand implements ICommand {
          var wo: LiveWorkout = (document as LiveWorkout);
 
          // Verify that the document has not changed since the command was created
-         if (this._prior === wo.resultsText)
-            wo.resultsText = this._next;
+         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+         if (this._prior === wo.resultsText) {
+            logger.logError(LiveResultsCommand.__type, 'applyTo',
+               'Error, current document state != prior from command:' + this._prior, wo.resultsText);
+         }
+         wo.resultsText = this._next;
       }
    }
 
@@ -374,8 +386,12 @@ export class LiveClockSpecCommand implements ICommand {
          var wo: LiveWorkout = (document as LiveWorkout);
 
          // Verify that the document has not changed since the command was created
-         if (this._prior.equals ( wo.clockSpec))
-            wo.clockSpec = this._next;
+         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+         if (this._prior.equals(wo.clockSpec)) {
+            logger.logError(LiveClockSpecCommand.__type, 'applyTo',
+               'Error, current document state != prior from command:' + this._prior, wo.clockSpec);
+         }
+         wo.clockSpec = this._next;
       }
    }
 
@@ -463,8 +479,13 @@ export class LiveClockStateCommand implements ICommand {
          var wo: LiveWorkout = (document as LiveWorkout);
 
          // Verify that the document has not changed since the command was created
-         if (this._prior.equals(wo.clockState))
-            wo.clockState = this._next;
+         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+         // Note we only compare state, since the tick count can drift between participants
+         if (this._prior.stateEnum !== wo.clockState.stateEnum) {
+            logger.logError(LiveClockStateCommand.__type, 'applyTo',
+               'Error, current document state != prior from command:' + this._prior.stateEnum, wo.clockState.stateEnum);
+         }
+         wo.clockState = this._next;
       }
    }
 
