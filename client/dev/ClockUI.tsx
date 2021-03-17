@@ -144,10 +144,12 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
    }
 
    mute(): void {
+      this.state.clock.mute();
       this.setState({ userAllowsMusic: false });
    }
 
    unMute(): void {
+      this.state.clock.unMute();
       this.setState({ userAllowsMusic: true });
    }
 
