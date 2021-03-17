@@ -47919,9 +47919,11 @@ class RemoteClock extends React.Component {
         this.setState({ isMounted: false });
     }
     mute() {
+        this.state.clock.mute();
         this.setState({ userAllowsMusic: false });
     }
     unMute() {
+        this.state.clock.unMute();
         this.setState({ userAllowsMusic: true });
     }
     onTick(mm, ss) {
