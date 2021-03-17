@@ -13,7 +13,6 @@
       "test": "mocha"
    },
    "devDependencies": {
-      "@primer/octicons-react": "^12.1.0",
       "@types/react": "^16.9.56",
       "axios": "^0.21.1",
       "chai": "^4.3.0",

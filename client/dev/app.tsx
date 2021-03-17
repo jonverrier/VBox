@@ -144,7 +144,7 @@ interface IMemberPageState {
    nameCopy: string;
    loginData: MemberLoginData;
    loginProvider: MemberLoginProvider;
-   intervalId: any;
+   intervalId: any
 }
 
 export class MemberPage extends React.Component<IMemberPageProps, IMemberPageState> {
@@ -178,7 +178,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
          nameCopy: loginData.name,
          loginData: loginData,
          loginProvider: new MemberLoginProvider(),
-         intervalId : null
+         intervalId: null
       };
    }
 

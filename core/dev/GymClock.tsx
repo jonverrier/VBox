@@ -173,7 +173,7 @@ export class GymClockSpec implements IStreamableFor<GymClockSpec> {
 export class GymClockState implements IStreamableFor<GymClockState >  {
 
    _stateEnum: EGymClockState;
-   _secondsIn: number;
+   _secondsCounted: number;
 
    static readonly __type = "GymClockState";
 
@@ -183,7 +183,7 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
    constructor(stateEnum: EGymClockState, secondsIn: number) {
 
       this._stateEnum = stateEnum;
-      this._secondsIn = secondsIn;
+      this._secondsCounted = secondsIn;
    }   
 
 
@@ -193,8 +193,8 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
    get stateEnum(): EGymClockState {
       return this._stateEnum;
    }
-   get secondsIn(): number {
-      return this._secondsIn;
+   get secondsCounted(): number {
+      return this._secondsCounted;
    }
    get type(): string {
       return GymClockState.__type;
@@ -208,7 +208,7 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
    equals(rhs: GymClockState): boolean {
 
       return (this._stateEnum === rhs._stateEnum &&
-         this._secondsIn === rhs._secondsIn);
+         this._secondsCounted === rhs._secondsCounted);
    };
 
 
@@ -222,7 +222,7 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _stateEnum: this._stateEnum,
-            _secondsIn: this._secondsIn
+            _secondsCounted: this._secondsCounted
          }
       };
    };
@@ -246,7 +246,7 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
    */
    static reviveDb(data: any): GymClockState {
 
-      return new GymClockState(data._stateEnum, data._secondsIn);
+      return new GymClockState(data._stateEnum, data._secondsCounted);
    };
 }
 
