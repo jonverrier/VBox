@@ -6,7 +6,7 @@ import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderR
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { GymClockSpec, GymClockState } from './GymClock';
-import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand } from './LiveWorkout';
+import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand, LiveAttendanceCommand} from './LiveWorkout';
 import { LiveUndoCommand } from './LiveCommand';
 
 //==============================//
@@ -44,6 +44,7 @@ export class StreamableTypes {
       this._types.LiveClockSpecCommand = LiveClockSpecCommand;
       this._types.LiveClockStateCommand = LiveClockStateCommand;
       this._types.LiveUndoCommand = LiveUndoCommand;
+      this._types.LiveAttendanceCommand = LiveAttendanceCommand;
 
    }
 

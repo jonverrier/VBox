@@ -39,6 +39,7 @@ export class LiveWorkout implements ILiveDocument {
    private _resultsText: string;
    private _clockSpec: GymClockSpec;
    private _clockState: GymClockState;
+   private _attendances: Array<PersonAttendance>;
    private _channel: ILiveDocumentChannel | undefined;
    private _outbound: boolean | undefined;
 
@@ -46,6 +47,7 @@ export class LiveWorkout implements ILiveDocument {
       resultsText: string,
       clockSpec: GymClockSpec,
       clockState: GymClockState,
+      attendances: Array<PersonAttendance>,
       outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._outbound = outbound;
       if (channel)
@@ -54,6 +56,7 @@ export class LiveWorkout implements ILiveDocument {
       this._resultsText = resultsText;
       this._clockSpec = clockSpec;
       this._clockState = clockState;
+      this._attendances = attendances.splice(0);
    }
 
    createCommandProcessor(): ICommandProcessor {
@@ -88,6 +91,21 @@ export class LiveWorkout implements ILiveDocument {
    set clockState(clockState: GymClockState) {
       this._clockState = clockState;
    }
+   // Getter and setter for attendance
+   get attendances(): Array<PersonAttendance> {
+      return this._attendances;
+   }
+   addAttendance(attendance: PersonAttendance): void {
+      this._attendances.push(attendance);
+   }
+   removeAttendance(attendance: PersonAttendance): void {
+      for (var i = 0; i < this._attendances.length; i++) {
+         if (this._attendances[i].equals(attendance)) {
+            this.attendances.splice(i);
+            break;
+         }
+      }
+   }
 
    // type is read only
    get type(): string {
@@ -103,7 +121,8 @@ export class LiveWorkout implements ILiveDocument {
          return (this._whiteboardText === workout._whiteboardText &&
             this._resultsText === workout._resultsText &&
             this._clockSpec.equals(workout._clockSpec) &&
-            this._clockState.equals(workout._clockState));
+            this._clockState.equals(workout._clockState) &&
+            (this._attendances as any).equals(workout._attendances));
       }
       else
          return false;
@@ -119,6 +138,7 @@ export class LiveWorkout implements ILiveDocument {
          this._resultsText = workout._resultsText;
          this._clockSpec = workout._clockSpec;
          this._clockState = workout._clockState;
+         this._attendances = workout._attendances.splice(0);
       }
    }
 
@@ -134,7 +154,8 @@ export class LiveWorkout implements ILiveDocument {
             _whiteboardText: this._whiteboardText,
             _resultsText: this._resultsText,
             _clockSpec: this._clockSpec,
-            _clockState: this._clockState
+            _clockState: this._clockState,
+            _attendances: this._attendances
          }
       };
    };
@@ -160,10 +181,16 @@ export class LiveWorkout implements ILiveDocument {
    */
    static reviveDb(data: any): LiveWorkout {
 
+      let attendances = new Array<PersonAttendance>(data._attendances.length);
+      for (var i = 0; i < data._attendances.length; i++) {
+         attendances[i] = PersonAttendance.revive(data._attendances[i]);
+      }
+
       return new LiveWorkout(data._whiteboardText,
          data._resultsText,
          GymClockSpec.revive(data._clockSpec),
-         GymClockState.revive(data._clockState));
+         GymClockState.revive(data._clockState),
+         attendances);
    };
 }
 
@@ -263,7 +290,7 @@ export class LiveWhiteboardCommand implements ICommand {
 }
 
 ////////////////////////////////////////
-// LiveResultsCommand - class to represents the whiteboard within a workout.
+// LiveResultsCommand - class to represent command on the whiteboard within a workout.
 ////////////////////////////////////////
 export class LiveResultsCommand implements ICommand {
 
@@ -355,7 +382,7 @@ export class LiveResultsCommand implements ICommand {
 }
 
 ////////////////////////////////////////
-// LiveClockSpecCommand - class to represents the clock spec within a workout.
+// LiveClockSpecCommand - class to represents command on the clock spec within a workout.
 ////////////////////////////////////////
 export class LiveClockSpecCommand implements ICommand {
 
@@ -448,7 +475,7 @@ export class LiveClockSpecCommand implements ICommand {
 }
 
 ////////////////////////////////////////
-// LiveClockStateCommand - class to represents the clock state within a workout.
+// LiveClockStateCommand - class to represents command on the clock state within a workout.
 ////////////////////////////////////////
 export class LiveClockStateCommand implements ICommand {
 
@@ -542,18 +569,18 @@ export class LiveClockStateCommand implements ICommand {
 }
 
 ////////////////////////////////////////
-// LiveParticipationListCommand - class to represents the participation list within a workout.
+// LiveAttendanceCommand - class to represent command on the participation list within a workout.
 ////////////////////////////////////////
-export class LiveParticipationListCommand implements ICommand {
+export class LiveAttendanceCommand implements ICommand {
 
    private _selection: ISelection;
    private _next: PersonAttendance;
    private _prior: PersonAttendance;
 
-   static readonly __type: string = "LiveParticipationListCommand";
+   static readonly __type: string = "LiveAttendanceCommand";
 
    constructor(next: PersonAttendance, prior: PersonAttendance) {
-      this._selection = new LiveParticipationListSelection(); // This command always has the same selection - the entire whiteboard.
+      this._selection = new LiveAttendanceSelection(); // This command always has the same selection - the entire attendance list.
       this._next = next;
       this._prior = prior;                 // Caller has to make sure this === current state at time of calling.
       // Otherwise can lead to problems when commands are copied around between sessions
@@ -561,7 +588,7 @@ export class LiveParticipationListCommand implements ICommand {
 
    // type is read only
    get type(): string {
-      return LiveParticipationListCommand.__type;
+      return LiveAttendanceCommand.__type;
    }
 
    selection(): ISelection {
@@ -572,15 +599,7 @@ export class LiveParticipationListCommand implements ICommand {
       // Since we downcast, need to check type
       if (document.type === LiveWorkout.__type) {
          var wo: LiveWorkout = (document as LiveWorkout);
-
-         // Verify that the document has not changed since the command was created
-         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-         // TODO 
-         /* if (this._prior.stateEnum !== wo.clockState.stateEnum) {
-            logger.logError(LiveClockStateCommand.__type, 'applyTo',
-               'Error, current document state != prior from command:' + this._prior.stateEnum, wo.clockState.stateEnum);
-         }
-         wo.clockState = this._next; */
+         wo.addAttendance(this._next); 
       }
    }
 
@@ -588,7 +607,7 @@ export class LiveParticipationListCommand implements ICommand {
       // Since we downcast, need to check type
       if (document.type == LiveWorkout.__type) {
          var wo: LiveWorkout = (document as LiveWorkout);
-         // TODO wo.clockState = this._prior;
+         wo.removeAttendance(this._next);
       }
    }
 
@@ -602,7 +621,7 @@ export class LiveParticipationListCommand implements ICommand {
    toJSON(): Object {
 
       return {
-         __type: LiveParticipationListCommand.__type,
+         __type: LiveAttendanceCommand.__type,
          // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
          attributes: {
             _next: this._next,
@@ -615,22 +634,22 @@ export class LiveParticipationListCommand implements ICommand {
     * Method that can deserialize JSON into an instance 
     * @param data - the JSON data to revove from 
     */
-   static revive(data: any): LiveParticipationListCommand {
+   static revive(data: any): LiveAttendanceCommand {
 
       // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
       if (data.attributes)
-         return LiveParticipationListCommand.reviveDb(data.attributes);
+         return LiveAttendanceCommand.reviveDb(data.attributes);
       else
-         return LiveParticipationListCommand.reviveDb(data);
+         return LiveAttendanceCommand.reviveDb(data);
    };
 
    /**
    * Method that can deserialize JSON into an instance 
    * @param data - the JSON data to revove from 
    */
-   static reviveDb(data: any): LiveParticipationListCommand {
+   static reviveDb(data: any): LiveAttendanceCommand {
 
-      return new LiveParticipationListCommand(PersonAttendance.revive (data._next),
+      return new LiveAttendanceCommand(PersonAttendance.revive (data._next),
          PersonAttendance.revive(data._prior));
    };
 }
@@ -690,9 +709,9 @@ export class LiveClockStateSelection implements ISelection {
 ////////////////////////////////////////
 // LiveParticipationListSelection - Class to represent the 'state' of the partipation list within a Workout document.
 ////////////////////////////////////////
-export class LiveParticipationListSelection implements ISelection {
+export class LiveAttendanceSelection implements ISelection {
 
-   constructor() {
+   LiveAttendanceSelection() {
    }
 
    type(): string {
@@ -841,6 +860,7 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
          resultsText,
          clockSpec,
          clockState,
+         new Array <PersonAttendance>(),
          outbound, channel);
    }
 }

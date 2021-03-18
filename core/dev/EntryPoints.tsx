@@ -23,7 +23,7 @@ import { PeerFactory } from './PeerFactory';
 // LiveDocument Architecture
 import {
    LiveWorkout,
-   LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand,
+   LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand, LiveAttendanceCommand,
    LiveWorkoutChannelFactoryPeer, LiveWorkoutFactory
 } from './LiveWorkout';
 import { LiveCommandProcessor, LiveUndoCommand } from './LiveCommand';
@@ -80,6 +80,7 @@ var EntryPoints = {
    LiveResultsCommand: LiveResultsCommand,
    LiveClockSpecCommand: LiveClockSpecCommand,
    LiveClockStateCommand: LiveClockStateCommand,
+   LiveAttendanceCommand: LiveAttendanceCommand,
    LiveDocumentMaster: LiveDocumentMaster,
    LiveDocumentRemote: LiveDocumentRemote,
    LiveWorkoutChannelFactoryPeer: LiveWorkoutChannelFactoryPeer,

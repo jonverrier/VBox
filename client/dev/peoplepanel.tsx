@@ -9,7 +9,7 @@ import * as React from 'react';
 import Row from 'react-bootstrap/Row';
 
 // This app
-import { Person } from '../../core/dev/Person';
+import { Person, PersonAttendance } from '../../core/dev/Person';
 import { IStreamable } from '../../core/dev/Streamable';
 import { PeerConnection } from '../../core/dev/PeerConnection';
 
@@ -68,8 +68,8 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
                   <Row key={item.key}>
                      <Participant name={item.name} thumbnailUrl={item.thumbnailUrl} />
                   </Row>)
-            }  </div>                                                               
-         );
+            }
+         </div>);
       }
    }
 }
