@@ -52577,7 +52577,7 @@ class PeerConnection {
             }
         }
         // we only make a new link if we were the caller - else we can fail & wait for them to call us again. 
-        if (link.isOutbound) {
+        if (link.isOutbound && link.transport === Call_1.ETransportType.Rtc) {
             this.createCallerLink(link.remoteCallParticipation, Call_1.ETransportType.Web);
         }
     }
@@ -53801,10 +53801,15 @@ class WebPeerHelper {
     //////////
     placeCall() {
         let offer = new Call_1.CallOffer(this._localCallParticipation, this._remoteCallParticipation, "Web", Call_1.ETransportType.Web);
+        this._timeoutId = setTimeout(this.onTimeout.bind(this), WebPeerHelper._timeOutInterval);
         this._signaller.sendOffer(offer);
     }
     handleAnswer(answer) {
         this._isChannelConnected = true;
+        if (this._timeoutId) {
+            clearTimeout(this._timeoutId);
+            this._timeoutId = null;
+        }
         // Send the local person to start the application handshake
         this.send(this._localPerson);
         WebPeerHelper.drainSendQueue(this._signaller);
@@ -53813,12 +53818,20 @@ class WebPeerHelper {
         let answer = new Call_1.CallAnswer(this._localCallParticipation, this._remoteCallParticipation, "Web", Call_1.ETransportType.Web);
         this._signaller.sendAnswer(answer);
         this._isChannelConnected = true;
+        if (this._timeoutId) {
+            clearTimeout(this._timeoutId);
+            this._timeoutId = null;
+        }
         // Send the local person to start the application handshake
         this.send(this._localPerson);
         WebPeerHelper.drainSendQueue(this._signaller);
     }
     close() {
-        // TODO
+        if (this._timeoutId) {
+            clearTimeout(this._timeoutId);
+            this._timeoutId = null;
+        }
+        // TODO - work out close down logic - should we notify other party?
     }
     send(obj) {
         if (!WebPeerHelper._dataForBatch) {
@@ -53863,6 +53876,14 @@ class WebPeerHelper {
             signaller.sendData(WebPeerHelper._sendQueue.dequeue());
         }
     }
+    onTimeout() {
+        if (this._timeoutId) {
+            clearTimeout(this._timeoutId);
+            this._timeoutId = null;
+        }
+        if (this.onRemoteFail)
+            this.onRemoteFail();
+    }
     onRecieveMessage(data) {
         var remoteCallData = data.data;
         // Store the person we are talking to - allows tracking in the UI later
@@ -53892,6 +53913,7 @@ WebPeerHelper._sendQueue = new Queue_1.Queue();
 WebPeerHelper._dataForBatch = undefined;
 WebPeerHelper._recipents = new Array();
 WebPeerHelper._sender = undefined;
+WebPeerHelper._timeOutInterval = 30 * 1000;
 
 
 /***/ }),

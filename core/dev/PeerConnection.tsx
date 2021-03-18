@@ -38,7 +38,8 @@ export class PeerConnection {
    private _localCallParticipation: CallParticipation;
    private _person: Person;
    private _links: PeerLink[];
-   private _datalisteners: Array<Function>;
+   private _dataListeners: Array<Function>;
+   private _faillisteners: Array<Function>;
    private _isEdgeOnly: boolean;
    private _nameCache: PeerNameCache;
    private _signalSender: IPeerSignalSender;
@@ -48,7 +49,7 @@ export class PeerConnection {
    constructor(isEdge: boolean) { // If isEdge is set, does not set up links with new participants - we are reciever only
       this._localCallParticipation = null;
       this._links = new Array();
-      this._datalisteners = new Array<Function>();
+      this._dataListeners = new Array<Function>();
       this._nameCache = new PeerNameCache();
       this._signalSender = new SignalSender();
       this._signalReciever = new SignalReciever();
@@ -59,7 +60,7 @@ export class PeerConnection {
    }
 
    addRemoteDataListener(fn: Function) : void {
-      this._datalisteners.push(fn);
+      this._dataListeners.push(fn);
    };
 
    get localCallParticipation(): CallParticipation {
@@ -190,9 +191,9 @@ export class PeerConnection {
 
       // Hooks to pass up data
       link.onRemoteData = (ev) => {
-         if (this._datalisteners) {
-            for (var i = 0; i < this._datalisteners.length; i++) {
-               this._datalisteners[i](ev);
+         if (this._dataListeners) {
+            for (var i = 0; i < this._dataListeners.length; i++) {
+               this._dataListeners[i](ev);
             }
          }
       };
@@ -219,7 +220,7 @@ export class PeerConnection {
       }
 
       // we only make a new link if we were the caller - else we can fail & wait for them to call us again. 
-      if (link.isOutbound) {
+      if (link.isOutbound && link.transport === ETransportType.Rtc) {
          this.createCallerLink(link.remoteCallParticipation, ETransportType.Web);
       }
    }
@@ -237,9 +238,9 @@ export class PeerConnection {
 
       // Hooks to pass up data
       link.onRemoteData = (ev) => {
-         if (this._datalisteners) {
-            for (var i = 0; i < this._datalisteners.length; i++) {
-               this._datalisteners[i](ev);
+         if (this._dataListeners) {
+            for (var i = 0; i < this._dataListeners.length; i++) {
+               this._dataListeners[i](ev);
             }
          }
       };

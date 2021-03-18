@@ -212,12 +212,14 @@ export class WebPeerHelper {
    private _nameCache: PeerNameCache;
    private _signaller: IPeerSignalSender;
    private _types: StreamableTypes;
+   private _timeoutId: any;
    private static className: string = 'WebPeerHelper';
 
    private static _sendQueue: Queue<IStreamable> = new Queue<IStreamable> ();
    private static _dataForBatch: IStreamable = undefined;
    private static _recipents: Array<CallParticipation> = new Array<CallParticipation>();
    private static _sender: CallParticipation = undefined;
+   private static _timeOutInterval: number = 30 * 1000;
 
    constructor(localCallParticipation: CallParticipation,
       remoteCallParticipation: CallParticipation,
@@ -263,11 +265,17 @@ export class WebPeerHelper {
 
    placeCall(): void {
       let offer = new CallOffer(this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
+      this._timeoutId = setTimeout(this.onTimeout.bind(this), WebPeerHelper._timeOutInterval);
       this._signaller.sendOffer(offer);
    }
 
    handleAnswer(answer: CallAnswer): void {
+
       this._isChannelConnected = true;
+      if (this._timeoutId) {
+         clearTimeout(this._timeoutId);
+         this._timeoutId = null;
+      }
 
       // Send the local person to start the application handshake
       this.send(this._localPerson);
@@ -277,7 +285,12 @@ export class WebPeerHelper {
    answerCall(remoteOffer: CallOffer): void {
       let answer = new CallAnswer (this._localCallParticipation, this._remoteCallParticipation, "Web", ETransportType.Web);
       this._signaller.sendAnswer(answer);
+
       this._isChannelConnected = true;
+      if (this._timeoutId) {
+         clearTimeout(this._timeoutId);
+         this._timeoutId = null;
+      }
 
       // Send the local person to start the application handshake
       this.send(this._localPerson);
@@ -285,7 +298,13 @@ export class WebPeerHelper {
    }
 
    close(): void {
-      // TODO
+
+      if (this._timeoutId) {
+         clearTimeout(this._timeoutId);
+         this._timeoutId = null;
+      }
+
+      // TODO - work out close down logic - should we notify other party?
    }
 
    send(obj: IStreamable) : void {
@@ -339,6 +358,15 @@ export class WebPeerHelper {
       while (!WebPeerHelper._sendQueue.isEmpty()) {
          signaller.sendData(WebPeerHelper._sendQueue.dequeue());
       }
+   }
+
+   private onTimeout(): void {
+      if (this._timeoutId) {
+         clearTimeout(this._timeoutId);
+         this._timeoutId = null;
+      }
+      if (this.onRemoteFail)
+         this.onRemoteFail();
    }
 
    private onRecieveMessage(data: CallData) {
