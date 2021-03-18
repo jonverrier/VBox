@@ -16,6 +16,7 @@
 import { LoggerFactory, ELoggerType } from './Logger';
 import { IStreamable } from './Streamable'
 import { StreamableTypes } from './StreamableTypes';
+import { Person, PersonAttendance } from './Person';
 import { CallParticipation } from './Call';
 import { StoredWorkoutState } from './LocalStore';
 import { ILiveDocument, ICommand, ISelection, ICommandProcessor, 
@@ -200,8 +201,8 @@ export class LiveWhiteboardCommand implements ICommand {
 
          // Verify that the document has not changed since the command was created. 
          // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-         if (this._prior === wo.whiteboardText) {
-            logger.logError(LiveResultsCommand.__type, 'applyTo',
+         if (!(this._prior === wo.whiteboardText)) {
+            logger.logError(LiveWhiteboardCommand.__type, 'applyTo',
                'Error, current document state != prior from command:' + this._prior, wo.whiteboardText);
          }
          wo.whiteboardText = this._next;
@@ -295,7 +296,7 @@ export class LiveResultsCommand implements ICommand {
 
          // Verify that the document has not changed since the command was created
          // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-         if (this._prior === wo.resultsText) {
+         if (! (this._prior === wo.resultsText)) {
             logger.logError(LiveResultsCommand.__type, 'applyTo',
                'Error, current document state != prior from command:' + this._prior, wo.resultsText);
          }
@@ -387,7 +388,7 @@ export class LiveClockSpecCommand implements ICommand {
 
          // Verify that the document has not changed since the command was created
          // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-         if (this._prior.equals(wo.clockSpec)) {
+         if (! this._prior.equals(wo.clockSpec)) {
             logger.logError(LiveClockSpecCommand.__type, 'applyTo',
                'Error, current document state != prior from command:' + this._prior, wo.clockSpec);
          }
@@ -541,6 +542,100 @@ export class LiveClockStateCommand implements ICommand {
 }
 
 ////////////////////////////////////////
+// LiveParticipationListCommand - class to represents the participation list within a workout.
+////////////////////////////////////////
+export class LiveParticipationListCommand implements ICommand {
+
+   private _selection: ISelection;
+   private _next: PersonAttendance;
+   private _prior: PersonAttendance;
+
+   static readonly __type: string = "LiveParticipationListCommand";
+
+   constructor(next: PersonAttendance, prior: PersonAttendance) {
+      this._selection = new LiveParticipationListSelection(); // This command always has the same selection - the entire whiteboard.
+      this._next = next;
+      this._prior = prior;                 // Caller has to make sure this === current state at time of calling.
+      // Otherwise can lead to problems when commands are copied around between sessions
+   }
+
+   // type is read only
+   get type(): string {
+      return LiveParticipationListCommand.__type;
+   }
+
+   selection(): ISelection {
+      return this._selection;
+   }
+
+   applyTo(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type === LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+
+         // Verify that the document has not changed since the command was created
+         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+         // TODO 
+         /* if (this._prior.stateEnum !== wo.clockState.stateEnum) {
+            logger.logError(LiveClockStateCommand.__type, 'applyTo',
+               'Error, current document state != prior from command:' + this._prior.stateEnum, wo.clockState.stateEnum);
+         }
+         wo.clockState = this._next; */
+      }
+   }
+
+   reverseFrom(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type == LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+         // TODO wo.clockState = this._prior;
+      }
+   }
+
+   canReverse(): boolean {
+      return true;
+   }
+
+   /**
+       * Method that serializes to JSON 
+       */
+   toJSON(): Object {
+
+      return {
+         __type: LiveParticipationListCommand.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _next: this._next,
+            _prior: this._prior
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   static revive(data: any): LiveParticipationListCommand {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return LiveParticipationListCommand.reviveDb(data.attributes);
+      else
+         return LiveParticipationListCommand.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   static reviveDb(data: any): LiveParticipationListCommand {
+
+      return new LiveParticipationListCommand(PersonAttendance.revive (data._next),
+         PersonAttendance.revive(data._prior));
+   };
+}
+
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 export class LiveWhiteboardSelection implements ISelection {
@@ -554,7 +649,7 @@ export class LiveWhiteboardSelection implements ISelection {
 }
 
 ////////////////////////////////////////
-// LiveWhiteboardSelection - Class to represent the 'selection' of the results within a Workout document.
+// LiveResultsSelection - Class to represent the 'selection' of the results within a Workout document.
 ////////////////////////////////////////
 export class LiveResultsSelection implements ISelection {
 
@@ -580,7 +675,7 @@ export class LiveClockSpecSelection implements ISelection {
 }
 
 ////////////////////////////////////////
-// LiveClockStateSelection - Class to represent the 'state' of the clock  within a Workout document.
+// LiveClockStateSelection - Class to represent the 'state' of the clock within a Workout document.
 ////////////////////////////////////////
 export class LiveClockStateSelection implements ISelection {
 
@@ -589,6 +684,19 @@ export class LiveClockStateSelection implements ISelection {
 
    type(): string {
       return "LiveClockStateSelection";
+   }
+}
+
+////////////////////////////////////////
+// LiveParticipationListSelection - Class to represent the 'state' of the partipation list within a Workout document.
+////////////////////////////////////////
+export class LiveParticipationListSelection implements ISelection {
+
+   constructor() {
+   }
+
+   type(): string {
+      return "LiveParticipationListSelection";
    }
 }
 

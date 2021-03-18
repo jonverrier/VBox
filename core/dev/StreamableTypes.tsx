@@ -1,6 +1,6 @@
 
 /*! Copyright TXPCo, 2020, 2021 */
-import { Person } from './Person';
+import { Person, PersonAttendance } from './Person';
 import { Facility } from './Facility';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
@@ -24,6 +24,7 @@ export class StreamableTypes {
       // Registry of types
       this._types = {};
       this._types.Person = Person;
+      this._types.PersonAttendance = PersonAttendance;
       this._types.Facility = Facility;
       this._types.CallParticipation = CallParticipation;
       this._types.CallOffer = CallOffer,

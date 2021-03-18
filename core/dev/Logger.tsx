@@ -107,9 +107,12 @@ class ClientLogger implements ILogger {
          data ? JSON.stringify(data, null, 2) : ""
       );
 
-      if (this.shipToSever) {
-         const msg = component + "." + method + ": " + message + (data ? JSON.stringify(data, null, 2) : "");
-         axios.post('/api/error', { params: { message: msg } });
+      // test we are in the browser before trying to log to server
+      if (typeof window !== 'undefined' && window.localStorage) {
+         if (this.shipToSever) {
+            const msg = component + "." + method + ": " + message + (data ? JSON.stringify(data, null, 2) : "");
+            axios.post('/api/error', { params: { message: msg } });
+         }
       }
    }
 

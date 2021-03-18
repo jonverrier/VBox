@@ -39,7 +39,7 @@ export class PeerConnection {
    private _person: Person;
    private _links: PeerLink[];
    private _dataListeners: Array<Function>;
-   private _faillisteners: Array<Function>;
+   private _failListeners: Array<Function>;
    private _isEdgeOnly: boolean;
    private _nameCache: PeerNameCache;
    private _signalSender: IPeerSignalSender;
@@ -61,6 +61,10 @@ export class PeerConnection {
 
    addRemoteDataListener(fn: Function) : void {
       this._dataListeners.push(fn);
+   };
+
+   addRemoteFailListener(fn: Function): void {
+      this._failListeners.push(fn);
    };
 
    get localCallParticipation(): CallParticipation {
@@ -222,6 +226,12 @@ export class PeerConnection {
       // we only make a new link if we were the caller - else we can fail & wait for them to call us again. 
       if (link.isOutbound && link.transport === ETransportType.Rtc) {
          this.createCallerLink(link.remoteCallParticipation, ETransportType.Web);
+      } else {
+         if (this._failListeners) {
+            for (var i = 0; i < this._failListeners.length; i++) {
+               this._failListeners[i](link.remoteCallParticipation);
+            }
+         }
       }
    }
 

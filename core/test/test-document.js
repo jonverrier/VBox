@@ -31,23 +31,22 @@ describe("LiveWorkout", function () {
    var text2 = "workout2";
    var text3 = "workout3";
    var textIn = "workout4";
-   var workoutOut, workoutIn, workout, commandProcessorIn, commandProcessorOut, command1, command2, channelFactory, channelOut, channelIn;
-
+   var workoutOut, workoutIn, workout, commandProcessorIn, commandProcessorOut,
+       command1, command2, channelFactory, channelOut, channelIn, callParticipation;
    let clockSpec = new GymClockSpec(EGymClockDuration.Ten, EGymClockMusic.None);
    let clockState = new GymClockState(EGymClockState.Stopped, 0);
 
    channelFactory = new LiveDocumentChannelFactoryStub();
-   channelOut = channelFactory.createConnectionOut();
-   channelIn = channelFactory.createConnectionIn();
-   workoutOut = new LiveWorkout(text1, '', clockSpec, clockState, true, channelOut);
-   workoutIn = new LiveWorkout(textIn, '', clockSpec, clockState, false, channelIn);
-   workout = new LiveWorkout(textIn, '', clockSpec, clockState);
-   commandProcessorOut = workoutOut.createCommandProcessor();
-   commandProcessorIn = workoutIn.createCommandProcessor();
 
    beforeEach(function () {
+      channelOut = channelFactory.createConnectionOut();
+      channelIn = channelFactory.createConnectionIn();
+      workoutOut = new LiveWorkout(text1, '', clockSpec, clockState, true, channelOut);
+      workoutIn = new LiveWorkout(textIn, '', clockSpec, clockState, false, channelIn);
+      commandProcessorOut = workoutOut.createCommandProcessor();
+      commandProcessorIn = workoutIn.createCommandProcessor();
+      callParticipation = new CallParticipation("1234567890", "sess1", true);
    });
-
 
    it("Needs to correctly store attributes", function () {
       expect(workoutOut.whiteboardText).to.equal(text1);
@@ -56,7 +55,7 @@ describe("LiveWorkout", function () {
    it("Needs to compare for equality and inequality", function () {
 
       expect(workoutOut.equals(workoutOut)).to.equal(true);
-      expect(workoutOut.equals(workout)).to.equal(false);
+      expect(workoutOut.equals(workoutIn)).to.equal(false);
    });
 
    it("Needs to save and restore to/from JSON.", function () {
@@ -68,6 +67,9 @@ describe("LiveWorkout", function () {
    });
 
    it("Needs to apply a single command.", function () {
+
+      // Make the documents match at the start
+      channelOut.sendDocumentTo(callParticipation, workoutOut);
 
       command1 = new LiveWhiteboardCommand(text2, workoutOut.whiteboardText);
 
@@ -88,6 +90,9 @@ describe("LiveWorkout", function () {
    });
 
    it("Needs to apply multiple commands.", function () {
+
+      // Make the documents match at the start
+      channelOut.sendDocumentTo(callParticipation, workoutOut);
 
       command1 = new LiveWhiteboardCommand(text2, workoutOut.whiteboardText);
 

@@ -5788,10 +5788,11 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 //    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveClockStateSelection = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveClockStateCommand = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveParticipationListSelection = exports.LiveClockStateSelection = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveParticipationListCommand = exports.LiveClockStateCommand = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
 // This app, this component 
 const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
+const Person_1 = __webpack_require__(/*! ./Person */ "./dev/Person.tsx");
 const Call_1 = __webpack_require__(/*! ./Call */ "./dev/Call.tsx");
 const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.tsx");
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
@@ -5934,8 +5935,8 @@ class LiveWhiteboardCommand {
             var wo = document;
             // Verify that the document has not changed since the command was created. 
             // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-            if (this._prior === wo.whiteboardText) {
-                logger.logError(LiveResultsCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.whiteboardText);
+            if (!(this._prior === wo.whiteboardText)) {
+                logger.logError(LiveWhiteboardCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.whiteboardText);
             }
             wo.whiteboardText = this._next;
             // save in local cache
@@ -6012,7 +6013,7 @@ class LiveResultsCommand {
             var wo = document;
             // Verify that the document has not changed since the command was created
             // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-            if (this._prior === wo.resultsText) {
+            if (!(this._prior === wo.resultsText)) {
                 logger.logError(LiveResultsCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.resultsText);
             }
             wo.resultsText = this._next;
@@ -6088,7 +6089,7 @@ class LiveClockSpecCommand {
             var wo = document;
             // Verify that the document has not changed since the command was created
             // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
-            if (this._prior.equals(wo.clockSpec)) {
+            if (!this._prior.equals(wo.clockSpec)) {
                 logger.logError(LiveClockSpecCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.clockSpec);
             }
             wo.clockSpec = this._next;
@@ -6219,6 +6220,84 @@ class LiveClockStateCommand {
 exports.LiveClockStateCommand = LiveClockStateCommand;
 LiveClockStateCommand.__type = "LiveClockStateCommand";
 ////////////////////////////////////////
+// LiveParticipationListCommand - class to represents the participation list within a workout.
+////////////////////////////////////////
+class LiveParticipationListCommand {
+    constructor(next, prior) {
+        this._selection = new LiveParticipationListSelection(); // This command always has the same selection - the entire whiteboard.
+        this._next = next;
+        this._prior = prior; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
+    }
+    // type is read only
+    get type() {
+        return LiveParticipationListCommand.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+            // TODO 
+            /* if (this._prior.stateEnum !== wo.clockState.stateEnum) {
+               logger.logError(LiveClockStateCommand.__type, 'applyTo',
+                  'Error, current document state != prior from command:' + this._prior.stateEnum, wo.clockState.stateEnum);
+            }
+            wo.clockState = this._next; */
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            // TODO wo.clockState = this._prior;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveParticipationListCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _next: this._next,
+                _prior: this._prior
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveParticipationListCommand.reviveDb(data.attributes);
+        else
+            return LiveParticipationListCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveParticipationListCommand(Person_1.PersonAttendance.revive(data._next), Person_1.PersonAttendance.revive(data._prior));
+    }
+    ;
+}
+exports.LiveParticipationListCommand = LiveParticipationListCommand;
+LiveParticipationListCommand.__type = "LiveParticipationListCommand";
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 class LiveWhiteboardSelection {
@@ -6230,7 +6309,7 @@ class LiveWhiteboardSelection {
 }
 exports.LiveWhiteboardSelection = LiveWhiteboardSelection;
 ////////////////////////////////////////
-// LiveWhiteboardSelection - Class to represent the 'selection' of the results within a Workout document.
+// LiveResultsSelection - Class to represent the 'selection' of the results within a Workout document.
 ////////////////////////////////////////
 class LiveResultsSelection {
     constructor() {
@@ -6252,7 +6331,7 @@ class LiveClockSpecSelection {
 }
 exports.LiveClockSpecSelection = LiveClockSpecSelection;
 ////////////////////////////////////////
-// LiveClockStateSelection - Class to represent the 'state' of the clock  within a Workout document.
+// LiveClockStateSelection - Class to represent the 'state' of the clock within a Workout document.
 ////////////////////////////////////////
 class LiveClockStateSelection {
     constructor() {
@@ -6262,6 +6341,17 @@ class LiveClockStateSelection {
     }
 }
 exports.LiveClockStateSelection = LiveClockStateSelection;
+////////////////////////////////////////
+// LiveParticipationListSelection - Class to represent the 'state' of the partipation list within a Workout document.
+////////////////////////////////////////
+class LiveParticipationListSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveParticipationListSelection";
+    }
+}
+exports.LiveParticipationListSelection = LiveParticipationListSelection;
 ////////////////////////////////////////
 // LiveWorkoutChannelPeer - Implemntation of ILiveDocumentChannel over RTC/peer architecture
 ////////////////////////////////////////
@@ -6648,9 +6738,12 @@ class ClientLogger {
     }
     logError(component, method, message, data) {
         this.logger.logError(component, method, message, data ? JSON.stringify(data, null, 2) : "");
-        if (this.shipToSever) {
-            const msg = component + "." + method + ": " + message + (data ? JSON.stringify(data, null, 2) : "");
-            axios_1.default.post('/api/error', { params: { message: msg } });
+        // test we are in the browser before trying to log to server
+        if (typeof window !== 'undefined' && window.localStorage) {
+            if (this.shipToSever) {
+                const msg = component + "." + method + ": " + message + (data ? JSON.stringify(data, null, 2) : "");
+                axios_1.default.post('/api/error', { params: { message: msg } });
+            }
         }
     }
     logInfo(component, method, message, data) {
@@ -7794,7 +7887,7 @@ WebPeerHelper._timeOutInterval = 30 * 1000;
 
 /*! Copyright TXPCo, 2020, 2021 */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Person = void 0;
+exports.PersonAttendance = exports.Person = void 0;
 class Person {
     /**
      * Create a Person object
@@ -7892,6 +7985,83 @@ class Person {
 }
 exports.Person = Person;
 Person.__type = "Person";
+;
+class PersonAttendance {
+    /**
+     * Create a Attendance object
+     * @param _id - Mongo-DB assigned ID, can be null
+     * @param person - the Person that attended
+     * @param when - date they attended ob
+     */
+    constructor(_id, person, when) {
+        this._id = _id;
+        this._person = person;
+        this._when = when;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get id() {
+        return this._id;
+    }
+    get person() {
+        return this._person;
+    }
+    get when() {
+        return this._when;
+    }
+    get type() {
+        return Person.__type;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return ((this._id === rhs._id) &&
+            (this._person.equals(rhs._person)) &&
+            (this._when.getTime() === rhs._when.getTime()));
+    }
+    ;
+    /**
+     * Method that serializes to JSON
+     */
+    toJSON() {
+        return {
+            __type: PersonAttendance.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _id: this._id,
+                _person: this._person,
+                _when: this._when
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return PersonAttendance.reviveDb(data.attributes);
+        else
+            return PersonAttendance.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new PersonAttendance(data._id, Person.revive(data._person), new Date(data._when));
+    }
+    ;
+}
+exports.PersonAttendance = PersonAttendance;
+PersonAttendance.__type = "PersonAttendance";
 ;
 
 
@@ -8140,6 +8310,7 @@ class StreamableTypes {
         // Registry of types
         this._types = {};
         this._types.Person = Person_1.Person;
+        this._types.PersonAttendance = Person_1.PersonAttendance;
         this._types.Facility = Facility_1.Facility;
         this._types.CallParticipation = Call_1.CallParticipation;
         this._types.CallOffer = Call_1.CallOffer,
@@ -8468,6 +8639,7 @@ var EntryPoints = {
     ELoggerType: Logger_1.ELoggerType,
     StreamableTypes: StreamableTypes_1.StreamableTypes,
     Person: Person_1.Person,
+    PersonAttendance: Person_1.PersonAttendance,
     Facility: Facility_1.Facility,
     Queue: Queue_1.Queue,
     QueueString: Queue_1.QueueString,
