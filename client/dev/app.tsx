@@ -908,6 +908,8 @@ export class Footer extends React.Component {
                   <Col>
                      <a style={footerElementStyle} href="/">Home</a>
                      <a style={footerElementStyle} href="privacy">Privacy</a>
+                     <a style={footerElementStyle} href="terms">Terms</a>
+                     <a style={footerElementStyle} href="faq">FAQ</a>
                      <a style={footerElementStyle} href="mailto:ultrabox.servicet@gmail.com">Contact Us</a>
                   </Col>
                </Row>

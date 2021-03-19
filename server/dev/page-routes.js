@@ -14,7 +14,17 @@ router.get('/favicon.ico', function (req, res) {
    res.sendFile('public/weightlifter-b-128x128.png', options);
 })
 
-// Home page route. Client-side does path-based routing. 
+// FAQ 
+router.get('/faq', function (req, res) {
+   res.sendFile('public/faq.html', options);
+})
+
+// Terms 
+router.get('/terms', function (req, res) {
+   res.sendFile('public/terms.html', options);
+})
+
+// Privacy 
 router.get('/privacy', function (req, res) {
    res.sendFile('public/privacy.html', options);
 })
