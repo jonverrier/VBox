@@ -63,7 +63,7 @@ describe("GymClockState", function () {
    it("Needs to correctly store attributes", function () {
 
       expect(state1.stateEnum).to.equal(EGymClockState.Running);
-      expect(state1.secondsIn).to.equal(0);
+      expect(state1.secondsCounted).to.equal(0);
    });
 
    it("Needs to save and restore to/from JSON", function () {

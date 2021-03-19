@@ -44,7 +44,7 @@ import { RemoteConnectionStatus, MasterConnectionStatus } from './CallPanelUI';
 import { LeaderResolve } from './LeaderResolveUI';
 import { Media } from './Media';
 import { MasterWhiteboard, RemoteWhiteboard } from './WhiteboardUI';
-import { RemotePeople } from './peoplepanel';
+import { MasterPeople, RemotePeople } from './PeopleUI';
 import { MasterClock, RemoteClock } from './ClockUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
@@ -396,7 +396,9 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            commandProcessor={this.state.remoteDocument.commandProcessor}
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}/>
                         <br />
-                        <RemotePeople peers={this.state.peerConnection}> </RemotePeople>
+                        <RemotePeople 
+                           commandProcessor={this.state.remoteDocument.commandProcessor}
+                           liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemotePeople>
                      </Col>
                   </Row>
                   <Footer></Footer>
@@ -685,7 +687,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                            commandProcessor={this.state.masterDocument.commandProcessor}
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterClock>
                         <br />
-                        <RemotePeople peers={this.state.peerConnection}> </RemotePeople>
+                        <MasterPeople peerConnection={this.state.peerConnection}
+                           commandProcessor={this.state.masterDocument.commandProcessor}
+                           liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterPeople>
                      </Col>
                   </Row>
                   <Footer></Footer>

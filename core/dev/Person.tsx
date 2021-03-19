@@ -117,3 +117,91 @@ export class Person implements IStreamableFor<Person> {
    };
 };
 
+export class PersonAttendance implements IStreamableFor<PersonAttendance> {
+   private _id: any;
+   private _person: Person;
+   private _when: Date;
+
+   static readonly __type: string = "PersonAttendance";
+
+   /**
+    * Create a Attendance object
+    * @param _id - Mongo-DB assigned ID, can be null
+    * @param person - the Person that attended
+    * @param when - date they attended ob
+    */
+   constructor(_id: any, person: Person, when: Date) {
+      this._id = _id;
+      this._person = person;
+      this._when = when;
+   }
+
+   /**
+   * set of 'getters' for private variables
+   */
+   get id(): any {
+      return this._id;
+   }
+   get person(): Person {
+      return this._person;
+   }
+   get when(): Date {
+      return this._when;
+   }  
+   get type(): string {
+      return Person.__type;
+   }
+
+   /**
+    * test for equality - checks all fields are the same. 
+    * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different. 
+    * @param rhs - the object to compare this one to.  
+    */
+   equals(rhs: PersonAttendance): boolean {
+
+      return ((this._id === rhs._id) &&
+         (this._person.equals (rhs._person)) &&
+         (this._when.getTime() === rhs._when.getTime()) );
+   };
+
+   /**
+    * Method that serializes to JSON 
+    */
+   toJSON(): Object {
+
+      return {
+         __type: PersonAttendance.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _id: this._id,
+            _person: this._person,
+            _when: this._when
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   static revive(data: any): PersonAttendance {
+
+      // revice data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return PersonAttendance.reviveDb(data.attributes);
+      else
+         return PersonAttendance.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   static reviveDb(data: any): PersonAttendance {
+
+      return new PersonAttendance (data._id,
+         Person.revive (data._person),
+         new Date (data._when));
+   };
+};
+

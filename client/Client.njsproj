@@ -57,7 +57,7 @@
     <TypeScriptCompile Include="dev\LoginOauth.tsx" />
     <TypeScriptCompile Include="dev\Media.tsx" />
     <TypeScriptCompile Include="dev\ParticipantUI.tsx" />
-    <TypeScriptCompile Include="dev\peoplepanel.tsx" />
+    <TypeScriptCompile Include="dev\PeopleUI.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\ClientUrl.tsx" />
     <TypeScriptCompile Include="dev\WhiteboardUI.tsx" />

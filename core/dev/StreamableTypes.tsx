@@ -1,12 +1,12 @@
 
 /*! Copyright TXPCo, 2020, 2021 */
-import { Person } from './Person';
+import { Person, PersonAttendance } from './Person';
 import { Facility } from './Facility';
 import { CallParticipation, CallOffer, CallAnswer, CallIceCandidate, CallLeaderResolve, CallKeepAlive, CallData, CallDataBatched } from './Call'
 import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { GymClockSpec, GymClockState } from './GymClock';
-import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand } from './LiveWorkout';
+import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand, LiveAttendanceCommand} from './LiveWorkout';
 import { LiveUndoCommand } from './LiveCommand';
 
 //==============================//
@@ -24,6 +24,7 @@ export class StreamableTypes {
       // Registry of types
       this._types = {};
       this._types.Person = Person;
+      this._types.PersonAttendance = PersonAttendance;
       this._types.Facility = Facility;
       this._types.CallParticipation = CallParticipation;
       this._types.CallOffer = CallOffer,
@@ -43,6 +44,7 @@ export class StreamableTypes {
       this._types.LiveClockSpecCommand = LiveClockSpecCommand;
       this._types.LiveClockStateCommand = LiveClockStateCommand;
       this._types.LiveUndoCommand = LiveUndoCommand;
+      this._types.LiveAttendanceCommand = LiveAttendanceCommand;
 
    }
 

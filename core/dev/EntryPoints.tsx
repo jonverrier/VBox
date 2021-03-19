@@ -2,7 +2,7 @@
 
 import { LoggerFactory, ELoggerType } from './Logger';
 import { ArrayHook } from './ArrayHook';
-import { Person } from './Person';
+import { Person, PersonAttendance } from './Person';
 import { Facility } from './Facility';
 import { StreamableTypes } from './StreamableTypes';
 import { DateHook } from './DateHook'
@@ -23,7 +23,7 @@ import { PeerFactory } from './PeerFactory';
 // LiveDocument Architecture
 import {
    LiveWorkout,
-   LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand,
+   LiveWhiteboardCommand, LiveResultsCommand, LiveClockSpecCommand, LiveClockStateCommand, LiveAttendanceCommand,
    LiveWorkoutChannelFactoryPeer, LiveWorkoutFactory
 } from './LiveWorkout';
 import { LiveCommandProcessor, LiveUndoCommand } from './LiveCommand';
@@ -35,6 +35,7 @@ var EntryPoints = {
    ELoggerType: ELoggerType,
    StreamableTypes: StreamableTypes,
    Person: Person,
+   PersonAttendance: PersonAttendance,
    Facility: Facility,
    Queue: Queue,
    QueueString: QueueString,
@@ -79,6 +80,7 @@ var EntryPoints = {
    LiveResultsCommand: LiveResultsCommand,
    LiveClockSpecCommand: LiveClockSpecCommand,
    LiveClockStateCommand: LiveClockStateCommand,
+   LiveAttendanceCommand: LiveAttendanceCommand,
    LiveDocumentMaster: LiveDocumentMaster,
    LiveDocumentRemote: LiveDocumentRemote,
    LiveWorkoutChannelFactoryPeer: LiveWorkoutChannelFactoryPeer,
