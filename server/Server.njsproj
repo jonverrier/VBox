@@ -68,6 +68,7 @@
     <Content Include="public\evolution-weightlifting-b-128x128.png" />
     <Content Include="public\evolution-weightlifting-b.png" />
     <Content Include="public\evolution-weightlifting-w.png" />
+    <Content Include="public\faq.html" />
     <Content Include="public\FitologySquare.png" />
     <Content Include="public\FortitudeSquare.png" />
     <Content Include="public\group-coach.jpg" />
@@ -82,6 +83,7 @@
     <Content Include="public\nofile.html" />
     <Content Include="public\person-w-128x128.png" />
     <Content Include="public\privacy.html" />
+    <Content Include="public\terms.html" />
     <Content Include="public\vbox-styles.css" />
     <Content Include="public\weightlifter-b-128x128.png" />
     <Content Include="public\weightlifter-w-128x128.png" />
