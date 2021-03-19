@@ -47965,7 +47965,7 @@ class MasterClock extends React.Component {
             ss: 0,
             userAllowsMusic: false
         };
-        // Scynch our clock up to the state we load
+        // Synch our clock up to the state we load
         clock.loadFromState(props.liveWorkout.clockState, this.onTick.bind(this));
     }
     onTick(mm, ss) {
@@ -49558,7 +49558,7 @@ class MemberPage extends React.Component {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(ClockUI_1.RemoteClock, { commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peerConnection }, " "))),
+                            React.createElement(peoplepanel_1.RemotePeople, { commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -49743,7 +49743,7 @@ class CoachPage extends React.Component {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(ClockUI_1.MasterClock, { allowEdit: this.state.isLeader, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " "),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { peers: this.state.peerConnection }, " "))),
+                            React.createElement(peoplepanel_1.MasterPeople, { peerConnection: this.state.peerConnection, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -49927,26 +49927,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RemotePeople = void 0;
+exports.MasterPeople = exports.RemotePeople = void 0;
 const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
 // This app
 const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
 const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
 class RemotePeople extends React.Component {
     constructor(props) {
         super(props);
-        if (props.peers) {
-            props.peers.addRemoteDataListener(this.onRemoteData.bind(this));
-        }
+        // watch for changes being made on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
         var people = new Array();
         this.state = { people: people };
     }
-    onRemoteData(ev) {
-        if (ev.type === Person_1.Person.__type) {
-            var person = ev;
-            let people = this.state.people;
-            people.push(person);
+    onChange(doc, cmd) {
+        if ((!cmd && doc.type === LiveWorkout_1.LiveWorkout.__type)
+            || (cmd && cmd.type === LiveWorkout_1.LiveAttendanceCommand.__type)) {
+            // Either a new document or a change to the list of people
+            var workout = doc;
+            let people = new Array();
+            for (var i = 0; i < workout.attendances.length; i++) {
+                people.push(workout.attendances[i].person);
+            }
             this.setState({ people: people });
         }
     }
@@ -49962,14 +49966,61 @@ class RemotePeople extends React.Component {
                 React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
         }
         else {
-            return (React.createElement("div", null,
-                items.map((item) => React.createElement(Row_1.default, { key: item.key },
-                    React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl }))),
-                "  "));
+            return (React.createElement("div", null, items.map((item) => React.createElement(Row_1.default, { key: item.key },
+                React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl })))));
         }
     }
 }
 exports.RemotePeople = RemotePeople;
+class MasterPeople extends React.Component {
+    constructor(props) {
+        super(props);
+        // Listen for incoming People
+        props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
+        // watch for changes being made on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
+        var people = new Array();
+        this.state = { people: people };
+    }
+    onRemoteData(ev) {
+        if (ev.type === Person_1.Person.__type) {
+            var person = ev;
+            var attendance = new Person_1.PersonAttendance(null, person, new Date());
+            // Insert the new attendance into our document
+            let command = new LiveWorkout_1.LiveAttendanceCommand(attendance, attendance);
+            this.props.commandProcessor.adoptAndApply(command);
+        }
+    }
+    onChange(doc, cmd) {
+        if ((!cmd && doc.type === LiveWorkout_1.LiveWorkout.__type)
+            || (cmd && cmd.type === LiveWorkout_1.LiveAttendanceCommand.__type)) {
+            // Either a new document or a change to the list of people
+            var workout = doc;
+            let people = new Array();
+            for (var i = 0; i < workout.attendances.length; i++) {
+                people.push(workout.attendances[i].person);
+            }
+            this.setState({ people: people });
+        }
+    }
+    render() {
+        var items = new Array();
+        var self = this;
+        this.state.people.forEach((value, index, arr) => {
+            let newItem = { key: index, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
+            items.push(newItem);
+        });
+        if (this.state.people.length === 0) {
+            return (React.createElement(Row_1.default, null,
+                React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
+        }
+        else {
+            return (React.createElement("div", null, items.map((item) => React.createElement(Row_1.default, { key: item.key },
+                React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl })))));
+        }
+    }
+}
+exports.MasterPeople = MasterPeople;
 
 
 /***/ }),
@@ -52098,6 +52149,9 @@ class LiveWorkoutChannelPeer {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveClockStateCommand.__type) {
+                this.onCommandApply(ev);
+            }
+            if (ev.type === LiveAttendanceCommand.__type) {
                 this.onCommandApply(ev);
             }
             if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {

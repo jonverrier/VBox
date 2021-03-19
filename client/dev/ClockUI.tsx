@@ -228,7 +228,7 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          userAllowsMusic: false
       };
 
-      // Scynch our clock up to the state we load
+      // Synch our clock up to the state we load
       clock.loadFromState(props.liveWorkout.clockState, this.onTick.bind(this));
    }
 
