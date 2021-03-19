@@ -44,7 +44,7 @@ import { RemoteConnectionStatus, MasterConnectionStatus } from './CallPanelUI';
 import { LeaderResolve } from './LeaderResolveUI';
 import { Media } from './Media';
 import { MasterWhiteboard, RemoteWhiteboard } from './WhiteboardUI';
-import { MasterPeople, RemotePeople } from './peoplepanel';
+import { MasterPeople, RemotePeople } from './PeopleUI';
 import { MasterClock, RemoteClock } from './ClockUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);

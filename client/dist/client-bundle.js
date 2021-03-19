@@ -48745,6 +48745,140 @@ exports.ParticipantSmall = ParticipantSmall;
 
 /***/ }),
 
+/***/ "./dev/PeopleUI.tsx":
+/*!**************************!*\
+  !*** ./dev/PeopleUI.tsx ***!
+  \**************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+/*! Copyright TXPCo, 2020, 2021 */
+// References:
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
+// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MasterPeople = exports.RemotePeople = void 0;
+const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
+// This app
+const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
+const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
+const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
+class RemotePeople extends React.Component {
+    constructor(props) {
+        super(props);
+        // watch for changes being made on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
+        var people = new Array();
+        this.state = { people: people };
+    }
+    onChange(doc, cmd) {
+        if ((!cmd && doc.type === LiveWorkout_1.LiveWorkout.__type)
+            || (cmd && cmd.type === LiveWorkout_1.LiveAttendanceCommand.__type)) {
+            // Either a new document or a change to the list of people
+            var workout = doc;
+            let people = new Array();
+            for (var i = 0; i < workout.attendances.length; i++) {
+                people.push(workout.attendances[i].person);
+            }
+            this.setState({ people: people });
+        }
+    }
+    render() {
+        var items = new Array();
+        var self = this;
+        this.state.people.forEach((value, index, arr) => {
+            let newItem = { key: index, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
+            items.push(newItem);
+        });
+        if (this.state.people.length === 0) {
+            return (React.createElement(Row_1.default, null,
+                React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
+        }
+        else {
+            return (React.createElement("div", null, items.map((item) => React.createElement(Row_1.default, { key: item.key },
+                React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl })))));
+        }
+    }
+}
+exports.RemotePeople = RemotePeople;
+class MasterPeople extends React.Component {
+    constructor(props) {
+        super(props);
+        // Listen for incoming People
+        props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
+        // watch for changes being made on our document
+        props.commandProcessor.addChangeListener(this.onChange.bind(this));
+        var people = new Array();
+        this.state = { people: people };
+    }
+    onRemoteData(ev) {
+        if (ev.type === Person_1.Person.__type) {
+            var person = ev;
+            var attendance = new Person_1.PersonAttendance(null, person, new Date());
+            // Insert the new attendance into our document
+            let command = new LiveWorkout_1.LiveAttendanceCommand(attendance, attendance);
+            this.props.commandProcessor.adoptAndApply(command);
+        }
+    }
+    onChange(doc, cmd) {
+        if ((!cmd && doc.type === LiveWorkout_1.LiveWorkout.__type)
+            || (cmd && cmd.type === LiveWorkout_1.LiveAttendanceCommand.__type)) {
+            // Either a new document or a change to the list of people
+            var workout = doc;
+            let people = new Array();
+            for (var i = 0; i < workout.attendances.length; i++) {
+                people.push(workout.attendances[i].person);
+            }
+            this.setState({ people: people });
+        }
+    }
+    render() {
+        var items = new Array();
+        var self = this;
+        this.state.people.forEach((value, index, arr) => {
+            let newItem = { key: index, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
+            items.push(newItem);
+        });
+        if (this.state.people.length === 0) {
+            return (React.createElement(Row_1.default, null,
+                React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
+        }
+        else {
+            return (React.createElement("div", null, items.map((item) => React.createElement(Row_1.default, { key: item.key },
+                React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl })))));
+        }
+    }
+}
+exports.MasterPeople = MasterPeople;
+
+
+/***/ }),
+
 /***/ "./dev/RunnableClock.tsx":
 /*!*******************************!*\
   !*** ./dev/RunnableClock.tsx ***!
@@ -49323,7 +49457,7 @@ const CallPanelUI_1 = __webpack_require__(/*! ./CallPanelUI */ "./dev/CallPanelU
 const LeaderResolveUI_1 = __webpack_require__(/*! ./LeaderResolveUI */ "./dev/LeaderResolveUI.tsx");
 const Media_1 = __webpack_require__(/*! ./Media */ "./dev/Media.tsx");
 const WhiteboardUI_1 = __webpack_require__(/*! ./WhiteboardUI */ "./dev/WhiteboardUI.tsx");
-const peoplepanel_1 = __webpack_require__(/*! ./peoplepanel */ "./dev/peoplepanel.tsx");
+const PeopleUI_1 = __webpack_require__(/*! ./PeopleUI */ "./dev/PeopleUI.tsx");
 const ClockUI_1 = __webpack_require__(/*! ./ClockUI */ "./dev/ClockUI.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
 const jumbotronStyle = {
@@ -49558,7 +49692,7 @@ class MemberPage extends React.Component {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(ClockUI_1.RemoteClock, { commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.RemotePeople, { commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " "))),
+                            React.createElement(PeopleUI_1.RemotePeople, { commandProcessor: this.state.remoteDocument.commandProcessor, liveWorkout: this.state.remoteDocument.document }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -49743,7 +49877,7 @@ class CoachPage extends React.Component {
                         React.createElement(Col_1.default, { md: 'auto', style: rpanelStyle },
                             React.createElement(ClockUI_1.MasterClock, { allowEdit: this.state.isLeader, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " "),
                             React.createElement("br", null),
-                            React.createElement(peoplepanel_1.MasterPeople, { peerConnection: this.state.peerConnection, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " "))),
+                            React.createElement(PeopleUI_1.MasterPeople, { peerConnection: this.state.peerConnection, commandProcessor: this.state.masterDocument.commandProcessor, liveWorkout: this.state.masterDocument.document }, " "))),
                     React.createElement(Footer, null))));
         }
     }
@@ -49887,140 +50021,6 @@ ArrayHook_1.ArrayHook.initialise();
 if (document !== undefined && document.getElementById !== undefined) {
     react_dom_1.default.render(React.createElement(PageSwitcher, null), document.getElementById('root'));
 }
-
-
-/***/ }),
-
-/***/ "./dev/peoplepanel.tsx":
-/*!*****************************!*\
-  !*** ./dev/peoplepanel.tsx ***!
-  \*****************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-/*! Copyright TXPCo, 2020, 2021 */
-// References:
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Signaling_and_video_calling
-// https://medium.com/xamarin-webrtc/webrtc-signaling-server-dc6e38aaefba 
-// https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MasterPeople = exports.RemotePeople = void 0;
-const React = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const Row_1 = __importDefault(__webpack_require__(/*! react-bootstrap/Row */ "./node_modules/react-bootstrap/esm/Row.js"));
-// This app
-const Person_1 = __webpack_require__(/*! ../../core/dev/Person */ "../core/dev/Person.tsx");
-const LiveWorkout_1 = __webpack_require__(/*! ../../core/dev/LiveWorkout */ "../core/dev/LiveWorkout.tsx");
-const ParticipantUI_1 = __webpack_require__(/*! ./ParticipantUI */ "./dev/ParticipantUI.tsx");
-class RemotePeople extends React.Component {
-    constructor(props) {
-        super(props);
-        // watch for changes being made on our document
-        props.commandProcessor.addChangeListener(this.onChange.bind(this));
-        var people = new Array();
-        this.state = { people: people };
-    }
-    onChange(doc, cmd) {
-        if ((!cmd && doc.type === LiveWorkout_1.LiveWorkout.__type)
-            || (cmd && cmd.type === LiveWorkout_1.LiveAttendanceCommand.__type)) {
-            // Either a new document or a change to the list of people
-            var workout = doc;
-            let people = new Array();
-            for (var i = 0; i < workout.attendances.length; i++) {
-                people.push(workout.attendances[i].person);
-            }
-            this.setState({ people: people });
-        }
-    }
-    render() {
-        var items = new Array();
-        var self = this;
-        this.state.people.forEach((value, index, arr) => {
-            let newItem = { key: index, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
-            items.push(newItem);
-        });
-        if (this.state.people.length === 0) {
-            return (React.createElement(Row_1.default, null,
-                React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
-        }
-        else {
-            return (React.createElement("div", null, items.map((item) => React.createElement(Row_1.default, { key: item.key },
-                React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl })))));
-        }
-    }
-}
-exports.RemotePeople = RemotePeople;
-class MasterPeople extends React.Component {
-    constructor(props) {
-        super(props);
-        // Listen for incoming People
-        props.peerConnection.addRemoteDataListener(this.onRemoteData.bind(this));
-        // watch for changes being made on our document
-        props.commandProcessor.addChangeListener(this.onChange.bind(this));
-        var people = new Array();
-        this.state = { people: people };
-    }
-    onRemoteData(ev) {
-        if (ev.type === Person_1.Person.__type) {
-            var person = ev;
-            var attendance = new Person_1.PersonAttendance(null, person, new Date());
-            // Insert the new attendance into our document
-            let command = new LiveWorkout_1.LiveAttendanceCommand(attendance, attendance);
-            this.props.commandProcessor.adoptAndApply(command);
-        }
-    }
-    onChange(doc, cmd) {
-        if ((!cmd && doc.type === LiveWorkout_1.LiveWorkout.__type)
-            || (cmd && cmd.type === LiveWorkout_1.LiveAttendanceCommand.__type)) {
-            // Either a new document or a change to the list of people
-            var workout = doc;
-            let people = new Array();
-            for (var i = 0; i < workout.attendances.length; i++) {
-                people.push(workout.attendances[i].person);
-            }
-            this.setState({ people: people });
-        }
-    }
-    render() {
-        var items = new Array();
-        var self = this;
-        this.state.people.forEach((value, index, arr) => {
-            let newItem = { key: index, name: value.name, caption: value.name, thumbnailUrl: 'person-w-128x128.png' };
-            items.push(newItem);
-        });
-        if (this.state.people.length === 0) {
-            return (React.createElement(Row_1.default, null,
-                React.createElement(ParticipantUI_1.ParticipantNoImage, { name: 'No-one else is connected.' })));
-        }
-        else {
-            return (React.createElement("div", null, items.map((item) => React.createElement(Row_1.default, { key: item.key },
-                React.createElement(ParticipantUI_1.Participant, { name: item.name, thumbnailUrl: item.thumbnailUrl })))));
-        }
-    }
-}
-exports.MasterPeople = MasterPeople;
 
 
 /***/ }),
