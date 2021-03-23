@@ -136,7 +136,7 @@ interface IMemberPageProps {
 
 interface IMemberPageState {
    isLoggedIn: boolean;
-   pageData: UserFacilities;
+   userFacilities: UserFacilities;
    peerConnection: PeerConnection;
    remoteDocument: LiveDocumentRemote;
    isDataReady: boolean;
@@ -150,8 +150,8 @@ interface IMemberPageState {
 export class MemberPage extends React.Component<IMemberPageProps, IMemberPageState> {
 
    //member variables
-   pageData: UserFacilities;
-   defaultPageData: UserFacilities;
+   userFacilities: UserFacilities;
+   defaultUserFacilities: UserFacilities;
    lastUserData: StoredMeetingState;
 
    constructor(props: IMemberPageProps) {
@@ -159,18 +159,19 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
       this.lastUserData = new StoredMeetingState();
 
-      this.defaultPageData = new UserFacilities(null,
+      this.defaultUserFacilities = new UserFacilities(null,
          new Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''),
          new Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''),
+         null,
          new Array<Facility>());
 
-      this.pageData = this.defaultPageData;
+      this.userFacilities = this.defaultUserFacilities;
       let loginData = new MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
       let peerConnection = new PeerConnection(true); // Member nodes are edge only, coaches are full hubs
 
       this.state = {
          isLoggedIn: false,
-         pageData: this.pageData,
+         userFacilities: this.userFacilities,
          peerConnection: peerConnection,
          remoteDocument: undefined,
          isDataReady: false,
@@ -248,17 +249,22 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
       if (isLoggedIn) {
          // Make a request for user data to populate the home page 
-         axios.get('/api/home', { params: { coach: encodeURIComponent(false) } })
+         axios.get('/api/home', {
+            params: {
+               coach: encodeURIComponent(false),
+               meetingId: encodeURIComponent(self.state.loginData.meetCode)
+            }
+         })
             .then(function (response) {
 
                // Success, set state to data for logged in user 
-               self.pageData = UserFacilities.revive(response.data);
+               self.userFacilities = UserFacilities.revive(response.data);
 
                var person = new Person(null,
-                  self.pageData.person.externalId,
-                  self.pageData.person.name,
+                  self.userFacilities.person.externalId,
+                  self.userFacilities.person.name,
                   null,
-                  self.pageData.person.thumbnailUrl, null);
+                  self.userFacilities.person.thumbnailUrl, null);
 
                // Initialise WebRTC and connect
                self.state.peerConnection.connect(self.state.loginData.meetCode,
@@ -274,7 +280,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
                // Keep alive to server every 25 seconds
                let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-               self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId  });
+               self.setState({ isLoggedIn: true, userFacilities: self.userFacilities, intervalId: intervalId  });
                self.forceUpdate();
 
                // Save valid credentials for pre-population next time
@@ -283,10 +289,10 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
-               self.pageData = self.defaultPageData;
+               self.userFacilities = self.defaultUserFacilities;
                if (self.state.intervalId)
                   clearInterval(self.state.intervalId);
-               self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null });
+               self.setState({ isLoggedIn: false, userFacilities: self.userFacilities, intervalId: null });
             });
       } else {
          if (this.state.intervalId)
@@ -347,9 +353,9 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
          return (
             <div className="memberpage">
                <Helmet>
-                  <title>{this.state.pageData.currentFacility.name}</title>
-                  <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
-                  <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+                  <title>{this.state.userFacilities.currentFacility.name}</title>
+                  <link rel="icon" href={this.state.userFacilities.currentFacility.thumbnailUrl} type="image/png" />
+                  <link rel="shortcut icon" href={this.state.userFacilities.currentFacility.thumbnailUrl} type="image/png" />
                </Helmet>
 
                <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
@@ -358,21 +364,21 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      <Nav className="mr-auto">
                         <Dropdown as={ButtonGroup} id="collasible-nav-facility">
                            <Button variant="secondary" style={thinStyle}>
-                              <ParticipantSmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.userFacilities.currentFacility.name} thumbnailUrl={this.state.userFacilities.currentFacility.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="left">
-                              <Dropdown.Item href={this.state.pageData.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
+                              <Dropdown.Item href={this.state.userFacilities.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
-                     <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
+                     <Navbar.Brand href="">{this.state.userFacilities.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
                         <RemoteConnectionStatus peers={this.state.peerConnection}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
-                              <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.userFacilities.person.name} thumbnailUrl={this.state.userFacilities.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
@@ -416,7 +422,7 @@ interface ICoachPageState {
    isLoggedIn: boolean;
    isLeader: boolean;
    haveAccess: boolean;
-   pageData: UserFacilities;
+   userFacilities: UserFacilities;
    peerConnection: PeerConnection;
    masterDocument: LiveDocumentMaster;
    isDataReady: boolean;
@@ -430,8 +436,8 @@ interface ICoachPageState {
 export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState> {
 
    //member variables
-   pageData: UserFacilities;
-   defaultPageData: UserFacilities;
+   userFacilities: UserFacilities;
+   defaultUserFacilities: UserFacilities;
    lastUserData: StoredMeetingState;
 
    constructor(props: ICoachPageProps) {
@@ -439,12 +445,13 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
       this.lastUserData = new StoredMeetingState();
 
-      this.defaultPageData = new UserFacilities(null,
+      this.defaultUserFacilities = new UserFacilities(null,
          new Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null),
          new Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png', null),
-         null);
+         null,
+         new Array<Facility>());
 
-      this.pageData = this.defaultPageData;
+      this.userFacilities = this.defaultUserFacilities;
       let loginData = new LoginMeetCodeData (this.lastUserData.loadMeetingId());
 
       let peerConnection = new PeerConnection(false); // Member nodes are edge only, coaches are full hubs
@@ -453,7 +460,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          isLoggedIn: false,
          isLeader: true,    // we are leader until someone beats us in 'glareResolve' exchange
          haveAccess: false, // Cannot access mic or speaker until user does something. 
-         pageData: this.pageData,
+         userFacilities: this.userFacilities,
          peerConnection: peerConnection,
          masterDocument: undefined,
          isDataReady: false,
@@ -535,18 +542,23 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
       // Make a request for user data to populate the home page 
       if (isLoggedIn) {
-         axios.get('/api/home', { params: { coach: encodeURIComponent(true)} })
+         axios.get('/api/home', {
+            params: {
+               coach: encodeURIComponent(true),
+               meetingId: encodeURIComponent(self.state.loginData.meetCode)
+            }
+         })
             .then(function (response) {
 
                if (response.data) {
                   // Success, set state to data for logged in user 
-                  self.pageData = UserFacilities.revive(response.data);
+                  self.userFacilities = UserFacilities.revive(response.data);
 
                   var person = new Person(null,
-                     self.pageData.person.externalId,
-                     self.pageData.person.name,
+                     self.userFacilities.person.externalId,
+                     self.userFacilities.person.name,
                      null,
-                     self.pageData.person.thumbnailUrl, null);
+                     self.userFacilities.person.thumbnailUrl, null);
 
                   // Initialise WebRTC and connect
                   self.state.peerConnection.connect(self.state.loginData.meetCode,
@@ -562,30 +574,30 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
 
                   // Keep alive to server every 25 seconds
                   let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-                  self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId });
+                  self.setState({ isLoggedIn: true, userFacilities: self.userFacilities, intervalId: intervalId });
 
                   // Save valid credentials for pre-population next time
                   self.lastUserData.saveMeetingId(self.state.loginData.meetCode);
 
                } else {
                   // handle error by setting state back to no user logged in
-                  self.pageData = self.defaultPageData;
-                  self.setState({ isLoggedIn: false, pageData: self.pageData});
+                  self.userFacilities = self.defaultUserFacilities;
+                  self.setState({ isLoggedIn: false, userFacilities: self.userFacilities});
                }
             })
             .catch(function (error) {
                // handle error by setting state back to no user logged in
                if (self.state.intervalId)
                   clearInterval(self.state.intervalId);
-               self.pageData = self.defaultPageData;
-               self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null});
+               self.userFacilities = self.defaultUserFacilities;
+               self.setState({ isLoggedIn: false, userFacilities: self.userFacilities, intervalId: null});
             });
       } else {
          // handle error by setting state back to no user logged in
          if (this.state.intervalId)
             clearInterval(this.state.intervalId);
-         self.pageData = self.defaultPageData;
-         self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null});
+         self.userFacilities = self.defaultUserFacilities;
+         self.setState({ isLoggedIn: false, userFacilities: self.userFacilities, intervalId: null});
       }
    }
 
@@ -633,9 +645,9 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
          return (
             <div className="coachpage">
                <Helmet>
-                  <title>{this.state.pageData.currentFacility.name}</title>
-                  <link rel="icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
-                  <link rel="shortcut icon" href={this.state.pageData.currentFacility.thumbnailUrl} type="image/png" />
+                  <title>{this.state.userFacilities.currentFacility.name}</title>
+                  <link rel="icon" href={this.state.userFacilities.currentFacility.thumbnailUrl} type="image/png" />
+                  <link rel="shortcut icon" href={this.state.userFacilities.currentFacility.thumbnailUrl} type="image/png" />
                </Helmet>
 
                <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
@@ -644,21 +656,21 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <Nav className="mr-auto">
                         <Dropdown as={ButtonGroup} id="collasible-nav-facility">
                            <Button variant="secondary" style={thinStyle}>
-                              <ParticipantSmall name={this.state.pageData.currentFacility.name} thumbnailUrl={this.state.pageData.currentFacility.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.userFacilities.currentFacility.name} thumbnailUrl={this.state.userFacilities.currentFacility.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
                            </Dropdown.Toggle>
                            <Dropdown.Menu align="left">
-                              <Dropdown.Item href={this.state.pageData.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
+                              <Dropdown.Item href={this.state.userFacilities.currentFacility.homepageUrl}>Homepage...</Dropdown.Item>
                            </Dropdown.Menu>
                         </Dropdown>
                      </Nav>
-                     <Navbar.Brand href="">{this.state.pageData.currentFacility.name}</Navbar.Brand>
+                     <Navbar.Brand href="">{this.state.userFacilities.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
                         <MasterConnectionStatus peers={this.state.peerConnection} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={thinStyle}>
-                              <ParticipantSmall name={this.state.pageData.person.name} thumbnailUrl={this.state.pageData.person.thumbnailUrl} />
+                              <ParticipantSmall name={this.state.userFacilities.person.name} thumbnailUrl={this.state.userFacilities.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
                            </Dropdown.Toggle>
