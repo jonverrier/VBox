@@ -9,6 +9,7 @@ var Facility = EntryPoints.Facility;
 var UserFacilities = EntryPoints.UserFacilities;
 
 var expect = require("chai").expect;
+var zoomSignature = "12345678910";
 
 describe("UserFacilities", function () {
    var page1, page2;
@@ -18,9 +19,9 @@ describe("UserFacilities", function () {
    facilities1[0] = dummyFacility; 
    
    beforeEach(function () {
-      page1 = new UserFacilities("id1", dummyPerson, dummyFacility, facilities1);
+      page1 = new UserFacilities("id1", dummyPerson, dummyFacility, zoomSignature, facilities1);
 
-      page2 = new UserFacilities("id2", dummyPerson, dummyFacility, facilities2);
+      page2 = new UserFacilities("id2", dummyPerson, dummyFacility, zoomSignature, facilities2);
    });
    
    it("Needs to compare for equality and inequality", function () {
@@ -34,6 +35,7 @@ describe("UserFacilities", function () {
       expect(page1.sessionId === "id1").to.equal(true);
       expect(page1.person.equals(dummyPerson)).to.equal(true);
       expect(page1.currentFacility).to.equal(dummyFacility);
+      expect(page1.zoomSignature).to.equal(zoomSignature);
       
       expect(page1.facilities).to.deep.equal(facilities1);
    });

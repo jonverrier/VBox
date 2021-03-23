@@ -49530,13 +49530,13 @@ class MemberPage extends React.Component {
     constructor(props) {
         super(props);
         this.lastUserData = new LocalStore_1.StoredMeetingState();
-        this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), new Array());
-        this.pageData = this.defaultPageData;
+        this.defaultUserFacilities = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, '', 'Waiting...', '', 'person-w-128x128.png', ''), new Facility_1.Facility(null, '', 'Waiting...', 'weightlifter-b-128x128.png', ''), null, new Array());
+        this.userFacilities = this.defaultUserFacilities;
         let loginData = new LoginMember_1.MemberLoginData(this.lastUserData.loadMeetingId(), this.lastUserData.loadName());
         let peerConnection = new PeerConnection_1.PeerConnection(true); // Member nodes are edge only, coaches are full hubs
         this.state = {
             isLoggedIn: false,
-            pageData: this.pageData,
+            userFacilities: this.userFacilities,
             peerConnection: peerConnection,
             remoteDocument: undefined,
             isDataReady: false,
@@ -49603,11 +49603,16 @@ class MemberPage extends React.Component {
         var self = this;
         if (isLoggedIn) {
             // Make a request for user data to populate the home page 
-            axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(false) } })
+            axios_1.default.get('/api/home', {
+                params: {
+                    coach: encodeURIComponent(false),
+                    meetingId: encodeURIComponent(self.state.loginData.meetCode)
+                }
+            })
                 .then(function (response) {
                 // Success, set state to data for logged in user 
-                self.pageData = UserFacilities_1.UserFacilities.revive(response.data);
-                var person = new Person_1.Person(null, self.pageData.person.externalId, self.pageData.person.name, null, self.pageData.person.thumbnailUrl, null);
+                self.userFacilities = UserFacilities_1.UserFacilities.revive(response.data);
+                var person = new Person_1.Person(null, self.userFacilities.person.externalId, self.userFacilities.person.name, null, self.userFacilities.person.thumbnailUrl, null);
                 // Initialise WebRTC and connect
                 self.state.peerConnection.connect(self.state.loginData.meetCode, person);
                 // Create a shared document hooked up to the connection
@@ -49616,7 +49621,7 @@ class MemberPage extends React.Component {
                 });
                 // Keep alive to server every 25 seconds
                 let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-                self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId });
+                self.setState({ isLoggedIn: true, userFacilities: self.userFacilities, intervalId: intervalId });
                 self.forceUpdate();
                 // Save valid credentials for pre-population next time
                 self.lastUserData.saveMeetingId(self.state.loginData.meetCode);
@@ -49624,10 +49629,10 @@ class MemberPage extends React.Component {
             })
                 .catch(function (error) {
                 // handle error by setting state back to no user logged in
-                self.pageData = self.defaultPageData;
+                self.userFacilities = self.defaultUserFacilities;
                 if (self.state.intervalId)
                     clearInterval(self.state.intervalId);
-                self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null });
+                self.setState({ isLoggedIn: false, userFacilities: self.userFacilities, intervalId: null });
             });
         }
         else {
@@ -49663,25 +49668,25 @@ class MemberPage extends React.Component {
         else {
             return (React.createElement("div", { className: "memberpage" },
                 React.createElement(react_helmet_1.Helmet, null,
-                    React.createElement("title", null, this.state.pageData.currentFacility.name),
-                    React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
-                    React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
+                    React.createElement("title", null, this.state.userFacilities.currentFacility.name),
+                    React.createElement("link", { rel: "icon", href: this.state.userFacilities.currentFacility.thumbnailUrl, type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: this.state.userFacilities.currentFacility.thumbnailUrl, type: "image/png" })),
                 React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
                     React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
                     React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.userFacilities.currentFacility.name, thumbnailUrl: this.state.userFacilities.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
-                                    React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
-                        React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
+                                    React.createElement(Dropdown_1.default.Item, { href: this.state.userFacilities.currentFacility.homepageUrl }, "Homepage...")))),
+                        React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.userFacilities.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
                             React.createElement(CallPanelUI_1.RemoteConnectionStatus, { peers: this.state.peerConnection }, " "),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.userFacilities.person.name, thumbnailUrl: this.state.userFacilities.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginProvider.logout.bind(this.state.loginProvider) }, "Sign Out...")))))),
@@ -49702,15 +49707,15 @@ class CoachPage extends React.Component {
     constructor(props) {
         super(props);
         this.lastUserData = new LocalStore_1.StoredMeetingState();
-        this.defaultPageData = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new Facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png', null), null);
-        this.pageData = this.defaultPageData;
+        this.defaultUserFacilities = new UserFacilities_1.UserFacilities(null, new Person_1.Person(null, null, 'Waiting...', null, 'person-w-128x128.png', null), new Facility_1.Facility(null, null, 'Waiting...', 'weightlifter-b-128x128.png', null), null, new Array());
+        this.userFacilities = this.defaultUserFacilities;
         let loginData = new LoginMeetingCode_1.LoginMeetCodeData(this.lastUserData.loadMeetingId());
         let peerConnection = new PeerConnection_1.PeerConnection(false); // Member nodes are edge only, coaches are full hubs
         this.state = {
             isLoggedIn: false,
             isLeader: true,
             haveAccess: false,
-            pageData: this.pageData,
+            userFacilities: this.userFacilities,
             peerConnection: peerConnection,
             masterDocument: undefined,
             isDataReady: false,
@@ -49780,12 +49785,17 @@ class CoachPage extends React.Component {
         var self = this;
         // Make a request for user data to populate the home page 
         if (isLoggedIn) {
-            axios_1.default.get('/api/home', { params: { coach: encodeURIComponent(true) } })
+            axios_1.default.get('/api/home', {
+                params: {
+                    coach: encodeURIComponent(true),
+                    meetingId: encodeURIComponent(self.state.loginData.meetCode)
+                }
+            })
                 .then(function (response) {
                 if (response.data) {
                     // Success, set state to data for logged in user 
-                    self.pageData = UserFacilities_1.UserFacilities.revive(response.data);
-                    var person = new Person_1.Person(null, self.pageData.person.externalId, self.pageData.person.name, null, self.pageData.person.thumbnailUrl, null);
+                    self.userFacilities = UserFacilities_1.UserFacilities.revive(response.data);
+                    var person = new Person_1.Person(null, self.userFacilities.person.externalId, self.userFacilities.person.name, null, self.userFacilities.person.thumbnailUrl, null);
                     // Initialise WebRTC and connect
                     self.state.peerConnection.connect(self.state.loginData.meetCode, person);
                     // Create a shared document hooked up to the connection
@@ -49794,30 +49804,30 @@ class CoachPage extends React.Component {
                     });
                     // Keep alive to server every 25 seconds
                     let intervalId = setInterval(self.onClockInterval.bind(self), 25000 + Math.random());
-                    self.setState({ isLoggedIn: true, pageData: self.pageData, intervalId: intervalId });
+                    self.setState({ isLoggedIn: true, userFacilities: self.userFacilities, intervalId: intervalId });
                     // Save valid credentials for pre-population next time
                     self.lastUserData.saveMeetingId(self.state.loginData.meetCode);
                 }
                 else {
                     // handle error by setting state back to no user logged in
-                    self.pageData = self.defaultPageData;
-                    self.setState({ isLoggedIn: false, pageData: self.pageData });
+                    self.userFacilities = self.defaultUserFacilities;
+                    self.setState({ isLoggedIn: false, userFacilities: self.userFacilities });
                 }
             })
                 .catch(function (error) {
                 // handle error by setting state back to no user logged in
                 if (self.state.intervalId)
                     clearInterval(self.state.intervalId);
-                self.pageData = self.defaultPageData;
-                self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null });
+                self.userFacilities = self.defaultUserFacilities;
+                self.setState({ isLoggedIn: false, userFacilities: self.userFacilities, intervalId: null });
             });
         }
         else {
             // handle error by setting state back to no user logged in
             if (this.state.intervalId)
                 clearInterval(this.state.intervalId);
-            self.pageData = self.defaultPageData;
-            self.setState({ isLoggedIn: false, pageData: self.pageData, intervalId: null });
+            self.userFacilities = self.defaultUserFacilities;
+            self.setState({ isLoggedIn: false, userFacilities: self.userFacilities, intervalId: null });
         }
     }
     render() {
@@ -49845,25 +49855,25 @@ class CoachPage extends React.Component {
         else {
             return (React.createElement("div", { className: "coachpage" },
                 React.createElement(react_helmet_1.Helmet, null,
-                    React.createElement("title", null, this.state.pageData.currentFacility.name),
-                    React.createElement("link", { rel: "icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" }),
-                    React.createElement("link", { rel: "shortcut icon", href: this.state.pageData.currentFacility.thumbnailUrl, type: "image/png" })),
+                    React.createElement("title", null, this.state.userFacilities.currentFacility.name),
+                    React.createElement("link", { rel: "icon", href: this.state.userFacilities.currentFacility.thumbnailUrl, type: "image/png" }),
+                    React.createElement("link", { rel: "shortcut icon", href: this.state.userFacilities.currentFacility.thumbnailUrl, type: "image/png" })),
                 React.createElement(Navbar_1.default, { collapseOnSelect: true, expand: "sm", bg: "dark", variant: "dark", style: thinStyle },
                     React.createElement(Navbar_1.default.Toggle, { "aria-controls": "responsive-navbar-nav" }),
                     React.createElement(Navbar_1.default.Collapse, { id: "responsive-navbar-nav" },
                         React.createElement(Nav_1.default, { className: "mr-auto" },
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-facility" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.currentFacility.name, thumbnailUrl: this.state.pageData.currentFacility.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.userFacilities.currentFacility.name, thumbnailUrl: this.state.userFacilities.currentFacility.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "facility-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "left" },
-                                    React.createElement(Dropdown_1.default.Item, { href: this.state.pageData.currentFacility.homepageUrl }, "Homepage...")))),
-                        React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.pageData.currentFacility.name),
+                                    React.createElement(Dropdown_1.default.Item, { href: this.state.userFacilities.currentFacility.homepageUrl }, "Homepage...")))),
+                        React.createElement(Navbar_1.default.Brand, { href: "" }, this.state.userFacilities.currentFacility.name),
                         React.createElement(Nav_1.default, { className: "ml-auto" },
                             React.createElement(CallPanelUI_1.MasterConnectionStatus, { peers: this.state.peerConnection }),
                             React.createElement(Dropdown_1.default, { as: ButtonGroup_1.default, id: "collasible-nav-person" },
                                 React.createElement(Button_1.default, { variant: "secondary", style: thinStyle },
-                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.pageData.person.name, thumbnailUrl: this.state.pageData.person.thumbnailUrl })),
+                                    React.createElement(ParticipantUI_1.ParticipantSmall, { name: this.state.userFacilities.person.name, thumbnailUrl: this.state.userFacilities.person.thumbnailUrl })),
                                 React.createElement(Dropdown_1.default.Toggle, { variant: "secondary", id: "person-split", size: "sm" }),
                                 React.createElement(Dropdown_1.default.Menu, { align: "right" },
                                     React.createElement(Dropdown_1.default.Item, { onClick: this.state.loginProvider.logout }, "Sign Out...")))))),
@@ -54600,13 +54610,15 @@ class UserFacilities {
      * @param sessionId - session ID - is sent back to the client, allows client to restart interrupted comms as long as within TTL
      * @param person - object for current user
      * @param currentFacility - the current facility where the user is logged in
+     * @param zoomSignature - signature to use to start Zoom
      * @param facilities - array of all facilities where the user has a role
      *
      */
-    constructor(sessionId, person, currentFacility, facilities = new Array()) {
+    constructor(sessionId, person, currentFacility, zoomSignature, facilities = new Array()) {
         this._sessionId = sessionId;
         this._person = person;
         this._currentFacility = currentFacility;
+        this._zoomSignature = zoomSignature;
         this._facilities = facilities;
     }
     /**
@@ -54624,6 +54636,9 @@ class UserFacilities {
     get facilities() {
         return this._facilities;
     }
+    get zoomSignature() {
+        return this._zoomSignature;
+    }
     get type() {
         return UserFacilities.__type;
     }
@@ -54636,6 +54651,7 @@ class UserFacilities {
         return (this._sessionId === rhs._sessionId &&
             this._person.equals(rhs._person) &&
             this._currentFacility.equals(rhs._currentFacility) &&
+            this._zoomSignature === rhs._zoomSignature &&
             Equals_1.isEqual(this._facilities, rhs._facilities));
     }
     ;
@@ -54654,6 +54670,7 @@ class UserFacilities {
                 _sessionId: this._sessionId,
                 _person: this._person.toJSON(),
                 _currentFacility: this._currentFacility.toJSON(),
+                _zoomSignature: this._zoomSignature,
                 _facilities: facilities
             }
         };
@@ -54684,7 +54701,7 @@ class UserFacilities {
             }
         }
         return new UserFacilities(data._sessionId, Person_1.Person.revive(data._person), data._currentFacility ? Facility_1.Facility.revive(data._currentFacility)
-            : new Facility_1.Facility(null, "", 'Unknown', 'building-black128x128.png', "(No homepage)"), facilities);
+            : new Facility_1.Facility(null, "", 'Unknown', 'building-black128x128.png', "(No homepage)"), data._zoomSignature, facilities);
     }
 }
 exports.UserFacilities = UserFacilities;

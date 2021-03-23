@@ -31,6 +31,9 @@ var deliverNewAnswer = require('./event-source.js').deliverNewAnswer;
 var deliverNewIceCandidate = require('./event-source.js').deliverNewIceCandidate;
 var deliverNewDataBatch = require('./event-source.js').deliverNewDataBatch;
 
+// Zoom APIs
+var generateSignature = require('./zoom.js').generateSignature;
+
 async function facilitiesFor (facilityIds) {
    var facilities = new Array();
 
@@ -123,9 +126,9 @@ router.post('/api/lead', function (req, res) {
       res.send(false);
 });
 
-function userFacilitiesFor (req, facilities) {
+function userFacilitiesFor(coach, meetingId, req, facilities) {
 
-   var current = facilities[0]; // TODO - pick the last facility visited by recording visits. 
+   var current = facilities[0]; // TODO - pick the facility to go with the meetingCode
    // loop below just removes current from the extended list
    for (var i = 0; i < facilities.length; i++) {
       if (current.externalId === facilities[i].externalId) {
@@ -137,6 +140,7 @@ function userFacilitiesFor (req, facilities) {
    var myFacilityData = new UserFacilities(req.sessionID,
       new Person(null, req.user.externalId, req.user.name, null, req.user.thumbnailUrl, null),
       current,
+      generateSignature(meetingId, coach ? 1 : 0),
       facilities);
 
    return JSON.stringify(myFacilityData);
@@ -171,15 +175,16 @@ router.get('/api/home', function (req, res) {
       });
 
       var coach = decodeURIComponent(req.query.coach);
+      var meetingId = decodeURIComponent(req.query.meetingId);
 
       if (coach === 'true') {
          facilityIdListForCoach(req.user.externalId).then(function (facilities) {
-            var output = userFacilitiesFor(req, facilities);
+            var output = userFacilitiesFor(coach, meetingId, req, facilities);
             res.send(output);
          });
       } else {
          facilityIdListForMember(req.user.externalId).then(function (facilities) {
-            var output = userFacilitiesFor(req, facilities);
+            var output = userFacilitiesFor(coach, meetingId, req, facilities);
             res.send(output);
          });
       }

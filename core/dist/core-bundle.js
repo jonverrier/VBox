@@ -8402,13 +8402,15 @@ class UserFacilities {
      * @param sessionId - session ID - is sent back to the client, allows client to restart interrupted comms as long as within TTL
      * @param person - object for current user
      * @param currentFacility - the current facility where the user is logged in
+     * @param zoomSignature - signature to use to start Zoom
      * @param facilities - array of all facilities where the user has a role
      *
      */
-    constructor(sessionId, person, currentFacility, facilities = new Array()) {
+    constructor(sessionId, person, currentFacility, zoomSignature, facilities = new Array()) {
         this._sessionId = sessionId;
         this._person = person;
         this._currentFacility = currentFacility;
+        this._zoomSignature = zoomSignature;
         this._facilities = facilities;
     }
     /**
@@ -8426,6 +8428,9 @@ class UserFacilities {
     get facilities() {
         return this._facilities;
     }
+    get zoomSignature() {
+        return this._zoomSignature;
+    }
     get type() {
         return UserFacilities.__type;
     }
@@ -8438,6 +8443,7 @@ class UserFacilities {
         return (this._sessionId === rhs._sessionId &&
             this._person.equals(rhs._person) &&
             this._currentFacility.equals(rhs._currentFacility) &&
+            this._zoomSignature === rhs._zoomSignature &&
             Equals_1.isEqual(this._facilities, rhs._facilities));
     }
     ;
@@ -8456,6 +8462,7 @@ class UserFacilities {
                 _sessionId: this._sessionId,
                 _person: this._person.toJSON(),
                 _currentFacility: this._currentFacility.toJSON(),
+                _zoomSignature: this._zoomSignature,
                 _facilities: facilities
             }
         };
@@ -8486,7 +8493,7 @@ class UserFacilities {
             }
         }
         return new UserFacilities(data._sessionId, Person_1.Person.revive(data._person), data._currentFacility ? Facility_1.Facility.revive(data._currentFacility)
-            : new Facility_1.Facility(null, "", 'Unknown', 'building-black128x128.png', "(No homepage)"), facilities);
+            : new Facility_1.Facility(null, "", 'Unknown', 'building-black128x128.png', "(No homepage)"), data._zoomSignature, facilities);
     }
 }
 exports.UserFacilities = UserFacilities;

@@ -16,7 +16,8 @@ export class UserFacilities implements IStreamableFor<UserFacilities> {
 
    private _sessionId: string;
    private _person: Person;
-   private _currentFacility : Facility;
+   private _currentFacility: Facility;
+   private _zoomSignature: string;
    private _facilities: Array<Facility>;
 
    static readonly __type = "UserFacilities";
@@ -26,14 +27,16 @@ export class UserFacilities implements IStreamableFor<UserFacilities> {
    * @param sessionId - session ID - is sent back to the client, allows client to restart interrupted comms as long as within TTL
    * @param person - object for current user
    * @param currentFacility - the current facility where the user is logged in
+   * @param zoomSignature - signature to use to start Zoom
    * @param facilities - array of all facilities where the user has a role
    *
    */
-   constructor(sessionId, person, currentFacility, facilities: Array<Facility> = new Array<Facility>()) {
+   constructor(sessionId, person, currentFacility, zoomSignature, facilities: Array<Facility> = new Array<Facility>()) {
 
       this._sessionId = sessionId;
       this._person = person;
       this._currentFacility = currentFacility;
+      this._zoomSignature = zoomSignature;
       this._facilities = facilities;
    }
 
@@ -52,6 +55,9 @@ export class UserFacilities implements IStreamableFor<UserFacilities> {
    get facilities(): Array<Facility> {
       return this._facilities;
    }
+   get zoomSignature(): string {
+      return this._zoomSignature;
+   }
    get type(): string {
       return UserFacilities.__type;
    }
@@ -65,7 +71,8 @@ export class UserFacilities implements IStreamableFor<UserFacilities> {
 
       return (this._sessionId === rhs._sessionId &&
          this._person.equals(rhs._person) &&
-         this._currentFacility.equals (rhs._currentFacility) &&
+         this._currentFacility.equals(rhs._currentFacility) &&
+         this._zoomSignature === rhs._zoomSignature &&
          isEqual(this._facilities, rhs._facilities)); 
    };
 
@@ -86,6 +93,7 @@ export class UserFacilities implements IStreamableFor<UserFacilities> {
             _sessionId: this._sessionId,
             _person: this._person.toJSON(),
             _currentFacility: this._currentFacility.toJSON(),
+            _zoomSignature: this._zoomSignature,
             _facilities: facilities
          }
       };
@@ -123,6 +131,7 @@ export class UserFacilities implements IStreamableFor<UserFacilities> {
          Person.revive(data._person),
          data._currentFacility ? Facility.revive(data._currentFacility)
             : new Facility(null, "", 'Unknown', 'building-black128x128.png', "(No homepage)"),
+         data._zoomSignature,
          facilities);
    }
 }

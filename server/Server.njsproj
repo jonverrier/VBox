@@ -44,6 +44,7 @@
     <Content Include="dev\person-model.js" />
     <Content Include="dev\server.js" />
     <Content Include="dev\signalmessage-model.js" />
+    <Content Include="dev\zoom.js" />
     <Content Include="dist\client-bundle.js" />
     <Content Include="dist\client-bundle.js.map" />
     <Content Include="dist\core-bundle.js" />
