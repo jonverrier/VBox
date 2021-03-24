@@ -7,21 +7,37 @@ var EntryPoints = pkg.default;
 
 var logger = new EntryPoints.LoggerFactory().createLogger(EntryPoints.ELoggerType.Server);
 
-const crypto = require('crypto') // crypto comes with Node.js
+const KJUR = require('jsrsasign')
 
 var apiKey = process.env.ZOOM_API_KEY;
 var apiSecret = process.env.ZOOM_API_SECRET;
 
-// pass in Zoom Meeting Number, and 0 to join meeting or webinar or 1 to start meeting
-function generateSignature(meetingNumber, role) {
+// pass in Zoom topic and password 
+function generateSignature(topic, password) {
 
-   // Prevent time sync issue between client signature generation and zoom 
-   const timestamp = new Date().getTime() - 30000
-   const msg = Buffer.from(apiKey + meetingNumber + timestamp + role).toString('base64')
-   const hash = crypto.createHmac('sha256', apiSecret).update(msg).digest('base64')
-   const signature = Buffer.from(`${apiKey}.${meetingNumber}.${timestamp}.${role}.${hash}`).toString('base64')
+   let signature = "";
 
-   return signature
+   // try {
+   const iat = Math.round(new Date().getTime() / 1000);
+   const exp = iat + 60 * 60 * 2;
+
+   // Header
+   const oHeader = { alg: "HS256", typ: "JWT" };
+   // Payload
+   const oPayload = {
+      app_key: apiKey,
+      iat,
+      exp,
+      tpc: topic,
+      pwd: password,
+   };
+
+   // Sign JWT
+   const sHeader = JSON.stringify(oHeader);
+   const sPayload = JSON.stringify(oPayload);
+   signature = KJUR.jws.JWS.sign("HS256", sHeader, sPayload, apiSecret);
+
+   return signature;
 }
 
 module.exports.generateSignature = generateSignature;
