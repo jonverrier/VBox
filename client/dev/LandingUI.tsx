@@ -136,7 +136,7 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
                <Nav className="ml-auto">
                   <Container style={cmnNoMarginPad}>
                      <Row style={landingNavGroupStyle} className="align-items-center">
-                        <div className='align-middle'>Sign In: </div>
+                        {this.state.isMobileFormFactor ? <div></div> : <div className='align-middle'>Sign In: </div>}
                         <Button variant="secondary" style={landingNavButtonStyle}
                            onClick={this.goCoach.bind(this)}>Coach
                         </Button>
