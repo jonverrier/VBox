@@ -2,7 +2,7 @@
    "name": "vbox",
    "version": "0.0.0",
    "description": "VBox",
-   "main": "dev/server.js",
+   "main": "server/dev/server.js",
    "author": {
       "name": ""
    },
