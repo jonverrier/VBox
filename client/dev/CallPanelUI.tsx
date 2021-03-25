@@ -18,10 +18,7 @@ import { Person } from '../../core/dev/Person';
 import { EThreeStateSwitchEnum } from '../../core/dev/Enum';
 import { ParticipantSmall, ParticipantCaption } from './ParticipantUI';
 import { PeerConnection } from '../../core/dev/PeerConnection';
-
-const thinStyle: CSS.Properties = {
-   margin: '0px', padding: '0px'
-};
+import { cmnNoMarginPad } from './CommonStylesUI';
 
 const thinishStyle: CSS.Properties = {
    padding: '2px'
@@ -115,7 +112,7 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
    render() {
       return (
             <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
-               <Button variant="secondary" style={thinStyle}>
+               <Button variant="secondary" style={cmnNoMarginPad}>
                   { this.overallStatus() } 
                </Button>
             <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">
@@ -246,7 +243,7 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
    render() {
       return (
          <Dropdown as={ButtonGroup} id="collasible-nav-call-status">
-            <Button variant="secondary" style={thinStyle}>
+            <Button variant="secondary" style={cmnNoMarginPad}>
                {this.overallStatus()}
             </Button>
             <Dropdown.Toggle variant="secondary" id="call-status-split" size="sm">

@@ -8,6 +8,8 @@ import Image from 'react-bootstrap/Image'
 
 import * as CSS from 'csstype';
 
+import { cmnNoMarginPad } from './CommonStylesUI';
+
 const bannerRowStyle: CSS.Properties = {
    lineHeight: '48px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px', alignItems: 'center' 
 };
@@ -16,7 +18,7 @@ const partyImageStyle: CSS.Properties = {
    marginLeft: '0px', marginRight: '0px',
    paddingLeft: '4px', paddingRight: '2px',
    paddingTop: '0px', paddingBottom: '0px',
-   marginTop: '8px', marginBottom: '8px',
+   marginTop: '4px', marginBottom: '4px',
    display: 'inline-block'
 };
 
@@ -49,13 +51,9 @@ const partyRowStyle: CSS.Properties = {
    display: 'inline-block'
 };
 
-const thinStyle: CSS.Properties = {
-   margin: '0px', padding: '0px'
-};
-
 export const ParticipantBanner = (props: { name: string, thumbnailUrl: string }) => (
    <div>
-      <Container fluid style={thinStyle}>
+      <Container fluid style={cmnNoMarginPad}>
          <Row style={bannerRowStyle}>
             <Image style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} title={props.name} height='32px' />
             <p style={partyBannerNameStyle}>{props.name}</p>
@@ -66,9 +64,9 @@ export const ParticipantBanner = (props: { name: string, thumbnailUrl: string })
 
 export const Participant = (props: { name: string, thumbnailUrl: string }) => (
    <div>
-      <Container style={thinStyle}>
+      <Container style={cmnNoMarginPad}>
          <Row style={partyRowStyle}>
-            <Col style={thinStyle}>
+            <Col style={cmnNoMarginPad}>
                <Image style={partyImageStyle} src={props.thumbnailUrl} alt={props.name} title={props.name} height='32px' />
                   <p style={partyNameStyle}>{props.name}</p>
             </Col>
@@ -79,9 +77,9 @@ export const Participant = (props: { name: string, thumbnailUrl: string }) => (
 
 export const ParticipantNoImage = (props: { name: string } ) => (
    <div>
-      <Container style={thinStyle}>
+      <Container style={cmnNoMarginPad}>
          <Row style={partyRowStyle}>
-            <Col style={thinStyle}>
+            <Col style={cmnNoMarginPad}>
                <p style={partyNameStyle}>{props.name}</p>
             </Col>
          </Row>
@@ -91,9 +89,9 @@ export const ParticipantNoImage = (props: { name: string } ) => (
 
 export const ParticipantCaption = (props: { name: string, caption: string, thumbnailUrl: string }) => (
    <div>
-      <Container style={thinStyle}>
+      <Container style={cmnNoMarginPad}>
          <Row style={partyRowStyle}>
-            <Col style={thinStyle}>
+            <Col style={cmnNoMarginPad}>
                <Image style={partyImageStyle} src={props.thumbnailUrl} alt={props.caption} title={props.caption} height='32px' />
                <p style={partyNameStyle}>{props.name}</p>
             </Col>

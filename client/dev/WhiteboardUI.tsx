@@ -16,10 +16,7 @@ import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
-
-const thinStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
-};
+import { cmnNoMarginPad } from './CommonStylesUI';
 
 const thinishStyle: CSS.Properties = {
    margin: '2px', padding: '0px',
@@ -186,12 +183,12 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
    render() {
       return (
          <div style={whiteboardStyle}>
-            <Row style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
                <Col style={whiteboardHeaderStyle}>
                   {((new Date()) as any).getWeekDay() /* Uses the extra method in DateHook */}
                </Col>
             </Row>
-            <Row style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
                <Col style={thinishStyle}>
                   <MasterWhiteboardElement allowEdit={this.props.allowEdit} 
                      commandProcessor={this.props.commandProcessor}
@@ -284,7 +281,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                   <i className="fa fa-caret-down" style={clockBtnStyle}></i>
                </Button>
             </Row>      
-            <Row style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
             <Collapse in={this.state.inEditMode}>
                <div>
                   <Form>
@@ -306,7 +303,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                </div>
                </Collapse>
             </Row>
-            <Row style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
                <p style={whiteboardElementBodyStyle}>{this.props.value}</p>
             </Row>
          </div>
@@ -364,18 +361,18 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
    render() {
       return (
          <div style={whiteboardStyle}>
-            <Row style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
                <Col style={whiteboardHeaderStyle}>
                   {((new Date()) as any).getWeekDay() /* Uses the extra method in DateHook */}
                </Col>
             </Row>
-            <Row style={thinStyle}>
-               <Col style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
+               <Col style={cmnNoMarginPad}>
                   <RemoteWhiteboardElement
                      caption={'Workout'}
                      value={this.state.workoutText}> </RemoteWhiteboardElement>
                </Col>
-               <Col style={thinStyle}>
+               <Col style={cmnNoMarginPad}>
                   <RemoteWhiteboardElement 
                      caption={'Results'}
                      value={this.state.resultsText}> </RemoteWhiteboardElement>
@@ -402,7 +399,7 @@ class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementPr
             <Row style={thinCentredStyle}>
                <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p><p style={blockCharStyle}></p>
             </Row>
-            <Row style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
                <p style={whiteboardElementBodyStyle}>{this.props.value}</p>
             </Row>
          </div>

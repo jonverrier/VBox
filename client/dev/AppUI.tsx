@@ -15,7 +15,6 @@ import Nav from 'react-bootstrap/Nav';
 import Dropdown from 'react-bootstrap/Dropdown';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Form from 'react-bootstrap/Form';
-import Carousel from 'react-bootstrap/Carousel';
 
 // Additional packages
 import { Helmet } from 'react-helmet';
@@ -46,59 +45,10 @@ import { Media } from './Media';
 import { MasterWhiteboard, RemoteWhiteboard } from './WhiteboardUI';
 import { MasterPeople, RemotePeople } from './PeopleUI';
 import { MasterClock, RemoteClock } from './ClockUI';
+import { ILandingPageProps, ILandingPageState, LandingPage } from './LandingUI';
+import { Footer, cmnNoMarginPad, navbarStyle, navbarBrandStyle, pageStyle, cmnExtraBtmPad } from './CommonStylesUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
-
-const jumbotronStyle: CSS.Properties = {
-   paddingLeft: '10px',
-   paddingRight: '10px',
-   marginBottom: '0px',
-   background: 'gray',
-   color: 'white'
-};
-
-const thinStyle: CSS.Properties = {
-   margin: '0px', padding: '0px'
-};
-
-const facilityNavStyle: CSS.Properties = {
-   margin: '0px', paddingLeft: '0px', paddingRight: '0px', paddingTop: '4px', paddingBottom: '0px', background: 'gray', color : 'gray'
-};
-
-const navbarBrandStyle: CSS.Properties = {
-   margin: '0px', padding: '0px', background: 'gray',  color: 'white'
-};
-
-const pageStyle: CSS.Properties = {
-   background: 'gray', color: 'white', margin: '0px', padding : '0px', minWidth: '320px', maxWidth: '*', alignItems: 'left'
-};
-
-const rowHorizontalSepStyle: CSS.Properties = {
-   marginTop: '20px',
-   paddingTop: '20px',
-   borderTopWidth: "1px",
-   borderTopColor: "black",
-   borderTopStyle: 'solid'
-};
-
-const loginGroupStyleLeftBorder: CSS.Properties = {
-   borderLeftWidth: "1px",
-   borderLeftColor: "black",
-   borderLeftStyle: 'solid'
-};
-
-const fieldTSepStyle: CSS.Properties = {
-   marginTop: '20px'
-};
-
-const fieldBSepStyle: CSS.Properties = {
-   marginBottom: '20px'
-};
-
-const emailUnderpinFieldStyle: CSS.Properties = {
-   marginBottom: '20px',
-   color: 'lightgray'
-};
 
 const lpanelStyle: CSS.Properties = {
    margin: '0px', padding: '0px'
@@ -123,12 +73,6 @@ const carouselImageStyle: CSS.Properties = {
 
 const carouselHeadingStyle: CSS.Properties = {
    color: 'black'
-};
-
-const footerElementStyle: CSS.Properties = {
-   padding: '10px',
-   fontSize: '14px',
-   color: 'white'
 };
 
 interface IMemberPageProps {
@@ -310,7 +254,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
                   <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
                </Helmet>
-               <Navbar style={facilityNavStyle}>
+               <Navbar style={navbarStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
                      <ParticipantBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
@@ -326,13 +270,13 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                         </Col>
                         <Col>
                            <Form.Group controlId="formMeetingCode">
-                              <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={fieldBSepStyle}
+                              <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={cmnExtraBtmPad}
                                  onChange={this.handleMeetCodeChange.bind(this)}
                                  isValid={this.state.loginData.isValidMeetCode()}
                                  value={this.state.meetCodeCopy} />
                            </Form.Group>
                            <Form.Group controlId="formName">
-                              <Form.Control type="text" placeholder="Enter your display name." maxLength={30} style={fieldBSepStyle}
+                              <Form.Control type="text" placeholder="Enter your display name." maxLength={30} style={cmnExtraBtmPad}
                                  onChange={this.handleNameChange.bind(this)}
                                  isValid={this.state.loginData.isValidName()}
                                  value={this.state.nameCopy} />
@@ -358,12 +302,12 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                   <link rel="shortcut icon" href={this.state.userFacilities.currentFacility.thumbnailUrl} type="image/png" />
                </Helmet>
 
-               <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
+               <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={cmnNoMarginPad}>
                   <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                   <Navbar.Collapse id="responsive-navbar-nav">
                      <Nav className="mr-auto">
                         <Dropdown as={ButtonGroup} id="collasible-nav-facility">
-                           <Button variant="secondary" style={thinStyle}>
+                           <Button variant="secondary" style={cmnNoMarginPad}>
                               <ParticipantSmall name={this.state.userFacilities.currentFacility.name} thumbnailUrl={this.state.userFacilities.currentFacility.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
@@ -377,7 +321,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      <Nav className="ml-auto">
                         <RemoteConnectionStatus peers={this.state.peerConnection}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
-                           <Button variant="secondary" style={thinStyle}>
+                           <Button variant="secondary" style={cmnNoMarginPad}>
                               <ParticipantSmall name={this.state.userFacilities.person.name} thumbnailUrl={this.state.userFacilities.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
@@ -391,7 +335,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                </Navbar>
 
                <Container fluid style={pageStyle}>
-                  <Row style={thinStyle}>
+                  <Row style={cmnNoMarginPad}>
                      <Col style={lpanelStyle}>
                         <RemoteWhiteboard
                            commandProcessor={this.state.remoteDocument.commandProcessor }
@@ -610,7 +554,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
                   <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
                </Helmet>
-               <Navbar style={facilityNavStyle}>
+               <Navbar style={navbarStyle}>
                   <Navbar.Brand href="/" style={navbarBrandStyle}>
                      <ParticipantBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
                   </Navbar.Brand>
@@ -626,7 +570,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                         </Col>
                         <Col>
                            <Form.Group controlId="formMeetingCode">
-                              <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={fieldBSepStyle}
+                              <Form.Control type="text" placeholder="Enter meeting code." maxLength={10} style={cmnExtraBtmPad}
                                  onChange={this.handleMeetCodeChange.bind(this)}
                                  isValid={this.state.loginData.isValidMeetCode()}
                                  value={this.state.meetCodeCopy} />
@@ -650,12 +594,12 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   <link rel="shortcut icon" href={this.state.userFacilities.currentFacility.thumbnailUrl} type="image/png" />
                </Helmet>
 
-               <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={thinStyle}>
+               <Navbar collapseOnSelect expand="sm" bg="dark" variant="dark" style={cmnNoMarginPad}>
                   <Navbar.Toggle aria-controls="responsive-navbar-nav" />
                   <Navbar.Collapse id="responsive-navbar-nav">
                      <Nav className="mr-auto">
                         <Dropdown as={ButtonGroup} id="collasible-nav-facility">
-                           <Button variant="secondary" style={thinStyle}>
+                           <Button variant="secondary" style={cmnNoMarginPad}>
                               <ParticipantSmall name={this.state.userFacilities.currentFacility.name} thumbnailUrl={this.state.userFacilities.currentFacility.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="facility-split" size="sm" >
@@ -669,7 +613,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      <Nav className="ml-auto">
                         <MasterConnectionStatus peers={this.state.peerConnection} />
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
-                           <Button variant="secondary" style={thinStyle}>
+                           <Button variant="secondary" style={cmnNoMarginPad}>
                               <ParticipantSmall name={this.state.userFacilities.person.name} thumbnailUrl={this.state.userFacilities.person.thumbnailUrl} />
                            </Button>
                            <Dropdown.Toggle variant="secondary" id="person-split" size="sm">
@@ -683,12 +627,12 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                </Navbar>
 
                <Container fluid style={pageStyle}>
-                  <Row style={thinStyle}>
-                     <Col style={thinStyle}>
+                  <Row style={cmnNoMarginPad}>
+                     <Col style={cmnNoMarginPad}>
                         <LeaderResolve onLeaderChange={this.onLeaderChange.bind(this)} peers={this.state.peerConnection}> </LeaderResolve>
                      </Col>
                   </Row>
-                  <Row style={thinStyle}>
+                  <Row style={cmnNoMarginPad}>
                      <Col style={lpanelStyle}>
                         <MasterWhiteboard allowEdit={this.state.isLeader} peerConnection={this.state.peerConnection}
                            commandProcessor={this.state.masterDocument.commandProcessor}
@@ -712,182 +656,6 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
    }
 }
 
-interface ILandingPageProps {
-}
-
-interface ILandingPageState {
-
-   email: string;
-   isValidEmail: boolean;
-   sentEmail: boolean;
-   playingAudio: boolean;
-   isMobileFormFactor: boolean;
-}
-
-export class LandingPage extends React.Component<ILandingPageProps, ILandingPageState> {
-   //member variables - shared across instances, although for this class we have only one anyway
-   media: Media;
-
-   constructor(props: ILandingPageProps) {
-      super(props);
-
-      this.state = {
-         email: "",
-         isValidEmail: false,
-         sentEmail: false,
-         playingAudio: (false),
-         isMobileFormFactor: true // Assume mobile first !
-      };
-
-      // Can have a single media object across all instances
-      this.media = new Media();
-      this.media.addMobileFormFactorChangeListener(this.onMobileFormFactorChange.bind(this));
-   }
-   
-   componentDidMount() {
-
-      this.setState({ isMobileFormFactor: this.media.isSmallFormFactor() });
-   }
-
-   componentWillUnmount() {
-   }
-
-   onMobileFormFactorChange(isMobile: boolean) {
-      this.setState({ isMobileFormFactor: isMobile });
-   }
-
-   validateEmail(email : string) {
-      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      return re.test(String(email).toLowerCase());
-   }
-
-   handleEmailChange(ev: any) {
-      // Only allow one email per page refresh. 
-      if (!this.state.sentEmail && this.validateEmail(ev.target.value)) {
-         this.setState({ isValidEmail: true, email: ev.target.value});
-      } else {
-         this.setState({ isValidEmail: false, email: ev.target.value });
-      }
-   }
-
-   sendLead() {
-      if (this.validateEmail(this.state.email)) {
-         axios.post('/api/lead', { params: { email: encodeURIComponent (this.state.email) } })
-            .then((response) => {
-               this.setState({ isValidEmail: false, email: "", sentEmail: true });
-               logger.logInfo('LoginPage', 'sendLead', 'Post Ok, email:', new Object (this.state.email));
-            })
-            .catch((e) => {
-               logger.logError('LoginPage', 'sendLead', 'Post error:', e);
-            });
-      }
-   }
-
-   goMember() {
-      window.location.href = "/member";
-   }
-
-   goCoach() {
-      window.location.href = "/coach";
-   }
-
-   render() {
-         return (
-            <div className="loginpage">
-            <Helmet>
-                  <title>UltraBox</title>
-               <link rel="icon" href="weightlifter-b-128x128.png" type="image/png" />
-               <link rel="shortcut icon" href="weightlifter-b-128x128.png" type="image/png" />
-            </Helmet>
-            <Navbar style={facilityNavStyle}>
-               <Navbar.Brand href="/" style={navbarBrandStyle}>
-                  <ParticipantBanner name="UltraBox" thumbnailUrl="weightlifter-w-128x128.png" />
-               </Navbar.Brand>
-            </Navbar>
-               <Container fluid style={pageStyle}>
-                  <audio className="audio-element" loop={true}>
-                     <source src="15-Minute-Timer.mp3"></source>
-                  </audio>
-                  <Jumbotron style={jumbotronStyle}>
-                     <h1 style={fieldBSepStyle}>Deliver the experience of your Box to your clients, when they can't be in your Box.</h1>
-                     <Row className="align-items-center">
-                        <Col className="d-none d-md-block">
-                        </Col>
-                        <Col className="align-items-center">
-                           <Carousel className="align-items-center"  fade={true}>
-                              <Carousel.Item interval={7500}>
-                                 <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
-                                    src={'landing-workout.png'} />
-                              <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Share an online whiteboard to brief your team.</h3>
-                              </Carousel.Caption>
-                           </Carousel.Item  >
-                              <Carousel.Item interval={7500}>
-                                 <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
-                                 src={'landing-video.png'} />
-                              <Carousel.Caption>
-                                 <h3 style={carouselHeadingStyle}>Manage video feed so your team focus on what you need them to.</h3>
-                              </Carousel.Caption>
-                           </Carousel.Item>
-                           <Carousel.Item interval={7500}>
-                                 <img style={this.state.isMobileFormFactor ? carouselMobileImageStyle : carouselImageStyle}
-                                 src={'landing-music.png'} />
-                                 <Carousel.Caption>
-                                    <h3 style={carouselHeadingStyle}>Play licenced music for the workout.
-                                    </h3>
-                              </Carousel.Caption>
-                           </Carousel.Item>
-                           </Carousel>  
-                        </Col>
-                        <Col className="align-items-center">
-                           <Form.Group controlId="signMeUpId">
-                              <Form.Control type="email" placeholder="Enter your email here." maxLength={40} style={fieldTSepStyle}
-                                 onChange={this.handleEmailChange.bind(this)}
-                                 isValid={this.state.isValidEmail}
-                                 disabled={this.state.sentEmail}
-                                 value={this.state.email} />
-                              <Form.Text style={emailUnderpinFieldStyle}>
-                                 {this.state.sentEmail ? "Thank you, we will be in touch." : "We'll never share your email with anyone else."}
-                              </Form.Text>
-                              <Button variant="secondary" disabled={!this.state.isValidEmail} style={fieldBSepStyle}
-                                 onClick={this.sendLead.bind(this)}>
-                                 Tell me more...
-                              </Button>
-                           </Form.Group>
-                        </Col>
-                        <Col className="d-none d-md-block">
-                        </Col>
-                     </Row>
-                     <Row className="align-items-center" style={rowHorizontalSepStyle}>
-                        <Col>
-                           <h1 style={fieldBSepStyle}>Already joined?</h1>
-                           <p>Welcome to UltraBox. Sign in below to get access to your class.</p>
-                        </Col>
-                     </Row>
-                     <Row className="align-items-center">
-                        <Col className="d-none d-md-block">
-                        </Col>
-                        <Col>
-                           <Button variant="secondary"
-                              onClick={this.goCoach.bind(this)}>Coaches
-                           </Button>
-                        </Col>
-                        <Col style={loginGroupStyleLeftBorder}>
-                           <Button variant="secondary" 
-                              onClick={this.goMember.bind(this)}>Members
-                           </Button>
-                        </Col>
-                        <Col className="d-none d-md-block">
-                        </Col>
-                     </Row>
-                  </Jumbotron>
-                  <Footer></Footer>
-               </Container>
-            </div>
-         );
-   }
-}
-
 export class PageSwitcher extends React.Component {
    render() {
       return ( 
@@ -908,25 +676,6 @@ export class PageSwitcher extends React.Component {
             </Switch>  
          </BrowserRouter>  
       );
-   }
-}
-
-export class Footer extends React.Component {
-   render() {
-      return (
-         <div>
-            <Container>
-               <Row>
-                  <Col>
-                     <a style={footerElementStyle} href="/">Home</a>
-                     <a style={footerElementStyle} href="privacy">Privacy</a>
-                     <a style={footerElementStyle} href="terms">Terms</a>
-                     <a style={footerElementStyle} href="faq">FAQ</a>
-                     <a style={footerElementStyle} href="mailto:ultrabox.servicet@gmail.com">Contact Us</a>
-                  </Col>
-               </Row>
-            </Container>
-         </div>);
    }
 }
 

@@ -20,11 +20,7 @@ import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveI
 import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand} from '../../core/dev/LiveWorkout';
 
 import { RunnableClock } from './RunnableClock';
-
-
-const thinStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
-};
+import { cmnNoMarginPad } from './CommonStylesUI';
 
 const thinAutoStyle: CSS.Properties = {
    margin: 'auto', padding: '0px', alignItems:'top'
@@ -161,8 +157,8 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
 
    render() {
       return (
-         <Container style={thinStyle}>
-            <Row style={thinStyle}>
+         <Container style={cmnNoMarginPad}>
+            <Row style={cmnNoMarginPad}>
                <Button variant="secondary" size="sm" style={clockBtnStyle}
                   disabled={!this.state.userAllowsMusic}
                   onClick={this.mute.bind(this)}>
@@ -174,8 +170,8 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
                   <i className="fa fa-volume-up" style={clockBtnStyle}></i>
                </Button>           
             </Row>
-            <Row style={thinStyle}>
-               <Col style={thinStyle}>
+            <Row style={cmnNoMarginPad}>
+               <Col style={cmnNoMarginPad}>
                   <div style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</div>
                </Col>
             </Row>
@@ -355,8 +351,8 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
    render() {
       return (
          <div>
-            <Container style={thinStyle}>
-               <Row style={thinStyle}>
+            <Container style={cmnNoMarginPad}>
+               <Row style={cmnNoMarginPad}>
                   <Button variant="secondary" size="sm" style={clockBtnStyle}
                      disabled={!this.state.userAllowsMusic}
                      onClick={this.mute.bind(this)}>
@@ -387,8 +383,8 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                      <i className="fa fa-caret-down" style={clockBtnStyle}></i>
                   </Button>
                </Row>
-               <Row style={thinStyle}>
-                  <Col style={thinStyle}>
+               <Row style={cmnNoMarginPad}>
+                  <Col style={cmnNoMarginPad}>
                      <div style={clockStyle}>{("00" + this.state.mm).slice(-2)}:{("00" + this.state.ss).slice(-2)}</div>
                   </Col>
                </Row>

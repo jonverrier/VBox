@@ -14,10 +14,7 @@ import { CallLeaderResolve } from '../../core/dev/Call';
 
 // This app, this component
 import { PeerConnection } from '../../core/dev/PeerConnection';
-
-const thinStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
-};
+import { cmnNoMarginPad } from './CommonStylesUI';
 
 const alertStyle: CSS.Properties = {
    margin: '0px'
@@ -75,11 +72,11 @@ export class LeaderResolve extends React.Component<ILeaderConnectionProps, ILead
    render() {
       if (this.state.isLeader) {
          return (
-            <div style={thinStyle}>
+            <div style={cmnNoMarginPad}>
             </div>);
       } else {
          return (
-            <div style={thinStyle}>
+            <div style={cmnNoMarginPad}>
                <Alert style={alertStyle} key={'notLeaderId'} variant={'secondary'}>  
                   It looks like another coach is leading this session. Please click below to go back to the home page.
                   <Nav.Item>
