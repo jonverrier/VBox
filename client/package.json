@@ -2,11 +2,13 @@
    "name": "client",
    "version": "0.0.0",
    "description": "client",
-   "main": "app.mjs",
+   "main": "AppUI.mjs",
    "author": {
       "name": ""
    },
-   "dependencies": {},
+   "dependencies": {
+      "react-bootstrap-icons": "^1.4.0"
+   },
    "scripts": {
       "build": "webpack-cli --config webpack-config.js",
       "clean": "tsc --build --clean",

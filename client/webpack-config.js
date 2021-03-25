@@ -1,6 +1,6 @@
 module.exports = {
    devtool: 'source-map',
-   entry: "./dev/app.tsx",
+   entry: "./dev/AppUI.tsx",
    mode: "development",
    target: 'node',
    output: {

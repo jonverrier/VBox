@@ -17,6 +17,6 @@
       "node_modules"
    ],
    "files": [
-      "dev/EntryPoints.tsx", "dev/app.tsx"
+      "dev/EntryPoints.tsx", "dev/AppUI.tsx"
    ]
 }

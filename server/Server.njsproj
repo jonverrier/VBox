@@ -54,6 +54,9 @@
     <Content Include="public\130-bpm-workout-V2 trimmed.mp3" />
     <Content Include="public\15-Minute-Timer.mp3" />
     <Content Include="public\20-Minute-Timer.mp3" />
+    <Content Include="public\atlas-128x128.png" />
+    <Content Include="public\atlas-612x612.jpg" />
+    <Content Include="public\atlas-612x612.png" />
     <Content Include="public\board.png" />
     <Content Include="public\building-black.png" />
     <Content Include="public\building-black128x128.png" />
@@ -81,6 +84,9 @@
     <Content Include="public\landing-video.png" />
     <Content Include="public\landing-workout.png" />
     <Content Include="public\logonnotallowed.html" />
+    <Content Include="public\marching-cubes.jpg" />
+    <Content Include="public\marching-cubes.png" />
+    <Content Include="public\marching-cubes128x128.png" />
     <Content Include="public\nofile.html" />
     <Content Include="public\person-w-128x128.png" />
     <Content Include="public\privacy.html" />

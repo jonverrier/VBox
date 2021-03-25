@@ -46,10 +46,12 @@
     <Folder Include="test\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="dev\App.tsx" />
+    <TypeScriptCompile Include="dev\AppUI.tsx" />
     <TypeScriptCompile Include="dev\CallPanelUI.tsx" />
     <TypeScriptCompile Include="dev\ClockUI.tsx" />
+    <TypeScriptCompile Include="dev\CommonStylesUI.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />
+    <TypeScriptCompile Include="dev\LandingUI.tsx" />
     <TypeScriptCompile Include="dev\LeaderResolveUI.tsx" />
     <TypeScriptCompile Include="dev\LoginInterfaces.tsx" />
     <TypeScriptCompile Include="dev\LoginMeetingCode.tsx" />
