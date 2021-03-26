@@ -16,7 +16,7 @@ import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
-import { cmnNoMarginPad, cmnThinMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle, cmnOffsetDialogFieldStyle} from './CommonStylesUI';
+import { cmnNoMarginPad, cmnThinMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle, cmnOffsetDialogFieldStyle } from './CommonStylesUI';
 
 const thinCentredStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
@@ -270,7 +270,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                   <Form>
                      <Form.Group controlId="elementFormId">
                         <Form.Control as="textarea" style={cmnOffsetDialogFieldStyle}
-                              placeholder={this.props.placeholder} cols={40} maxLength={1023} minLength={0}
+                              placeholder={this.props.placeholder} cols={35} maxLength={1023} minLength={0}
                               value={this.latestValue()}
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>

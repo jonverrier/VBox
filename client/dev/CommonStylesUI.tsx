@@ -157,6 +157,13 @@ export const landingNavGroupStyle: CSS.Properties = {
    verticalAlign: 'middle'
 };
 
+export const landingPanelStyle: CSS.Properties = {
+   marginTop: '0px', paddingTop: '0px',
+   marginBottom: '0px', paddingBottom: '0px',
+   marginLeft: '8px', paddingLeft: '0px',
+   marginRight: '8px', paddingRight: '0px'
+};
+
 //==========
 // Clock
 //==========
