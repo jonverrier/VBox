@@ -16,22 +16,13 @@ import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
-import { cmnNoMarginPad, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle } from './CommonStylesUI';
-
-const thinishStyle: CSS.Properties = {
-   margin: '2px', padding: '0px',
-};
+import { cmnNoMarginPad, cmnThinMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle, cmnOffsetDialogFieldStyle} from './CommonStylesUI';
 
 const thinCentredStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
    alignItems: 'center',
    verticalAlign: 'top',
    justifyContent: 'center'
-};
-
-const clockBtnStyle: CSS.Properties = {
-   margin: '2px', padding: '2px',
-   fontSize: '14px'
 };
 
 const whiteboardStyle: CSS.Properties = {
@@ -75,10 +66,6 @@ const whiteboardElementBodyStyle: CSS.Properties = {
    backgroundRepeat: 'repeat',
    minWidth: '240px', maxWidth: '*',
    whiteSpace: 'pre-wrap'
-};
-
-const fieldXSepStyle: CSS.Properties = {
-   marginLeft: '8px'
 };
 
 interface IMasterWhiteboardProps {
@@ -185,7 +172,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
                </Col>
             </Row>
             <Row style={cmnNoMarginPad}>
-               <Col style={thinishStyle}>
+               <Col style={cmnThinMarginPad}>
                   <MasterWhiteboardElement allowEdit={this.props.allowEdit} 
                      commandProcessor={this.props.commandProcessor}
                      liveWorkout={this.props.liveWorkout}
@@ -193,7 +180,7 @@ export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IM
                      value={this.state.workout} valueAsOf={new Date()}
                      onChange={this.onWorkoutChange.bind(this)}></MasterWhiteboardElement>
                </Col>
-               <Col style={thinishStyle}>
+               <Col style={cmnThinMarginPad}>
                   <MasterWhiteboardElement allowEdit={this.props.allowEdit} 
                      commandProcessor={this.props.commandProcessor}
                      liveWorkout={this.props.liveWorkout}
@@ -273,8 +260,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
          <div>
             <Row style={thinCentredStyle}>
                <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p>
-               <Button style={clockBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
-                  <i className="fa fa-caret-down" style={clockBtnStyle}></i>
+               <Button style={cmnToolButtonStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
+                  <i className="fa fa-caret-down" style={cmnToolButtonStyle}></i>
                </Button>
             </Row>      
             <Row style={cmnNoMarginPad}>
@@ -282,8 +269,8 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                <div>
                   <Form>
                      <Form.Group controlId="elementFormId">
-                        <Form.Control as="textarea" style={fieldXSepStyle}
-                              placeholder={this.props.placeholder} cols={60} maxLength={1023} minLength={0}
+                        <Form.Control as="textarea" style={cmnOffsetDialogFieldStyle}
+                              placeholder={this.props.placeholder} cols={40} maxLength={1023} minLength={0}
                               value={this.latestValue()}
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
