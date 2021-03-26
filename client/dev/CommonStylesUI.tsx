@@ -71,6 +71,14 @@ export const cmnOffsetDialogFieldStyle: CSS.Properties = {
    marginRight: '40px'
 };
 
+export const cmnNoMarginCentreStyle: CSS.Properties = {
+   margin: '0px', padding: '0px',
+   alignItems: 'center',
+   verticalAlign: 'top',
+   justifyContent: 'center'
+};
+
+
 //==========
 // Main page styles
 //==========
@@ -123,6 +131,20 @@ export const pageParaStyle: CSS.Properties = {
    fontSize: '14px'
 };
 
+export const pageThinPanelStyle: CSS.Properties = {
+   marginTop: '0px', paddingTop: '0px',
+   marginBottom: '0px', paddingBottom: '0px',
+   marginLeft: '0px', paddingLeft: '0px',
+   marginRight: '0px', paddingRight: '0px'
+};
+
+export const pageIndentPanelStyle: CSS.Properties = {
+   marginTop: '0px', paddingTop: '0px',
+   marginBottom: '0px', paddingBottom: '0px',
+   marginLeft: '16x', paddingLeft: '0px',
+   marginRight: '8px', paddingRight: '0px'
+};
+
 //==========
 // Landing page styles
 //==========
@@ -157,12 +179,6 @@ export const landingNavGroupStyle: CSS.Properties = {
    verticalAlign: 'middle'
 };
 
-export const landingPanelStyle: CSS.Properties = {
-   marginTop: '0px', paddingTop: '0px',
-   marginBottom: '0px', paddingBottom: '0px',
-   marginLeft: '8px', paddingLeft: '0px',
-   marginRight: '8px', paddingRight: '0px'
-};
 
 //==========
 // Clock
@@ -170,6 +186,51 @@ export const landingPanelStyle: CSS.Properties = {
 
 export const clockStyle: CSS.Properties = {
    color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
+};
+
+
+//==========
+// Whiteboard
+//==========
+
+export const whiteboardStyle: CSS.Properties = {
+   color: 'white', background: 'white',
+   margin: '0px', padding: '0px',
+   backgroundImage: 'url("board.png")',
+   backgroundRepeat: 'repeat'
+};
+
+export const whiteboardHeaderStyle: CSS.Properties = {
+   color: 'black', background: 'white',
+   fontFamily: 'Permanent Marker',
+   fontSize: '40px',
+   marginTop: '0px', paddingTop: '0px',
+   marginBottom: '10px', paddingBottom: '0px',
+   marginLeft: '0px', paddingLeft: '0px',
+   marginRight: '0px', paddingRight: '0px',
+   backgroundImage: 'url("board.png")',
+   backgroundRepeat: 'repeat'
+};
+
+export const whiteboardElementHeaderStyle: CSS.Properties = {
+   paddingLeft: '8px', paddingRight: '8px',
+   paddingTop: '0px', paddingBottom: '0px',
+   color: 'black', background: 'white',
+   fontFamily: 'Permanent Marker',
+   fontSize: '28px',
+   backgroundImage: 'url("board.png")',
+   backgroundRepeat: 'repeat'
+};
+
+export const whiteboardElementBodyStyle: CSS.Properties = {
+   paddingLeft: '8px', paddingRight: '8px',
+   paddingTop: '0px', paddingBottom: '0px',
+   color: 'black', background: 'white',
+   fontFamily: 'Permanent Marker',
+   fontSize: '20px',
+   backgroundImage: 'url("board.png")',
+   backgroundRepeat: 'repeat',
+   whiteSpace: 'pre-wrap'
 };
 
 //==========

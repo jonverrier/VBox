@@ -16,57 +16,9 @@ import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
-import { cmnNoMarginPad, cmnThinMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle, cmnOffsetDialogFieldStyle } from './CommonStylesUI';
-
-const thinCentredStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
-   alignItems: 'center',
-   verticalAlign: 'top',
-   justifyContent: 'center'
-};
-
-const whiteboardStyle: CSS.Properties = {
-   color: 'white', background: 'white',
-   margin: '0px', padding: '0px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
-};
-
-const whiteboardHeaderStyle: CSS.Properties = {
-   color: 'black', background: 'white',
-   fontFamily: 'Permanent Marker',
-   fontSize: '40px',
-   marginTop: '0px', paddingTop: '0px',
-   marginBottom: '10px', paddingBottom: '0px',
-   marginLeft: '0px', paddingLeft: '0px',
-   marginRight: '0px', paddingRight: '0px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
-};
-
-const whiteboardElementHeaderStyle: CSS.Properties = {
-   paddingLeft: '8px', paddingRight: '8px',
-   paddingTop: '0px', paddingBottom: '0px',
-   margin: '0px',
-   color: 'black', background: 'white',
-   fontFamily: 'Permanent Marker',
-   fontSize: '32px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat'
-};
-
-const whiteboardElementBodyStyle: CSS.Properties = {
-   margin: '0px', 
-   paddingLeft: '8px', paddingRight: '8px',
-   paddingTop: '0px', paddingBottom: '0px',
-   color: 'black', background: 'white',
-   fontFamily: 'Permanent Marker',
-   fontSize: '20px',
-   backgroundImage: 'url("board.png")',
-   backgroundRepeat: 'repeat',
-   minWidth: '240px', maxWidth: '*',
-   whiteSpace: 'pre-wrap'
-};
+import {
+   cmnNoMarginPad, cmnThinMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle, cmnOffsetDialogFieldStyle, cmnNoMarginCentreStyle,
+   whiteboardStyle, whiteboardHeaderStyle, whiteboardElementHeaderStyle, whiteboardElementBodyStyle} from './CommonStylesUI';
 
 interface IMasterWhiteboardProps {
    peerConnection: PeerConnection;
@@ -258,7 +210,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
    render() {
       return (
          <div>
-            <Row style={thinCentredStyle}>
+            <Row style={cmnNoMarginCentreStyle}>
                <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p>
                <Button style={cmnToolButtonStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
                   <i className="fa fa-caret-down" style={cmnToolButtonStyle}></i>
@@ -270,7 +222,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                   <Form>
                      <Form.Group controlId="elementFormId">
                         <Form.Control as="textarea" style={cmnOffsetDialogFieldStyle}
-                              placeholder={this.props.placeholder} cols={35} maxLength={1023} minLength={0}
+                              placeholder={this.props.placeholder} cols={35} maxLength={1023} minLength={0} rows={7}
                               value={this.latestValue()}
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
@@ -379,10 +331,10 @@ class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementPr
    render() {
       return (
          <div>
-            <Row style={thinCentredStyle}>
+            <Row style={cmnNoMarginCentreStyle}>
                <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p>
             </Row>
-            <Row style={cmnNoMarginPad}>
+            <Row style={cmnNoMarginCentreStyle}>
                <p style={whiteboardElementBodyStyle}>{this.props.value}</p>
             </Row>
          </div>
