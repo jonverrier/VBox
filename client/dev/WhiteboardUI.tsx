@@ -238,7 +238,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                </div>
                </Collapse>
             </Row>
-            <Row style={cmnNoMarginPad}>
+            <Row style={cmnNoMarginCentreStyle}>
                <p style={whiteboardElementBodyStyle}>{this.props.value}</p>
             </Row>
          </div>
