@@ -13,10 +13,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Button from 'react-bootstrap/Button';
 import Nav from 'react-bootstrap/Nav';
-import Dropdown from 'react-bootstrap/Dropdown';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Form from 'react-bootstrap/Form';
-import Carousel from 'react-bootstrap/Carousel';
 import { Easel, MicMute, FileMusic, Clock, Wallet2, Binoculars} from 'react-bootstrap-icons';
 
 // Additional packages
@@ -182,7 +179,7 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
                         <Col className="align-items-left">
                         <MicMute color="black" size={32} />
                         <br />
-                        <p style={pageParaStyle}>Coach controls the screen & audio tracks - so clients look at & listen to what is most important, be that the whiteboard, Coach's instructions, or to see each other & listen to the music while they are working out. Coach always sees all participants.</p>
+                        <p style={pageParaStyle}>Coach controls the screen & audio tracks - clients look at & listen to what is most important, be that the whiteboard, Coach's instructions, or to see each other & listen to the music while they are working out. Coach always sees all participants.</p>
                         <br />
                      </Col>
                         <Col className="align-items-left">
