@@ -16,7 +16,7 @@ import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
-import { cmnNoMarginPad } from './CommonStylesUI';
+import { cmnNoMarginPad, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle } from './CommonStylesUI';
 
 const thinishStyle: CSS.Properties = {
    margin: '2px', padding: '0px',
@@ -54,7 +54,9 @@ const whiteboardHeaderStyle: CSS.Properties = {
 };
 
 const whiteboardElementHeaderStyle: CSS.Properties = {
-   margin: '0px', padding: '0px',
+   paddingLeft: '8px', paddingRight: '8px',
+   paddingTop: '0px', paddingBottom: '0px',
+   margin: '0px',
    color: 'black', background: 'white',
    fontFamily: 'Permanent Marker',
    fontSize: '32px',
@@ -73,12 +75,6 @@ const whiteboardElementBodyStyle: CSS.Properties = {
    backgroundRepeat: 'repeat',
    minWidth: '240px', maxWidth: '*',
    whiteSpace: 'pre-wrap'
-};
-
-const blockCharStyle: CSS.Properties = {
-   margin: '0px',
-   paddingLeft: '8px', paddingRight: '8px',
-   paddingTop: '0px', paddingBottom: '0px',
 };
 
 const fieldXSepStyle: CSS.Properties = {
@@ -276,7 +272,7 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
       return (
          <div>
             <Row style={thinCentredStyle}>
-               <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p><p style={blockCharStyle}></p>
+               <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p>
                <Button style={clockBtnStyle} variant="secondary" size="sm" onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
                   <i className="fa fa-caret-down" style={clockBtnStyle}></i>
                </Button>
@@ -292,12 +288,12 @@ class MasterWhiteboardElement extends React.Component<IMasterWhiteboardElementPr
                            onChange={(ev) => { this.processChange(ev.target.value) }} />
                      </Form.Group>
                      <Form.Row style={{ textAlign: 'center' }}>
-                        <p style={blockCharStyle}></p>
                         <Button variant="secondary" disabled={!this.state.enableOk} className='mr'
-                           onClick={this.processSave.bind(this)}>Save</Button>
-                        <p style={blockCharStyle}></p>
+                           style={cmnOffsetDialogButtonStyle}
+                        onClick={this.processSave.bind(this)}>Save</Button>
                         <Button variant="secondary" disabled={!this.state.enableCancel}
-                           onClick={this.processCancel.bind(this)}>Cancel</Button>
+                           style={cmnDialogButtonStyle}
+                        onClick={this.processCancel.bind(this)}>Cancel</Button>
                      </Form.Row>
                   </Form>
                </div>
@@ -397,7 +393,7 @@ class RemoteWhiteboardElement extends React.Component<IRemoteWhiteboardElementPr
       return (
          <div>
             <Row style={thinCentredStyle}>
-               <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p><p style={blockCharStyle}></p>
+               <p style={whiteboardElementHeaderStyle}>{this.props.caption}</p>
             </Row>
             <Row style={cmnNoMarginPad}>
                <p style={whiteboardElementBodyStyle}>{this.props.value}</p>

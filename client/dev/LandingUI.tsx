@@ -27,17 +27,15 @@ import * as CSS from 'csstype';
 
 // This app, other library
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { DateHook } from '../../core/dev/DateHook';
-import { ArrayHook } from '../../core/dev/ArrayHook';
 
 // This app, this component
-import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
+import { ParticipantBanner } from './ParticipantUI';
 import { Media } from './Media';
 import {Footer,
    landingJumbotronStyle, navbarStyle, navbarBrandStyle,
    cmnExtraTopPad, cmnExtraBtmPad, cmnNoMarginPad,
-   landingFadeExtraBtmPad, landingMobileImageStyle, landingImageStyle, landingNavButtonStyle, landingNavGroupStyle,
-   pageStyle, pageTopDividerStyle, pageLeftDividerStyle, pageHeaderStyle, pageSubStyle, pageParaStyle} from './CommonStylesUI';
+   landingFadeExtraBtmPad, landingMobileImageStyle, landingImageStyle, cmnNavButtonStyle, landingNavGroupStyle,
+   pageStyle, pageHeaderStyle, pageSubStyle, pageParaStyle} from './CommonStylesUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -137,10 +135,10 @@ export class LandingPage extends React.Component<ILandingPageProps, ILandingPage
                   <Container style={cmnNoMarginPad}>
                      <Row style={landingNavGroupStyle} className="align-items-center">
                         {this.state.isMobileFormFactor ? <div></div> : <div className='align-middle'>Sign In: </div>}
-                        <Button variant="secondary" style={landingNavButtonStyle}
+                        <Button variant="secondary" style={cmnNavButtonStyle}
                            onClick={this.goCoach.bind(this)}>Coach
                         </Button>
-                        <Button variant="secondary" style={landingNavButtonStyle}
+                        <Button variant="secondary" style={cmnNavButtonStyle}
                               onClick={this.goMember.bind(this)}>Members
                         </Button>
                      </Row>
