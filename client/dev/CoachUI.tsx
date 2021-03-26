@@ -43,7 +43,7 @@ import { MasterWhiteboard } from './WhiteboardUI';
 import { MasterPeople } from './PeopleUI';
 import { MasterClock } from './ClockUI';
 import { MasterCall } from './CallControlUI';
-import { Footer, cmnNoMarginPad, navbarStyle, navbarBrandStyle, pageStyle, cmnExtraBtmPad, landingPanelStyle } from './CommonStylesUI';
+import { Footer, cmnNoMarginPad, navbarStyle, navbarBrandStyle, pageStyle, cmnExtraBtmPad, pageThinPanelStyle, pageIndentPanelStyle } from './CommonStylesUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -331,7 +331,7 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                            commandProcessor={this.state.masterDocument.commandProcessor}
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterWhiteboard>
                      </Col>
-                     <Col md='auto' style={landingPanelStyle}>
+                     <Col md='auto' style={pageThinPanelStyle}>
                         <MasterClock allowEdit={this.state.isLeader} 
                            commandProcessor={this.state.masterDocument.commandProcessor}
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterClock>

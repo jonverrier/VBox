@@ -41,7 +41,7 @@ import { RemoteWhiteboard } from './WhiteboardUI';
 import { RemotePeople } from './PeopleUI';
 import { RemoteClock } from './ClockUI';
 import { RemoteCall } from './CallControlUI';
-import { Footer, cmnNoMarginPad, navbarStyle, navbarBrandStyle, pageStyle, cmnExtraBtmPad, landingPanelStyle } from './CommonStylesUI';
+import { Footer, cmnNoMarginPad, navbarStyle, navbarBrandStyle, pageStyle, cmnExtraBtmPad, pageThinPanelStyle, pageIndentPanelStyle} from './CommonStylesUI';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
@@ -308,7 +308,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
 
                <Container fluid style={pageStyle}>
                   <Row style={cmnNoMarginPad}>
-                     <Col style={landingPanelStyle}>
+                     <Col style={pageThinPanelStyle}>
                         <RemoteCall 
                            commandProcessor={this.state.remoteDocument.commandProcessor}
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteCall>
@@ -316,7 +316,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                            commandProcessor={this.state.remoteDocument.commandProcessor }
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
                      </Col>
-                     <Col md='auto' style={landingPanelStyle}>
+                     <Col md='auto' style={pageThinPanelStyle}>
                         <RemoteClock 
                            commandProcessor={this.state.remoteDocument.commandProcessor}
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}/>
