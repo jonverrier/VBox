@@ -27,6 +27,43 @@ export const cmnExtraBtmPad: CSS.Properties = {
    marginBottom: '20px'
 };
 
+export const cmnToolButtonStyle: CSS.Properties = {
+   margin: '2px', padding: '2px',
+   fontSize: '14px'
+};
+
+export const cmnNavButtonStyle: CSS.Properties = {
+   marginLeft: '4px',
+   marginRight: '4px',
+   marginTop: '0px',
+   marginBottom: '0px',
+   borderWidth: "1px",
+   borderColor: "black",
+   borderStyle: 'solid'
+};
+
+export const cmnDialogButtonStyle: CSS.Properties = {
+   marginLeft: '0px',
+   marginRight: '8px',
+   marginTop: '0px',
+   marginBottom: '0px',
+   borderWidth: "1px",
+   borderColor: "black",
+   borderStyle: 'solid'
+};
+
+export const cmnOffsetDialogButtonStyle: CSS.Properties = {
+   marginLeft: '14px',
+   marginRight: '8px',
+   marginTop: '0px',
+   marginBottom: '0px',
+   borderWidth: "1px",
+   borderColor: "black",
+   borderStyle: 'solid'
+};
+
+
+
 //==========
 // Main page styles
 //==========
@@ -107,16 +144,6 @@ export const landingImageStyle: CSS.Properties = {
    opacity: '65%'
 };
 
-export const landingNavButtonStyle: CSS.Properties = {
-   marginLeft: '4px',
-   marginRight: '4px',
-   marginTop: '0px',
-   marginBottom: '0px',
-   borderWidth: "1px",
-   borderColor: "black",
-   borderStyle: 'solid'
-};
-
 export const landingNavGroupStyle: CSS.Properties = {
    margin: '0px', padding: '0px',
    textAlign: 'center',
@@ -124,19 +151,16 @@ export const landingNavGroupStyle: CSS.Properties = {
 };
 
 //==========
-// xxx
+// Clock
 //==========
 
-const lpanelStyle: CSS.Properties = {
-   margin: '0px', padding: '0px'
+export const clockStyle: CSS.Properties = {
+   color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
 };
 
-const rpanelStyle: CSS.Properties = {
-   marginTop: '0px', paddingTop: '0px',
-   marginBottom: '0px', paddingBottom: '0px',
-   marginLeft: '10px', paddingLeft: '0px',
-   marginRight: '2px', paddingRight: '0px'
-};
+//==========
+// Footer
+//==========
 
 const footerElementStyle: CSS.Properties = {
    padding: '10px',

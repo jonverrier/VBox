@@ -13,33 +13,12 @@ import * as CSS from 'csstype';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from '../../core/dev/GymClock';
 import { StreamableTypes } from '../../core/dev/StreamableTypes'
 import { IStreamable } from '../../core/dev/Streamable';
-import { Person } from '../../core/dev/Person'
-import { PeerConnection } from '../../core/dev/PeerConnection';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand} from '../../core/dev/LiveWorkout';
 
 import { RunnableClock } from './RunnableClock';
-import { cmnNoMarginPad } from './CommonStylesUI';
-
-const thinAutoStyle: CSS.Properties = {
-   margin: 'auto', padding: '0px', alignItems:'top'
-};
-
-const clockStyle: CSS.Properties = {
-   color: 'red', fontFamily: 'digital-clock', fontSize: '64px', margin: '0px', paddingLeft: '4px', paddingRight: '4px', paddingTop: '4px', paddingBottom: '4px'
-};
-
-const clockBtnStyle: CSS.Properties = {
-   margin: '2px', padding: '2px',
-   fontSize: '14px'
-};
-
-const blockCharStyle: CSS.Properties = {
-   margin: '0px',
-   paddingLeft: '8px', paddingRight: '8px',
-   paddingTop: '0px', paddingBottom: '0px',
-};
+import { cmnNoMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, clockStyle } from './CommonStylesUI';
 
 export interface IRemoteClockProps {
    commandProcessor: ICommandProcessor;
@@ -139,13 +118,15 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
       this.setState({ isMounted: false });
    }
 
+   canChangeMute(): boolean {
+      return this.state.clock !== null;
+   }
+
    mute(): void {
-      this.state.clock.mute();
       this.setState({ userAllowsMusic: false });
    }
 
    unMute(): void {
-      this.state.clock.unMute();
       this.setState({ userAllowsMusic: true });
    }
 
@@ -159,15 +140,17 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
       return (
          <Container style={cmnNoMarginPad}>
             <Row style={cmnNoMarginPad}>
-               <Button variant="secondary" size="sm" style={clockBtnStyle}
-                  disabled={!this.state.userAllowsMusic}
+               <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                  title="Don't play music."
+                  disabled={!this.canChangeMute() || !this.state.userAllowsMusic}
                   onClick={this.mute.bind(this)}>
-                  <i className="fa fa-volume-off" style={clockBtnStyle}></i>
+                  <i className="fa fa-volume-off" style={cmnToolButtonStyle}></i>
                </Button>
-               <Button variant="secondary" size="sm" style={clockBtnStyle}
-                  disabled={this.state.userAllowsMusic}
+               <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                  title="Allow music when Coach plays it."
+                  disabled={!this.canChangeMute() || this.state.userAllowsMusic}
                   onClick={this.unMute.bind(this)}>
-                  <i className="fa fa-volume-up" style={clockBtnStyle}></i>
+                  <i className="fa fa-volume-up" style={cmnToolButtonStyle}></i>
                </Button>           
             </Row>
             <Row style={cmnNoMarginPad}>
@@ -353,34 +336,40 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
          <div>
             <Container style={cmnNoMarginPad}>
                <Row style={cmnNoMarginPad}>
-                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Don't play music from my speakers."
                      disabled={!this.state.userAllowsMusic}
                      onClick={this.mute.bind(this)}>
-                     <i className="fa fa-volume-off" style={clockBtnStyle}></i>
+                     <i className="fa fa-volume-off" style={cmnToolButtonStyle}></i>
                   </Button>
-                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Play music from my speakers when the clock starts."
                      disabled={this.state.userAllowsMusic}
                      onClick={this.unMute.bind(this)}>
-                     <i className="fa fa-volume-up" style={clockBtnStyle}></i>
+                     <i className="fa fa-volume-up" style={cmnToolButtonStyle}></i>
                   </Button>
-                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Start the clock."
                      disabled={!this.canPlay()}
                      onClick={this.processPlay.bind(this) }>
-                     <i className="fa fa-play" style={clockBtnStyle}></i>
+                     <i className="fa fa-play" style={cmnToolButtonStyle}></i>
                   </Button>
-                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Pause the clock."
                      disabled={!this.canPause()}
                      onClick={this.processPause.bind(this)}> 
-                     <i className="fa fa-pause" style={clockBtnStyle}></i>
+                     <i className="fa fa-pause" style={cmnToolButtonStyle}></i>
                   </Button>
-                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Stop the clock."
                      disabled={!this.canStop()}
                      onClick={this.processStop.bind(this)}>
-                     <i className="fa fa-stop" style={clockBtnStyle}></i>
+                     <i className="fa fa-stop" style={cmnToolButtonStyle}></i>
                   </Button>
-                  <Button variant="secondary" size="sm" style={clockBtnStyle}
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Edit clock duration, count down/up, and type of music to play."
                      onClick={() => this.setState({ inEditMode: !this.state.inEditMode })}>
-                     <i className="fa fa-caret-down" style={clockBtnStyle}></i>
+                     <i className="fa fa-caret-down" style={cmnToolButtonStyle}></i>
                   </Button>
                </Row>
                <Row style={cmnNoMarginPad}>
@@ -473,11 +462,11 @@ export class MasterClock extends React.Component<IMasterClockProps, IMasterClock
                         </Form.Group>
                      </Form.Row>
                      <Form.Row style={{textAlign: 'center'}}>
-                        <p style={blockCharStyle}></p>
-                        <Button variant="secondary" disabled={!this.state.enableOk} className='mr' 
+                        <Button variant="secondary" disabled={!this.state.enableOk} className='mr'
+                           style={cmnDialogButtonStyle}
                            onClick={this.processSave.bind(this)}>Save</Button>
-                        <p style={blockCharStyle}></p>
                         <Button variant="secondary" disabled={!this.state.enableCancel}
+                           style={cmnDialogButtonStyle}
                            onClick={this.processCancel.bind(this)}>Cancel</Button>
                      </Form.Row>
                   </Form>

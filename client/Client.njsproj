@@ -47,8 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="dev\AppUI.tsx" />
+    <TypeScriptCompile Include="dev\CallControlUI.tsx" />
     <TypeScriptCompile Include="dev\CallPanelUI.tsx" />
     <TypeScriptCompile Include="dev\ClockUI.tsx" />
+    <TypeScriptCompile Include="dev\CoachUI.tsx" />
     <TypeScriptCompile Include="dev\CommonStylesUI.tsx" />
     <TypeScriptCompile Include="dev\EntryPoints.tsx" />
     <TypeScriptCompile Include="dev\LandingUI.tsx" />
@@ -58,6 +60,7 @@
     <TypeScriptCompile Include="dev\LoginMember.tsx" />
     <TypeScriptCompile Include="dev\LoginOauth.tsx" />
     <TypeScriptCompile Include="dev\Media.tsx" />
+    <TypeScriptCompile Include="dev\MemberUI.tsx" />
     <TypeScriptCompile Include="dev\ParticipantUI.tsx" />
     <TypeScriptCompile Include="dev\PeopleUI.tsx" />
     <TypeScriptCompile Include="dev\RunnableClock.tsx" />
