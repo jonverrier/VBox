@@ -19,6 +19,10 @@ export const cmnNoMarginPad: CSS.Properties = {
    margin: '0px', padding: '0px'
 };
 
+export const cmnThinMarginPad: CSS.Properties = {
+   margin: '2px', padding: '0px',
+};
+
 export const cmnExtraTopPad: CSS.Properties = {
    marginTop: '20px'
 };
@@ -62,7 +66,10 @@ export const cmnOffsetDialogButtonStyle: CSS.Properties = {
    borderStyle: 'solid'
 };
 
-
+export const cmnOffsetDialogFieldStyle: CSS.Properties = {
+   marginLeft: '8px',
+   marginRight: '40px'
+};
 
 //==========
 // Main page styles
