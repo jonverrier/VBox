@@ -28,6 +28,8 @@ VBox is composed of several different components:
 
 ## Installation
 * Download / Fork the repo. 
+* Development build: npm run build. 
+* Production build: npm run build-master. Only difference is minimisation of bundle files.
 * Node server/dev/server.js
 * Navigate to the root page (localhost:://)
 
