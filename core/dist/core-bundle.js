@@ -8171,6 +8171,231 @@ exports.QueueAny = QueueAny;
 
 /***/ }),
 
+/***/ "./dev/RunnableClock.tsx":
+/*!*******************************!*\
+  !*** ./dev/RunnableClock.tsx ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+// GymClock spec is a 'templae' for a clock - how log, wether to play music, and which music.
+// GymClockAction is a way to send the start, pause, stop list via Rpc
+// GymClockState is a class to represent the state of a running clock - is is started, stopped, paused etc, and if running, for how long. 
+// RunnableClock is a running clock - created from a spec, then can start, stop, pause etc.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RunnableClock = void 0;
+const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
+const countDownSeconds = 15;
+// Keep this function need declation in case an extra Enum is added above & this needs to change
+function calculateCountToSeconds(durationEnum) {
+    switch (durationEnum) {
+        case GymClock_1.EGymClockDuration.Five:
+            return (countDownSeconds + 5 * 60);
+        default:
+        case GymClock_1.EGymClockDuration.Ten:
+            return (countDownSeconds + 10 * 60);
+        case GymClock_1.EGymClockDuration.Fifteen:
+            return (countDownSeconds + 15 * 60);
+        case GymClock_1.EGymClockDuration.Twenty:
+            return (countDownSeconds + 20 * 60);
+    }
+}
+;
+//==============================//
+// RunnableClock class
+//==============================//
+class RunnableClock {
+    /**
+     * Create a RunnableClock object
+     */
+    constructor(clockSpec) {
+        this._clockSpec = clockSpec;
+        this._clockStateEnum = GymClock_1.EGymClockState.Stopped;
+        this._secondsCounted = 0;
+        this._startTime = new Date();
+        this._targetRunInSeconds = 0;
+        this._intervalId = null;
+        this._callbackFn = null;
+        this._userAllowsAudio = false;
+        if (this._clockSpec.musicUrl) {
+            this._audio = new Audio();
+            this._audio.src = this._clockSpec.musicUrl;
+            this._audio.loop = true;
+        }
+        else
+            this._audio = null;
+    }
+    /**
+    * set of 'getters' for private variables
+    */
+    get clockSpec() {
+        return this._clockSpec;
+    }
+    get stateEnum() {
+        return this._clockStateEnum;
+    }
+    get secondsCounted() {
+        return this._secondsCounted;
+    }
+    /**
+     * test for equality - checks all fields are the same.
+     * Uses field values, not identity bcs if objects are streamed to/from JSON, field identities will be different.
+     * @param rhs - the object to compare this one to.
+     */
+    equals(rhs) {
+        return (this._clockSpec.equals(rhs._clockSpec)
+            && this._clockStateEnum == rhs._clockStateEnum
+            && this._secondsCounted === rhs._secondsCounted
+            && this._startTime.getTime() === rhs._startTime.getTime()
+            && this._targetRunInSeconds === rhs._targetRunInSeconds
+            && this._userAllowsAudio === rhs._userAllowsAudio);
+    }
+    ;
+    start(callbackFn, userAllowsAudio, secondsPlayed) {
+        this._userAllowsAudio = userAllowsAudio;
+        if (secondsPlayed)
+            this._secondsCounted = secondsPlayed;
+        if (this._secondsCounted >= countDownSeconds)
+            this._clockStateEnum = GymClock_1.EGymClockState.Running;
+        else
+            this._clockStateEnum = GymClock_1.EGymClockState.CountingDown;
+        this._targetRunInSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
+        if (this._intervalId) {
+            clearInterval(this._intervalId);
+            this._intervalId = null;
+        }
+        this._intervalId = setInterval(this.onClockInterval.bind(this), 200);
+        // Set effective start time by working out the duration of any ticks already counted
+        this._startTime.setTime(new Date().getTime() - this._secondsCounted * 1000);
+        this._callbackFn = callbackFn;
+        if (this._audio && this._userAllowsAudio) {
+            this._audio.currentTime = this._secondsCounted;
+            this._audio.play();
+        }
+        // call first tick to start the visible clock
+        this.onClockInterval();
+    }
+    ;
+    stop() {
+        if (this._intervalId) {
+            clearInterval(this._intervalId);
+            this._intervalId = null;
+        }
+        this._clockStateEnum = GymClock_1.EGymClockState.Stopped;
+        this._secondsCounted = 0;
+        this._targetRunInSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
+        if (this._audio && this._userAllowsAudio)
+            this._audio.pause();
+        if (this._callbackFn)
+            this._callbackFn(0, 0);
+    }
+    ;
+    pause() {
+        if (this._intervalId) {
+            clearInterval(this._intervalId);
+            this._intervalId = null;
+        }
+        if (this._audio && this._userAllowsAudio)
+            this._audio.pause();
+        this._clockStateEnum = GymClock_1.EGymClockState.Paused;
+    }
+    ;
+    mute() {
+        // Return if there is no state change
+        if (!this._userAllowsAudio)
+            return;
+        if (this._audio && this.isRunning())
+            this._audio.muted = true;
+        this._userAllowsAudio = false;
+    }
+    unMute() {
+        // Return if there is no state change
+        if (this._userAllowsAudio)
+            return;
+        if (this._audio && this.isRunning()) {
+            this._audio.muted = false;
+            this._audio.currentTime = this._secondsCounted;
+            this._audio.play();
+        }
+        this._userAllowsAudio = true;
+    }
+    onClockInterval() {
+        var now, mm, ss, seconds;
+        now = new Date();
+        seconds = (now.getTime() - this._startTime.getTime()) / 1000;
+        this._secondsCounted = seconds;
+        if (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown
+            && seconds < countDownSeconds) {
+            mm = Math.floor((countDownSeconds - seconds) / 60);
+            ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
+        }
+        else {
+            if (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown) {
+                this._clockStateEnum = GymClock_1.EGymClockState.Running;
+            }
+            // Switch from floor to Ceil to compensate for passing zero in common across count down then count up
+            mm = Math.floor((seconds - countDownSeconds) / 60);
+            ss = Math.ceil(seconds - countDownSeconds - Math.floor(mm * 60));
+            if (seconds >= this._targetRunInSeconds) {
+                mm = (this._targetRunInSeconds - countDownSeconds) / 60;
+                ss = 0;
+                this.stop();
+            }
+        }
+        if (this._callbackFn)
+            this._callbackFn(mm, ss);
+    }
+    ;
+    isRunning() {
+        return (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
+    }
+    ;
+    canPause() {
+        return (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
+    }
+    ;
+    canStop() {
+        return (this._clockStateEnum === GymClock_1.EGymClockState.Paused)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
+    }
+    ;
+    canStart() {
+        return (this._clockStateEnum === GymClock_1.EGymClockState.Paused)
+            || (this._clockStateEnum === GymClock_1.EGymClockState.Stopped);
+    }
+    ;
+    saveToState() {
+        return new GymClock_1.GymClockState(this._clockStateEnum, this._secondsCounted);
+    }
+    ;
+    loadFromState(state, callbackFn) {
+        switch (state.stateEnum) {
+            case GymClock_1.EGymClockState.Stopped:
+                if (this.canStop())
+                    this.stop();
+                break;
+            case GymClock_1.EGymClockState.CountingDown:
+            case GymClock_1.EGymClockState.Running:
+                if (this.canStart())
+                    this.start(callbackFn, this._userAllowsAudio, state.secondsCounted);
+                break;
+            case GymClock_1.EGymClockState.Paused:
+                if (this.canPause())
+                    this.pause();
+                break;
+        }
+    }
+    ;
+}
+exports.RunnableClock = RunnableClock;
+
+
+/***/ }),
+
 /***/ "./dev/Signal.tsx":
 /*!************************!*\
   !*** ./dev/Signal.tsx ***!
@@ -8650,6 +8875,7 @@ const Signal_1 = __webpack_require__(/*! ./Signal */ "./dev/Signal.tsx");
 const UserFacilities_1 = __webpack_require__(/*! ./UserFacilities */ "./dev/UserFacilities.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 const Enum_1 = __webpack_require__(/*! ./Enum */ "./dev/Enum.tsx");
+const RunnableClock_1 = __webpack_require__(/*! ./RunnableClock */ "./dev/RunnableClock.tsx");
 // Peer-peer architecture
 const PeerLink_1 = __webpack_require__(/*! ./PeerLink */ "./dev/PeerLink.tsx");
 const PeerInterfaces_1 = __webpack_require__(/*! ./PeerInterfaces */ "./dev/PeerInterfaces.tsx");
@@ -8691,6 +8917,7 @@ var EntryPoints = {
     EThreeStateSwitchEnum: Enum_1.EThreeStateSwitchEnum,
     EThreeStateRagEnum: Enum_1.EThreeStateRagEnum,
     EFourStateRagEnum: Enum_1.EFourStateRagEnum,
+    RunnableClock: RunnableClock_1.RunnableClock,
     // Peer Architecture
     PeerLink: PeerLink_1.PeerLink,
     EPeerConnectionType: PeerInterfaces_1.EPeerConnectionType,

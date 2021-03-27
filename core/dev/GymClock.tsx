@@ -249,4 +249,3 @@ export class GymClockState implements IStreamableFor<GymClockState >  {
       return new GymClockState(data._stateEnum, data._secondsCounted);
    };
 }
-

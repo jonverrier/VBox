@@ -83,6 +83,7 @@
     <TypeScriptCompile Include="dev\PeerWeb.tsx" />
     <TypeScriptCompile Include="dev\Person.tsx" />
     <TypeScriptCompile Include="dev\Queue.tsx" />
+    <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\Signal.tsx" />
     <TypeScriptCompile Include="dev\Streamable.tsx" />
     <TypeScriptCompile Include="dev\StreamableTypes.tsx" />

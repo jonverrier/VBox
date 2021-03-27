@@ -62,7 +62,6 @@
     <TypeScriptCompile Include="dev\Media.tsx" />
     <TypeScriptCompile Include="dev\MemberUI.tsx" />
     <TypeScriptCompile Include="dev\ParticipantUI.tsx" />
-    <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\ClientUrl.tsx" />
     <TypeScriptCompile Include="dev\WhiteboardUI.tsx" />
   </ItemGroup>
