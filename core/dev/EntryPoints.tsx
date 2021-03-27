@@ -12,6 +12,7 @@ import { SignalMessage } from './Signal';
 import { UserFacilities } from './UserFacilities';
 import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from './GymClock'
 import { EThreeStateSwitchEnum, EThreeStateRagEnum, EFourStateRagEnum } from './Enum';
+import { RunnableClock } from './RunnableClock';
 
 // Peer-peer architecture
 import { PeerLink } from './PeerLink';
@@ -60,6 +61,7 @@ var EntryPoints = {
    EThreeStateSwitchEnum: EThreeStateSwitchEnum,
    EThreeStateRagEnum: EThreeStateRagEnum,
    EFourStateRagEnum: EFourStateRagEnum,
+   RunnableClock: RunnableClock,
 
    // Peer Architecture
    PeerLink : PeerLink,

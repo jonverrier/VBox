@@ -1,6 +1,5 @@
 /*! Copyright TXPCo, 2020, 2021 */
 
-import { RunnableClock } from './RunnableClock';
 
 /* 
 var EntryPoints = (function invocation () {
@@ -18,9 +17,6 @@ var EntryPoints = (function invocation () {
 */
 
 var EntryPoints = {
-   RunnableClock: RunnableClock,
-
-   pointless: 0
 };
 
 export default EntryPoints;

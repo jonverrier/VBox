@@ -15,8 +15,6 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand} from '../../core/dev/LiveWorkout';
-
-import { RunnableClock } from './RunnableClock';
 import { cmnNoMarginPad, cmnToolButtonStyle } from './CommonStylesUI';
 
 export interface IRemoteCallProps {
@@ -106,8 +104,6 @@ export class MasterCall extends React.Component<IMasterCallProps, IMasterCallSta
 
    constructor(props: IMasterCallProps) {
       super(props);
-
-      let clock = new RunnableClock(props.liveWorkout.clockSpec); 
 
       this.state = {
          userAllowsMicCamera: false

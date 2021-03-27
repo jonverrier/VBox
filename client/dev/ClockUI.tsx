@@ -16,8 +16,8 @@ import { IStreamable } from '../../core/dev/Streamable';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand} from '../../core/dev/LiveWorkout';
+import { RunnableClock } from '../../core/dev/RunnableClock';
 
-import { RunnableClock } from './RunnableClock';
 import { cmnNoMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, clockStyle } from './CommonStylesUI';
 
 export interface IRemoteClockProps {

@@ -39,6 +39,7 @@ import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { LandingPage } from './LandingUI';
 import { MemberPage } from './MemberUI';
 import { CoachPage } from './CoachUI';
+import EntryPoints from './EntryPoints';
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 

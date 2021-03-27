@@ -36,7 +36,6 @@
     <Content Include="dist\client-bundle.js.map" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="test\test-clock.js" />
     <Content Include="tsconfig.json" />
     <Content Include="webpack-config.js" />
   </ItemGroup>
@@ -62,8 +61,6 @@
     <TypeScriptCompile Include="dev\Media.tsx" />
     <TypeScriptCompile Include="dev\MemberUI.tsx" />
     <TypeScriptCompile Include="dev\ParticipantUI.tsx" />
-    <TypeScriptCompile Include="dev\PeopleUI.tsx" />
-    <TypeScriptCompile Include="dev\RunnableClock.tsx" />
     <TypeScriptCompile Include="dev\ClientUrl.tsx" />
     <TypeScriptCompile Include="dev\WhiteboardUI.tsx" />
   </ItemGroup>
