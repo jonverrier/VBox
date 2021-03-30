@@ -883,6 +883,9 @@ class LiveWorkoutChannelPeer implements ILiveDocumentChannel {
          if (ev.type === LiveAttendanceCommand.__type) {
             this.onCommandApply(ev as LiveAttendanceCommand);
          }
+         if (ev.type === LiveViewStateCommand.__type) {
+            this.onCommandApply(ev as LiveAttendanceCommand);
+         }
          if (ev.type === LiveUndoCommand.__type) {
             this.onCommandReverse();
          }

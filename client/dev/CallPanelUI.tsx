@@ -14,7 +14,6 @@ import Row from 'react-bootstrap/Row';
 import * as CSS from 'csstype';
 
 // This app, other library
-import { Person } from '../../core/dev/Person';
 import { EThreeStateSwitchEnum } from '../../core/dev/Enum';
 import { ParticipantSmall, ParticipantCaption } from './ParticipantUI';
 import { PeerConnection } from '../../core/dev/PeerConnection';

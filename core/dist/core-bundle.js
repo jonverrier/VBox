@@ -6509,6 +6509,9 @@ class LiveWorkoutChannelPeer {
             if (ev.type === LiveAttendanceCommand.__type) {
                 this.onCommandApply(ev);
             }
+            if (ev.type === LiveViewStateCommand.__type) {
+                this.onCommandApply(ev);
+            }
             if (ev.type === LiveCommand_1.LiveUndoCommand.__type) {
                 this.onCommandReverse();
             }
