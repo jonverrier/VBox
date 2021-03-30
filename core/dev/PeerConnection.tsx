@@ -71,6 +71,10 @@ export class PeerConnection {
       return this._localCallParticipation;
    }
 
+   get person(): Person {
+      return this._person;
+   }
+
    connect(meetingId: string,
       person: Person): void {
 

@@ -37,7 +37,6 @@ import { MemberLoginData, MemberLoginProvider } from './LoginMember';
 import { Media } from './Media';
 import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { RemoteConnectionStatus } from './CallPanelUI';
-import { RemoteWhiteboard } from './WhiteboardUI';
 import { RemotePeople } from './PeopleUI';
 import { RemoteClock } from './ClockUI';
 import { RemoteCall } from './CallControlUI';
@@ -291,7 +290,7 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                      </Nav>
                      <Navbar.Brand href="">{this.state.userFacilities.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <RemoteConnectionStatus peers={this.state.peerConnection}> </RemoteConnectionStatus>
+                        <RemoteConnectionStatus peerConnection={this.state.peerConnection}> </RemoteConnectionStatus>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={cmnNoMarginPad}>
                               <ParticipantSmall name={this.state.userFacilities.person.name} thumbnailUrl={this.state.userFacilities.person.thumbnailUrl} />
@@ -312,9 +311,6 @@ export class MemberPage extends React.Component<IMemberPageProps, IMemberPageSta
                         <RemoteCall 
                            commandProcessor={this.state.remoteDocument.commandProcessor}
                            liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteCall>
-                        <RemoteWhiteboard
-                           commandProcessor={this.state.remoteDocument.commandProcessor }
-                           liveWorkout={(this.state.remoteDocument.document as LiveWorkout)}> </RemoteWhiteboard>
                      </Col>
                      <Col md='auto' style={pageThinPanelStyle}>
                         <RemoteClock 

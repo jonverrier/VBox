@@ -39,7 +39,6 @@ import { Media } from './Media';
 import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { MasterConnectionStatus } from './CallPanelUI';
 import { LeaderResolve } from './LeaderResolveUI';
-import { MasterWhiteboard } from './WhiteboardUI';
 import { MasterPeople } from './PeopleUI';
 import { MasterClock } from './ClockUI';
 import { MasterCall } from './CallControlUI';
@@ -299,7 +298,8 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                      </Nav>
                      <Navbar.Brand href="">{this.state.userFacilities.currentFacility.name}</Navbar.Brand>
                      <Nav className="ml-auto">
-                        <MasterConnectionStatus peers={this.state.peerConnection} />
+                        <MasterConnectionStatus peerConnection={this.state.peerConnection}
+                           liveWorkout={(this.state.masterDocument.document as LiveWorkout)}/>
                         <Dropdown as={ButtonGroup} id="collasible-nav-person">
                            <Button variant="secondary" style={cmnNoMarginPad}
                               title="See individual connection details."
@@ -324,12 +324,10 @@ export class CoachPage extends React.Component<ICoachPageProps, ICoachPageState>
                   </Row>
                   <Row style={cmnNoMarginPad}>
                      <Col style={cmnNoMarginPad}>
-                        <MasterCall allowEdit={this.state.isLeader} 
+                        <MasterCall allowEdit={this.state.isLeader}
+                           peerConnection={this.state.peerConnection}
                            commandProcessor={this.state.masterDocument.commandProcessor}
                            liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterCall>
-                        <MasterWhiteboard allowEdit={this.state.isLeader} peerConnection={this.state.peerConnection}
-                           commandProcessor={this.state.masterDocument.commandProcessor}
-                           liveWorkout={(this.state.masterDocument.document as LiveWorkout)}> </MasterWhiteboard>
                      </Col>
                      <Col md='auto' style={pageThinPanelStyle}>
                         <MasterClock allowEdit={this.state.isLeader} 

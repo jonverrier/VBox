@@ -27,6 +27,8 @@ import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClo
 
 var logger = new LoggerFactory().createLogger(ELoggerType.Client, true);
 
+export enum EViewState { 'Whiteboard', 'CoachVideo', 'ParticipaintVideo' };
+
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
 // Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
@@ -40,6 +42,7 @@ export class LiveWorkout implements ILiveDocument {
    private _clockSpec: GymClockSpec;
    private _clockState: GymClockState;
    private _attendances: Array<PersonAttendance>;
+   private _viewState: EViewState;
    private _channel: ILiveDocumentChannel | undefined;
    private _outbound: boolean | undefined;
 
@@ -48,6 +51,7 @@ export class LiveWorkout implements ILiveDocument {
       clockSpec: GymClockSpec,
       clockState: GymClockState,
       attendances: Array<PersonAttendance>,
+      viewState: EViewState,
       outbound?: boolean, channel?: ILiveDocumentChannel) {
       this._outbound = outbound;
       if (channel)
@@ -55,8 +59,9 @@ export class LiveWorkout implements ILiveDocument {
       this._whiteboardText = whiteboardText;
       this._resultsText = resultsText;
       this._clockSpec = clockSpec;
-      this._clockState = clockState;
+      this._clockState = clockState;      
       this._attendances = attendances.splice(0);
+      this._viewState = viewState;
    }
 
    createCommandProcessor(): ICommandProcessor {
@@ -106,6 +111,13 @@ export class LiveWorkout implements ILiveDocument {
          }
       }
    }
+   // Getter and setter for view state
+   get viewState(): EViewState {
+      return this._viewState;
+   }
+   set viewState(viewState: EViewState) {
+      this._viewState = viewState;
+   }
 
    // type is read only
    get type(): string {
@@ -122,7 +134,8 @@ export class LiveWorkout implements ILiveDocument {
             this._resultsText === workout._resultsText &&
             this._clockSpec.equals(workout._clockSpec) &&
             this._clockState.equals(workout._clockState) &&
-            (this._attendances as any).equals(workout._attendances));
+            (this._attendances as any).equals(workout._attendances) &&
+            this._viewState === workout._viewState);
       }
       else
          return false;
@@ -139,6 +152,7 @@ export class LiveWorkout implements ILiveDocument {
          this._clockSpec = workout._clockSpec;
          this._clockState = workout._clockState;
          this._attendances = workout._attendances.splice(0);
+         this._viewState = workout._viewState;
       }
    }
 
@@ -155,7 +169,8 @@ export class LiveWorkout implements ILiveDocument {
             _resultsText: this._resultsText,
             _clockSpec: this._clockSpec,
             _clockState: this._clockState,
-            _attendances: this._attendances
+            _attendances: this._attendances,
+            _viewState: this._viewState
          }
       };
    };
@@ -190,7 +205,8 @@ export class LiveWorkout implements ILiveDocument {
          data._resultsText,
          GymClockSpec.revive(data._clockSpec),
          GymClockState.revive(data._clockState),
-         attendances);
+         attendances,
+         data._viewState);
    };
 }
 
@@ -655,6 +671,100 @@ export class LiveAttendanceCommand implements ICommand {
 }
 
 ////////////////////////////////////////
+// LiveViewStateCommand - class to represents command on the view state within a workout.
+////////////////////////////////////////
+export class LiveViewStateCommand implements ICommand {
+
+   private _selection: ISelection;
+   private _next: EViewState;
+   private _prior: EViewState;
+
+   static readonly __type: string = "LiveViewStateCommand";
+
+   constructor(next: EViewState, prior: EViewState) {
+      this._selection = new LiveViewStateSelection(); // This command always has the same selection - the entire whiteboard.
+      this._next = next;
+      this._prior = prior;                 // Caller has to make sure this === current state at time of calling.
+      // Otherwise can lead to problems when commands are copied around between sessions
+   }
+
+   // type is read only
+   get type(): string {
+      return LiveViewStateCommand.__type;
+   }
+
+   selection(): ISelection {
+      return this._selection;
+   }
+
+   applyTo(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type === LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+
+         // Verify that the document has not changed since the command was created
+         // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+         // Note we only compare state, since the tick count can drift between participants
+         if (this._prior !== wo.viewState) {
+            logger.logError(LiveViewStateCommand.__type, 'applyTo',
+               'Error, current document state != prior from command:' + this._prior, wo.viewState);
+         }
+         wo.viewState = this._next;
+      }
+   }
+
+   reverseFrom(document: ILiveDocument): void {
+      // Since we downcast, need to check type
+      if (document.type == LiveWorkout.__type) {
+         var wo: LiveWorkout = (document as LiveWorkout);
+         wo.viewState = this._prior;
+      }
+   }
+
+   canReverse(): boolean {
+      return true;
+   }
+
+   /**
+       * Method that serializes to JSON 
+       */
+   toJSON(): Object {
+
+      return {
+         __type: LiveViewStateCommand.__type,
+         // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+         attributes: {
+            _next: this._next,
+            _prior: this._prior
+         }
+      };
+   };
+
+   /**
+    * Method that can deserialize JSON into an instance 
+    * @param data - the JSON data to revove from 
+    */
+   static revive(data: any): LiveViewStateCommand {
+
+      // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+      if (data.attributes)
+         return LiveViewStateCommand.reviveDb(data.attributes);
+      else
+         return LiveViewStateCommand.reviveDb(data);
+   };
+
+   /**
+   * Method that can deserialize JSON into an instance 
+   * @param data - the JSON data to revove from 
+   */
+   static reviveDb(data: any): LiveViewStateCommand {
+
+      return new LiveViewStateCommand (data._next,
+                                       data._prior);
+   };
+}
+
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 export class LiveWhiteboardSelection implements ISelection {
@@ -703,6 +813,19 @@ export class LiveClockStateSelection implements ISelection {
 
    type(): string {
       return "LiveClockStateSelection";
+   }
+}
+
+////////////////////////////////////////
+// LiveViewStateSelection - Class to represent the 'selection' of the view within a Workout document.
+////////////////////////////////////////
+export class LiveViewStateSelection implements ISelection {
+
+   constructor() {
+   }
+
+   type(): string {
+      return "LiveViewStateSelection";
    }
 }
 
@@ -863,7 +986,8 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
          resultsText,
          clockSpec,
          clockState,
-         new Array <PersonAttendance>(),
+         new Array<PersonAttendance>(),
+         EViewState.Whiteboard,
          outbound, channel);
    }
 }
