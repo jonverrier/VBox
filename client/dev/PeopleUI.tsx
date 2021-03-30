@@ -103,6 +103,11 @@ export class MasterPeople extends React.Component<IMasterPeopleProps, IMasterPeo
 
       var people = new Array<Person>();
       this.state = { people: people }
+
+      // add ourselves to the attendee list in the document
+      var attendance = new PersonAttendance(null, props.peerConnection.person, new Date());
+      let command = new LiveAttendanceCommand(attendance, attendance);
+      this.props.commandProcessor.adoptAndApply(command);
    }
 
    onRemoteData(ev: IStreamable) {

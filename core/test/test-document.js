@@ -14,10 +14,12 @@ var LiveWhiteboardCommand = EntryPoints.LiveWhiteboardCommand;
 var LiveClockSpecCommand = EntryPoints.LiveClockSpecCommand;
 var LiveClockStateCommand = EntryPoints.LiveClockStateCommand;
 var LiveAttendanceCommand = EntryPoints.LiveAttendanceCommand;
+var LiveViewStateCommand = EntryPoints.LiveViewStateCommand;
 var LiveDocumentChannelFactoryStub = EntryPoints.LiveDocumentChannelFactoryStub;
 var LiveDocumentMaster = EntryPoints.LiveDocumentMaster;
 var LiveDocumentRemote = EntryPoints.LiveDocumentRemote;
 var LiveWorkoutFactory = EntryPoints.LiveWorkoutFactory;
+var EViewState = EntryPoints.EViewState;
 
 var EGymClockDuration = EntryPoints.EGymClockDuration;
 var EGymClockMusic = EntryPoints.EGymClockMusic;
@@ -43,8 +45,8 @@ describe("LiveWorkout", function () {
    beforeEach(function () {
       channelOut = channelFactory.createConnectionOut();
       channelIn = channelFactory.createConnectionIn();
-      workoutOut = new LiveWorkout(text1, '', clockSpec, clockState, new Array(), true, channelOut);
-      workoutIn = new LiveWorkout(textIn, '', clockSpec, clockState, new Array(), false, channelIn);
+      workoutOut = new LiveWorkout(text1, '', clockSpec, clockState, new Array(), EViewState.Whiteboard, true, channelOut);
+      workoutIn  = new LiveWorkout(textIn, '', clockSpec, clockState, new Array(), EViewState.Whiteboard, false, channelIn);
       commandProcessorOut = workoutOut.createCommandProcessor();
       commandProcessorIn = workoutIn.createCommandProcessor();
       callParticipation = new CallParticipation("1234567890", "sess1", true);
@@ -63,8 +65,8 @@ describe("LiveWorkout", function () {
    it("Needs to save and restore to/from JSON.", function () {
       var types = new StreamableTypes();
       var output = JSON.stringify(workoutOut);
-
       var obj = types.reviveFromJSON(output);
+
       expect(workoutOut.equals(obj)).to.equal(true);
    });
 
@@ -292,6 +294,28 @@ describe("LiveWorkout", function () {
       // Undo it, check the result, check it can be re-done and not undone
       commandProcessorOut.undo();
       expect(workoutOut.attendances.indexOf(attendance) === -1).to.equal(true);
+      expect(commandProcessorOut.canRedo()).to.equal(true);
+      expect(commandProcessorOut.canUndo()).to.equal(false);
+
+      // Clear commands for next test
+      commandProcessorOut.clearCommands();
+   });
+
+   it("Can apply and reverse view state changes.", function () {
+
+      let viewState = EViewState.CoachVideo;
+      let oldView = workoutOut.viewState;
+      command1 = new LiveViewStateCommand(viewState, oldView);
+
+      // Apply the command, then check it has worked, can be undone, cannot be undone
+      commandProcessorOut.adoptAndApply(command1);
+      expect(workoutOut.viewState === viewState).to.equal(true);
+      expect(commandProcessorOut.canUndo()).to.equal(true);
+      expect(commandProcessorOut.canRedo()).to.equal(false);
+
+      // Undo it, check the result, check it can be re-done and not undone
+      commandProcessorOut.undo();
+      expect(workoutOut.viewState === oldView).to.equal(true);
       expect(commandProcessorOut.canRedo()).to.equal(true);
       expect(commandProcessorOut.canUndo()).to.equal(false);
 

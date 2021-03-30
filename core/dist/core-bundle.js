@@ -5788,7 +5788,7 @@ exports.LiveDocumentRemote = LiveDocumentRemote;
 //    - CommandProcessor. The Master applies commands and then sends a copy to all Remote CommandProcessors.
 // 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveAttendanceSelection = exports.LiveClockStateSelection = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveAttendanceCommand = exports.LiveClockStateCommand = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = void 0;
+exports.LiveWorkoutFactory = exports.LiveWorkoutChannelFactoryPeer = exports.LiveAttendanceSelection = exports.LiveViewStateSelection = exports.LiveClockStateSelection = exports.LiveClockSpecSelection = exports.LiveResultsSelection = exports.LiveWhiteboardSelection = exports.LiveViewStateCommand = exports.LiveAttendanceCommand = exports.LiveClockStateCommand = exports.LiveClockSpecCommand = exports.LiveResultsCommand = exports.LiveWhiteboardCommand = exports.LiveWorkout = exports.EViewState = void 0;
 // This app, this component 
 const Logger_1 = __webpack_require__(/*! ./Logger */ "./dev/Logger.tsx");
 const StreamableTypes_1 = __webpack_require__(/*! ./StreamableTypes */ "./dev/StreamableTypes.tsx");
@@ -5798,12 +5798,19 @@ const LocalStore_1 = __webpack_require__(/*! ./LocalStore */ "./dev/LocalStore.t
 const LiveCommand_1 = __webpack_require__(/*! ./LiveCommand */ "./dev/LiveCommand.tsx");
 const GymClock_1 = __webpack_require__(/*! ./GymClock */ "./dev/GymClock.tsx");
 var logger = new Logger_1.LoggerFactory().createLogger(Logger_1.ELoggerType.Client, true);
+var EViewState;
+(function (EViewState) {
+    EViewState[EViewState["Whiteboard"] = 0] = "Whiteboard";
+    EViewState[EViewState["CoachVideo"] = 1] = "CoachVideo";
+    EViewState[EViewState["ParticipaintVideo"] = 2] = "ParticipaintVideo";
+})(EViewState = exports.EViewState || (exports.EViewState = {}));
+;
 ////////////////////////////////////////
 // LiveWorkout - class to represents the entire state of a workout. 
 // Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
 ////////////////////////////////////////
 class LiveWorkout {
-    constructor(whiteboardText, resultsText, clockSpec, clockState, attendances, outbound, channel) {
+    constructor(whiteboardText, resultsText, clockSpec, clockState, attendances, viewState, outbound, channel) {
         this._outbound = outbound;
         if (channel)
             this._channel = channel;
@@ -5812,6 +5819,7 @@ class LiveWorkout {
         this._clockSpec = clockSpec;
         this._clockState = clockState;
         this._attendances = attendances.splice(0);
+        this._viewState = viewState;
     }
     createCommandProcessor() {
         return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
@@ -5859,6 +5867,13 @@ class LiveWorkout {
             }
         }
     }
+    // Getter and setter for view state
+    get viewState() {
+        return this._viewState;
+    }
+    set viewState(viewState) {
+        this._viewState = viewState;
+    }
     // type is read only
     get type() {
         return LiveWorkout.__type;
@@ -5872,7 +5887,8 @@ class LiveWorkout {
                 this._resultsText === workout._resultsText &&
                 this._clockSpec.equals(workout._clockSpec) &&
                 this._clockState.equals(workout._clockState) &&
-                this._attendances.equals(workout._attendances));
+                this._attendances.equals(workout._attendances) &&
+                this._viewState === workout._viewState);
         }
         else
             return false;
@@ -5887,6 +5903,7 @@ class LiveWorkout {
             this._clockSpec = workout._clockSpec;
             this._clockState = workout._clockState;
             this._attendances = workout._attendances.splice(0);
+            this._viewState = workout._viewState;
         }
     }
     /**
@@ -5901,7 +5918,8 @@ class LiveWorkout {
                 _resultsText: this._resultsText,
                 _clockSpec: this._clockSpec,
                 _clockState: this._clockState,
-                _attendances: this._attendances
+                _attendances: this._attendances,
+                _viewState: this._viewState
             }
         };
     }
@@ -5929,7 +5947,7 @@ class LiveWorkout {
         for (var i = 0; i < data._attendances.length; i++) {
             attendances[i] = Person_1.PersonAttendance.revive(data._attendances[i]);
         }
-        return new LiveWorkout(data._whiteboardText, data._resultsText, GymClock_1.GymClockSpec.revive(data._clockSpec), GymClock_1.GymClockState.revive(data._clockState), attendances);
+        return new LiveWorkout(data._whiteboardText, data._resultsText, GymClock_1.GymClockSpec.revive(data._clockSpec), GymClock_1.GymClockState.revive(data._clockState), attendances, data._viewState);
     }
     ;
 }
@@ -6314,6 +6332,83 @@ class LiveAttendanceCommand {
 exports.LiveAttendanceCommand = LiveAttendanceCommand;
 LiveAttendanceCommand.__type = "LiveAttendanceCommand";
 ////////////////////////////////////////
+// LiveViewStateCommand - class to represents command on the view state within a workout.
+////////////////////////////////////////
+class LiveViewStateCommand {
+    constructor(next, prior) {
+        this._selection = new LiveViewStateSelection(); // This command always has the same selection - the entire whiteboard.
+        this._next = next;
+        this._prior = prior; // Caller has to make sure this === current state at time of calling.
+        // Otherwise can lead to problems when commands are copied around between sessions
+    }
+    // type is read only
+    get type() {
+        return LiveViewStateCommand.__type;
+    }
+    selection() {
+        return this._selection;
+    }
+    applyTo(document) {
+        // Since we downcast, need to check type
+        if (document.type === LiveWorkout.__type) {
+            var wo = document;
+            // Verify that the document has not changed since the command was created
+            // In theory benigh since all commands are idempotent, but must be a logic error, so log it.
+            // Note we only compare state, since the tick count can drift between participants
+            if (this._prior !== wo.viewState) {
+                logger.logError(LiveViewStateCommand.__type, 'applyTo', 'Error, current document state != prior from command:' + this._prior, wo.viewState);
+            }
+            wo.viewState = this._next;
+        }
+    }
+    reverseFrom(document) {
+        // Since we downcast, need to check type
+        if (document.type == LiveWorkout.__type) {
+            var wo = document;
+            wo.viewState = this._prior;
+        }
+    }
+    canReverse() {
+        return true;
+    }
+    /**
+        * Method that serializes to JSON
+        */
+    toJSON() {
+        return {
+            __type: LiveViewStateCommand.__type,
+            // write out as id and attributes per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+            attributes: {
+                _next: this._next,
+                _prior: this._prior
+            }
+        };
+    }
+    ;
+    /**
+     * Method that can deserialize JSON into an instance
+     * @param data - the JSON data to revove from
+     */
+    static revive(data) {
+        // revive data from 'attributes' per JSON API spec http://jsonapi.org/format/#document-resource-object-attributes
+        if (data.attributes)
+            return LiveViewStateCommand.reviveDb(data.attributes);
+        else
+            return LiveViewStateCommand.reviveDb(data);
+    }
+    ;
+    /**
+    * Method that can deserialize JSON into an instance
+    * @param data - the JSON data to revove from
+    */
+    static reviveDb(data) {
+        return new LiveViewStateCommand(data._next, data._prior);
+    }
+    ;
+}
+exports.LiveViewStateCommand = LiveViewStateCommand;
+LiveViewStateCommand.__type = "LiveViewStateCommand";
+////////////////////////////////////////
 // LiveWhiteboardSelection - Class to represent the 'selection' of the whiteboard within a Workout document.
 ////////////////////////////////////////
 class LiveWhiteboardSelection {
@@ -6357,6 +6452,17 @@ class LiveClockStateSelection {
     }
 }
 exports.LiveClockStateSelection = LiveClockStateSelection;
+////////////////////////////////////////
+// LiveViewStateSelection - Class to represent the 'selection' of the view within a Workout document.
+////////////////////////////////////////
+class LiveViewStateSelection {
+    constructor() {
+    }
+    type() {
+        return "LiveViewStateSelection";
+    }
+}
+exports.LiveViewStateSelection = LiveViewStateSelection;
 ////////////////////////////////////////
 // LiveParticipationListSelection - Class to represent the 'state' of the partipation list within a Workout document.
 ////////////////////////////////////////
@@ -6479,7 +6585,7 @@ class LiveWorkoutFactory {
         }
         else
             clockState = new GymClock_1.GymClockState(GymClock_1.EGymClockState.Stopped, 0);
-        return new LiveWorkout(storedWorkout, resultsText, clockSpec, clockState, new Array(), outbound, channel);
+        return new LiveWorkout(storedWorkout, resultsText, clockSpec, clockState, new Array(), EViewState.Whiteboard, outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;
@@ -8211,7 +8317,7 @@ class RunnableClock {
      */
     constructor(clockSpec) {
         this._clockSpec = clockSpec;
-        this._clockStateEnum = GymClock_1.EGymClockState.Stopped;
+        this._clockState = GymClock_1.EGymClockState.Stopped;
         this._secondsCounted = 0;
         this._startTime = new Date();
         this._targetRunInSeconds = 0;
@@ -8233,7 +8339,7 @@ class RunnableClock {
         return this._clockSpec;
     }
     get stateEnum() {
-        return this._clockStateEnum;
+        return this._clockState;
     }
     get secondsCounted() {
         return this._secondsCounted;
@@ -8245,7 +8351,7 @@ class RunnableClock {
      */
     equals(rhs) {
         return (this._clockSpec.equals(rhs._clockSpec)
-            && this._clockStateEnum == rhs._clockStateEnum
+            && this._clockState == rhs._clockState
             && this._secondsCounted === rhs._secondsCounted
             && this._startTime.getTime() === rhs._startTime.getTime()
             && this._targetRunInSeconds === rhs._targetRunInSeconds
@@ -8257,9 +8363,9 @@ class RunnableClock {
         if (secondsPlayed)
             this._secondsCounted = secondsPlayed;
         if (this._secondsCounted >= countDownSeconds)
-            this._clockStateEnum = GymClock_1.EGymClockState.Running;
+            this._clockState = GymClock_1.EGymClockState.Running;
         else
-            this._clockStateEnum = GymClock_1.EGymClockState.CountingDown;
+            this._clockState = GymClock_1.EGymClockState.CountingDown;
         this._targetRunInSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
         if (this._intervalId) {
             clearInterval(this._intervalId);
@@ -8282,7 +8388,7 @@ class RunnableClock {
             clearInterval(this._intervalId);
             this._intervalId = null;
         }
-        this._clockStateEnum = GymClock_1.EGymClockState.Stopped;
+        this._clockState = GymClock_1.EGymClockState.Stopped;
         this._secondsCounted = 0;
         this._targetRunInSeconds = calculateCountToSeconds(this._clockSpec.durationEnum);
         if (this._audio && this._userAllowsAudio)
@@ -8298,7 +8404,7 @@ class RunnableClock {
         }
         if (this._audio && this._userAllowsAudio)
             this._audio.pause();
-        this._clockStateEnum = GymClock_1.EGymClockState.Paused;
+        this._clockState = GymClock_1.EGymClockState.Paused;
     }
     ;
     mute() {
@@ -8325,14 +8431,14 @@ class RunnableClock {
         now = new Date();
         seconds = (now.getTime() - this._startTime.getTime()) / 1000;
         this._secondsCounted = seconds;
-        if (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown
+        if (this._clockState === GymClock_1.EGymClockState.CountingDown
             && seconds < countDownSeconds) {
             mm = Math.floor((countDownSeconds - seconds) / 60);
             ss = Math.floor(countDownSeconds - (mm * 60) - seconds);
         }
         else {
-            if (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown) {
-                this._clockStateEnum = GymClock_1.EGymClockState.Running;
+            if (this._clockState === GymClock_1.EGymClockState.CountingDown) {
+                this._clockState = GymClock_1.EGymClockState.Running;
             }
             // Switch from floor to Ceil to compensate for passing zero in common across count down then count up
             mm = Math.floor((seconds - countDownSeconds) / 60);
@@ -8348,28 +8454,28 @@ class RunnableClock {
     }
     ;
     isRunning() {
-        return (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
-            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
+        return (this._clockState === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockState === GymClock_1.EGymClockState.Running);
     }
     ;
     canPause() {
-        return (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
-            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
+        return (this._clockState === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockState === GymClock_1.EGymClockState.Running);
     }
     ;
     canStop() {
-        return (this._clockStateEnum === GymClock_1.EGymClockState.Paused)
-            || (this._clockStateEnum === GymClock_1.EGymClockState.CountingDown)
-            || (this._clockStateEnum === GymClock_1.EGymClockState.Running);
+        return (this._clockState === GymClock_1.EGymClockState.Paused)
+            || (this._clockState === GymClock_1.EGymClockState.CountingDown)
+            || (this._clockState === GymClock_1.EGymClockState.Running);
     }
     ;
     canStart() {
-        return (this._clockStateEnum === GymClock_1.EGymClockState.Paused)
-            || (this._clockStateEnum === GymClock_1.EGymClockState.Stopped);
+        return (this._clockState === GymClock_1.EGymClockState.Paused)
+            || (this._clockState === GymClock_1.EGymClockState.Stopped);
     }
     ;
     saveToState() {
-        return new GymClock_1.GymClockState(this._clockStateEnum, this._secondsCounted);
+        return new GymClock_1.GymClockState(this._clockState, this._secondsCounted);
     }
     ;
     loadFromState(state, callbackFn) {
@@ -8575,6 +8681,7 @@ class StreamableTypes {
         this._types.LiveClockStateCommand = LiveWorkout_1.LiveClockStateCommand;
         this._types.LiveUndoCommand = LiveCommand_1.LiveUndoCommand;
         this._types.LiveAttendanceCommand = LiveWorkout_1.LiveAttendanceCommand;
+        this._types.LiveViewStateCommand = LiveWorkout_1.LiveViewStateCommand;
     }
     isObjectKey(key) {
         let keyNum = Number(key);
@@ -8932,11 +9039,13 @@ var EntryPoints = {
     LiveUndoCommand: LiveCommand_1.LiveUndoCommand,
     LiveDocumentChannelFactoryStub: LiveChannel_1.LiveDocumentChannelFactoryStub,
     LiveWorkout: LiveWorkout_1.LiveWorkout,
+    EViewState: LiveWorkout_1.EViewState,
     LiveWhiteboardCommand: LiveWorkout_1.LiveWhiteboardCommand,
     LiveResultsCommand: LiveWorkout_1.LiveResultsCommand,
     LiveClockSpecCommand: LiveWorkout_1.LiveClockSpecCommand,
     LiveClockStateCommand: LiveWorkout_1.LiveClockStateCommand,
     LiveAttendanceCommand: LiveWorkout_1.LiveAttendanceCommand,
+    LiveViewStateCommand: LiveWorkout_1.LiveViewStateCommand,
     LiveDocumentMaster: LiveDocumentCentral_1.LiveDocumentMaster,
     LiveDocumentRemote: LiveDocumentCentral_1.LiveDocumentRemote,
     LiveWorkoutChannelFactoryPeer: LiveWorkout_1.LiveWorkoutChannelFactoryPeer,

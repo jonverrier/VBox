@@ -14,8 +14,10 @@ import { StreamableTypes } from '../../core/dev/StreamableTypes'
 import { IStreamable } from '../../core/dev/Streamable';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
-import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand} from '../../core/dev/LiveWorkout';
+import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand } from '../../core/dev/LiveWorkout';
+import { PeerConnection } from '../../core/dev/PeerConnection';
 import { cmnNoMarginPad, cmnToolButtonStyle } from './CommonStylesUI';
+import { RemoteWhiteboard, MasterWhiteboard } from './WhiteboardUI';
 
 export interface IRemoteCallProps {
    commandProcessor: ICommandProcessor;
@@ -64,25 +66,29 @@ export class RemoteCall extends React.Component<IRemoteCallProps, IRemoteCallSta
       this.setState({ userAllowsMicCamera: true });
    }
 
-
    render() {
       return (
-         <Container style={cmnNoMarginPad}>
-            <Row style={cmnNoMarginPad}>
-               <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
-                  title="Don't play sound from the video call through my speakers."
-                  disabled={!this.state.userAllowsMicCamera}
-                  onClick={this.mute.bind(this)}>
-                  <i className="fa fa-volume-off" style={cmnToolButtonStyle}></i>
-               </Button>
-               <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
-                  title="Let Coach control sound from the video call through my speakers."
-                  disabled={this.state.userAllowsMicCamera}
-                  onClick={this.unMute.bind(this)}>
-                  <i className="fa fa-volume-up" style={cmnToolButtonStyle}></i>
-               </Button>           
-            </Row>
-         </Container>
+         <div>
+            <Container style={cmnNoMarginPad}>
+               <Row style={cmnNoMarginPad}>
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Don't play sound from the video call through my speakers."
+                     disabled={!this.state.userAllowsMicCamera}
+                     onClick={this.mute.bind(this)}>
+                     <i className="fa fa-volume-off" style={cmnToolButtonStyle}></i>
+                  </Button>
+                  <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
+                     title="Let Coach control sound from the video call through my speakers."
+                     disabled={this.state.userAllowsMicCamera}
+                     onClick={this.unMute.bind(this)}>
+                     <i className="fa fa-volume-up" style={cmnToolButtonStyle}></i>
+                  </Button>           
+               </Row>
+            </Container>
+            <RemoteWhiteboard
+               commandProcessor={this.props.commandProcessor}
+               liveWorkout={this.props.liveWorkout}> </RemoteWhiteboard>
+         </div>
       );
    }
 }
@@ -91,6 +97,7 @@ interface IMasterCallProps {
    commandProcessor: ICommandProcessor;
    liveWorkout: LiveWorkout;
    allowEdit: boolean;
+   peerConnection: PeerConnection;
 }
 
 interface IMasterCallState {
@@ -151,7 +158,10 @@ export class MasterCall extends React.Component<IMasterCallProps, IMasterCallSta
                      <i className="fa fa-users" style={cmnToolButtonStyle}></i>
                   </Button>
                </Row>
-            </Container>           
+            </Container>
+            <MasterWhiteboard allowEdit={this.props.allowEdit} peerConnection={this.props.peerConnection}
+               commandProcessor={this.props.commandProcessor}
+               liveWorkout={(this.props.liveWorkout)}> </MasterWhiteboard>
          </div>);
    }
 }

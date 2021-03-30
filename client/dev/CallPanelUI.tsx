@@ -18,6 +18,7 @@ import { Person } from '../../core/dev/Person';
 import { EThreeStateSwitchEnum } from '../../core/dev/Enum';
 import { ParticipantSmall, ParticipantCaption } from './ParticipantUI';
 import { PeerConnection } from '../../core/dev/PeerConnection';
+import { LiveWorkout } from '../../core/dev/LiveWorkout';
 import { cmnNoMarginPad } from './CommonStylesUI';
 
 const thinishStyle: CSS.Properties = {
@@ -25,7 +26,7 @@ const thinishStyle: CSS.Properties = {
 };
 
 export interface IRemoteConnectionProps {
-   peers: PeerConnection;
+   peerConnection: PeerConnection;
 }
 
 interface IRemoteConnectionStatusState {
@@ -102,8 +103,8 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
    }
 
    onInterval() : void {
-      const serverStatus: boolean = this.props.peers.isConnectedToServer();
-      const coachStatus: boolean = this.props.peers.isConnectedToLeader();
+      const serverStatus: boolean = this.props.peerConnection.isConnectedToServer();
+      const coachStatus: boolean = this.props.peerConnection.isConnectedToLeader();
       var overallStatus: EThreeStateSwitchEnum = overallStatusFromTwo(serverStatus, coachStatus);
 
       this.setState({ overallStatus: overallStatus, serverStatus: serverStatus, coachStatus: coachStatus });
@@ -157,13 +158,13 @@ export class RemoteConnectionStatus extends React.Component<IRemoteConnectionPro
 }
 
 export interface IMasterConnectionProps {
-   peers: PeerConnection;
+   peerConnection: PeerConnection;
+   liveWorkout: LiveWorkout;
 }
 
 interface IMasterConnectionStatusState {
    overallStatus: EThreeStateSwitchEnum;
    serverStatus: boolean;
-   members: Array<Person>;
    memberStatuses: Array<boolean>;
    intervalId: number;
 }
@@ -173,16 +174,11 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
    constructor(props: IMasterConnectionProps) {
       super(props);
 
-      if (props.peers)
-         props.peers.addRemoteDataListener(this.onData.bind(this));
-
-      var members = new Array();
-      var memberStatuses = new Array();
+      var memberStatuses = new Array<boolean>();
 
       this.state = {
          overallStatus: EThreeStateSwitchEnum.Indeterminate,
          serverStatus: false,
-         members: members,
          memberStatuses: memberStatuses, 
          intervalId: null
       };
@@ -199,44 +195,32 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       }
    }
 
-   onData(ev: Person) {
-      if (ev.type === Person.__type) {
-
-         var members = this.state.members;
-         members.push(ev);
-
-         var memberStatuses = this.state.memberStatuses;
-         var memberStatus: boolean = this.props.peers.isConnectedToMember(ev.name);
-         memberStatuses.push(memberStatus);
-
-         this.setState({ members: members, memberStatuses: memberStatuses});
-      }
-   }
-
    onInterval() : void {
 
       // First build up the overall status & get the status for the server link
-      const serverStatus: boolean = this.props.peers.isConnectedToServer();
+      const serverStatus: boolean = this.props.peerConnection.isConnectedToServer();
       var worstLinkStatus: boolean = true;
+      let attendeances = this.props.liveWorkout.attendances;
+      var linkStatuses: Array<boolean> = new Array<boolean>(attendeances.length);
 
-      for (var i: number = 0; i < this.state.members.length && worstLinkStatus === true; i++) {
-         if (! this.props.peers.isConnectedToMember (this.state.members[i].name)) {
-            worstLinkStatus = false;
+      for (var i: number = 0; i < attendeances.length && worstLinkStatus === true; i++) {
+
+         // Only check status for remote people
+         if (this.props.peerConnection.person.name !== attendeances[i].person.name) {
+
+            let thisLinkStatus = this.props.peerConnection.isConnectedToMember(attendeances[i].person.name);
+
+            if (!thisLinkStatus) {
+               worstLinkStatus = false;
+            }
+            linkStatuses[i] = thisLinkStatus;
          }
-      }
-
-      // Then in a second pass, get all the link statuses
-      // Could do all in one pass but not likely to be a relevant gain
-      var memberStatuses = this.state.memberStatuses;
-
-      for (var i: number = 0; i < this.state.members.length; i++) {
-         memberStatuses[i] = this.props.peers.isConnectedToMember(this.state.members[i].name);
       }
 
       this.setState({
          overallStatus: overallStatusFromTwo(serverStatus, worstLinkStatus),
          serverStatus: serverStatus,
-         memberStatuses: memberStatuses
+         memberStatuses: linkStatuses
       });
    }
 
@@ -260,8 +244,8 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       if (!this.state.serverStatus)
          isServer = true;
 
-      for (var i: number = 0; i < this.state.members.length; i++) {
-         if (!this.props.peers.isConnectedToMember(this.state.members[i].name))
+      for (var i: number = 0; i < this.state.memberStatuses.length; i++) {
+         if (!this.state.memberStatuses[i])
             isMember = true;
       }
 
@@ -278,7 +262,7 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
 
    detailedStatusList() {
 
-      if (this.state.members.length === 0) {
+      if (this.state.memberStatuses.length === 0) {
          return (<Dropdown.Menu align="right">
             <Dropdown.ItemText style={thinishStyle}>
                {participant(overallStatusFromOne(this.state.serverStatus), "Web", "Connected to Web.", "Sorry, cannot connect to Web.", false)}
@@ -292,9 +276,12 @@ export class MasterConnectionStatus extends React.Component<IMasterConnectionPro
       
       var items: Array<any> = new Array();
 
-      for (var i = 0; i < this.state.members.length; i++) {
-         var item = { key: i, name: this.state.members[i].name, status: this.state.memberStatuses[i] };
-         items.push(item);
+      for (var i = 0; i < this.state.memberStatuses.length; i++) {
+         // Only check status for remote people
+         if (this.props.peerConnection.person.name !== this.props.liveWorkout.attendances[i].person.name) {
+            var item = { key: i, name: this.props.liveWorkout.attendances[i].person.name, status: this.state.memberStatuses[i] };
+            items.push(item);
+         }
       }
 
       return (
