@@ -23,6 +23,7 @@ export interface IRemotePeopleProps {
 
 interface IRemotePeopleState {
    people: Array<Person>;
+   isMounted: boolean;
 }
 
 export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeopleState> {
@@ -33,23 +34,35 @@ export class RemotePeople extends React.Component<IRemotePeopleProps, IRemotePeo
       props.commandProcessor.addChangeListener(this.onChange.bind(this));
 
       var people = new Array<Person>();
-      this.state = { people: people }
+      this.state = { people: people, isMounted: false };
+   }
+
+   componentDidMount() {
+      // Allow data display from master
+      this.setState({ isMounted: true });
+   }
+
+   componentWillUnmount() {
+      // Stop data display from master
+      this.setState({ isMounted: false });
    }
 
    onChange(doc: ILiveDocument, cmd?: ICommand) {
 
-      if ((!cmd && doc.type === LiveWorkout.__type)
-         || (cmd && cmd.type === LiveAttendanceCommand.__type)) {
+      if (this.state.isMounted) {
+         if ((!cmd && doc.type === LiveWorkout.__type)
+            || (cmd && cmd.type === LiveAttendanceCommand.__type)) {
 
-         // Either a new document or a change to the list of people
-         var workout: LiveWorkout = doc as LiveWorkout;
-         let people = new Array<Person>();
+            // Either a new document or a change to the list of people
+            var workout: LiveWorkout = doc as LiveWorkout;
+            let people = new Array<Person>();
 
-         for (var i = 0; i < workout.attendances.length; i++) {
-            people.push(workout.attendances[i].person);
+            for (var i = 0; i < workout.attendances.length; i++) {
+               people.push(workout.attendances[i].person);
+            }
+
+            this.setState({ people: people });
          }
-
-         this.setState({ people: people });
       }
    }
 
@@ -89,6 +102,7 @@ export interface IMasterPeopleProps {
 
 interface IMasterPeopleState {
    people: Array<Person>;
+   isMounted: boolean;
 }
 
 export class MasterPeople extends React.Component<IMasterPeopleProps, IMasterPeopleState> {
@@ -102,12 +116,22 @@ export class MasterPeople extends React.Component<IMasterPeopleProps, IMasterPeo
       props.commandProcessor.addChangeListener(this.onChange.bind(this));
 
       var people = new Array<Person>();
-      this.state = { people: people }
+      this.state = { people: people, isMounted: false };
 
       // add ourselves to the attendee list in the document
       var attendance = new PersonAttendance(null, props.peerConnection.person, new Date());
       let command = new LiveAttendanceCommand(attendance, attendance);
       this.props.commandProcessor.adoptAndApply(command);
+   }
+
+   componentDidMount() {
+      // Allow data display from master
+      this.setState({ isMounted: true });
+   }
+
+   componentWillUnmount() {
+      // Stop data display from master
+      this.setState({ isMounted: false });
    }
 
    onRemoteData(ev: IStreamable) {
@@ -124,18 +148,20 @@ export class MasterPeople extends React.Component<IMasterPeopleProps, IMasterPeo
 
    onChange(doc: ILiveDocument, cmd?: ICommand) {
 
-      if ((!cmd && doc.type === LiveWorkout.__type)
-         || (cmd && cmd.type === LiveAttendanceCommand.__type)) {
+      if (this.state.isMounted) {
+         if ((!cmd && doc.type === LiveWorkout.__type)
+            || (cmd && cmd.type === LiveAttendanceCommand.__type)) {
 
-         // Either a new document or a change to the list of people
-         var workout: LiveWorkout = doc as LiveWorkout;
-         let people = new Array<Person>();
+            // Either a new document or a change to the list of people
+            var workout: LiveWorkout = doc as LiveWorkout;
+            let people = new Array<Person>();
 
-         for (var i = 0; i < workout.attendances.length; i++) {
-            people.push(workout.attendances[i].person);
+            for (var i = 0; i < workout.attendances.length; i++) {
+               people.push(workout.attendances[i].person);
+            }
+
+            this.setState({ people: people });
          }
-
-         this.setState({ people: people });
       }
    }
 

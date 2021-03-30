@@ -18,9 +18,7 @@ import { Easel, MicMute, FileMusic, Clock, Wallet2, Binoculars} from 'react-boot
 
 // Additional packages
 import { Helmet } from 'react-helmet';
-import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom'; 
 import axios from 'axios';
-import * as CSS from 'csstype';
 
 // This app, other library
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';

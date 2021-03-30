@@ -62,6 +62,8 @@
     <TypeScriptCompile Include="dev\MemberUI.tsx" />
     <TypeScriptCompile Include="dev\ParticipantUI.tsx" />
     <TypeScriptCompile Include="dev\ClientUrl.tsx" />
+    <TypeScriptCompile Include="dev\PeopleUI.tsx" />
+    <TypeScriptCompile Include="dev\VideoUI.tsx" />
     <TypeScriptCompile Include="dev\WhiteboardUI.tsx" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />

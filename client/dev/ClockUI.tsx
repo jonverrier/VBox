@@ -11,8 +11,6 @@ import Button from 'react-bootstrap/Button';
 import * as CSS from 'csstype';
 
 import { EGymClockDuration, EGymClockMusic, EGymClockState, GymClockSpec, GymClockState } from '../../core/dev/GymClock';
-import { StreamableTypes } from '../../core/dev/StreamableTypes'
-import { IStreamable } from '../../core/dev/Streamable';
 import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand} from '../../core/dev/LiveWorkout';
@@ -51,27 +49,29 @@ export class RemoteClock extends React.Component<IRemoteClockProps, IRemoteClock
       };
    }
 
-   onChange(doc: ILiveDocument, cmd?: ICommand) : void {
-      if ((!cmd && doc.type === LiveWorkout.__type)
-         || (cmd && cmd.type === LiveClockSpecCommand.__type)) {
+   onChange(doc: ILiveDocument, cmd?: ICommand): void {
+      if (this.state.isMounted) {
+         if ((!cmd && doc.type === LiveWorkout.__type)
+            || (cmd && cmd.type === LiveClockSpecCommand.__type)) {
 
-         // Either a new document or a new clock type
-         var workout: LiveWorkout = doc as LiveWorkout;
+            // Either a new document or a new clock type
+            var workout: LiveWorkout = doc as LiveWorkout;
 
-         // Stop current clock if it is going
-         if (this.state.clock && this.state.clock.isRunning())
-            this.state.clock.stop();
+            // Stop current clock if it is going
+            if (this.state.clock && this.state.clock.isRunning())
+               this.state.clock.stop();
 
-         // replace with a new one matching the spec
-         let clock = new RunnableClock(workout.clockSpec);
-         this.setState({ clock: clock });
+            // replace with a new one matching the spec
+            let clock = new RunnableClock(workout.clockSpec);
+            this.setState({ clock: clock });
 
-         // Synch our running clock with the document state
-         this.onClockStateChange(doc, cmd);
-      }
+            // Synch our running clock with the document state
+            this.onClockStateChange(doc, cmd);
+         }
 
-      if (cmd && cmd.type === LiveClockStateCommand.__type) {
-         this.onClockStateChange(doc, cmd);
+         if (cmd && cmd.type === LiveClockStateCommand.__type) {
+            this.onClockStateChange(doc, cmd);
+         }
       }
    }
 

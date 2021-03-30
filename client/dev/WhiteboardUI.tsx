@@ -8,14 +8,11 @@ import Form from 'react-bootstrap/Form';
 import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
 
-import * as CSS from 'csstype';
-
 import { IStreamable } from '../../core/dev/Streamable';
 import { Person } from '../../core/dev/Person';
 import { PeerConnection } from '../../core/dev/PeerConnection';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout, LiveWhiteboardCommand, LiveResultsCommand, LiveWorkoutFactory } from '../../core/dev/LiveWorkout';
-import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import {
    cmnNoMarginPad, cmnThinMarginPad, cmnToolButtonStyle, cmnDialogButtonStyle, cmnOffsetDialogButtonStyle, cmnOffsetDialogFieldStyle, cmnNoMarginCentreStyle,
    whiteboardStyle, whiteboardHeaderStyle, whiteboardElementHeaderStyle, whiteboardElementBodyStyle} from './CommonStylesUI';
@@ -70,6 +67,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
    render() {
       return (
          <div style={whiteboardStyle}>
+         <Container style={cmnNoMarginPad}>
             <Row style={cmnNoMarginPad}>
                <Col style={whiteboardHeaderStyle}>
                   {((new Date()) as any).getWeekDay() /* Uses the extra method in DateHook */}
@@ -87,6 +85,7 @@ export class RemoteWhiteboard extends React.Component<IRemoteWhiteboardProps, IR
                      value={this.state.resultsText}> </RemoteWhiteboardElement>
                </Col>
             </Row>
+         </Container>
          </div>
       );
    }
@@ -150,7 +149,6 @@ interface IMasterWhiteboardElementState {
 export class MasterWhiteboard extends React.Component<IMasterWhiteboardProps, IMasterWhiteboardState> {
    //member variables
    state: IMasterWhiteboardState;
-   storedWorkoutState: StoredWorkoutState;
 
    constructor(props: IMasterWhiteboardProps) {
       super(props);

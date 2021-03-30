@@ -24,18 +24,10 @@ import * as CSS from 'csstype';
 
 // This app, other library
 import { LoggerFactory, ELoggerType } from '../../core/dev/Logger';
-import { Person } from '../../core/dev/Person';
-import { Facility } from '../../core/dev/Facility';
-import { UserFacilities } from '../../core/dev/UserFacilities';
 import { DateHook } from '../../core/dev/DateHook';
 import { ArrayHook } from '../../core/dev/ArrayHook';
-import { PeerConnection } from '../../core/dev/PeerConnection';
-import { LiveDocumentMaster, LiveDocumentRemote } from '../../core/dev/LiveDocumentCentral';
-import { LiveWorkoutFactory, LiveWorkoutChannelFactoryPeer, LiveWorkout } from '../../core/dev/LiveWorkout';
-import { StoredMeetingState } from '../../core/dev/LocalStore';
 
 // This app, this component
-import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { LandingPage } from './LandingUI';
 import { MemberPage } from './MemberUI';
 import { CoachPage } from './CoachUI';

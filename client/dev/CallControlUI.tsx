@@ -4,20 +4,14 @@ import * as React from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Collapse from 'react-bootstrap/Collapse';
 import Button from 'react-bootstrap/Button';
 
-import * as CSS from 'csstype';
-
-import { StreamableTypes } from '../../core/dev/StreamableTypes'
-import { IStreamable } from '../../core/dev/Streamable';
-import { StoredWorkoutState } from '../../core/dev/LocalStore';
 import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
-import { LiveWorkout, LiveClockSpecCommand, LiveClockStateCommand } from '../../core/dev/LiveWorkout';
+import { LiveWorkout, LiveViewStateCommand, EViewState} from '../../core/dev/LiveWorkout';
 import { PeerConnection } from '../../core/dev/PeerConnection';
 import { cmnNoMarginPad, cmnToolButtonStyle } from './CommonStylesUI';
 import { RemoteWhiteboard, MasterWhiteboard } from './WhiteboardUI';
+import { RemoteCoachVideo, MasterCoachVideo } from './VideoUI';
 
 export interface IRemoteCallProps {
    commandProcessor: ICommandProcessor;
@@ -27,6 +21,7 @@ export interface IRemoteCallProps {
 export interface IRemoteCallState {
    isMounted: boolean;
    userAllowsMicCamera: boolean;
+   viewState: EViewState;
 }
 
 export class RemoteCall extends React.Component<IRemoteCallProps, IRemoteCallState> {
@@ -39,13 +34,24 @@ export class RemoteCall extends React.Component<IRemoteCallProps, IRemoteCallSta
       props.commandProcessor.addChangeListener(this.onChange.bind(this));
 
       this.state = {
-         isMounted : false,
+         isMounted: false,
+         viewState: EViewState.Whiteboard,
          userAllowsMicCamera: false
       };
    }
 
    onChange(doc: ILiveDocument, cmd?: ICommand) : void {
       // TODO - add logic for call change commd execution
+      if (this.state.isMounted) {
+         if ((!cmd && doc.type === LiveWorkout.__type)
+            || (cmd && cmd.type === LiveViewStateCommand.__type)) {
+
+            // Either a new document or a new view state 
+            var workout: LiveWorkout = doc as LiveWorkout;
+
+            this.setState({ viewState: workout.viewState });
+         }
+      }
    }
 
    componentDidMount() {
@@ -85,9 +91,12 @@ export class RemoteCall extends React.Component<IRemoteCallProps, IRemoteCallSta
                   </Button>           
                </Row>
             </Container>
-            <RemoteWhiteboard
-               commandProcessor={this.props.commandProcessor}
-               liveWorkout={this.props.liveWorkout}> </RemoteWhiteboard>
+            {this.state.viewState === EViewState.Whiteboard ?
+               <RemoteWhiteboard
+                  commandProcessor={this.props.commandProcessor}
+                  liveWorkout={this.props.liveWorkout}> </RemoteWhiteboard>
+               : <RemoteCoachVideo
+                  liveWorkout={this.props.liveWorkout}></RemoteCoachVideo>}
          </div>
       );
    }
@@ -102,18 +111,19 @@ interface IMasterCallProps {
 
 interface IMasterCallState {
    userAllowsMicCamera: boolean;
+   viewState: EViewState;
 }
 
 export class MasterCall extends React.Component<IMasterCallProps, IMasterCallState> {
    //member variables
    state: IMasterCallState;
-   storedWorkoutState: StoredWorkoutState = new StoredWorkoutState();
 
    constructor(props: IMasterCallProps) {
       super(props);
 
       this.state = {
-         userAllowsMicCamera: false
+         userAllowsMicCamera: false,
+         viewState: EViewState.Whiteboard
       };
    }
 
@@ -123,6 +133,20 @@ export class MasterCall extends React.Component<IMasterCallProps, IMasterCallSta
 
    unMute(): void {
       this.setState({ userAllowsMicCamera: true });
+   }
+
+   whiteboard(): void {
+      // Change the view state in our document
+      let command = new LiveViewStateCommand(EViewState.Whiteboard, this.props.liveWorkout.viewState);
+      this.props.commandProcessor.adoptAndApply(command);
+      this.setState({ viewState: EViewState.Whiteboard });
+   }
+
+   coachVideo(): void {
+      // Change the view state in our document
+      let command = new LiveViewStateCommand(EViewState.CoachVideo, this.props.liveWorkout.viewState);
+      this.props.commandProcessor.adoptAndApply(command);
+      this.setState({ viewState: EViewState.CoachVideo });
    }
 
    render() {
@@ -144,11 +168,15 @@ export class MasterCall extends React.Component<IMasterCallProps, IMasterCallSta
                   </Button>
                   <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
                      title="Participants see the whiteboard."
+                     disabled={(this.props.liveWorkout.viewState === EViewState.Whiteboard)}
+                     onClick={this.whiteboard.bind(this)}
                      >
                      <i className="fa fa-television" style={cmnToolButtonStyle}></i>
                   </Button>
                   <Button variant="secondary" size="sm" style={cmnToolButtonStyle}
                      title="Participants see video of me."
+                     disabled={(this.props.liveWorkout.viewState === EViewState.CoachVideo)}
+                     onClick={this.coachVideo.bind(this)}
                      > 
                      <i className="fa fa-user" style={cmnToolButtonStyle}></i>
                   </Button>
@@ -159,9 +187,12 @@ export class MasterCall extends React.Component<IMasterCallProps, IMasterCallSta
                   </Button>
                </Row>
             </Container>
-            <MasterWhiteboard allowEdit={this.props.allowEdit} peerConnection={this.props.peerConnection}
-               commandProcessor={this.props.commandProcessor}
-               liveWorkout={(this.props.liveWorkout)}> </MasterWhiteboard>
+            {this.state.viewState === EViewState.Whiteboard ?
+               <MasterWhiteboard allowEdit={this.props.allowEdit} peerConnection={this.props.peerConnection}
+                  commandProcessor={this.props.commandProcessor}
+                  liveWorkout={(this.props.liveWorkout)}> </MasterWhiteboard>
+               : <MasterCoachVideo
+                  liveWorkout={this.props.liveWorkout}></MasterCoachVideo>}            
          </div>);
    }
 }

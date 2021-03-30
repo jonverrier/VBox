@@ -18,7 +18,6 @@ import Form from 'react-bootstrap/Form';
 
 // Additional packages
 import { Helmet } from 'react-helmet';
-import { BrowserRouter, Route, Redirect, Switch } from 'react-router-dom'; 
 import axios from 'axios';
 import * as CSS from 'csstype';
 
@@ -35,7 +34,6 @@ import { StoredMeetingState } from '../../core/dev/LocalStore';
 // This app, this component
 import { LoginOauthProvider } from './LoginOauth';
 import { LoginMeetCodeData } from './LoginMeetingCode';
-import { Media } from './Media';
 import { ParticipantBanner, ParticipantSmall } from './ParticipantUI';
 import { MasterConnectionStatus } from './CallPanelUI';
 import { LeaderResolve } from './LeaderResolveUI';
