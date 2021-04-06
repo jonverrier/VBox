@@ -37,6 +37,7 @@ export class LiveWorkout implements ILiveDocument {
 
    static readonly __type: string = "LiveWorkout";
 
+   private _meetingId: string;
    private _whiteboardText: string;
    private _resultsText: string;
    private _clockSpec: GymClockSpec;
@@ -46,7 +47,8 @@ export class LiveWorkout implements ILiveDocument {
    private _channel: ILiveDocumentChannel | undefined;
    private _outbound: boolean | undefined;
 
-   constructor(whiteboardText: string,
+   constructor(meetingId: string,
+      whiteboardText: string,
       resultsText: string,
       clockSpec: GymClockSpec,
       clockState: GymClockState,
@@ -56,6 +58,7 @@ export class LiveWorkout implements ILiveDocument {
       this._outbound = outbound;
       if (channel)
          this._channel = channel;
+      this._meetingId = meetingId;
       this._whiteboardText = whiteboardText;
       this._resultsText = resultsText;
       this._clockSpec = clockSpec;
@@ -66,6 +69,17 @@ export class LiveWorkout implements ILiveDocument {
 
    createCommandProcessor(): ICommandProcessor {
       return new LiveCommandProcessor(this, this._outbound, this._channel);
+   }
+
+
+   // meetingId is read only
+   get meetingId(): string {
+      return this._meetingId;
+   }
+
+   // type is read only
+   get type(): string {
+      return LiveWorkout.__type;
    }
 
    // Getter and setter for whitebard text
@@ -117,11 +131,6 @@ export class LiveWorkout implements ILiveDocument {
    }
    set viewState(viewState: EViewState) {
       this._viewState = viewState;
-   }
-
-   // type is read only
-   get type(): string {
-      return LiveWorkout.__type;
    }
 
    // test for equality
@@ -201,7 +210,8 @@ export class LiveWorkout implements ILiveDocument {
          attendances[i] = PersonAttendance.revive(data._attendances[i]);
       }
 
-      return new LiveWorkout(data._whiteboardText,
+      return new LiveWorkout(data._meetingId,
+         data._whiteboardText,
          data._resultsText,
          GymClockSpec.revive(data._clockSpec),
          GymClockState.revive(data._clockState),
@@ -943,7 +953,7 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
    constructor() {
    }
 
-   createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument {
+   createLiveDocument(meetingId: string, outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument {
 
       // Use cached copy of the workout if there is one
       let storedWorkoutState = new StoredWorkoutState();
@@ -985,7 +995,8 @@ export class LiveWorkoutFactory implements ILiveDocumentFactory {
       } else
          clockState = new GymClockState(EGymClockState.Stopped, 0);
 
-      return new LiveWorkout(storedWorkout,
+      return new LiveWorkout(meetingId,
+         storedWorkout,
          resultsText,
          clockSpec,
          clockState,

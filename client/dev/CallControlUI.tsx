@@ -96,6 +96,7 @@ export class RemoteCall extends React.Component<IRemoteCallProps, IRemoteCallSta
                   commandProcessor={this.props.commandProcessor}
                   liveWorkout={this.props.liveWorkout}> </RemoteWhiteboard>
                : <RemoteCoachVideo
+                  commandProcessor={this.props.commandProcessor}
                   liveWorkout={this.props.liveWorkout}></RemoteCoachVideo>}
          </div>
       );
@@ -191,7 +192,8 @@ export class MasterCall extends React.Component<IMasterCallProps, IMasterCallSta
                <MasterWhiteboard allowEdit={this.props.allowEdit} peerConnection={this.props.peerConnection}
                   commandProcessor={this.props.commandProcessor}
                   liveWorkout={(this.props.liveWorkout)}> </MasterWhiteboard>
-               : <MasterCoachVideo
+             : <MasterCoachVideo
+                  commandProcessor={this.props.commandProcessor}
                   liveWorkout={this.props.liveWorkout}></MasterCoachVideo>}            
          </div>);
    }

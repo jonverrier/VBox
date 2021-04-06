@@ -2,10 +2,12 @@
 
 import * as React from 'react';
 
+import { ICommand, ICommandProcessor, ILiveDocument } from '../../core/dev/LiveInterfaces';
 import { LiveWorkout} from '../../core/dev/LiveWorkout';
 
 export interface IRemoteCoachVideoProps {
    liveWorkout: LiveWorkout;
+   commandProcessor: ICommandProcessor;
 }
 
 export interface IRemoteCoachVideoState {
@@ -18,9 +20,17 @@ export class RemoteCoachVideo extends React.Component<IRemoteCoachVideoProps, IR
    constructor(props: IRemoteCoachVideoProps) {
       super(props);
 
+      // watch for changes being made on our document
+      props.commandProcessor.addChangeListener(this.onChange.bind(this));
+
       this.state = {
          isMounted: false
       };
+   }
+
+   onChange(doc: ILiveDocument, cmd?: ICommand): void {
+      if (this.state.isMounted) {
+      }
    }
 
    componentDidMount() {
@@ -44,6 +54,7 @@ export class RemoteCoachVideo extends React.Component<IRemoteCoachVideoProps, IR
 
 interface IMasterCoachVideoProps {
    liveWorkout: LiveWorkout;
+   commandProcessor: ICommandProcessor;
 }
 
 interface IMasterCoachVideoState {
