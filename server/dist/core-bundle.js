@@ -5722,7 +5722,7 @@ class LiveDocumentConnection {
         this._localPerson = localPerson;
         this._localCallParticipation = localCallParticipation;
         this._channel = outbound ? channelFactory.createConnectionOut() : channelFactory.createConnectionIn();
-        this._document = documentFactory.createLiveDocument(outbound, this._channel);
+        this._document = documentFactory.createLiveDocument(localCallParticipation.meetingId, outbound, this._channel);
         this._commandProcessor = this._document.createCommandProcessor();
         // If we are outbound, when there is a new joiner, send them the document
         if (outbound) {
@@ -5810,10 +5810,11 @@ var EViewState;
 // Contains the workout brief(whiteboard), results, clock spec, clock state, call state.
 ////////////////////////////////////////
 class LiveWorkout {
-    constructor(whiteboardText, resultsText, clockSpec, clockState, attendances, viewState, outbound, channel) {
+    constructor(meetingId, whiteboardText, resultsText, clockSpec, clockState, attendances, viewState, outbound, channel) {
         this._outbound = outbound;
         if (channel)
             this._channel = channel;
+        this._meetingId = meetingId;
         this._whiteboardText = whiteboardText;
         this._resultsText = resultsText;
         this._clockSpec = clockSpec;
@@ -5823,6 +5824,14 @@ class LiveWorkout {
     }
     createCommandProcessor() {
         return new LiveCommand_1.LiveCommandProcessor(this, this._outbound, this._channel);
+    }
+    // meetingId is read only
+    get meetingId() {
+        return this._meetingId;
+    }
+    // type is read only
+    get type() {
+        return LiveWorkout.__type;
     }
     // Getter and setter for whitebard text
     get whiteboardText() {
@@ -5873,10 +5882,6 @@ class LiveWorkout {
     }
     set viewState(viewState) {
         this._viewState = viewState;
-    }
-    // type is read only
-    get type() {
-        return LiveWorkout.__type;
     }
     // test for equality
     // Only tests content fields - excludes channel etc
@@ -5947,7 +5952,7 @@ class LiveWorkout {
         for (var i = 0; i < data._attendances.length; i++) {
             attendances[i] = Person_1.PersonAttendance.revive(data._attendances[i]);
         }
-        return new LiveWorkout(data._whiteboardText, data._resultsText, GymClock_1.GymClockSpec.revive(data._clockSpec), GymClock_1.GymClockState.revive(data._clockState), attendances, data._viewState);
+        return new LiveWorkout(data._meetingId, data._whiteboardText, data._resultsText, GymClock_1.GymClockSpec.revive(data._clockSpec), GymClock_1.GymClockState.revive(data._clockState), attendances, data._viewState);
     }
     ;
 }
@@ -6555,7 +6560,7 @@ exports.LiveWorkoutChannelFactoryPeer = LiveWorkoutChannelFactoryPeer;
 class LiveWorkoutFactory {
     constructor() {
     }
-    createLiveDocument(outbound, channel) {
+    createLiveDocument(meetingId, outbound, channel) {
         // Use cached copy of the workout if there is one
         let storedWorkoutState = new LocalStore_1.StoredWorkoutState();
         let storedWorkout = storedWorkoutState.loadWorkout();
@@ -6588,7 +6593,7 @@ class LiveWorkoutFactory {
         }
         else
             clockState = new GymClock_1.GymClockState(GymClock_1.EGymClockState.Stopped, 0);
-        return new LiveWorkout(storedWorkout, resultsText, clockSpec, clockState, new Array(), EViewState.Whiteboard, outbound, channel);
+        return new LiveWorkout(meetingId, storedWorkout, resultsText, clockSpec, clockState, new Array(), EViewState.Whiteboard, outbound, channel);
     }
 }
 exports.LiveWorkoutFactory = LiveWorkoutFactory;

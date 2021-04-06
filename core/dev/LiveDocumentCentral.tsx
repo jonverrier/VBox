@@ -27,7 +27,7 @@ class LiveDocumentConnection {
    _channel: ILiveDocumentChannel;
 
    constructor(localPerson: Person,
-      localCallParticipation,
+      localCallParticipation: CallParticipation,
       outbound: boolean,
       channelFactory: ILiveDocumentChannelFactory,
       documentFactory: ILiveDocumentFactory) {
@@ -36,7 +36,7 @@ class LiveDocumentConnection {
       this._localCallParticipation = localCallParticipation;
 
       this._channel = outbound ? channelFactory.createConnectionOut() : channelFactory.createConnectionIn();
-      this._document = documentFactory.createLiveDocument(outbound, this._channel);
+      this._document = documentFactory.createLiveDocument(localCallParticipation.meetingId, outbound, this._channel);
       this._commandProcessor = this._document.createCommandProcessor();
 
       // If we are outbound, when there is a new joiner, send them the document

@@ -17,7 +17,7 @@ import { CallParticipation } from './Call';
 
 export interface ILiveDocumentFactory {
 
-   createLiveDocument(outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument;
+   createLiveDocument(meetingId: string, outbound: boolean, channel: ILiveDocumentChannel): ILiveDocument;
 }
 
 export interface ILiveDocumentChannelFactory {
